@@ -112,10 +112,10 @@
 
 ## 13. Component Tests — Svelte
 
-- [ ] 13.1 Write `src/components/Keyboard.test.js`: render Keyboard, assert exactly 25 key elements present
-- [ ] 13.2 Test that pointerdown on a key adds active attribute/class; pointerup removes it
-- [ ] 13.3 Write `src/components/Knob.test.js`: render Knob with known default, fire dblclick, assert change event emitted with default value
-- [ ] 13.4 Test that upward pointermove after pointerdown emits change event with value greater than initial
+- [x] 13.1 Write `src/components/Keyboard.test.js`: render Keyboard, assert exactly 25 key elements present
+- [x] 13.2 Test that pointerdown on a key adds active attribute/class; pointerup removes it
+- [x] 13.3 Write `src/components/Knob.test.js`: render Knob with known default, fire dblclick, assert change event emitted with default value
+- [x] 13.4 Test that upward pointermove after pointerdown emits change event with value greater than initial
 
 ## 14. Mutation Testing — Stryker
 
