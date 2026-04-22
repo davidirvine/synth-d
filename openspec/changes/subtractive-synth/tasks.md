@@ -72,13 +72,13 @@
 
 ## 9. Keyboard Component
 
-- [ ] 9.1 Create `src/components/Keyboard.svelte` with 25-key layout data (MIDI notes C3–C5)
-- [ ] 9.2 Render white keys as tall rectangles, black keys as shorter overlapping rectangles in SVG or HTML/CSS
-- [ ] 9.3 Apply Moog palette: white keys #dddddd, black keys #1a1a1a, active amber #c87941
-- [ ] 9.4 Implement `pointerdown` / `pointerup` / `pointerleave` handlers on each key
-- [ ] 9.5 Import `QWERTY_MAP` from keyboard.js; add `keydown` / `keyup` window listeners; suppress key-repeat with a pressed-set tracker
-- [ ] 9.6 Call `buildNoteOnMessages` from keyboard.js on each new note; dispatch resulting messages to engine in order
-- [ ] 9.7 Apply octave transpose offset to all MIDI notes before computing freq
+- [x] 9.1 Create `src/components/Keyboard.svelte` with 25-key layout data (MIDI notes C3–C5)
+- [x] 9.2 Render white keys as tall rectangles, black keys as shorter overlapping rectangles in SVG or HTML/CSS
+- [x] 9.3 Apply Moog palette: white keys #dddddd, black keys #1a1a1a, active amber #c87941
+- [x] 9.4 Implement `pointerdown` / `pointerup` / `pointerleave` handlers on each key
+- [x] 9.5 Import `QWERTY_MAP` from keyboard.js; add `keydown` / `keyup` window listeners; suppress key-repeat with a pressed-set tracker
+- [x] 9.6 Call `buildNoteOnMessages` from keyboard.js on each new note; dispatch resulting messages to engine in order
+- [x] 9.7 Apply octave transpose offset to all MIDI notes before computing freq
 
 ## 10. Synth Panels
 
