@@ -100,15 +100,15 @@
 
 ## 12. Unit Tests — Pure Functions
 
-- [ ] 12.1 Write `src/audio/math.test.js`: test `mtof(69)===440`, `mtof(81)===880`, octave doubling relationship
-- [ ] 12.2 Test log knob curve at pos=0 (min), pos=1 (max), pos=0.5 (geometric mean ~632Hz for cutoff)
-- [ ] 12.3 Test linear knob curve at pos=0, pos=0.5, pos=1
-- [ ] 12.4 Test round-trip: `normalizedToValue(valueToNormalized(v, min, max, scale), min, max, scale) ≈ v`
-- [ ] 12.5 Write `src/audio/filterGains.test.js`: test `filterGains(0)` → `{lp:1,bp:0,hp:0}`, `filterGains(1)` → `{lp:0,bp:1,hp:0}`, `filterGains(2)` → `{lp:0,bp:0,hp:1}`
-- [ ] 12.6 Test crossfade midpoints: `filterGains(0.5)` → `{lp:0.5,bp:0.5,hp:0}`, `filterGains(1.5)` → `{lp:0,bp:0.5,hp:0.5}`
-- [ ] 12.7 Write `src/audio/keyboard.test.js`: test `QWERTY_MAP['z']` maps to lowest C, `QWERTY_MAP['s']` is one semitone higher
-- [ ] 12.8 Test `buildNoteOnMessages` when not active returns `[{param:'freq', value:f}, {param:'gate', value:1}]`
-- [ ] 12.9 Test `buildNoteOnMessages` when already active returns gate=0 message before gate=1 (retrigger order)
+- [x] 12.1 Write `src/audio/math.test.js`: test `mtof(69)===440`, `mtof(81)===880`, octave doubling relationship
+- [x] 12.2 Test log knob curve at pos=0 (min), pos=1 (max), pos=0.5 (geometric mean ~632Hz for cutoff)
+- [x] 12.3 Test linear knob curve at pos=0, pos=0.5, pos=1
+- [x] 12.4 Test round-trip: `normalizedToValue(valueToNormalized(v, min, max, scale), min, max, scale) ≈ v`
+- [x] 12.5 Write `src/audio/filterGains.test.js`: test `filterGains(0)` → `{lp:1,bp:0,hp:0}`, `filterGains(1)` → `{lp:0,bp:1,hp:0}`, `filterGains(2)` → `{lp:0,bp:0,hp:1}`
+- [x] 12.6 Test crossfade midpoints: `filterGains(0.5)` → `{lp:0.5,bp:0.5,hp:0}`, `filterGains(1.5)` → `{lp:0,bp:0.5,hp:0.5}`
+- [x] 12.7 Write `src/audio/keyboard.test.js`: test `QWERTY_MAP['z']` maps to lowest C, `QWERTY_MAP['s']` is one semitone higher
+- [x] 12.8 Test `buildNoteOnMessages` when not active returns `[{param:'freq', value:f}, {param:'gate', value:1}]`
+- [x] 12.9 Test `buildNoteOnMessages` when already active returns gate=0 message before gate=1 (retrigger order)
 
 ## 13. Component Tests — Svelte
 
