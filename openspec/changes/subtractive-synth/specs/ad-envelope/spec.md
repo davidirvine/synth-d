@@ -44,12 +44,16 @@ Each envelope instance SHALL expose independent attack and decay time parameters
 ---
 
 ### Requirement: Filter envelope amount control
-The filter envelope instance SHALL expose an envelope amount parameter (0–10,000Hz, logarithmic) controlling how much the envelope modulates the filter cutoff.
+The filter envelope instance SHALL expose a bipolar envelope amount parameter (linear, −10,000Hz–+10,000Hz, default 0Hz) controlling how much the envelope modulates the filter cutoff. Positive values raise the cutoff; negative values lower it.
 
 #### Scenario: Zero envelope amount
-- **WHEN** filter envelope amount is 0
+- **WHEN** filter envelope amount is 0Hz (center)
 - **THEN** filter cutoff is unaffected by the envelope regardless of attack/decay settings
 
-#### Scenario: Maximum envelope amount
-- **WHEN** filter envelope amount is at maximum
-- **THEN** envelope adds up to 10,000Hz to the base cutoff at peak
+#### Scenario: Positive envelope amount
+- **WHEN** filter envelope amount is set to a positive value
+- **THEN** the effective cutoff rises above the base cutoff at envelope peak, then returns as the envelope decays
+
+#### Scenario: Negative envelope amount
+- **WHEN** filter envelope amount is set to a negative value
+- **THEN** the effective cutoff drops below the base cutoff at envelope peak, then returns as the envelope decays

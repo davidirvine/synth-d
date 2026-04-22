@@ -59,9 +59,9 @@ The system SHALL extract all math-critical logic into pure, side-effect-free fun
 - **WHEN** the QWERTY map is queried for key `"s"`
 - **THEN** the returned MIDI note is one semitone above the Z key note
 
-#### Scenario: Retrigger sends gate=0 before gate=1
-- **WHEN** `noteOn` is called while a note is already active
-- **THEN** the engine receives `gate=0` followed by `gate=1` in that order, with freq set before the gate transitions
+#### Scenario: Legato sends only freq when active
+- **WHEN** `buildNoteOnMessages` is called while a note is already active
+- **THEN** only a freq message is returned; no gate messages are sent (legato behavior)
 
 ---
 
@@ -91,7 +91,7 @@ The system SHALL test Svelte component behavior using `@testing-library/svelte` 
 ---
 
 ### Requirement: Mutation testing runs on math-critical modules with Stryker
-The system SHALL configure Stryker with the `@stryker-mutator/vitest-runner` plugin to mutation-test the following modules: `src/audio/math.js` (knob curves, mtof), `src/audio/filterGains.js` (crossfade gains), `src/audio/keyboard.js` (QWERTY map, retrigger logic). A minimum mutation score of 85% SHALL be required to pass.
+The system SHALL configure Stryker with the `@stryker-mutator/vitest-runner` plugin to mutation-test the following modules: `src/audio/math.js` (knob curves, mtof), `src/audio/filterGains.js` (crossfade gains), `src/audio/keyboard.js` (QWERTY map, legato logic). A minimum mutation score of 85% SHALL be required to pass.
 
 Mutation testing SHALL NOT be run on Svelte component files, engine.js (AudioWorklet I/O), or FAUST DSP source — these are excluded from the Stryker configuration.
 
@@ -111,9 +111,9 @@ Mutation testing SHALL NOT be run on Svelte component files, engine.js (AudioWor
 - **WHEN** `max(0, 1 - mode)` lpGain formula has the subtraction mutated to addition
 - **THEN** the LP boundary test (mode=0 → lpGain=1) or crossfade test fails (mutant is killed)
 
-#### Scenario: Deletion mutation killed in retrigger
-- **WHEN** the `gate=0` statement in the retrigger path is deleted
-- **THEN** the retrigger ordering test fails (mutant is killed)
+#### Scenario: Branch mutation killed in legato path
+- **WHEN** the `currentlyActive` branch in `buildNoteOnMessages` is mutated to always return the two-message path
+- **THEN** the legato test (expects one message when active) fails (mutant is killed)
 
 ---
 

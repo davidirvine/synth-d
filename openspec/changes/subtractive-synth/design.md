@@ -12,7 +12,7 @@ Key constraint: all audio processing happens in a Web Audio AudioWorklet on a de
 - Two independent AD envelopes with musically correct one-shot behavior
 - Continuous filter mode crossfade (LP/BP/HP) rather than hard switching
 - Moog-aesthetic UI with reusable rotary knob component
-- QWERTY keyboard + visual piano keyboard with retrigger
+- QWERTY keyboard + visual piano keyboard with legato behavior
 - Precompile FAUST DSP locally; ship static assets only
 
 **Non-Goals:**
@@ -67,7 +67,7 @@ UI event (knob/key)
 
 **Rationale**: True AD behavior — the envelope is a one-shot event, not a sustained gate. Teaches the correct mental model of envelope-as-event vs. gate-as-level. `en.ar` is attack-release; using it with a one-shot trigger gives AD semantics.
 
-**Retrigger**: New key press generates a new rising edge → envelope restarts. In FAUST this is automatic because the trigger signal goes 0→1 again.
+**Legato**: New key press updates frequency only — no gate pulse is sent. The FAUST rising-edge detector exists in the DSP but is unused for note-to-note transitions; legato avoids clicks on rapid presses.
 
 ---
 
@@ -114,7 +114,7 @@ Shift key reduces drag sensitivity by 10×. Double-click resets to default.
 
 **fi.svf API signature uncertainty** → Mitigation: Verify against FAUST stdlib source before writing DSP. The SVF may need explicit signal routing syntax.
 
-**FAUST en.ar with one-shot trigger: envelope may not fully reset on rapid retrigger** → Mitigation: Test retrigger behavior at short attack times. If needed, implement a custom AD envelope with explicit phase reset.
+**FAUST en.ar with one-shot trigger: envelope behavior on initial key press verified correct.** Legato note transitions do not trigger the envelope, so rapid-retrigger reset is not a concern.
 
 **Knob drag on trackpad vs. mouse** → Mitigation: Use `movementY` from `pointerlockchange` or accumulate `clientY` delta. Test on both input types.
 
@@ -129,5 +129,5 @@ Rollback: not applicable for a new project.
 ## Open Questions
 
 - Exact `fi.svf` argument order and output routing in current FAUST stdlib version — verify before writing DSP.
-- Whether `en.ar` resets cleanly on rapid retrigger or needs a custom implementation.
+- Resolved: legato behavior was chosen, so rapid-retrigger envelope reset is not required.
 - Octave transpose range on the oscillator panel — ±2 octaves is a reasonable starting point.

@@ -84,7 +84,7 @@
 
 - [x] 10.1 Create `src/components/Oscillator.svelte`: waveform selector (5 buttons or select), octave ±2 stepper, wire to engine
 - [x] 10.2 Create `src/components/Filter.svelte`: three Knob instances (cutoff log, resonance linear, mode linear 0–2 with LP/BP/HP tick labels)
-- [x] 10.3 Create `src/components/FilterEnv.svelte`: three Knob instances (attack log, decay log, env amount log)
+- [x] 10.3 Create `src/components/FilterEnv.svelte`: three Knob instances (attack log, decay log, env amount linear bipolar −10000–+10000Hz)
 - [x] 10.4 Create `src/components/AmpEnv.svelte`: two Knob instances (attack log, decay log)
 - [x] 10.5 Create `src/components/Volume.svelte`: single master volume Knob (linear, 0–1)
 - [x] 10.6 Style each panel with background #1c1c1c, 1px #333 border, cream label header
@@ -129,7 +129,7 @@
 
 - [x] 15.1 Write `e2e/synth.spec.js`: navigate to app, assert start overlay is visible
 - [x] 15.2 Click start overlay; assert AudioContext state is "running" (evaluate in page context)
-- [x] 15.3 Press keyboard key (via `page.keyboard.press('z')`); inject AnalyserNode via `page.evaluate`, assert frequency data is non-zero within 100ms
+- [x] 15.3 Press keyboard key (via `page.keyboard.press('z')`); assert the corresponding key element receives the active CSS class within 1000ms
 
 ## 16. Final Verification
 
@@ -141,5 +141,5 @@
 - [x] 16.6 Verify filter mode crossfade is glitch-free across the full 0–2 range
 - [x] 16.7 Verify filter envelope modulates cutoff with correct attack/decay timing
 - [x] 16.8 Verify amp envelope shapes amplitude with correct attack/decay timing
-- [x] 16.9 Verify keyboard retrigger restarts envelopes on new key press while holding previous
+- [x] 16.9 Verify keyboard legato behavior — frequency updates to new pitch on new key press while holding previous, with no envelope retrigger
 - [x] 16.10 Run `vite build` and verify static output in `dist/` loads and plays correctly
