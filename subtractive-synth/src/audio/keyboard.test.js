@@ -38,6 +38,14 @@ describe('midiNotesForOctave', () => {
     expect(notes.length).toBe(25)
   })
 
+  it('offset=0 second note is MIDI 49', () => {
+    expect(midiNotesForOctave(0)[1]).toBe(49)
+  })
+
+  it('offset=0 last note is MIDI 72', () => {
+    expect(midiNotesForOctave(0)[24]).toBe(72)
+  })
+
   it('offset=1 shifts all notes up by 12', () => {
     const base = midiNotesForOctave(0)
     const shifted = midiNotesForOctave(1)

@@ -57,6 +57,12 @@ describe('normalizedToValue — linear scale', () => {
   it('interior point scales linearly', () => {
     expect(normalizedToValue(0.25, 0, 80, 'linear')).toBeCloseTo(20, 5)
   })
+
+  it('works correctly with non-zero min', () => {
+    expect(normalizedToValue(0.5, 100, 200, 'linear')).toBeCloseTo(150, 5)
+    expect(normalizedToValue(0, 100, 200, 'linear')).toBeCloseTo(100, 5)
+    expect(normalizedToValue(1, 100, 200, 'linear')).toBeCloseTo(200, 5)
+  })
 })
 
 describe('valueToNormalized — log scale', () => {
@@ -85,6 +91,12 @@ describe('valueToNormalized — linear scale', () => {
 
   it('midpoint maps to 0.5', () => {
     expect(valueToNormalized(50, 0, 100, 'linear')).toBeCloseTo(0.5, 5)
+  })
+
+  it('works correctly with non-zero min', () => {
+    expect(valueToNormalized(150, 100, 200, 'linear')).toBeCloseTo(0.5, 5)
+    expect(valueToNormalized(100, 100, 200, 'linear')).toBeCloseTo(0, 5)
+    expect(valueToNormalized(200, 100, 200, 'linear')).toBeCloseTo(1, 5)
   })
 })
 
@@ -115,12 +127,28 @@ describe('formatValue', () => {
     expect(formatValue(2000, 'Hz')).toBe('2.0 kHz')
   })
 
+  it('formats exactly 1000 Hz as kHz (boundary >= 1000)', () => {
+    expect(formatValue(1000, 'Hz')).toBe('1.0 kHz')
+  })
+
+  it('formats 999 Hz as Hz (boundary below 1000)', () => {
+    expect(formatValue(999, 'Hz')).toBe('999 Hz')
+  })
+
   it('formats seconds < 1 as ms', () => {
     expect(formatValue(0.01, 's')).toBe('10 ms')
   })
 
   it('formats seconds >= 1 with two decimals', () => {
     expect(formatValue(1.5, 's')).toBe('1.50 s')
+  })
+
+  it('formats exactly 1.0 s as seconds not ms (boundary < 1)', () => {
+    expect(formatValue(1.0, 's')).toBe('1.00 s')
+  })
+
+  it('formats 0.999 s as ms', () => {
+    expect(formatValue(0.999, 's')).toBe('999 ms')
   })
 
   it('formats dimensionless values to two decimals', () => {

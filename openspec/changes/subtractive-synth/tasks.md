@@ -119,11 +119,11 @@
 
 ## 14. Mutation Testing — Stryker
 
-- [ ] 14.1 Run `npx stryker run` and inspect the HTML report for surviving mutants
-- [ ] 14.2 For each surviving mutant in math.js: add or tighten a test that kills it (typically an interior-point assertion)
-- [ ] 14.3 For each surviving mutant in filterGains.js: add boundary or midpoint test to kill it
-- [ ] 14.4 For each surviving mutant in keyboard.js: add assertion on ordering or specific mapping value
-- [ ] 14.5 Re-run Stryker; confirm mutation score ≥ 85% across all targeted modules
+- [x] 14.1 Run `npx stryker run` and inspect the HTML report for surviving mutants
+- [x] 14.2 For each surviving mutant in math.js: add or tighten a test that kills it (typically an interior-point assertion)
+- [x] 14.3 For each surviving mutant in filterGains.js: add boundary or midpoint test to kill it
+- [x] 14.4 For each surviving mutant in keyboard.js: add assertion on ordering or specific mapping value
+- [x] 14.5 Re-run Stryker; confirm mutation score ≥ 85% across all targeted modules
 
 ## 15. Playwright Smoke Tests
 
