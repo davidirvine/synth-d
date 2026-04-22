@@ -6,9 +6,13 @@ const PARAM_PREFIX = '/synth/'
 let ctx = null
 let node = null
 let active = false
+let initialized = false
 
-export async function initAudio() {
-  if (ctx) return
+export async function powerOn() {
+  if (initialized) {
+    await ctx.resume()
+    return
+  }
 
   ctx = new AudioContext()
   // Expose for Playwright smoke tests
@@ -22,6 +26,12 @@ export async function initAudio() {
 
   node = await generator.createNode(ctx, 'synth', factory)
   node.connect(ctx.destination)
+  initialized = true
+}
+
+export async function powerOff() {
+  if (!ctx) return
+  await ctx.suspend()
 }
 
 export function setParam(name, value) {

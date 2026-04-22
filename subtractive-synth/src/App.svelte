@@ -1,5 +1,5 @@
 <script>
-  import { initAudio, setParam } from './audio/engine.js'
+  import { powerOn, setParam } from './audio/engine.js'
   import Oscillator from './components/Oscillator.svelte'
   import Filter from './components/Filter.svelte'
   import FilterEnv from './components/FilterEnv.svelte'
@@ -10,7 +10,7 @@
   let started = $state(false)
 
   async function start() {
-    await initAudio()
+    await powerOn()
     started = true
   }
 
