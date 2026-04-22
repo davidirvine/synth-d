@@ -127,9 +127,9 @@
 
 ## 15. Playwright Smoke Tests
 
-- [ ] 15.1 Write `e2e/synth.spec.js`: navigate to app, assert start overlay is visible
-- [ ] 15.2 Click start overlay; assert AudioContext state is "running" (evaluate in page context)
-- [ ] 15.3 Press keyboard key (via `page.keyboard.press('z')`); inject AnalyserNode via `page.evaluate`, assert frequency data is non-zero within 100ms
+- [x] 15.1 Write `e2e/synth.spec.js`: navigate to app, assert start overlay is visible
+- [x] 15.2 Click start overlay; assert AudioContext state is "running" (evaluate in page context)
+- [x] 15.3 Press keyboard key (via `page.keyboard.press('z')`); inject AnalyserNode via `page.evaluate`, assert frequency data is non-zero within 100ms
 
 ## 16. Final Verification
 

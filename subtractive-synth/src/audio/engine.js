@@ -11,6 +11,8 @@ export async function initAudio() {
   if (ctx) return
 
   ctx = new AudioContext()
+  // Expose for Playwright smoke tests
+  if (typeof window !== 'undefined') window.__audioCtx = ctx
   await ctx.resume()
 
   const factory = await FaustWasmInstantiator.loadDSPFactory('/synth.wasm', '/synth.json')
