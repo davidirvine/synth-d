@@ -1,5 +1,7 @@
 <script>
-  let { onchange } = $props()
+  let { onchange } = /** @type {{ onchange?: (e: { param: string, value: number }) => void }} */ (
+    $props()
+  )
 
   const WAVEFORMS = ['sine', 'saw', 'square', 'tri', 'noise']
 

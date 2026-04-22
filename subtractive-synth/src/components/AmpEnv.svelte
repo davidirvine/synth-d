@@ -1,7 +1,9 @@
 <script>
   import Knob from './Knob.svelte'
 
-  let { onchange } = $props()
+  let { onchange } = /** @type {{ onchange?: (e: { param: string, value: number }) => void }} */ (
+    $props()
+  )
 </script>
 
 <div class="panel">

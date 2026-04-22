@@ -91,12 +91,12 @@
 
 ## 11. App Assembly and Start Overlay
 
-- [ ] 11.1 Assemble all panels in `src/App.svelte` in order: Oscillator | Filter | FilterEnv | AmpEnv | Volume
-- [ ] 11.2 Place Keyboard component below panels spanning full width
-- [ ] 11.3 Implement start overlay: full-screen #111 with centered "CLICK TO START" text in amber
-- [ ] 11.4 On overlay click: call `initAudio()`, dismiss overlay, enable all controls
-- [ ] 11.5 Wire all Knob `change` events to `setParam` calls with correct FAUST parameter paths
-- [ ] 11.6 Wire Keyboard `noteOn`/`noteOff` events to engine functions
+- [x] 11.1 Assemble all panels in `src/App.svelte` in order: Oscillator | Filter | FilterEnv | AmpEnv | Volume
+- [x] 11.2 Place Keyboard component below panels spanning full width
+- [x] 11.3 Implement start overlay: full-screen #111 with centered "CLICK TO START" text in amber
+- [x] 11.4 On overlay click: call `initAudio()`, dismiss overlay, enable all controls
+- [x] 11.5 Wire all Knob `change` events to `setParam` calls with correct FAUST parameter paths
+- [x] 11.6 Wire Keyboard `noteOn`/`noteOff` events to engine functions
 
 ## 12. Unit Tests — Pure Functions
 

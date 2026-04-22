@@ -6,23 +6,20 @@
     min = 0,
     max = 1,
     default: defaultValue = 0.5,
-    value = $bindable(),
+    value: initialValue = undefined,
     scale = 'linear',
     unit = '',
     onchange,
   } = $props()
 
-  if (value === undefined) value = defaultValue
+  // Intentional one-time init from prop; knob owns its state after mount
+  let value = $state(initialValue !== undefined ? initialValue : defaultValue)
 
   const SWEEP = 270
   const START_ANGLE = 135
   const CX = 24
   const CY = 24
   const R = 18
-
-  function angleForPos(pos) {
-    return START_ANGLE + pos * SWEEP
-  }
 
   function polarToXY(angleDeg, r) {
     const rad = ((angleDeg - 90) * Math.PI) / 180
@@ -42,8 +39,7 @@
   }
 
   let pos = $derived(valueToNormalized(value, min, max, scale))
-
-  let indicatorEnd = $derived(polarToXY(angleForPos(pos), R - 3))
+  let indicatorEnd = $derived(polarToXY(START_ANGLE + pos * SWEEP, R - 3))
 
   let dragging = false
   let lastY = 0
@@ -81,33 +77,28 @@
 <div class="knob-wrap">
   <span class="knob-label">{label}</span>
   <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <svg
-    width="48"
-    height="48"
-    viewBox="0 0 48 48"
-    class="knob-svg"
+  <div
+    class="knob-hit"
     onpointerdown={onPointerDown}
     onpointermove={onPointerMove}
     onpointerup={onPointerUp}
     ondblclick={onDblClick}
   >
-    <!-- track -->
-    <path d={arcPath(1)} class="track" fill="none" stroke-width="3" />
-    <!-- value arc -->
-    <path d={arcPath(pos)} class="arc" fill="none" stroke-width="3" />
-    <!-- knob body -->
-    <circle cx={CX} cy={CY} r="13" class="body" />
-    <!-- indicator -->
-    <line
-      x1={CX}
-      y1={CY}
-      x2={indicatorEnd.x}
-      y2={indicatorEnd.y}
-      class="indicator"
-      stroke-width="2"
-      stroke-linecap="round"
-    />
-  </svg>
+    <svg width="48" height="48" viewBox="0 0 48 48">
+      <path d={arcPath(1)} class="track" fill="none" stroke-width="3" />
+      <path d={arcPath(pos)} class="arc" fill="none" stroke-width="3" />
+      <circle cx={CX} cy={CY} r="13" class="body" />
+      <line
+        x1={CX}
+        y1={CY}
+        x2={indicatorEnd.x}
+        y2={indicatorEnd.y}
+        class="indicator"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+    </svg>
+  </div>
   <span class="knob-value">{formatValue(value, unit)}</span>
 </div>
 
@@ -132,7 +123,7 @@
     color: #888;
   }
 
-  .knob-svg {
+  .knob-hit {
     cursor: ns-resize;
     touch-action: none;
   }
