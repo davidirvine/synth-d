@@ -1,0 +1,86 @@
+<script>
+  import Knob from './Knob.svelte'
+
+  let { onchange } = $props()
+</script>
+
+<div class="panel">
+  <span class="panel-label">filter</span>
+  <div class="knob-row">
+    <Knob
+      label="cutoff"
+      min={20}
+      max={20000}
+      default={2000}
+      scale="log"
+      unit="Hz"
+      onchange={(e) => onchange?.({ param: 'cutoff', value: e.value })}
+    />
+    <Knob
+      label="res"
+      min={0}
+      max={1}
+      default={0.3}
+      scale="linear"
+      onchange={(e) => onchange?.({ param: 'resonance', value: e.value })}
+    />
+    <div class="mode-wrap">
+      <Knob
+        label="mode"
+        min={0}
+        max={2}
+        default={0}
+        scale="linear"
+        onchange={(e) => onchange?.({ param: 'filterMode', value: e.value })}
+      />
+      <div class="mode-ticks">
+        <span>lp</span>
+        <span>bp</span>
+        <span>hp</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .panel {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .panel-label {
+    font-size: 10px;
+    color: #e8dcc8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .knob-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .mode-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .mode-ticks {
+    display: flex;
+    justify-content: space-between;
+    width: 48px;
+  }
+
+  .mode-ticks span {
+    font-size: 9px;
+    color: #555;
+    text-transform: uppercase;
+  }
+</style>

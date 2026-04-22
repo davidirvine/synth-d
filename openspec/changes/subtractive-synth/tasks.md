@@ -82,12 +82,12 @@
 
 ## 10. Synth Panels
 
-- [ ] 10.1 Create `src/components/Oscillator.svelte`: waveform selector (5 buttons or select), octave ±2 stepper, wire to engine
-- [ ] 10.2 Create `src/components/Filter.svelte`: three Knob instances (cutoff log, resonance linear, mode linear 0–2 with LP/BP/HP tick labels)
-- [ ] 10.3 Create `src/components/FilterEnv.svelte`: three Knob instances (attack log, decay log, env amount log)
-- [ ] 10.4 Create `src/components/AmpEnv.svelte`: two Knob instances (attack log, decay log)
-- [ ] 10.5 Create `src/components/Volume.svelte`: single master volume Knob (linear, 0–1)
-- [ ] 10.6 Style each panel with background #1c1c1c, 1px #333 border, cream label header
+- [x] 10.1 Create `src/components/Oscillator.svelte`: waveform selector (5 buttons or select), octave ±2 stepper, wire to engine
+- [x] 10.2 Create `src/components/Filter.svelte`: three Knob instances (cutoff log, resonance linear, mode linear 0–2 with LP/BP/HP tick labels)
+- [x] 10.3 Create `src/components/FilterEnv.svelte`: three Knob instances (attack log, decay log, env amount log)
+- [x] 10.4 Create `src/components/AmpEnv.svelte`: two Knob instances (attack log, decay log)
+- [x] 10.5 Create `src/components/Volume.svelte`: single master volume Knob (linear, 0–1)
+- [x] 10.6 Style each panel with background #1c1c1c, 1px #333 border, cream label header
 
 ## 11. App Assembly and Start Overlay
 
