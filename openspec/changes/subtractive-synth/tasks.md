@@ -50,14 +50,14 @@
 
 ## 7. Audio Engine
 
-- [ ] 7.1 Create `src/audio/engine.js` — export `initAudio()`, `setParam(name, value)`, `noteOn(freq)`, `noteOff()`; import from math.js and keyboard.js
-- [ ] 7.2 Implement AudioContext creation deferred until first user gesture
-- [ ] 7.3 Register AudioWorklet module using the FAUST-generated JS wrapper
-- [ ] 7.4 Instantiate FAUST WASM DSP inside the worklet processor
-- [ ] 7.5 Implement `setParam` to post messages to worklet: `{ type: 'param', path, value }`
-- [ ] 7.6 Implement `noteOn(freq)`: use `buildNoteOnMessages` from keyboard.js; send freq then gate messages
-- [ ] 7.7 Implement `noteOff()`: send gate=0
-- [ ] 7.8 Connect AudioWorkletNode output to AudioContext destination
+- [x] 7.1 Create `src/audio/engine.js` — export `initAudio()`, `setParam(name, value)`, `noteOn(freq)`, `noteOff()`; import from math.js and keyboard.js
+- [x] 7.2 Implement AudioContext creation deferred until first user gesture
+- [x] 7.3 Register AudioWorklet module using the FAUST-generated JS wrapper
+- [x] 7.4 Instantiate FAUST WASM DSP inside the worklet processor
+- [x] 7.5 Implement `setParam` to post messages to worklet: `{ type: 'param', path, value }`
+- [x] 7.6 Implement `noteOn(freq)`: use `buildNoteOnMessages` from keyboard.js; send freq then gate messages
+- [x] 7.7 Implement `noteOff()`: send gate=0
+- [x] 7.8 Connect AudioWorkletNode output to AudioContext destination
 
 ## 8. Knob Component
 

@@ -34,5 +34,8 @@
     "svelte-eslint-parser": "^1.6.0",
     "vite": "^8.0.9",
     "vitest": "^4.1.5"
+  },
+  "dependencies": {
+    "@grame/faustwasm": "^0.16.1"
   }
 }
