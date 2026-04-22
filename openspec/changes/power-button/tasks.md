@@ -18,11 +18,11 @@
 
 ## 4. App Integration
 
-- [ ] 4.1 Remove the `started` state, `.overlay` markup, and `.overlay` / `.overlay-text` CSS from `App.svelte`
-- [ ] 4.2 Add `powered`, `loading` state variables and a header strip element above `.panels` in `App.svelte`
-- [ ] 4.3 Import and render `PowerButton` in the header strip; wire its `toggle` event to call `powerOn()` / `powerOff()`
-- [ ] 4.4 Add `inert` attribute and `opacity: 0.4` style to `<main>` when `powered` is false
-- [ ] 4.5 Run `npx eslint --fix src/App.svelte && npx prettier --write src/App.svelte`
+- [x] 4.1 Remove the `started` state, `.overlay` markup, and `.overlay` / `.overlay-text` CSS from `App.svelte`
+- [x] 4.2 Add `powered`, `loading` state variables and a header strip element above `.panels` in `App.svelte`
+- [x] 4.3 Import and render `PowerButton` in the header strip; wire its `toggle` event to call `powerOn()` / `powerOff()`
+- [x] 4.4 Add `inert` attribute and `opacity: 0.4` style to `<main>` when `powered` is false
+- [x] 4.5 Run `npx eslint --fix src/App.svelte && npx prettier --write src/App.svelte`
 
 ## 5. Tests
 

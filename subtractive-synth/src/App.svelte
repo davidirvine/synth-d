@@ -1,17 +1,26 @@
 <script>
-  import { powerOn, setParam } from './audio/engine.js'
+  import { powerOn, powerOff, setParam } from './audio/engine.js'
   import Oscillator from './components/Oscillator.svelte'
   import Filter from './components/Filter.svelte'
   import FilterEnv from './components/FilterEnv.svelte'
   import AmpEnv from './components/AmpEnv.svelte'
   import Volume from './components/Volume.svelte'
   import Keyboard from './components/Keyboard.svelte'
+  import PowerButton from './components/PowerButton.svelte'
 
-  let started = $state(false)
+  let powered = $state(false)
+  let loading = $state(false)
 
-  async function start() {
-    await powerOn()
-    started = true
+  async function handleToggle() {
+    if (powered) {
+      await powerOff()
+      powered = false
+    } else {
+      loading = true
+      await powerOn()
+      loading = false
+      powered = true
+    }
   }
 
   /** @param {{ param: string, value: number }} e */
@@ -27,41 +36,46 @@
   }
 </script>
 
-{#if !started}
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="overlay" onclick={start}>
-    <span class="overlay-text">CLICK TO START</span>
-  </div>
-{/if}
+<div class="app">
+  <header class="header">
+    <span class="title">SYNTH-1</span>
+    <PowerButton {powered} {loading} ontoggle={handleToggle} />
+  </header>
 
-<main class:hidden={!started}>
-  <div class="panels">
-    <Oscillator onchange={onParamChange} />
-    <Filter onchange={onParamChange} />
-    <FilterEnv onchange={onParamChange} />
-    <AmpEnv onchange={onParamChange} />
-    <Volume onchange={onParamChange} />
-  </div>
-  <Keyboard onnote={onKeyboardNote} />
-</main>
+  <main inert={!powered || undefined}>
+    <div class="panels" class:dimmed={!powered}>
+      <Oscillator onchange={onParamChange} />
+      <Filter onchange={onParamChange} />
+      <FilterEnv onchange={onParamChange} />
+      <AmpEnv onchange={onParamChange} />
+      <Volume onchange={onParamChange} />
+    </div>
+    <Keyboard onnote={onKeyboardNote} />
+  </main>
+</div>
 
 <style>
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: #111111;
+  .app {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 10;
+    flex-direction: column;
+    gap: 0;
   }
 
-  .overlay-text {
-    font-size: 24px;
-    color: #c87941;
-    letter-spacing: 0.2em;
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #1c1c1c;
+    border-bottom: 1px solid #333;
+  }
+
+  .title {
     font-family: monospace;
+    font-size: 16px;
+    font-weight: bold;
+    color: #e8dcc8;
+    letter-spacing: 0.2em;
   }
 
   main {
@@ -71,13 +85,14 @@
     gap: 16px;
   }
 
-  main.hidden {
-    visibility: hidden;
-  }
-
   .panels {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    transition: opacity 0.2s;
+  }
+
+  .panels.dimmed {
+    opacity: 0.4;
   }
 </style>
