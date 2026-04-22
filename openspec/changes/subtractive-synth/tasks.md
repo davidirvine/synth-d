@@ -1,13 +1,13 @@
 ## 1. Project Scaffold
 
-- [ ] 1.1 Create Svelte + Vite project with `npm create vite@latest subtractive-synth -- --template svelte`
-- [ ] 1.2 Remove Vite boilerplate (default Counter component, app.css reset, placeholder content)
-- [ ] 1.3 Create directory structure: `src/components/`, `src/audio/`, `faust/`, `public/`
-- [ ] 1.4 Add global CSS: background #111111, box-sizing border-box, monospace font stack
-- [ ] 1.5 Install dev dependencies: `vitest`, `@testing-library/svelte`, `@playwright/test`, `stryker`, `@stryker-mutator/vitest-runner`
-- [ ] 1.6 Configure Vitest in `vite.config.js` with jsdom environment for component tests
-- [ ] 1.7 Configure Stryker in `stryker.config.mjs`: target `src/audio/math.js`, `src/audio/filterGains.js`, `src/audio/keyboard.js`; exclude Svelte files and `engine.js`; set `thresholds.high: 85`
-- [ ] 1.8 Add `playwright.config.js` with single chromium project and `baseURL: http://localhost:5173`
+- [x] 1.1 Create Svelte + Vite project with `npm create vite@latest subtractive-synth -- --template svelte`
+- [x] 1.2 Remove Vite boilerplate (default Counter component, app.css reset, placeholder content)
+- [x] 1.3 Create directory structure: `src/components/`, `src/audio/`, `faust/`, `public/`
+- [x] 1.4 Add global CSS: background #111111, box-sizing border-box, monospace font stack
+- [x] 1.5 Install dev dependencies: `vitest`, `@testing-library/svelte`, `@playwright/test`, `stryker`, `@stryker-mutator/vitest-runner`
+- [x] 1.6 Configure Vitest in `vite.config.js` with jsdom environment for component tests
+- [x] 1.7 Configure Stryker in `stryker.config.mjs`: target `src/audio/math.js`, `src/audio/filterGains.js`, `src/audio/keyboard.js`; exclude Svelte files and `engine.js`; set `thresholds.high: 85`
+- [x] 1.8 Add `playwright.config.js` with single chromium project and `baseURL: http://localhost:5173`
 
 ## 2. FAUST DSP — Oscillator
 
