@@ -14,6 +14,7 @@
     max={1}
     default={0.75}
     scale="linear"
+    showValue={false}
     onchange={(e) => onchange?.({ param: 'masterVol', value: e.value })}
   />
 </div>

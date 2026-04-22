@@ -74,31 +74,29 @@ describe('buildNoteOnMessages — new note (not active)', () => {
     expect(msgs[msgs.length - 1].param).toBe('gate')
     expect(msgs[msgs.length - 1].value).toBe(1)
   })
-})
-
-describe('buildNoteOnMessages — retrigger (already active)', () => {
-  it('returns freq, gate=0, gate=1 for retrigger', () => {
-    const msgs = buildNoteOnMessages(440, true)
-    expect(msgs).toEqual([
-      { param: 'freq', value: 440 },
-      { param: 'gate', value: 0 },
-      { param: 'gate', value: 1 },
-    ])
-  })
-
-  it('gate=0 comes before gate=1 in retrigger', () => {
-    const msgs = buildNoteOnMessages(220, true)
-    const gateMessages = msgs.filter((m) => m.param === 'gate')
-    expect(gateMessages[0].value).toBe(0)
-    expect(gateMessages[1].value).toBe(1)
-  })
-
-  it('has exactly 3 messages on retrigger', () => {
-    expect(buildNoteOnMessages(330, true).length).toBe(3)
-  })
 
   it('has exactly 2 messages on new note', () => {
     expect(buildNoteOnMessages(330, false).length).toBe(2)
+  })
+})
+
+describe('buildNoteOnMessages — legato (already active)', () => {
+  it('returns only freq update when active (no gate pulse to avoid click)', () => {
+    const msgs = buildNoteOnMessages(440, true)
+    expect(msgs).toEqual([{ param: 'freq', value: 440 }])
+  })
+
+  it('has exactly 1 message when active', () => {
+    expect(buildNoteOnMessages(330, true).length).toBe(1)
+  })
+
+  it('freq value matches argument when active', () => {
+    expect(buildNoteOnMessages(220, true)[0].value).toBe(220)
+  })
+
+  it('no gate messages when active', () => {
+    const gateMessages = buildNoteOnMessages(440, true).filter((m) => m.param === 'gate')
+    expect(gateMessages.length).toBe(0)
   })
 })
 

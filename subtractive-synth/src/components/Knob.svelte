@@ -9,6 +9,9 @@
     value: initialValue = undefined,
     scale = 'linear',
     unit = '',
+    ticks = [],
+    showLabel = true,
+    showValue = true,
     onchange,
   } = $props()
 
@@ -16,7 +19,7 @@
   let value = $state(initialValue !== undefined ? initialValue : defaultValue)
 
   const SWEEP = 270
-  const START_ANGLE = 135
+  const START_ANGLE = 225
   const CX = 24
   const CY = 24
   const R = 18
@@ -24,6 +27,11 @@
   function polarToXY(angleDeg, r) {
     const rad = ((angleDeg - 90) * Math.PI) / 180
     return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) }
+  }
+
+  function tickXY(tick) {
+    const angle = START_ANGLE + tick.pos * SWEEP
+    return polarToXY(angle, tick.r ?? R + 10)
   }
 
   function arcPath(pos) {
@@ -75,7 +83,7 @@
 </script>
 
 <div class="knob-wrap">
-  <span class="knob-label">{label}</span>
+  <span class="knob-label" class:invisible={!showLabel}>{label}</span>
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="knob-hit"
@@ -84,7 +92,7 @@
     onpointerup={onPointerUp}
     ondblclick={onDblClick}
   >
-    <svg width="48" height="48" viewBox="0 0 48 48">
+    <svg width="48" height="48" viewBox="0 0 48 48" style="overflow: visible;">
       <path d={arcPath(1)} class="track" fill="none" stroke-width="3" />
       <path d={arcPath(pos)} class="arc" fill="none" stroke-width="3" />
       <circle cx={CX} cy={CY} r="13" class="body" />
@@ -97,9 +105,15 @@
         stroke-width="2"
         stroke-linecap="round"
       />
+      {#each ticks as tick (tick.label)}
+        {@const xy = tickXY(tick)}
+        <text x={xy.x} y={xy.y} class="tick-label" text-anchor="middle" dominant-baseline="middle"
+          >{tick.label}</text
+        >
+      {/each}
     </svg>
   </div>
-  <span class="knob-value">{formatValue(value, unit)}</span>
+  <span class="knob-value" class:invisible={!showValue}>{formatValue(value, unit)}</span>
 </div>
 
 <style>
@@ -123,6 +137,10 @@
     color: #888;
   }
 
+  .invisible {
+    visibility: hidden;
+  }
+
   .knob-hit {
     cursor: ns-resize;
     touch-action: none;
@@ -144,5 +162,14 @@
 
   .indicator {
     stroke: #c87941;
+  }
+
+  .tick-label {
+    font-size: 7px;
+    fill: #555;
+    font-family: monospace;
+    text-transform: uppercase;
+    pointer-events: none;
+    user-select: none;
   }
 </style>

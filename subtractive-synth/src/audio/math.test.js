@@ -135,6 +135,18 @@ describe('formatValue', () => {
     expect(formatValue(999, 'Hz')).toBe('999 Hz')
   })
 
+  it('formats negative Hz >= -1000 as Hz', () => {
+    expect(formatValue(-440, 'Hz')).toBe('-440 Hz')
+  })
+
+  it('formats negative Hz <= -1000 as kHz', () => {
+    expect(formatValue(-2000, 'Hz')).toBe('-2.0 kHz')
+  })
+
+  it('formats exactly -1000 Hz as kHz (boundary)', () => {
+    expect(formatValue(-1000, 'Hz')).toBe('-1.0 kHz')
+  })
+
   it('formats seconds < 1 as ms', () => {
     expect(formatValue(0.01, 's')).toBe('10 ms')
   })

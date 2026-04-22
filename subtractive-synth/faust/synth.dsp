@@ -11,7 +11,7 @@ octave  = nentry("octave", 0, -2, 2, 1);
 cutoff       = hslider("cutoff [unit:Hz]", 2000, 20, 20000, 1);
 resonance    = hslider("resonance", 0.3, 0, 1, 0.001);
 filterMode   = hslider("filterMode", 0, 0, 2, 0.001);
-filterEnvAmt = hslider("filterEnvAmt [unit:Hz]", 3000, 0, 10000, 1);
+filterEnvAmt = hslider("filterEnvAmt [unit:Hz]", 0, -10000, 10000, 1);
 filterAttack = hslider("filterAttack [unit:s]", 0.01, 0.001, 4, 0.001);
 filterDecay  = hslider("filterDecay [unit:s]", 0.3, 0.001, 4, 0.001);
 
@@ -45,7 +45,7 @@ ampEnvOut    = adEnv(ampAttack, ampDecay);
 
 // ─── SEM State Variable Filter (LP/BP/HP crossfade) ──────────────────────────
 
-cutoffMod = min(20000, cutoff + filterEnvOut * filterEnvAmt);
+cutoffMod = max(20, min(20000, cutoff + filterEnvOut * filterEnvAmt));
 
 lpGain = max(0, 1 - filterMode);
 bpGain = max(0, 1 - abs(filterMode - 1));

@@ -26,21 +26,21 @@
       scale="linear"
       onchange={(e) => onchange?.({ param: 'resonance', value: e.value })}
     />
-    <div class="mode-wrap">
-      <Knob
-        label="mode"
-        min={0}
-        max={2}
-        default={0}
-        scale="linear"
-        onchange={(e) => onchange?.({ param: 'filterMode', value: e.value })}
-      />
-      <div class="mode-ticks">
-        <span>lp</span>
-        <span>bp</span>
-        <span>hp</span>
-      </div>
-    </div>
+    <Knob
+      label="mode"
+      min={0}
+      max={2}
+      default={0}
+      scale="linear"
+      showLabel={false}
+      showValue={false}
+      ticks={[
+        { pos: 0, label: 'lp' },
+        { pos: 0.5, label: 'bp' },
+        { pos: 1, label: 'hp' },
+      ]}
+      onchange={(e) => onchange?.({ param: 'filterMode', value: e.value })}
+    />
   </div>
 </div>
 
@@ -65,24 +65,5 @@
     display: flex;
     gap: 16px;
     align-items: flex-start;
-  }
-
-  .mode-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .mode-ticks {
-    display: flex;
-    justify-content: space-between;
-    width: 48px;
-  }
-
-  .mode-ticks span {
-    font-size: 9px;
-    color: #555;
-    text-transform: uppercase;
   }
 </style>

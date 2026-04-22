@@ -136,10 +136,10 @@
 - [x] 16.1 Run `npx vitest run` — all unit and component tests pass
 - [x] 16.2 Run `npx stryker run` — mutation score ≥ 85%
 - [x] 16.3 Run `npx playwright test` — smoke tests pass
-- [ ] 16.4 Verify audio starts on first click and overlay dismisses correctly
-- [ ] 16.5 Verify all five waveforms produce audibly distinct timbres
-- [ ] 16.6 Verify filter mode crossfade is glitch-free across the full 0–2 range
-- [ ] 16.7 Verify filter envelope modulates cutoff with correct attack/decay timing
-- [ ] 16.8 Verify amp envelope shapes amplitude with correct attack/decay timing
-- [ ] 16.9 Verify keyboard retrigger restarts envelopes on new key press while holding previous
+- [x] 16.4 Verify audio starts on first click and overlay dismisses correctly
+- [x] 16.5 Verify all five waveforms produce audibly distinct timbres
+- [x] 16.6 Verify filter mode crossfade is glitch-free across the full 0–2 range
+- [x] 16.7 Verify filter envelope modulates cutoff with correct attack/decay timing
+- [x] 16.8 Verify amp envelope shapes amplitude with correct attack/decay timing
+- [x] 16.9 Verify keyboard retrigger restarts envelopes on new key press while holding previous
 - [x] 16.10 Run `vite build` and verify static output in `dist/` loads and plays correctly

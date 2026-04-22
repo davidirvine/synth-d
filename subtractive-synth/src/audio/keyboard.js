@@ -41,14 +41,15 @@ export function midiNotesForOctave(octaveOffset) {
 }
 
 // Returns the ordered parameter messages to send to the DSP engine for a note-on.
-// If currentlyActive, a gate=0 retrigger pulse is prepended so the AD envelopes reset.
+// When already active, only freq is updated to avoid an amplitude discontinuity click.
 export function buildNoteOnMessages(freq, currentlyActive) {
-  const messages = [{ param: 'freq', value: freq }]
   if (currentlyActive) {
-    messages.push({ param: 'gate', value: 0 })
+    return [{ param: 'freq', value: freq }]
   }
-  messages.push({ param: 'gate', value: 1 })
-  return messages
+  return [
+    { param: 'freq', value: freq },
+    { param: 'gate', value: 1 },
+  ]
 }
 
 // Converts a MIDI note number to Hz, applying an octave transpose offset.

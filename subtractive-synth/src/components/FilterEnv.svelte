@@ -29,10 +29,10 @@
     />
     <Knob
       label="amount"
-      min={0}
+      min={-10000}
       max={10000}
-      default={3000}
-      scale="log"
+      default={0}
+      scale="linear"
       unit="Hz"
       onchange={(e) => onchange?.({ param: 'filterEnvAmt', value: e.value })}
     />
