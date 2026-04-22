@@ -61,14 +61,14 @@
 
 ## 8. Knob Component
 
-- [ ] 8.1 Create `src/components/Knob.svelte` accepting props: `label`, `min`, `max`, `default`, `value`, `scale` ("log"|"linear"), `unit`
-- [ ] 8.2 Render SVG arc track (270° sweep) and indicator line from center to rim
-- [ ] 8.3 Import and use `normalizedToValue` / `valueToNormalized` from `src/audio/math.js`
-- [ ] 8.4 Implement `pointerdown` → `pointermove` drag handler accumulating `movementY` delta
-- [ ] 8.5 Apply 10× sensitivity reduction when Shift key is held during drag
-- [ ] 8.6 Implement double-click handler to reset value to `default` prop
-- [ ] 8.7 Render formatted value label below SVG using `formatValue` from math.js
-- [ ] 8.8 Dispatch `change` event with new value on every update
+- [x] 8.1 Create `src/components/Knob.svelte` accepting props: `label`, `min`, `max`, `default`, `value`, `scale` ("log"|"linear"), `unit`
+- [x] 8.2 Render SVG arc track (270° sweep) and indicator line from center to rim
+- [x] 8.3 Import and use `normalizedToValue` / `valueToNormalized` from `src/audio/math.js`
+- [x] 8.4 Implement `pointerdown` → `pointermove` drag handler accumulating `movementY` delta
+- [x] 8.5 Apply 10× sensitivity reduction when Shift key is held during drag
+- [x] 8.6 Implement double-click handler to reset value to `default` prop
+- [x] 8.7 Render formatted value label below SVG using `formatValue` from math.js
+- [x] 8.8 Dispatch `change` event with new value on every update
 
 ## 9. Keyboard Component
 
