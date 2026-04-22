@@ -44,9 +44,9 @@
 
 ## 6. Pure Function Modules
 
-- [ ] 6.1 Create `src/audio/math.js`: export `mtof(midiNote)`, `normalizedToValue(pos, min, max, scale)`, `valueToNormalized(val, min, max, scale)`, `formatValue(val, unit)`
-- [ ] 6.2 Create `src/audio/filterGains.js`: export `filterGains(mode)` returning `{ lpGain, bpGain, hpGain }`
-- [ ] 6.3 Create `src/audio/keyboard.js`: export `QWERTY_MAP` (key → midiNote), `midiNotesForOctave(baseOctave)`, `buildNoteOnMessages(freq, currentlyActive)` returning ordered param/gate messages
+- [x] 6.1 Create `src/audio/math.js`: export `mtof(midiNote)`, `normalizedToValue(pos, min, max, scale)`, `valueToNormalized(val, min, max, scale)`, `formatValue(val, unit)`
+- [x] 6.2 Create `src/audio/filterGains.js`: export `filterGains(mode)` returning `{ lpGain, bpGain, hpGain }`
+- [x] 6.3 Create `src/audio/keyboard.js`: export `QWERTY_MAP` (key → midiNote), `midiNotesForOctave(baseOctave)`, `buildNoteOnMessages(freq, currentlyActive)`, `midiToFreq(midiNote, octaveOffset)`
 
 ## 7. Audio Engine
 
