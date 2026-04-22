@@ -1,12 +1,12 @@
 ## 1. Branch Setup
 
-- [ ] 1.1 Create git branch `power-button/power-button-control` from `main`
+- [x] 1.1 Create git branch `power-button/power-button-control` from `main`
 
 ## 2. Audio Engine
 
-- [ ] 2.1 Rename `initAudio()` to `powerOn()` in `src/audio/engine.js` and update all callers
-- [ ] 2.2 Add `powerOff()` export to `src/audio/engine.js` that calls `ctx.suspend()` (no-op if ctx is null)
-- [ ] 2.3 Add `initialized` guard so `powerOn()` skips WASM load and calls `ctx.resume()` on subsequent invocations
+- [x] 2.1 Rename `initAudio()` to `powerOn()` in `src/audio/engine.js` and update all callers
+- [x] 2.2 Add `powerOff()` export to `src/audio/engine.js` that calls `ctx.suspend()` (no-op if ctx is null)
+- [x] 2.3 Add `initialized` guard so `powerOn()` skips WASM load and calls `ctx.resume()` on subsequent invocations
 
 ## 3. PowerButton Component
 
