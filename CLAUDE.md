@@ -39,6 +39,6 @@ After every file edit, run the appropriate tool before moving to the next task:
 | `*.css` | `npx prettier --write <file>` |
 | `*.md` | `npx prettier --write <file>` |
 | `*.json` | `npx prettier --write <file>` |
-| `*.dsp` (FAUST) | `faust -check <file>` (validation only — no formatter exists) |
+| `*.dsp` (FAUST) | `faust <file> -o /dev/null` (validation only — `-check` flag not supported) |
 
 ESLint must use `eslint-plugin-svelte` for `.svelte` files and Prettier must use `prettier-plugin-svelte`. Both are configured in section 1 (project scaffold).

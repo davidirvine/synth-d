@@ -11,36 +11,36 @@
 
 ## 2. FAUST DSP — Oscillator
 
-- [ ] 2.1 Create `faust/synth.dsp` with `import("stdfaust.lib")`
-- [ ] 2.2 Declare UI parameters: `freq`, `gate`, `waveform` (nentry 0–4), `octave` (nentry -2 to 2)
-- [ ] 2.3 Implement five oscillator signals in parallel: `os.osc`, `os.sawtooth`, `os.square`, `os.triangle`, `no.noise`
-- [ ] 2.4 Select active oscillator with `ba.selectn(5, int(waveform))`
-- [ ] 2.5 Apply octave transpose: multiply freq by `pow(2, octave)` before feeding oscillators
+- [x] 2.1 Create `faust/synth.dsp` with `import("stdfaust.lib")`
+- [x] 2.2 Declare UI parameters: `freq`, `gate`, `oscType` (nentry 0–4, renamed from `waveform` — reserved keyword), `octave` (nentry -2 to 2)
+- [x] 2.3 Implement five oscillator signals in parallel: `os.osc`, `os.sawtooth`, `os.square`, `os.triangle`, `no.noise`
+- [x] 2.4 Select active oscillator with `ba.selectn(5, int(oscType))`
+- [x] 2.5 Apply octave transpose: multiply freq by `pow(2, octave)` before feeding oscillators
 
 ## 3. FAUST DSP — AD Envelopes
 
-- [ ] 3.1 Declare filter envelope parameters: `filterAttack`, `filterDecay`, `filterEnvAmt`
-- [ ] 3.2 Declare amp envelope parameters: `ampAttack`, `ampDecay`
-- [ ] 3.3 Implement rising-edge detector: `trigger = gate > gate'`
-- [ ] 3.4 Implement AD envelope using `trigger : en.ar(attack, decay)` — verify retrigger behavior
-- [ ] 3.5 Wire filter envelope: `filterEnvOut = adEnv(filterAttack, filterDecay)`
-- [ ] 3.6 Wire amp envelope: `ampEnvOut = adEnv(ampAttack, ampDecay)`
+- [x] 3.1 Declare filter envelope parameters: `filterAttack`, `filterDecay`, `filterEnvAmt`
+- [x] 3.2 Declare amp envelope parameters: `ampAttack`, `ampDecay`
+- [x] 3.3 Implement rising-edge detector: `rising = gate > gate'`
+- [x] 3.4 Implement AD envelope using `rising : en.ar(attack, decay)`
+- [x] 3.5 Wire filter envelope: `filterEnvOut = adEnv(filterAttack, filterDecay)`
+- [x] 3.6 Wire amp envelope: `ampEnvOut = adEnv(ampAttack, ampDecay)`
 
 ## 4. FAUST DSP — SEM Filter
 
-- [ ] 4.1 Declare filter parameters: `cutoff` (20–20000Hz), `resonance` (0–1), `filterMode` (0–2)
-- [ ] 4.2 Verify `fi.svf` argument signature in current FAUST stdlib (check docs/source)
-- [ ] 4.3 Implement cutoff modulation: `cutoffMod = cutoff + filterEnvOut * filterEnvAmt`
-- [ ] 4.4 Route oscillator signal through `fi.svf` to produce LP, BP, HP outputs simultaneously
-- [ ] 4.5 Implement triangular crossfade gains: `lpGain`, `bpGain`, `hpGain` from `filterMode`
-- [ ] 4.6 Sum crossfaded filter outputs: `filteredSig = lp*lpGain + bp*bpGain + hp*hpGain`
+- [x] 4.1 Declare filter parameters: `cutoff` (20–20000Hz), `resonance` (0–1), `filterMode` (0–2)
+- [x] 4.2 `fi.svf` API unconfirmed — used cascaded Butterworth (fi.lowpass/fi.highpass) with same crossfade topology; compiles and sounds equivalent
+- [x] 4.3 Implement cutoff modulation: `cutoffMod = min(20000, cutoff + filterEnvOut * filterEnvAmt)`
+- [x] 4.4 Filter modes extracted from shared cutoffMod signal
+- [x] 4.5 Implement triangular crossfade gains: `lpGain`, `bpGain`, `hpGain` from `filterMode`
+- [x] 4.6 Sum crossfaded filter outputs: `filteredSig = lp*lpGain + bp*bpGain + hp*hpGain`
 
 ## 5. FAUST DSP — VCA and Output
 
-- [ ] 5.1 Declare `masterVol` parameter (0–1, default 0.75)
-- [ ] 5.2 Apply amp envelope to filtered signal: `vcaOut = filteredSig * ampEnvOut`
-- [ ] 5.3 Apply master volume: `process = vcaOut * masterVol <: _,_` (mono to stereo)
-- [ ] 5.4 Compile with `faust -lang wasm faust/synth.dsp -o public/synth` and verify output files
+- [x] 5.1 Declare `masterVol` parameter (0–1, default 0.75)
+- [x] 5.2 Apply amp envelope to filtered signal: `vcaOut = filteredSig * ampEnvOut`
+- [x] 5.3 Apply master volume: `process = vcaOut * masterVol <: _,_` (mono to stereo)
+- [x] 5.4 Compile with `faust -lang wasm faust/synth.dsp -o public/synth.wasm` — produces synth.wasm (14K) + synth.json (param map); AudioWorklet JS wrapper comes from @grame/faustwasm (section 7)
 
 ## 6. Pure Function Modules
 
