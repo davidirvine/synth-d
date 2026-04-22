@@ -15,7 +15,8 @@
     onchange,
   } = $props()
 
-  // Intentional one-time init from prop; knob owns its state after mount
+  // Intentional one-time init — knob owns its state after mount, external prop changes are ignored.
+  // Svelte 5 warns "only captures the initial value" here; that is the intended design.
   let value = $state(initialValue !== undefined ? initialValue : defaultValue)
 
   const SWEEP = 270

@@ -54,11 +54,15 @@ The Filter panel SHALL contain three knobs: cutoff (log, 20Hz–20kHz, default 2
 ---
 
 ### Requirement: Filter Env panel controls
-The Filter Env panel SHALL contain three knobs: attack (log, 1ms–4000ms, default 10ms), decay (log, 1ms–4000ms, default 300ms), and envelope amount (log, 0–10000Hz, default 3000Hz).
+The Filter Env panel SHALL contain three knobs: attack (log, 1ms–4000ms, default 10ms), decay (log, 1ms–4000ms, default 300ms), and envelope amount (linear, −10000Hz–+10000Hz, default 0Hz). The bipolar range allows normal (positive) and reverse (negative) envelope modulation.
 
 #### Scenario: Envelope amount at zero
-- **WHEN** envelope amount knob is at minimum
+- **WHEN** envelope amount knob is at center (0Hz)
 - **THEN** filter cutoff is not affected by envelope motion regardless of attack/decay settings
+
+#### Scenario: Negative envelope amount
+- **WHEN** envelope amount knob is set to a negative value
+- **THEN** filter cutoff decreases below the base cutoff when the envelope fires
 
 ---
 

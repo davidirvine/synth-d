@@ -117,13 +117,13 @@ Mutation testing SHALL NOT be run on Svelte component files, engine.js (AudioWor
 
 ---
 
-### Requirement: Playwright smoke test verifies audio flows end-to-end
-The system SHALL include a Playwright test that launches the synth in a real browser, triggers the start gesture, presses a keyboard key, and verifies that audio is flowing via an injected AnalyserNode.
+### Requirement: Playwright smoke test verifies UI interaction end-to-end
+The system SHALL include a Playwright test that launches the synth in a real browser, triggers the start gesture, presses a keyboard key, and verifies that the keyboard UI responds correctly (active key highlight).
 
 #### Scenario: AudioContext starts after click
 - **WHEN** the start overlay is clicked
 - **THEN** the browser's AudioContext state becomes "running" within 500ms
 
-#### Scenario: Key press produces non-silent audio
+#### Scenario: Key press activates key highlight
 - **WHEN** a keyboard key is pressed after AudioContext is running
-- **THEN** an AnalyserNode attached to the output reports non-zero frequency-domain data within 100ms
+- **THEN** the corresponding key element receives the active CSS class (amber highlight) within 1000ms

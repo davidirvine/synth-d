@@ -43,12 +43,12 @@ The system SHALL map computer keyboard keys to piano keys using the standard two
 
 ---
 
-### Requirement: Monophonic retrigger behavior
-The system SHALL be monophonic — only one note plays at a time. When a new key is pressed while another is held, the new note's frequency is set and gate is retriggered (0→1 transition) to restart both envelopes.
+### Requirement: Monophonic legato behavior
+The system SHALL be monophonic — only one note plays at a time. When a new key is pressed while another is held, the oscillator frequency is updated without sending a gate pulse (legato). Both envelopes continue their current phase without interruption.
 
 #### Scenario: New key while holding old
 - **WHEN** key A is held and key B is pressed
-- **THEN** frequency changes to key B's pitch and envelopes retrigger
+- **THEN** frequency changes to key B's pitch; envelopes are not retriggered (legato, no gate pulse)
 
 #### Scenario: Release held key after pressing new
 - **WHEN** key A is held, key B is pressed, then key A is released

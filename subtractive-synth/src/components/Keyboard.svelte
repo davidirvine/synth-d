@@ -3,7 +3,7 @@
   import { SvelteSet } from 'svelte/reactivity'
   import { QWERTY_MAP, buildNoteOnMessages, midiToFreq } from '../audio/keyboard.js'
 
-  let { octaveOffset = 0, onnote } = $props()
+  let { onnote } = $props()
 
   const BASE_MIDI = 48
   const BLACK_SEMITONES = new Set([1, 3, 6, 8, 10])
@@ -37,7 +37,7 @@
   const pressedQwerty = new SvelteSet()
 
   function triggerNote(/** @type {number} */ midi) {
-    const freq = midiToFreq(midi, octaveOffset)
+    const freq = midiToFreq(midi)
     const wasActive = activeKeys.size > 0
     activeKeys.add(midi)
     onnote?.(buildNoteOnMessages(freq, wasActive))

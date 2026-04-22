@@ -108,7 +108,7 @@
 - [x] 12.6 Test crossfade midpoints: `filterGains(0.5)` → `{lp:0.5,bp:0.5,hp:0}`, `filterGains(1.5)` → `{lp:0,bp:0.5,hp:0.5}`
 - [x] 12.7 Write `src/audio/keyboard.test.js`: test `QWERTY_MAP['z']` maps to lowest C, `QWERTY_MAP['s']` is one semitone higher
 - [x] 12.8 Test `buildNoteOnMessages` when not active returns `[{param:'freq', value:f}, {param:'gate', value:1}]`
-- [x] 12.9 Test `buildNoteOnMessages` when already active returns gate=0 message before gate=1 (retrigger order)
+- [x] 12.9 Test `buildNoteOnMessages` when already active returns only a freq update and no gate messages (legato behavior)
 
 ## 13. Component Tests — Svelte
 

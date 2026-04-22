@@ -17,16 +17,16 @@ The system SHALL implement an AD (attack-decay) envelope that fires once when th
 
 ---
 
-### Requirement: Retrigger on new key press
-The system SHALL retrigger both envelopes when a new key is pressed while a previous key is still held. Retrigger SHALL restart the envelope from its current value (not from zero) to avoid a click.
+### Requirement: Legato note transition
+The system uses legato behavior — when a new key is pressed while a previous key is still held, only the oscillator frequency is updated. No gate pulse is sent, so both envelopes continue their current phase without interruption. This avoids clicks on rapid successive presses.
 
 #### Scenario: New key while holding previous
 - **WHEN** key A is held and key B is pressed before A's envelope has decayed to zero
-- **THEN** both envelopes restart their attack phase from the current envelope value
+- **THEN** oscillator frequency updates to key B's pitch; both envelopes continue uninterrupted (no retrigger)
 
-#### Scenario: Rapid retrigger
-- **WHEN** keys are pressed in rapid succession
-- **THEN** each press restarts the envelope without audio clicks or silence gaps
+#### Scenario: Rapid successive presses
+- **WHEN** keys are pressed in rapid succession while a key is held
+- **THEN** frequency changes on each press; no envelope retrigger occurs and no click is produced
 
 ---
 
