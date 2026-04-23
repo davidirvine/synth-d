@@ -5,7 +5,7 @@ The system SHALL render the power button in the OFF state when the page loads. N
 
 #### Scenario: Initial page load
 - **WHEN** the page loads with no prior user interaction
-- **THEN** the power button is in the OFF state, its LED indicator is unlit, and no AudioContext exists
+- **THEN** the power button is in the OFF state, its power icon is unlit, and no AudioContext exists
 
 ---
 
@@ -14,7 +14,7 @@ The system SHALL create the AudioContext and load the DSP engine on the first po
 
 #### Scenario: First power-on
 - **WHEN** the user clicks the power button while it is in the OFF state for the first time
-- **THEN** the AudioContext is created, the WASM DSP is loaded and connected, audio output becomes active, and the power button LED indicator lights up
+- **THEN** the AudioContext is created, the WASM DSP is loaded and connected, audio output becomes active, and the power button power icon lights up
 
 #### Scenario: Power-on while loading
 - **WHEN** the DSP engine is still initializing after the first power-on click
@@ -27,7 +27,7 @@ The system SHALL suspend the AudioContext when the user deactivates the power bu
 
 #### Scenario: Power off
 - **WHEN** the user clicks the power button while it is in the ON state
-- **THEN** the AudioContext is suspended, all audio output stops immediately, and the power button LED indicator goes unlit
+- **THEN** the AudioContext is suspended, all audio output stops immediately, and the power button power icon goes unlit
 
 ---
 
@@ -36,7 +36,7 @@ The system SHALL resume the existing suspended AudioContext on any power-on afte
 
 #### Scenario: Power on after previous power off
 - **WHEN** the user clicks the power button while it is in the OFF state and the AudioContext has already been initialized
-- **THEN** the AudioContext is resumed, audio output resumes immediately, and the power button LED indicator lights up
+- **THEN** the AudioContext is resumed, audio output resumes immediately, and the power button power icon lights up
 
 ---
 

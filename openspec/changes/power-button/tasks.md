@@ -11,9 +11,9 @@
 ## 3. PowerButton Component
 
 - [x] 3.1 Create `src/components/PowerButton.svelte` with props: `powered` (bool), `loading` (bool), and a `toggle` event
-- [x] 3.2 Implement LED indicator: amber `#c87941` when ON, dark `#3a3a3a` when OFF
+- [x] 3.2 Implement power icon (SVG arc + line): amber `#c87941` with glow when ON, dark `#3a3a3a` when OFF
 - [x] 3.3 Disable button interaction while `loading` is true (no label or text change)
-- [x] 3.4 Apply dark body `#1c1c1c`, cream label `#e8dcc8`, monospace font to match synth aesthetic
+- [x] 3.4 Apply dark body `#1c1c1c` to match synth aesthetic (no text label)
 - [x] 3.5 Run `npx eslint --fix src/components/PowerButton.svelte && npx prettier --write src/components/PowerButton.svelte`
 
 ## 4. App Integration
@@ -27,12 +27,12 @@
 ## 5. Tests
 
 - [x] 5.1 Add unit tests for `powerOn()` and `powerOff()` in `src/audio/engine.test.js` (mock AudioContext)
-- [x] 5.2 Add component test for `PowerButton.svelte`: renders OFF by default, emits toggle event on click, shows STARTING label when loading
+- [x] 5.2 Add component test for `PowerButton.svelte`: renders OFF by default, emits toggle event on click, button disabled while loading
 - [x] 5.3 Add integration test in `App.svelte` test: controls are inert when powered off, active when powered on
 - [x] 5.4 Run `npx vitest run` and confirm all tests pass
 
 ## 6. Verification and Merge
 
-- [ ] 6.1 Manually verify in browser: power button OFF on load, power-on starts audio, power-off stops audio, knobs unresponsive when off
+- [x] 6.1 Manually verify in browser: power button OFF on load, power-on starts audio, power-off stops audio, knobs unresponsive when off
 - [x] 6.2 Run `npx vitest run` one final time — all tests must pass
-- [ ] 6.3 Commit all changes and open PR targeting `main`
+- [x] 6.3 Commit all changes and open PR targeting `main`
