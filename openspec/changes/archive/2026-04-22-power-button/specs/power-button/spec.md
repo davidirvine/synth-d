@@ -5,7 +5,7 @@ The system SHALL render the power button in the OFF state when the page loads. N
 
 #### Scenario: Initial page load
 - **WHEN** the page loads with no prior user interaction
-- **THEN** the power button is in the OFF state, its LED indicator is unlit, and no AudioContext exists
+- **THEN** the power button is in the OFF state, its power icon is unlit, and no AudioContext exists
 
 ---
 
@@ -14,11 +14,11 @@ The system SHALL create the AudioContext and load the DSP engine on the first po
 
 #### Scenario: First power-on
 - **WHEN** the user clicks the power button while it is in the OFF state for the first time
-- **THEN** the AudioContext is created, the WASM DSP is loaded and connected, audio output becomes active, and the power button LED indicator lights up
+- **THEN** the AudioContext is created, the WASM DSP is loaded and connected, audio output becomes active, and the power button power icon lights up
 
 #### Scenario: Power-on while loading
 - **WHEN** the DSP engine is still initializing after the first power-on click
-- **THEN** the power button displays a "STARTING…" label and is non-interactive until initialization completes
+- **THEN** the power button is non-interactive (disabled) until initialization completes
 
 ---
 
@@ -27,7 +27,7 @@ The system SHALL suspend the AudioContext when the user deactivates the power bu
 
 #### Scenario: Power off
 - **WHEN** the user clicks the power button while it is in the ON state
-- **THEN** the AudioContext is suspended, all audio output stops immediately, and the power button LED indicator goes unlit
+- **THEN** the AudioContext is suspended, all audio output stops immediately, and the power button power icon goes unlit
 
 ---
 
@@ -36,7 +36,7 @@ The system SHALL resume the existing suspended AudioContext on any power-on afte
 
 #### Scenario: Power on after previous power off
 - **WHEN** the user clicks the power button while it is in the OFF state and the AudioContext has already been initialized
-- **THEN** the AudioContext is resumed, audio output resumes immediately, and the power button LED indicator lights up
+- **THEN** the AudioContext is resumed, audio output resumes immediately, and the power button power icon lights up
 
 ---
 
@@ -54,12 +54,12 @@ The system SHALL render the synth panel controls with reduced opacity and block 
 ---
 
 ### Requirement: Power button visual style matches the synth aesthetic
-The power button SHALL use the Moog-inspired dark theme: dark body (`#1c1c1c`), amber LED (`#c87941`) when ON, unlit (`#3a3a3a`) when OFF, cream label text (`#e8dcc8`), monospace font.
+The power button SHALL use the Moog-inspired dark theme: dark body (`#1c1c1c`), amber power icon (`#c87941`) with glow when ON, unlit (`#3a3a3a`) when OFF. The icon is the universal power symbol (SVG arc and line). No text label is shown.
 
 #### Scenario: Power button ON appearance
 - **WHEN** the power button is in the ON state
-- **THEN** the LED indicator is amber (`#c87941`) and visibly distinct from the surrounding panel
+- **THEN** the power icon is amber (`#c87941`) with a drop-shadow glow and is visibly distinct from the surrounding panel
 
 #### Scenario: Power button OFF appearance
 - **WHEN** the power button is in the OFF state
-- **THEN** the LED indicator is dark (`#3a3a3a`), indicating no active audio
+- **THEN** the power icon is dark (`#3a3a3a`), indicating no active audio
