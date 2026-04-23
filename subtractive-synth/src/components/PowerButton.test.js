@@ -5,9 +5,9 @@ import PowerButton from './PowerButton.svelte'
 describe('PowerButton', () => {
   it('renders with power OFF by default', () => {
     const { container } = render(PowerButton, { props: { powered: false, loading: false, ontoggle: vi.fn() } })
-    const led = container.querySelector('.led')
-    expect(led).not.toBeNull()
-    expect(led.classList.contains('lit')).toBe(false)
+    const icon = container.querySelector('.power-icon')
+    expect(icon).not.toBeNull()
+    expect(icon.classList.contains('lit')).toBe(false)
   })
 
   it('shows POWER label always', () => {
@@ -20,14 +20,14 @@ describe('PowerButton', () => {
     expect(getByText('POWER')).toBeTruthy()
   })
 
-  it('LED is lit when powered on', () => {
+  it('power icon is lit when powered on', () => {
     const { container } = render(PowerButton, { props: { powered: true, loading: false, ontoggle: vi.fn() } })
-    expect(container.querySelector('.led').classList.contains('lit')).toBe(true)
+    expect(container.querySelector('.power-icon').classList.contains('lit')).toBe(true)
   })
 
-  it('LED is not lit when loading even if powered', () => {
+  it('power icon is not lit when loading even if powered', () => {
     const { container } = render(PowerButton, { props: { powered: true, loading: true, ontoggle: vi.fn() } })
-    expect(container.querySelector('.led').classList.contains('lit')).toBe(false)
+    expect(container.querySelector('.power-icon').classList.contains('lit')).toBe(false)
   })
 
   it('calls ontoggle when button is clicked', async () => {

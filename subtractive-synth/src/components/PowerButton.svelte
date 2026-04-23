@@ -13,7 +13,20 @@
     aria-label={loading ? 'Starting audio' : powered ? 'Power off' : 'Power on'}
     type="button"
   >
-    <span class="led" class:lit={powered && !loading}></span>
+    <svg
+      class="power-icon"
+      class:lit={powered && !loading}
+      viewBox="0 0 20 20"
+      width="16"
+      height="16"
+      fill="none"
+      stroke-linecap="round"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <line x1="10" y1="2" x2="10" y2="8" />
+      <path d="M 14.5 4.6 A 7 7 0 1 1 5.5 4.6" />
+    </svg>
   </button>
   <span class="label">POWER</span>
 </div>
@@ -49,17 +62,16 @@
     opacity: 0.7;
   }
 
-  .led {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #3a3a3a;
-    transition: background 0.15s;
+  .power-icon {
+    stroke: #3a3a3a;
+    transition:
+      stroke 0.15s,
+      filter 0.15s;
   }
 
-  .led.lit {
-    background: #c87941;
-    box-shadow: 0 0 4px #c87941;
+  .power-icon.lit {
+    stroke: #c87941;
+    filter: drop-shadow(0 0 3px #c87941);
   }
 
   .label {
