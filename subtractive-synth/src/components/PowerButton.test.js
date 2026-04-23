@@ -10,14 +10,14 @@ describe('PowerButton', () => {
     expect(led.classList.contains('lit')).toBe(false)
   })
 
-  it('shows POWER label when not loading', () => {
+  it('shows POWER label always', () => {
     const { getByText } = render(PowerButton, { props: { powered: false, loading: false, ontoggle: vi.fn() } })
     expect(getByText('POWER')).toBeTruthy()
   })
 
-  it('shows STARTING… label when loading', () => {
+  it('shows POWER label even while loading', () => {
     const { getByText } = render(PowerButton, { props: { powered: false, loading: true, ontoggle: vi.fn() } })
-    expect(getByText('STARTING…')).toBeTruthy()
+    expect(getByText('POWER')).toBeTruthy()
   })
 
   it('LED is lit when powered on', () => {

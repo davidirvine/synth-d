@@ -15,7 +15,7 @@
   >
     <span class="led" class:lit={powered && !loading}></span>
   </button>
-  <span class="label">{loading ? 'STARTING…' : 'POWER'}</span>
+  <span class="label">POWER</span>
 </div>
 
 <style>
@@ -23,12 +23,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
   }
 
   .power-btn {
-    width: 44px;
-    height: 44px;
+    width: 31px;
+    height: 31px;
     border-radius: 50%;
     background: #1c1c1c;
     border: 2px solid #333;
@@ -50,8 +50,8 @@
   }
 
   .led {
-    width: 12px;
-    height: 12px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: #3a3a3a;
     transition: background 0.15s;
@@ -59,12 +59,12 @@
 
   .led.lit {
     background: #c87941;
-    box-shadow: 0 0 6px #c87941;
+    box-shadow: 0 0 4px #c87941;
   }
 
   .label {
     font-family: monospace;
-    font-size: 10px;
+    font-size: 7px;
     color: #e8dcc8;
     letter-spacing: 0.1em;
   }
