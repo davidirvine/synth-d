@@ -167,7 +167,7 @@
 
   .tick-label {
     font-size: 7px;
-    fill: #555;
+    fill: #e8dcc8;
     font-family: monospace;
     text-transform: uppercase;
     pointer-events: none;
