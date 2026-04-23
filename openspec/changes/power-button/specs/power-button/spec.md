@@ -18,7 +18,7 @@ The system SHALL create the AudioContext and load the DSP engine on the first po
 
 #### Scenario: Power-on while loading
 - **WHEN** the DSP engine is still initializing after the first power-on click
-- **THEN** the power button displays a "STARTING…" label and is non-interactive until initialization completes
+- **THEN** the power button is non-interactive (disabled) until initialization completes
 
 ---
 
@@ -54,12 +54,12 @@ The system SHALL render the synth panel controls with reduced opacity and block 
 ---
 
 ### Requirement: Power button visual style matches the synth aesthetic
-The power button SHALL use the Moog-inspired dark theme: dark body (`#1c1c1c`), amber LED (`#c87941`) when ON, unlit (`#3a3a3a`) when OFF, cream label text (`#e8dcc8`), monospace font.
+The power button SHALL use the Moog-inspired dark theme: dark body (`#1c1c1c`), amber power icon (`#c87941`) with glow when ON, unlit (`#3a3a3a`) when OFF. The icon is the universal power symbol (SVG arc and line). No text label is shown.
 
 #### Scenario: Power button ON appearance
 - **WHEN** the power button is in the ON state
-- **THEN** the LED indicator is amber (`#c87941`) and visibly distinct from the surrounding panel
+- **THEN** the power icon is amber (`#c87941`) with a drop-shadow glow and is visibly distinct from the surrounding panel
 
 #### Scenario: Power button OFF appearance
 - **WHEN** the power button is in the OFF state
-- **THEN** the LED indicator is dark (`#3a3a3a`), indicating no active audio
+- **THEN** the power icon is dark (`#3a3a3a`), indicating no active audio

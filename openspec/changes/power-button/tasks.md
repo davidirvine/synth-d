@@ -12,7 +12,7 @@
 
 - [x] 3.1 Create `src/components/PowerButton.svelte` with props: `powered` (bool), `loading` (bool), and a `toggle` event
 - [x] 3.2 Implement LED indicator: amber `#c87941` when ON, dark `#3a3a3a` when OFF
-- [x] 3.3 Display "POWER" label below the button and "STARTING…" text while `loading` is true
+- [x] 3.3 Disable button interaction while `loading` is true (no label or text change)
 - [x] 3.4 Apply dark body `#1c1c1c`, cream label `#e8dcc8`, monospace font to match synth aesthetic
 - [x] 3.5 Run `npx eslint --fix src/components/PowerButton.svelte && npx prettier --write src/components/PowerButton.svelte`
 

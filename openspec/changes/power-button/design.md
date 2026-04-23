@@ -48,5 +48,5 @@ When power is off, the main panel area has `opacity: 0.4` and `pointer-events: n
 ## Risks / Trade-offs
 
 - **Safari AudioContext quirk** → `suspend()` on a never-started context may no-op silently. Mitigation: only call `powerOff()` after `powerOn()` has succeeded (guard with `initialized` flag in engine).
-- **WASM load time on first power-on** → user may experience a ~200–500ms delay the first time they power on while WASM loads. Mitigation: show a brief "STARTING…" label on the power button during init.
+- **WASM load time on first power-on** → user may experience a ~200–500ms delay the first time they power on while WASM loads. Original mitigation (show "STARTING…" label during init) was dropped — the changing label caused UX issues. Mitigation: button is disabled during init, preventing double-clicks.
 - **Dimmed controls still focusable via keyboard** → `pointer-events: none` does not prevent keyboard focus. Mitigation: add `inert` attribute to the main panel when powered off (supported in all modern browsers).
