@@ -1,6 +1,8 @@
 <script>
   /** @type {{ powered: boolean, loading: boolean, ontoggle: () => void }} */
   let { powered = false, loading = false, ontoggle } = $props()
+
+  const status = $derived(loading ? 'loading' : powered ? 'on' : 'off')
 </script>
 
 <div class="power-wrap">
@@ -14,8 +16,7 @@
     type="button"
   >
     <svg
-      class="power-icon"
-      class:lit={powered && !loading}
+      class="power-icon {status}"
       viewBox="0 0 20 20"
       width="16"
       height="16"
@@ -58,18 +59,26 @@
 
   .power-btn:disabled {
     cursor: default;
-    opacity: 0.7;
   }
 
   .power-icon {
-    stroke: #3a3a3a;
     transition:
-      stroke 0.15s,
-      filter 0.15s;
+      stroke 0.3s,
+      filter 0.3s;
   }
 
-  .power-icon.lit {
-    stroke: #c87941;
-    filter: drop-shadow(0 0 3px #c87941);
+  .power-icon.off {
+    stroke: #e07820;
+    filter: none;
+  }
+
+  .power-icon.loading {
+    stroke: #e0c020;
+    filter: none;
+  }
+
+  .power-icon.on {
+    stroke: #20b040;
+    filter: drop-shadow(0 0 3px #20b040);
   }
 </style>
