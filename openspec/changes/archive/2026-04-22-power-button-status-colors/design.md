@@ -7,12 +7,14 @@ The change is confined to a single presentational component with no API surface 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Map the existing `(powered, loading)` prop combination to three distinct icon colors: orange (off), yellow (loading), green (on)
 - Fade smoothly between colors on state transitions using a CSS `stroke` transition (~0.3 s)
 - Remove the `opacity: 0.7` disabled-state rule so the yellow loading color stands alone as the signal
 - Keep button dimensions, layout, and interaction behavior identical
 
 **Non-Goals:**
+
 - Changing the `powered` / `loading` prop interface
 - Adding pulsing, spinning, or keyframe animations during loading
 - Altering parent components, stores, or the DSP engine lifecycle
@@ -27,13 +29,17 @@ Alternative considered: add a `status` prop computed in the parent. Rejected —
 
 ### Decision: Color values
 
-| State   | Stroke     | Glow |
-|---------|-----------|------|
-| Off     | `#e07820` (orange) | none |
-| Loading | `#e0c020` (yellow) | none |
-| On      | `#20b040` (green) | `drop-shadow(0 0 3px #20b040)` |
+| State   | Stroke             | Filter                             |
+| ------- | ------------------ | ---------------------------------- |
+| Off     | `#e07820` (orange) | `drop-shadow(0 0 0px transparent)` |
+| Loading | `#e0c020` (yellow) | `drop-shadow(0 0 0px transparent)` |
+| On      | `#20b040` (green)  | `drop-shadow(0 0 3px #20b040)`     |
 
 Orange and green are chosen to read clearly against the dark `#1c1c1c` button body. Yellow carries the conventional "transitional/warning" meaning and matches the traffic-light metaphor. Glow is preserved for the on state only — it reinforces active audio output without making loading feel celebratory.
+
+### Decision: Persistent filter layer for position stability
+
+Off and loading states use `filter: drop-shadow(0 0 0px transparent)` rather than `filter: none`. Switching between `filter: none` and an active `drop-shadow` causes the browser to allocate/deallocate a compositing layer, which produces a sub-pixel position shift on the icon. Keeping a zero-radius transparent shadow means the layer is always present, and the icon position stays constant across all state transitions.
 
 ### Decision: CSS transition duration of 0.3 s
 

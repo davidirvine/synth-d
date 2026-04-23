@@ -58,6 +58,8 @@ describe('PowerButton', () => {
     expect(icon.classList.contains('on')).toBe(false)
   })
 
+  // The 0.3 s CSS stroke/filter fade between states is verified visually; jsdom does not run transitions.
+
   it('calls ontoggle when button is clicked', async () => {
     const ontoggle = vi.fn()
     const { container } = render(PowerButton, {

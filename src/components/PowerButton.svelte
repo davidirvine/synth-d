@@ -69,12 +69,12 @@
 
   .power-icon.off {
     stroke: #e07820;
-    filter: none;
+    filter: drop-shadow(0 0 0px transparent);
   }
 
   .power-icon.loading {
     stroke: #e0c020;
-    filter: none;
+    filter: drop-shadow(0 0 0px transparent);
   }
 
   .power-icon.on {

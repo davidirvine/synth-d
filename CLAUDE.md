@@ -6,7 +6,7 @@ This project uses spec driven design methodology using OpenSpec. A spec must exi
 
 ## Branching
 
-All of the tasks for a change should be implemented in a single branch. Branch names are kebab-case versions of the change name
+All of the tasks for a change should be implemented in a single branch. Branch names are kebab-case versions of the change name. Branches should be created from the develop branch at the time the openspec new command is issued is invoked by the /opsx:propose skill.
 
 ```
 <change-name>
