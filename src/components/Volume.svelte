@@ -1,9 +1,15 @@
 <script>
   import Knob from './Knob.svelte'
 
-  let { onchange } = /** @type {{ onchange?: (e: { param: string, value: number }) => void }} */ (
-    $props()
-  )
+  let {
+    onchange,
+    midiState = {},
+    onknobcontextmenu,
+  } = /** @type {{
+    onchange?: (e: { param: string, value: number }) => void,
+    midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
+    onknobcontextmenu?: (param: string) => void
+  }} */ ($props())
 </script>
 
 <div class="panel">
@@ -15,7 +21,11 @@
     default={0.75}
     scale="linear"
     showValue={false}
+    externalValue={midiState?.masterVol?.externalValue}
+    learningMidi={midiState?.masterVol?.learningMidi ?? false}
+    assignedCc={midiState?.masterVol?.assignedCc ?? null}
     onchange={(e) => onchange?.({ param: 'masterVol', value: e.value })}
+    oncontextmenu={() => onknobcontextmenu?.('masterVol')}
   />
 </div>
 

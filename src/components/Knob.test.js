@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/svelte'
 import Knob from './Knob.svelte'
 
-describe('Knob', () => {
+describe('Knob — rendering', () => {
   it('renders an SVG', () => {
     const { container } = render(Knob, { props: { label: 'test', min: 0, max: 1, default: 0.5 } })
     expect(container.querySelector('svg')).not.toBeNull()
@@ -14,7 +14,9 @@ describe('Knob', () => {
     })
     expect(getByText('cutoff')).toBeTruthy()
   })
+})
 
+describe('Knob — interaction', () => {
   it('double-click resets value to default and fires onchange', async () => {
     const onchange = vi.fn()
     const { container } = render(Knob, {
@@ -102,5 +104,71 @@ describe('Knob', () => {
     const normalChange = Math.abs(normalValues[0] - 0.5)
     const fineChange = Math.abs(fineValues[0] - 0.5)
     expect(normalChange).toBeGreaterThan(fineChange)
+  })
+})
+
+describe('Knob — externalValue (MIDI CC)', () => {
+  it('snaps to externalValue and fires onchange', async () => {
+    const onchange = vi.fn()
+    const { rerender } = render(Knob, {
+      props: { label: 'vol', min: 0, max: 1, default: 0.5, onchange },
+    })
+    await rerender({ externalValue: 0.8 })
+    expect(onchange).toHaveBeenCalledWith({ value: 0.8 })
+  })
+
+  it('clamps externalValue to [min, max]', async () => {
+    const onchange = vi.fn()
+    const { rerender } = render(Knob, {
+      props: { label: 'vol', min: 0, max: 1, default: 0.5, onchange },
+    })
+    await rerender({ externalValue: 1.5 })
+    expect(onchange).toHaveBeenCalledWith({ value: 1 })
+  })
+})
+
+describe('Knob — learningMidi', () => {
+  it('renders learn ring when learningMidi is true', () => {
+    const { container } = render(Knob, {
+      props: { label: 'cut', min: 0, max: 1, default: 0.5, learningMidi: true },
+    })
+    expect(container.querySelector('.learn-ring')).not.toBeNull()
+  })
+
+  it('does not render learn ring when learningMidi is false', () => {
+    const { container } = render(Knob, {
+      props: { label: 'cut', min: 0, max: 1, default: 0.5, learningMidi: false },
+    })
+    expect(container.querySelector('.learn-ring')).toBeNull()
+  })
+})
+
+describe('Knob — assignedCc label', () => {
+  it('shows CC label when assignedCc is set', () => {
+    const { container } = render(Knob, {
+      props: { label: 'cut', min: 0, max: 1, default: 0.5, assignedCc: 74 },
+    })
+    expect(container.querySelector('.cc-label')?.textContent).toBe('CC 74')
+  })
+
+  it('does not show CC label when assignedCc is null', () => {
+    const { container } = render(Knob, {
+      props: { label: 'cut', min: 0, max: 1, default: 0.5, assignedCc: null },
+    })
+    expect(container.querySelector('.cc-label')).toBeNull()
+  })
+})
+
+describe('Knob — context menu (MIDI learn trigger)', () => {
+  it('calls oncontextmenu and prevents default on right-click', async () => {
+    const oncontextmenu = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'cut', min: 0, max: 1, default: 0.5, oncontextmenu },
+    })
+    const hit = container.querySelector('.knob-hit')
+    const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+    hit.dispatchEvent(event)
+    expect(oncontextmenu).toHaveBeenCalled()
+    expect(event.defaultPrevented).toBe(true)
   })
 })

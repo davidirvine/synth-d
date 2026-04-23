@@ -1,9 +1,15 @@
 <script>
   import Knob from './Knob.svelte'
 
-  let { onchange } = /** @type {{ onchange?: (e: { param: string, value: number }) => void }} */ (
-    $props()
-  )
+  let {
+    onchange,
+    midiState = {},
+    onknobcontextmenu,
+  } = /** @type {{
+    onchange?: (e: { param: string, value: number }) => void,
+    midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
+    onknobcontextmenu?: (param: string) => void
+  }} */ ($props())
 </script>
 
 <div class="panel">
@@ -16,7 +22,11 @@
       default={0.01}
       scale="log"
       unit="s"
+      externalValue={midiState?.filterAttack?.externalValue}
+      learningMidi={midiState?.filterAttack?.learningMidi ?? false}
+      assignedCc={midiState?.filterAttack?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'filterAttack', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterAttack')}
     />
     <Knob
       label="decay"
@@ -25,7 +35,11 @@
       default={0.3}
       scale="log"
       unit="s"
+      externalValue={midiState?.filterDecay?.externalValue}
+      learningMidi={midiState?.filterDecay?.learningMidi ?? false}
+      assignedCc={midiState?.filterDecay?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'filterDecay', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterDecay')}
     />
     <Knob
       label="amount"
@@ -34,7 +48,11 @@
       default={0}
       scale="linear"
       unit="Hz"
+      externalValue={midiState?.filterEnvAmt?.externalValue}
+      learningMidi={midiState?.filterEnvAmt?.learningMidi ?? false}
+      assignedCc={midiState?.filterEnvAmt?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'filterEnvAmt', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterEnvAmt')}
     />
   </div>
 </div>

@@ -1,0 +1,166 @@
+import { midiToFreq } from './keyboard.js'
+
+const BEND_SEMITONES = 2
+const BEND_CENTER = 8192
+
+export class MidiManager {
+  /** @type {MIDIAccess | null} */
+  #access = null
+  /** @type {string | null} */
+  #selectedId = null
+  /** @type {Set<number>} */
+  #activeNotes = new Set()
+  #bendValue = 0
+  #lastNote = null
+
+  /** @param {{ onNoteOn?: Function, onNoteOff?: Function, onPitchBend?: Function, onCc?: Function, onStatusChange?: Function, onDevicesChange?: Function }} callbacks */
+  constructor(callbacks = {}) {
+    this._onNoteOn = callbacks.onNoteOn ?? (() => {})
+    this._onNoteOff = callbacks.onNoteOff ?? (() => {})
+    this._onPitchBend = callbacks.onPitchBend ?? (() => {})
+    this._onCc = callbacks.onCc ?? (() => {})
+    this._onStatusChange = callbacks.onStatusChange ?? (() => {})
+    this._onDevicesChange = callbacks.onDevicesChange ?? (() => {})
+    this._handleMessage = this._handleMessage.bind(this)
+    this._handleStateChange = this._handleStateChange.bind(this)
+  }
+
+  async connect() {
+    if (!navigator.requestMIDIAccess) {
+      this._onStatusChange('unavailable')
+      return
+    }
+    try {
+      this.#access = await navigator.requestMIDIAccess({ sysex: false })
+    } catch {
+      this._onStatusChange('unavailable')
+      return
+    }
+    this.#access.onstatechange = this._handleStateChange
+    this._attachListeners()
+    this._onStatusChange('connected')
+    this._notifyDevices()
+  }
+
+  selectDevice(id) {
+    this._detachListeners()
+    this.#selectedId = id
+    this._attachListeners()
+  }
+
+  destroy() {
+    this._detachListeners()
+    if (this.#access) {
+      this.#access.onstatechange = null
+      this.#access = null
+    }
+  }
+
+  // --- private ---
+
+  _devices() {
+    if (!this.#access) return []
+    return Array.from(this.#access.inputs.values()).map((p) => ({ id: p.id, name: p.name }))
+  }
+
+  _notifyDevices() {
+    const devices = this._devices()
+    this._onDevicesChange(devices)
+    if (devices.length > 0 && !this.#selectedId) {
+      this.#selectedId = devices[0].id
+    }
+  }
+
+  _attachListeners() {
+    if (!this.#access) return
+    for (const port of this.#access.inputs.values()) {
+      if (this.#selectedId === null || port.id === this.#selectedId) {
+        port.onmidimessage = this._handleMessage
+      }
+    }
+  }
+
+  _detachListeners() {
+    if (!this.#access) return
+    for (const port of this.#access.inputs.values()) {
+      port.onmidimessage = null
+    }
+  }
+
+  _handleStateChange(event) {
+    const port = event.port
+    if (port.type !== 'input') return
+
+    if (port.state === 'disconnected') {
+      port.onmidimessage = null
+      if (port.id === this.#selectedId) {
+        this.#selectedId = null
+        this._releaseAllNotes()
+      }
+    } else if (port.state === 'connected') {
+      if (this.#selectedId === null || port.id === this.#selectedId) {
+        port.onmidimessage = this._handleMessage
+        if (this.#selectedId === null) this.#selectedId = port.id
+      }
+    }
+
+    this._notifyDevices()
+  }
+
+  _releaseAllNotes() {
+    for (const note of this.#activeNotes) {
+      this._onNoteOff(note)
+    }
+    this.#activeNotes.clear()
+  }
+
+  /** @param {MIDIMessageEvent} event */
+  _handleMessage(event) {
+    const [status, data1, data2] = event.data
+    const type = status & 0xf0
+
+    if (type === 0x90) {
+      // Note-on
+      if (data2 === 0) {
+        this._noteOff(data1)
+      } else {
+        this._noteOn(data1)
+      }
+    } else if (type === 0x80) {
+      // Note-off
+      this._noteOff(data1)
+    } else if (type === 0xe0) {
+      // Pitchbend — 14-bit value from two 7-bit bytes
+      const raw = (data2 << 7) | data1
+      this._pitchBend(raw)
+    } else if (type === 0xb0) {
+      // CC
+      this._onCc({ cc: data1, value: data2 })
+    }
+  }
+
+  _noteOn(note) {
+    this.#activeNotes.add(note)
+    this.#lastNote = note
+    const freq = this._bentFreq(note)
+    this._onNoteOn(note, freq)
+  }
+
+  _noteOff(note) {
+    if (!this.#activeNotes.has(note)) return
+    this.#activeNotes.delete(note)
+    this._onNoteOff(note)
+  }
+
+  _pitchBend(raw) {
+    const normalized = (raw - BEND_CENTER) / BEND_CENTER
+    this.#bendValue = normalized * BEND_SEMITONES
+    if (this.#lastNote !== null && this.#activeNotes.has(this.#lastNote)) {
+      this._onPitchBend(this._bentFreq(this.#lastNote))
+    }
+  }
+
+  _bentFreq(note) {
+    return midiToFreq(note) * Math.pow(2, this.#bendValue / 12)
+  }
+}

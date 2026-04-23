@@ -1,9 +1,15 @@
 <script>
   import Knob from './Knob.svelte'
 
-  let { onchange } = /** @type {{ onchange?: (e: { param: string, value: number }) => void }} */ (
-    $props()
-  )
+  let {
+    onchange,
+    midiState = {},
+    onknobcontextmenu,
+  } = /** @type {{
+    onchange?: (e: { param: string, value: number }) => void,
+    midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
+    onknobcontextmenu?: (param: string) => void
+  }} */ ($props())
 </script>
 
 <div class="panel">
@@ -16,7 +22,11 @@
       default={0.01}
       scale="log"
       unit="s"
+      externalValue={midiState?.ampAttack?.externalValue}
+      learningMidi={midiState?.ampAttack?.learningMidi ?? false}
+      assignedCc={midiState?.ampAttack?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'ampAttack', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('ampAttack')}
     />
     <Knob
       label="decay"
@@ -25,7 +35,11 @@
       default={0.5}
       scale="log"
       unit="s"
+      externalValue={midiState?.ampDecay?.externalValue}
+      learningMidi={midiState?.ampDecay?.learningMidi ?? false}
+      assignedCc={midiState?.ampDecay?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'ampDecay', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('ampDecay')}
     />
   </div>
 </div>

@@ -3,7 +3,8 @@
   import { SvelteSet } from 'svelte/reactivity'
   import { QWERTY_MAP, buildNoteOnMessages, midiToFreq } from '../audio/keyboard.js'
 
-  let { onnote } = $props()
+  // eslint-disable-next-line no-useless-assignment
+  let { onnote, triggerNote = $bindable(null), releaseNote = $bindable(null) } = $props()
 
   const BASE_MIDI = 48
   const BLACK_SEMITONES = new Set([1, 3, 6, 8, 10])
@@ -36,19 +37,25 @@
   const activeKeys = new SvelteSet()
   const pressedQwerty = new SvelteSet()
 
-  function triggerNote(/** @type {number} */ midi) {
+  function _triggerNote(/** @type {number} */ midi) {
     const freq = midiToFreq(midi)
     const wasActive = activeKeys.size > 0
     activeKeys.add(midi)
     onnote?.(buildNoteOnMessages(freq, wasActive))
   }
 
-  function releaseNote(/** @type {number} */ midi) {
+  function _releaseNote(/** @type {number} */ midi) {
     activeKeys.delete(midi)
     if (activeKeys.size === 0) {
       onnote?.([{ param: 'gate', value: 0 }])
     }
   }
+
+  // Expose to parent so MIDI callbacks can call into the shared activeKeys path.
+  // eslint-disable-next-line no-useless-assignment
+  triggerNote = _triggerNote
+  // eslint-disable-next-line no-useless-assignment
+  releaseNote = _releaseNote
 
   function onKeyDown(/** @type {KeyboardEvent} */ e) {
     if (e.repeat) return
@@ -56,14 +63,14 @@
     if (midi === undefined) return
     if (pressedQwerty.has(e.key)) return
     pressedQwerty.add(e.key)
-    triggerNote(midi)
+    _triggerNote(midi)
   }
 
   function onKeyUp(/** @type {KeyboardEvent} */ e) {
     const midi = QWERTY_MAP[e.key]
     if (midi === undefined) return
     pressedQwerty.delete(e.key)
-    releaseNote(midi)
+    _releaseNote(midi)
   }
 
   onMount(() => {
@@ -90,9 +97,9 @@
         class="white-key"
         class:active={activeKeys.has(key.midi)}
         data-midi={key.midi}
-        onpointerdown={() => triggerNote(key.midi)}
-        onpointerup={() => releaseNote(key.midi)}
-        onpointerleave={() => releaseNote(key.midi)}
+        onpointerdown={() => _triggerNote(key.midi)}
+        onpointerup={() => _releaseNote(key.midi)}
+        onpointerleave={() => _releaseNote(key.midi)}
       />
     {/each}
     <!-- Black keys (rendered on top) -->
@@ -106,9 +113,9 @@
         class="black-key"
         class:active={activeKeys.has(key.midi)}
         data-midi={key.midi}
-        onpointerdown={() => triggerNote(key.midi)}
-        onpointerup={() => releaseNote(key.midi)}
-        onpointerleave={() => releaseNote(key.midi)}
+        onpointerdown={() => _triggerNote(key.midi)}
+        onpointerup={() => _releaseNote(key.midi)}
+        onpointerleave={() => _releaseNote(key.midi)}
       />
     {/each}
   </svg>

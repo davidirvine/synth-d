@@ -1,9 +1,15 @@
 <script>
   import Knob from './Knob.svelte'
 
-  let { onchange } = /** @type {{ onchange?: (e: { param: string, value: number }) => void }} */ (
-    $props()
-  )
+  let {
+    onchange,
+    midiState = {},
+    onknobcontextmenu,
+  } = /** @type {{
+    onchange?: (e: { param: string, value: number }) => void,
+    midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
+    onknobcontextmenu?: (param: string) => void
+  }} */ ($props())
 </script>
 
 <div class="panel">
@@ -16,7 +22,11 @@
       default={2000}
       scale="log"
       unit="Hz"
+      externalValue={midiState?.cutoff?.externalValue}
+      learningMidi={midiState?.cutoff?.learningMidi ?? false}
+      assignedCc={midiState?.cutoff?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'cutoff', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('cutoff')}
     />
     <Knob
       label="res"
@@ -24,7 +34,11 @@
       max={1}
       default={0.3}
       scale="linear"
+      externalValue={midiState?.resonance?.externalValue}
+      learningMidi={midiState?.resonance?.learningMidi ?? false}
+      assignedCc={midiState?.resonance?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'resonance', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('resonance')}
     />
     <Knob
       label="mode"
@@ -39,7 +53,11 @@
         { pos: 0.5, label: 'bp' },
         { pos: 1, label: 'hp' },
       ]}
+      externalValue={midiState?.filterMode?.externalValue}
+      learningMidi={midiState?.filterMode?.learningMidi ?? false}
+      assignedCc={midiState?.filterMode?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'filterMode', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterMode')}
     />
   </div>
 </div>

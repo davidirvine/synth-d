@@ -12,8 +12,28 @@
     ticks = [],
     showLabel = true,
     showValue = true,
+    externalValue = undefined,
+    learningMidi = false,
+    assignedCc = null,
     onchange,
-  } = $props()
+    oncontextmenu,
+  } = /** @type {{
+    label?: string,
+    min?: number,
+    max?: number,
+    default?: number,
+    value?: number,
+    scale?: string,
+    unit?: string,
+    ticks?: Array<{ pos: number, label: string, r?: number }>,
+    showLabel?: boolean,
+    showValue?: boolean,
+    externalValue?: number,
+    learningMidi?: boolean,
+    assignedCc?: number | null,
+    onchange?: (e: { value: number }) => void,
+    oncontextmenu?: () => void
+  }} */ ($props())
 
   // Intentional one-time init — knob owns its state after mount, external prop changes are ignored.
   // Svelte 5 warns "only captures the initial value" here; that is the intended design.
@@ -54,6 +74,17 @@
   let lastY = 0
   let shiftHeld = false
 
+  // Apply externalValue when not dragging
+  $effect(() => {
+    if (externalValue !== undefined && !dragging) {
+      const clamped = Math.max(min, Math.min(max, externalValue))
+      if (clamped !== value) {
+        value = clamped
+        onchange?.({ value: clamped })
+      }
+    }
+  })
+
   function onPointerDown(e) {
     dragging = true
     lastY = e.clientY
@@ -81,6 +112,11 @@
     value = defaultValue
     onchange?.({ value: defaultValue })
   }
+
+  function handleContextMenu(/** @type {MouseEvent} */ e) {
+    e.preventDefault()
+    oncontextmenu?.()
+  }
 </script>
 
 <div class="knob-wrap">
@@ -92,8 +128,12 @@
     onpointermove={onPointerMove}
     onpointerup={onPointerUp}
     ondblclick={onDblClick}
+    oncontextmenu={handleContextMenu}
   >
     <svg width="48" height="48" viewBox="0 0 48 48" style="overflow: visible;">
+      {#if learningMidi}
+        <circle cx={CX} cy={CY} r={R + 4} class="learn-ring" fill="none" stroke-width="2" />
+      {/if}
       <path d={arcPath(1)} class="track" fill="none" stroke-width="3" />
       <path d={arcPath(pos)} class="arc" fill="none" stroke-width="3" />
       <circle cx={CX} cy={CY} r="13" class="body" />
@@ -115,6 +155,9 @@
     </svg>
   </div>
   <span class="knob-value" class:invisible={!showValue}>{formatValue(value, unit)}</span>
+  {#if assignedCc !== null}
+    <span class="cc-label">CC {assignedCc}</span>
+  {/if}
 </div>
 
 <style>
@@ -136,6 +179,13 @@
   .knob-value {
     font-size: 10px;
     color: #888;
+  }
+
+  .cc-label {
+    font-size: 9px;
+    color: #666;
+    font-family: monospace;
+    letter-spacing: 0.03em;
   }
 
   .invisible {
@@ -172,5 +222,19 @@
     text-transform: uppercase;
     pointer-events: none;
     user-select: none;
+  }
+
+  .learn-ring {
+    stroke: #c87941;
+    animation: learn-pulse 0.8s ease-in-out infinite alternate;
+  }
+
+  @keyframes learn-pulse {
+    from {
+      opacity: 0.3;
+    }
+    to {
+      opacity: 1;
+    }
   }
 </style>
