@@ -1,20 +1,23 @@
 # Project Rules
 
+## Spec driven design
+
+This project uses spec driven design methodology using OpenSpec. A spec must exist before any new features, changes to existing features, or bug fixes can be implemented.
+
 ## Branching
 
-Each section in `tasks.md` is implemented on its own git branch. Branch names are kebab-case combining the change name and section name:
+All of the tasks for a change should be implemented in a single branch. Branch names are kebab-case versions of the change name
 
 ```
-<change-name>/<section-name>
+<change-name>
 ```
 
 Examples:
-- `subtractive-synth/project-scaffold`
-- `subtractive-synth/faust-dsp-oscillator`
-- `subtractive-synth/pure-function-modules`
-- `subtractive-synth/unit-tests-pure-functions`
+- `power-button`
+- `second-oscillator`
 
-Create the branch before starting any work in a section. Do not begin the next section until the current branch is merged.
+Before starting any implementation work create the branch but only if the current branch has a different name.
+In the case of branch name conflicts, stop and ask the user for guidance.
 
 ## Section Completion
 
@@ -27,6 +30,10 @@ A section is not complete until all applicable tests pass:
 | 14 (Stryker) | `npx stryker run` with mutation score ≥ 85% |
 | 15 (Playwright) | `npx playwright test` |
 | 16 (final verification) | all three: vitest, stryker, playwright |
+
+## Committing changes
+
+After each section is complete the changes should be committed. Do not begin the next section until this commit is performed.
 
 ## Linting and Formatting
 

@@ -6,8 +6,8 @@ dist/
 .vite/
 
 # FAUST compiled artifacts (regenerate with: faust -lang wasm faust/synth.dsp -o public/synth)
-subtractive-synth/public/synth.wasm
-subtractive-synth/public/synth.js
+public/synth.wasm
+public/synth.js
 
 # Test output
 coverage/
@@ -36,7 +36,8 @@ pnpm-debug.log*
 .DS_Store
 
 # Editor
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
