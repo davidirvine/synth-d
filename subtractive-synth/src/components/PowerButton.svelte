@@ -28,7 +28,6 @@
       <path d="M 14.5 4.6 A 7 7 0 1 1 5.5 4.6" />
     </svg>
   </button>
-  <span class="label">POWER</span>
 </div>
 
 <style>
@@ -72,12 +71,5 @@
   .power-icon.lit {
     stroke: #c87941;
     filter: drop-shadow(0 0 3px #c87941);
-  }
-
-  .label {
-    font-family: monospace;
-    font-size: 7px;
-    color: #e8dcc8;
-    letter-spacing: 0.1em;
   }
 </style>
