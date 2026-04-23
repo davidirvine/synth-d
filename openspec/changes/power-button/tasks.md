@@ -26,10 +26,10 @@
 
 ## 5. Tests
 
-- [ ] 5.1 Add unit tests for `powerOn()` and `powerOff()` in `src/audio/engine.test.js` (mock AudioContext)
-- [ ] 5.2 Add component test for `PowerButton.svelte`: renders OFF by default, emits toggle event on click, shows STARTING label when loading
-- [ ] 5.3 Add integration test in `App.svelte` test: controls are inert when powered off, active when powered on
-- [ ] 5.4 Run `npx vitest run` and confirm all tests pass
+- [x] 5.1 Add unit tests for `powerOn()` and `powerOff()` in `src/audio/engine.test.js` (mock AudioContext)
+- [x] 5.2 Add component test for `PowerButton.svelte`: renders OFF by default, emits toggle event on click, shows STARTING label when loading
+- [x] 5.3 Add integration test in `App.svelte` test: controls are inert when powered off, active when powered on
+- [x] 5.4 Run `npx vitest run` and confirm all tests pass
 
 ## 6. Verification and Merge
 
