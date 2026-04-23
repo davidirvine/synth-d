@@ -34,5 +34,5 @@
 ## 6. Verification and Merge
 
 - [ ] 6.1 Manually verify in browser: power button OFF on load, power-on starts audio, power-off stops audio, knobs unresponsive when off
-- [ ] 6.2 Run `npx vitest run` one final time — all tests must pass
+- [x] 6.2 Run `npx vitest run` one final time — all tests must pass
 - [ ] 6.3 Commit all changes and open PR targeting `main`
