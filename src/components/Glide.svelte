@@ -37,6 +37,7 @@
       default={0.2}
       scale="log"
       unit="s"
+      disabled={glideOn === 0}
       externalValue={midiState?.glideRate?.externalValue}
       learningMidi={midiState?.glideRate?.learningMidi ?? false}
       assignedCc={midiState?.glideRate?.assignedCc ?? null}

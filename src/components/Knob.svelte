@@ -17,6 +17,7 @@
     externalValue = undefined,
     learningMidi = false,
     assignedCc = null,
+    disabled = false,
     onchange,
     oncontextmenu,
   } = /** @type {{
@@ -35,6 +36,7 @@
     externalValue?: number,
     learningMidi?: boolean,
     assignedCc?: number | null,
+    disabled?: boolean,
     onchange?: (e: { value: number }) => void,
     oncontextmenu?: () => void
   }} */ ($props())
@@ -145,7 +147,7 @@
   }
 </script>
 
-<div class="knob-wrap">
+<div class="knob-wrap" class:disabled>
   <span class="knob-label" class:invisible={!showLabel}>{label}</span>
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
@@ -195,6 +197,11 @@
     align-items: center;
     gap: 2px;
     user-select: none;
+  }
+
+  .knob-wrap.disabled {
+    opacity: 0.35;
+    pointer-events: none;
   }
 
   .knob-label {

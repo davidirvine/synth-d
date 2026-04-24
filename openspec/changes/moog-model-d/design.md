@@ -7,6 +7,7 @@ This change replaces the DSP core and all audio-side components. The engine, key
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Three independent oscillators with six waveforms each and detune on OSC 2 / OSC 3
 - Mixer with per-source levels and white/pink noise
 - Moog 24 dB ladder filter (LP only) replacing the SEM SVF
@@ -17,6 +18,7 @@ This change replaces the DSP core and all audio-side components. The engine, key
 - Keyboard tracking on filter cutoff
 
 **Non-Goals:**
+
 - Oscillator sync (not present on stock Model D; deferred)
 - Pulse-width modulation (fixed waveform set, no PWM)
 - External audio input
@@ -67,13 +69,13 @@ Both filter and amp contours replace `en.ar(a, d)` with `en.adsr(a, d, s, r, gat
 
 The amp envelope D/R lock switch is implemented in the FAUST DSP: when `drLock = 1`, the release parameter receives the same value as decay (`ampRelease = select2(drLock, ampRelease, ampDecay)`). The UI switch simply sends `drLock` as a parameter.
 
-### D6 — Glide: `ba.portamento` with on/off gating
+### D6 — Glide: `si.smooth(ba.tau2pole(...))` with on/off gating
 
-`ba.portamento(time, x)` from the FAUST stdlib performs exponential frequency smoothing. Glide is gated by a `glideOn` boolean: when off, portamento time is forced to 0 so frequency changes are instantaneous.
+`ba.portamento` is unavailable in FAUST 2.85.5, so glide uses `si.smooth(ba.tau2pole(glideTime))` instead, which is equivalent: it performs single-pole exponential smoothing with a time constant matched to the glide rate. Glide is gated by a `glideOn` boolean: when off, `glideTime` is forced to 0 so frequency changes are instantaneous.
 
 ```
 glideTime = glideOn * glideRate
-slidFreq  = freq : ba.portamento(glideTime)
+glideFreq = freq : si.smooth(ba.tau2pole(glideTime))
 ```
 
 ### D7 — Keyboard tracking: additive Hz offset from C4 reference
@@ -90,18 +92,18 @@ This is a linear approximation, accurate enough across the playable range.
 
 The filter contour amount knob spans 0 to +10 000 Hz only. Negative envelope amounts (filter closes on key press) are not included. This matches the original Model D behaviour. The bipolar knob prop is not used here; the standard arc-from-start is correct.
 
-### D9 — New Svelte components
+### D9 — Svelte component changes
 
 Four new/redesigned components with standard `onchange` + `midiState` + `onknobcontextmenu` props:
 
-| Component | Panel |
-|---|---|
-| `Oscillator.svelte` | redesigned — three-osc bank |
-| `Mixer.svelte` | new — OSC 1/2/3 levels + noise |
+| Component           | Panel                                              |
+| ------------------- | -------------------------------------------------- |
+| `Oscillator.svelte` | redesigned — three-osc bank                        |
+| `Mixer.svelte`      | new — OSC 1/2/3 levels + noise                     |
 | `Modulation.svelte` | new — mod mix, routing switches, virtual mod wheel |
-| `Glide.svelte` | new — toggle + rate knob |
+| `Glide.svelte`      | new — toggle + rate knob                           |
 
-`Filter.svelte`, `FilterEnv.svelte`, and `AmpEnv.svelte` receive additive changes only (new knobs, removed knobs, new switches). No existing component is deleted.
+`Filter.svelte` and `AmpEnv.svelte` received additive changes (new knobs, switches). Filter envelope controls were merged into `Filter.svelte`, making `FilterEnv.svelte` obsolete; it has been removed. `AmpEnv.svelte` was repurposed as the "output" panel, combining volume and loudness contour.
 
 ## Risks / Trade-offs
 

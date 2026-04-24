@@ -12,6 +12,7 @@
   }} */ ($props())
 
   let drLock = $state(0)
+  let decayValue = $state(0.5)
 
   function toggleDrLock() {
     drLock = drLock === 0 ? 1 : 0
@@ -72,7 +73,10 @@
       externalValue={midiState?.ampDecay?.externalValue}
       learningMidi={midiState?.ampDecay?.learningMidi ?? false}
       assignedCc={midiState?.ampDecay?.assignedCc ?? null}
-      onchange={(e) => onchange?.({ param: 'ampDecay', value: e.value })}
+      onchange={(e) => {
+        decayValue = e.value
+        onchange?.({ param: 'ampDecay', value: e.value })
+      }}
       oncontextmenu={() => onknobcontextmenu?.('ampDecay')}
     />
     <Knob
@@ -94,7 +98,8 @@
       default={0.3}
       scale="log"
       unit="s"
-      externalValue={midiState?.ampRelease?.externalValue}
+      disabled={drLock === 1}
+      externalValue={drLock === 1 ? decayValue : midiState?.ampRelease?.externalValue}
       learningMidi={midiState?.ampRelease?.learningMidi ?? false}
       assignedCc={midiState?.ampRelease?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'ampRelease', value: e.value })}

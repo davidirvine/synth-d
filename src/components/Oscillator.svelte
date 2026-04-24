@@ -140,6 +140,7 @@
         default={1}
         scale="log"
         unit="Hz"
+        disabled={osc3LfoMode === 0}
         externalValue={midiState?.osc3LfoRate?.externalValue}
         learningMidi={midiState?.osc3LfoRate?.learningMidi ?? false}
         assignedCc={midiState?.osc3LfoRate?.assignedCc ?? null}
