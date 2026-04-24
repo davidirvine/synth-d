@@ -36,7 +36,18 @@
     />
   </div>
   <div class="section-divider"></div>
-  <span class="sub-label">loudness contour</span>
+  <div class="contour-header">
+    <span class="sub-label">loudness contour</span>
+    <button
+      class="drlock-btn"
+      class:active={drLock === 1}
+      onclick={toggleDrLock}
+      aria-pressed={drLock === 1}
+      title="Decay/Release lock"
+    >
+      d/r
+    </button>
+  </div>
   <div class="knob-row">
     <Knob
       label="attack"
@@ -76,30 +87,19 @@
       onchange={(e) => onchange?.({ param: 'ampSustain', value: e.value })}
       oncontextmenu={() => onknobcontextmenu?.('ampSustain')}
     />
-    <div class="release-group">
-      <Knob
-        label="release"
-        min={0.001}
-        max={8}
-        default={0.3}
-        scale="log"
-        unit="s"
-        externalValue={midiState?.ampRelease?.externalValue}
-        learningMidi={midiState?.ampRelease?.learningMidi ?? false}
-        assignedCc={midiState?.ampRelease?.assignedCc ?? null}
-        onchange={(e) => onchange?.({ param: 'ampRelease', value: e.value })}
-        oncontextmenu={() => onknobcontextmenu?.('ampRelease')}
-      />
-      <button
-        class="drlock-btn"
-        class:active={drLock === 1}
-        onclick={toggleDrLock}
-        aria-pressed={drLock === 1}
-        title="Decay/Release lock"
-      >
-        d/r
-      </button>
-    </div>
+    <Knob
+      label="release"
+      min={0.001}
+      max={8}
+      default={0.3}
+      scale="log"
+      unit="s"
+      externalValue={midiState?.ampRelease?.externalValue}
+      learningMidi={midiState?.ampRelease?.learningMidi ?? false}
+      assignedCc={midiState?.ampRelease?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'ampRelease', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('ampRelease')}
+    />
   </div>
 </div>
 
@@ -138,11 +138,10 @@
     align-items: flex-start;
   }
 
-  .release-group {
+  .contour-header {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 4px;
+    justify-content: space-between;
   }
 
   .drlock-btn {
