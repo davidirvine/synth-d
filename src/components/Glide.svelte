@@ -54,6 +54,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    flex: 1;
   }
 
   .panel-label {
@@ -66,6 +67,7 @@
   .glide-row {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
   }
 
