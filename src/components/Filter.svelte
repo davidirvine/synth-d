@@ -56,7 +56,9 @@
   </div>
 
   <div class="section-divider"></div>
-  <span class="sub-label">filter contour</span>
+  <div class="contour-header">
+    <span class="sub-label">filter contour</span>
+  </div>
 
   <div class="knob-row">
     <Knob
@@ -133,7 +135,7 @@
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
 
   .panel-label {
@@ -148,6 +150,12 @@
     color: #666;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+  }
+
+  .contour-header {
+    display: flex;
+    align-items: center;
+    min-height: 20px;
   }
 
   .section-divider {
