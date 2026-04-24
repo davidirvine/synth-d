@@ -98,12 +98,12 @@
 
 ## 14. Stryker Mutation Tests
 
-- [ ] 14.1 Run `npx stryker run` — mutation score ≥ 85%
+- [x] 14.1 Run `npx stryker run` — mutation score ≥ 85%
 
 ## 15. Playwright Tests
 
-- [ ] 15.1 Update Playwright smoke test: update parameter name assertions for new DSP params; add assertions for at least one interaction with mixer, modulation, and glide panels
-- [ ] 15.2 Run `npx playwright test` — all tests pass
+- [x] 15.1 Update Playwright smoke test: update parameter name assertions for new DSP params; add assertions for at least one interaction with mixer, modulation, and glide panels
+- [x] 15.2 Run `npx playwright test` — all tests pass
 
 ## 16. Final Verification
 

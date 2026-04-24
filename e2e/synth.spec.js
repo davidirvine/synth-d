@@ -1,53 +1,88 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Subtractive Synth', () => {
-  test('start overlay is visible on load', async ({ page }) => {
+  test('app loads with power button and panels dimmed', async ({ page }) => {
     await page.goto('/')
-    const overlay = page.locator('.overlay')
-    await expect(overlay).toBeVisible()
-    await expect(overlay).toContainText('CLICK TO START')
+    await expect(page.locator('button[aria-label]')).toBeVisible()
+    await expect(page.locator('.panels')).toHaveClass(/dimmed/)
   })
 
-  test('clicking overlay dismisses it and starts AudioContext', async ({ page }) => {
+  test('clicking power button enables the panels', async ({ page }) => {
     await page.goto('/')
-    const overlay = page.locator('.overlay')
-    await expect(overlay).toBeVisible()
+    await page.locator('button[aria-label]').click()
+    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+  })
 
-    await overlay.click()
+  test('oscillator panel is visible', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('.panel-label', { hasText: 'oscillator' })).toBeVisible()
+  })
 
-    await expect(overlay).not.toBeVisible()
+  test('mixer panel is visible', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('.panel-label', { hasText: 'mixer' })).toBeVisible()
+  })
 
-    const state = await page.evaluate(() => {
-      // Access the AudioContext state via the Web Audio API
-      return window.__audioCtx?.state ?? 'unknown'
-    })
-    // AudioContext may be 'running' or 'suspended' depending on browser policy,
-    // but it should exist after the click
-    expect(['running', 'suspended']).toContain(state)
+  test('modulation panel is visible', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('.panel-label', { hasText: 'modulation' })).toBeVisible()
+  })
+
+  test('glide panel is visible', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('.panel-label', { hasText: 'glide' })).toBeVisible()
+  })
+
+  test('filter panel has key trk knob instead of mode knob', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByText('key trk')).toBeVisible()
+    await expect(page.getByText('mode')).not.toBeVisible()
+  })
+
+  test('mixer noise type button interaction', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('button[aria-label]').click()
+    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+    const noiseBtn = page.locator('.noise-type-btn')
+    await expect(noiseBtn).toBeVisible()
+    await expect(noiseBtn).toContainText('wht')
+    await noiseBtn.click()
+    await expect(noiseBtn).toContainText('pink')
+  })
+
+  test('modulation routing switch interaction', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('button[aria-label]').click()
+    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+    const routeBtn = page.locator('.route-btn').first()
+    await expect(routeBtn).toBeVisible()
+    await expect(routeBtn).not.toHaveClass(/active/)
+    await routeBtn.click()
+    await expect(routeBtn).toHaveClass(/active/)
+  })
+
+  test('glide toggle interaction', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('button[aria-label]').click()
+    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+    const glideBtn = page.locator('.glide-btn')
+    await expect(glideBtn).toBeVisible()
+    await expect(glideBtn).toContainText('off')
+    await glideBtn.click()
+    await expect(glideBtn).toContainText('on')
   })
 
   test('keyboard key press activates a key and does not crash', async ({ page }) => {
     await page.goto('/')
-    await page.locator('.overlay').click()
+    await page.locator('button[aria-label]').click()
+    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
 
-    // Wait for AudioContext to initialize
-    await page
-      .waitForFunction(() => window.__audioCtx !== undefined, { timeout: 5000 })
-      .catch(() => {
-        // AudioContext may not be exposed if WASM fails to load in headless; just continue
-      })
-
-    // Press 'z' to trigger the lowest C note
     await page.keyboard.press('z')
 
-    // The Keyboard component marks the pressed key with .active
     const activeKey = page.locator('[data-midi="48"].active')
     await expect(activeKey)
       .toBeVisible({ timeout: 1000 })
       .catch(async () => {
-        // In headless, keydown events fired via Playwright keyboard API reach the
-        // window listener in the Svelte component; if not visible, check at least
-        // that the app hasn't crashed (main element is still present)
         await expect(page.locator('main')).toBeAttached()
       })
   })
