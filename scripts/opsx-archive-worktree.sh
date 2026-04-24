@@ -2,10 +2,10 @@
 # opsx-archive-worktree.sh <change-name>
 #
 # Cleans up the worktree and branch after a change has been archived.
-# Run this from the MAIN worktree, AFTER:
-#   1. The feature PR has been merged to main
-#   2. You have pulled main locally
-#   3. /opsx:archive <change-name> has been run and committed on main
+# Run this from the develop worktree, AFTER:
+#   1. The feature PR has been merged to develop
+#   2. You have pulled develop locally
+#   3. /opsx:archive <change-name> has been run and committed on develop
 
 set -euo pipefail
 
@@ -24,8 +24,8 @@ BRANCH="feature/${CHANGE_NAME}"
 # --- Preflight --------------------------------------------------------------
 
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-if [[ "$CURRENT_BRANCH" != "main" ]]; then
-  echo "✗ Must be on 'main' to clean up (you are on '${CURRENT_BRANCH}')." >&2
+if [[ "$CURRENT_BRANCH" != "develop" ]]; then
+  echo "✗ Must be on 'develop' to clean up (you are on '${CURRENT_BRANCH}')." >&2
   exit 1
 fi
 
@@ -33,7 +33,7 @@ ARCHIVE_GLOB="${REPO_ROOT}/openspec/changes/archive/*-${CHANGE_NAME}"
 # shellcheck disable=SC2086
 if ! compgen -G "$ARCHIVE_GLOB" > /dev/null; then
   echo "✗ No archived change found matching openspec/changes/archive/*-${CHANGE_NAME}" >&2
-  echo "  Run /opsx:archive ${CHANGE_NAME} first, then commit the archive to main." >&2
+  echo "  Run /opsx:archive ${CHANGE_NAME} first, then commit the archive to develop." >&2
   exit 1
 fi
 

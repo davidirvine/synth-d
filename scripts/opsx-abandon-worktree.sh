@@ -4,8 +4,8 @@
 # Tears down a worktree + branch for a change that was abandoned
 # (proposal rejected after implementation started, direction changed, etc).
 #
-# This does NOT touch the proposal files on main — if you want to remove those,
-# revert or delete openspec/changes/<change-name>/ on main separately.
+# This does NOT touch the proposal files on develop — if you want to remove those,
+# revert or delete openspec/changes/<change-name>/ on develop separately.
 
 set -euo pipefail
 
@@ -47,5 +47,5 @@ if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null 2>&1; then
 fi
 
 echo "✓ Abandoned ${CHANGE_NAME}"
-echo "  Note: openspec/changes/${CHANGE_NAME}/ on main is untouched."
+echo "  Note: openspec/changes/${CHANGE_NAME}/ on develop is untouched."
 echo "  Remove it manually if the proposal should also be dropped."

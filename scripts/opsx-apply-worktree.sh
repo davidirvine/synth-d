@@ -2,10 +2,10 @@
 # opsx-apply-worktree.sh <change-name>
 #
 # Creates a sibling git worktree for implementing an approved OpenSpec proposal.
-# Assumes the proposal at openspec/changes/<change-name>/ has been committed to main.
+# Assumes the proposal at openspec/changes/<change-name>/ has been committed to develop.
 #
 # Resulting layout:
-#   ../<repo>/              <- main worktree, stays on main
+#   ../<repo>/              <- develop worktree, stays on develop
 #   ../<repo>-<change>/     <- new worktree on feature/<change>
 
 set -euo pipefail
@@ -27,19 +27,19 @@ CHANGE_DIR="${REPO_ROOT}/openspec/changes/${CHANGE_NAME}"
 
 if [[ ! -d "$CHANGE_DIR" ]]; then
   echo "✗ No proposal found at openspec/changes/${CHANGE_NAME}/" >&2
-  echo "  Run /opsx:new ${CHANGE_NAME} and /opsx:ff on main first." >&2
+  echo "  Run /opsx:new ${CHANGE_NAME} and /opsx:ff on develop first." >&2
   exit 1
 fi
 
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-if [[ "$CURRENT_BRANCH" != "main" ]]; then
-  echo "✗ Must be on 'main' to create a feature worktree (you are on '${CURRENT_BRANCH}')." >&2
+if [[ "$CURRENT_BRANCH" != "develop" ]]; then
+  echo "✗ Must be on 'develop' to create a feature worktree (you are on '${CURRENT_BRANCH}')." >&2
   exit 1
 fi
 
 if ! git diff-index --quiet HEAD --; then
   echo "✗ Working tree has uncommitted changes." >&2
-  echo "  Commit the proposal to main before creating the implementation worktree." >&2
+  echo "  Commit the proposal to develop before creating the implementation worktree." >&2
   exit 1
 fi
 
@@ -56,11 +56,11 @@ if [[ -e "$WORKTREE_PATH" ]]; then
   exit 1
 fi
 
-# --- Sync main --------------------------------------------------------------
+# --- Sync develop --------------------------------------------------------------
 
-echo "→ Fetching latest main..."
-git fetch origin main
-git merge --ff-only origin/main
+echo "→ Fetching latest develop..."
+git fetch origin develop
+git merge --ff-only origin/develop
 
 # --- Create worktree --------------------------------------------------------
 
