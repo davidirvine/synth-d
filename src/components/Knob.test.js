@@ -172,3 +172,56 @@ describe('Knob — context menu (MIDI learn trigger)', () => {
     expect(event.defaultPrevented).toBe(true)
   })
 })
+
+describe('Knob — showArc prop', () => {
+  it('renders no arc element but keeps track when showArc is false', () => {
+    const { container } = render(Knob, {
+      props: { label: 'mode', min: 0, max: 2, default: 0, showArc: false },
+    })
+    expect(container.querySelector('.arc')).toBeNull()
+    expect(container.querySelector('.track')).not.toBeNull()
+  })
+})
+
+describe('Knob — bipolar prop', () => {
+  it('renders a clockwise arc from center when pos > 0.5', () => {
+    const { container } = render(Knob, {
+      props: { label: 'amt', min: -10000, max: 10000, default: 5000, bipolar: true },
+    })
+    const arc = container.querySelector('.arc')
+    expect(arc).not.toBeNull()
+    const d = arc.getAttribute('d')
+    // Path starts at center (y=6 exactly at 12 o'clock) then arcs clockwise
+    expect(d).toMatch(/^M \S+ 6 A/)
+  })
+
+  it('renders a counter-clockwise arc (from indicator to center) when pos < 0.5', () => {
+    const { container } = render(Knob, {
+      props: { label: 'amt', min: -10000, max: 10000, default: -5000, bipolar: true },
+    })
+    const arc = container.querySelector('.arc')
+    expect(arc).not.toBeNull()
+    const d = arc.getAttribute('d')
+    // Path ends at center (y=6 exactly at 12 o'clock)
+    expect(d).toMatch(/ 6$/)
+  })
+
+  it('renders no arc when pos is exactly 0.5 (zero amount)', () => {
+    const { container } = render(Knob, {
+      props: { label: 'amt', min: -10000, max: 10000, default: 0, bipolar: true },
+    })
+    expect(container.querySelector('.arc')).toBeNull()
+  })
+
+  it('default knob (no new props) still renders an arc from 7 oclock', () => {
+    const { container } = render(Knob, {
+      props: { label: 'cut', min: 0, max: 1, default: 0.5 },
+    })
+    const arc = container.querySelector('.arc')
+    expect(arc).not.toBeNull()
+    // Standard arc starts from START_ANGLE 225°: x≈11.27, y≈36.73
+    const d = arc.getAttribute('d')
+    expect(d).toMatch(/^M /)
+    expect(d).toContain(' A ')
+  })
+})
