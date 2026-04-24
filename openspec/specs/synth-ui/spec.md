@@ -7,9 +7,11 @@ Defines the overall layout, visual aesthetic, and panel-level controls for the s
 ## Requirements
 
 ### Requirement: Header strip with power button above the panels
+
 The system SHALL render a header strip above the control panels containing the synth name on the left, MIDI status in the middle, and the power button on the right.
 
 #### Scenario: Header layout
+
 - **WHEN** the UI is rendered
 - **THEN** a header strip is visible above all panels with the synth title on the left and the power button on the right
 
@@ -17,12 +19,12 @@ The system SHALL render a header strip above the control panels containing the s
 
 ### Requirement: Panel layout with six sections
 
-The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer, Filter (combined with filter contour envelope), Output (combined volume and loudness contour), Modulation, and Glide. Filter and Output panels share a two-column grid row; Modulation and Glide appear below Filter in a second row. The keyboard SHALL appear below all panels spanning the full width. A header strip containing the synth title, MIDI status, and power button SHALL appear above the panels.
+The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer, Filter (combined with filter contour envelope), Output (combined volume and loudness contour), Modulation, and Glide. Filter and Output panels share a two-column grid row; Modulation and Glide appear below Filter in a second row. The keyboard SHALL appear below all panels spanning the full width. A header strip containing the synth title, MIDI status, and power button SHALL appear above the panels. The previously unused panel slot under Output SHALL host the oscilloscope panel.
 
 #### Scenario: Panel arrangement
 
 - **WHEN** the UI is rendered
-- **THEN** panels appear with Oscillator Bank | Mixer | [Filter over Modulation+Glide] | [Output over placeholder], keyboard below and header above
+- **THEN** panels appear with header above, then Oscillator Bank | Mixer | [Filter over Modulation+Glide] | [Output over Oscilloscope], keyboard below
 
 #### Scenario: Responsive to window width
 
@@ -32,7 +34,9 @@ The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer,
 ---
 
 ### Requirement: Moog dark visual aesthetic
+
 The system SHALL apply a consistent dark visual theme throughout:
+
 - Background: `#111111`
 - Panel background: `#1c1c1c` with a 1px `#333` border
 - Knob body: `#2a2a2a`
@@ -44,6 +48,7 @@ The system SHALL apply a consistent dark visual theme throughout:
 - Font: monospace (system-ui monospace stack or `JetBrains Mono` if available)
 
 #### Scenario: Consistent theming
+
 - **WHEN** any panel is rendered
 - **THEN** all colors match the defined palette with no default browser colors visible
 
