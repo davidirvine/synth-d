@@ -1,50 +1,50 @@
 ## 1. Branch Setup
 
-- [ ] 1.1 Create branch `moog-model-d` from `develop`
-- [ ] 1.2 Run `npx vitest run` — confirm baseline tests pass before any changes
+- [x] 1.1 Create branch `moog-model-d` from `develop`
+- [x] 1.2 Run `npx vitest run` — confirm baseline tests pass before any changes
 
 ## 2. FAUST DSP — Three-Oscillator Bank
 
-- [ ] 2.1 Replace single oscillator with OSC 1: six waveforms (triangle, reverse-sawtooth, sawtooth, square, wide pulse, narrow pulse) via `ba.selectn(6, osc1Wave)`, octave range parameter `osc1Range`
-- [ ] 2.2 Add OSC 2 with same six waveforms, `osc2Wave`, `osc2Range`, and `osc2Detune` (±100 cents): `osc2Freq = glideFreq * pow(2, osc2Range) * pow(2, osc2Detune / 1200)`
-- [ ] 2.3 Add OSC 3 with same six waveforms, `osc3Wave`, `osc3Range`, `osc3Detune`, `osc3LfoMode` toggle, and `osc3LfoRate` (0.1–20 Hz); when `osc3LfoMode=1` OSC 3 frequency = `osc3LfoRate`
-- [ ] 2.4 Run `faust faust/synth.dsp -o /dev/null` — no errors
+- [x] 2.1 Replace single oscillator with OSC 1: six waveforms (triangle, reverse-sawtooth, sawtooth, square, wide pulse, narrow pulse) via `ba.selectn(6, osc1Wave)`, octave range parameter `osc1Range`
+- [x] 2.2 Add OSC 2 with same six waveforms, `osc2Wave`, `osc2Range`, and `osc2Detune` (±100 cents): `osc2Freq = glideFreq * pow(2, osc2Range) * pow(2, osc2Detune / 1200)`
+- [x] 2.3 Add OSC 3 with same six waveforms, `osc3Wave`, `osc3Range`, `osc3Detune`, `osc3LfoMode` toggle, and `osc3LfoRate` (0.1–20 Hz); when `osc3LfoMode=1` OSC 3 frequency = `osc3LfoRate`
+- [x] 2.4 Run `faust faust/synth.dsp -o /dev/null` — no errors
 
 ## 3. FAUST DSP — Mixer
 
-- [ ] 3.1 Add level parameters `osc1Level`, `osc2Level`, `osc3Level`, `noiseLevel` (0–1 each); OSC 3 level is gated to zero when `osc3LfoMode=1`: `osc3Mix = osc3Signal * osc3Level * (1 - osc3LfoMode)`
-- [ ] 3.2 Add `noiseType` parameter (0 = white `no.noise`, 1 = pink `no.pink_noise`); mixer noise = `select2(noiseType, no.noise, no.pink_noise) * noiseLevel`
-- [ ] 3.3 Sum all four sources into a single mixer output feeding the filter
-- [ ] 3.4 Run `faust faust/synth.dsp -o /dev/null` — no errors
+- [x] 3.1 Add level parameters `osc1Level`, `osc2Level`, `osc3Level`, `noiseLevel` (0–1 each); OSC 3 level is gated to zero when `osc3LfoMode=1`: `osc3Mix = osc3Signal * osc3Level * (1 - osc3LfoMode)`
+- [x] 3.2 Add `noiseType` parameter (0 = white `no.noise`, 1 = pink `no.pink_noise`); mixer noise = `select2(noiseType, no.noise, no.pink_noise) * noiseLevel`
+- [x] 3.3 Sum all four sources into a single mixer output feeding the filter
+- [x] 3.4 Run `faust faust/synth.dsp -o /dev/null` — no errors
 
 ## 4. FAUST DSP — Ladder Filter
 
-- [ ] 4.1 Replace SEM SVF (`fi.lowpass`/`fi.highpass` crossfade) with `ve.moog_vcf(resonance, cutoffMod, signal)`
-- [ ] 4.2 Remove `filterMode` parameter entirely
-- [ ] 4.3 Add `keyTrack` parameter (0–1); compute `cutoffMod = cutoff + keyTrack * (freq - 261.63) + filterEnvOut * filterEnvAmt`
-- [ ] 4.4 Change `filterEnvAmt` range to 0–10 000 Hz (positive-only)
-- [ ] 4.5 Run `faust faust/synth.dsp -o /dev/null` — no errors
+- [x] 4.1 Replace SEM SVF (`fi.lowpass`/`fi.highpass` crossfade) with `ve.moog_vcf(resonance, cutoffMod, signal)`
+- [x] 4.2 Remove `filterMode` parameter entirely
+- [x] 4.3 Add `keyTrack` parameter (0–1); compute `cutoffMod = cutoff + keyTrack * (freq - 261.63) + filterEnvOut * filterEnvAmt`
+- [x] 4.4 Change `filterEnvAmt` range to 0–10 000 Hz (positive-only)
+- [x] 4.5 Run `faust faust/synth.dsp -o /dev/null` — no errors
 
 ## 5. FAUST DSP — ADSR Envelopes
 
-- [ ] 5.1 Replace filter `en.ar(filterAttack, filterDecay)` with `en.adsr(filterAttack, filterDecay, filterSustain, filterRelease, gate)`; add parameters `filterSustain` (0–1) and `filterRelease` (0.001–8 s)
-- [ ] 5.2 Replace amp `en.ar(ampAttack, ampDecay)` with `en.adsr(ampAttack, ampDecay, ampSustain, ampRelease, gate)`; add parameters `ampSustain` (0–1) and `ampRelease` (0.001–8 s)
-- [ ] 5.3 Add `drLock` parameter (0/1); when 1: `effectiveAmpRelease = ampDecay`, when 0: `effectiveAmpRelease = ampRelease`
-- [ ] 5.4 Run `faust faust/synth.dsp -o /dev/null` — no errors
+- [x] 5.1 Replace filter `en.ar(filterAttack, filterDecay)` with `en.adsr(filterAttack, filterDecay, filterSustain, filterRelease, gate)`; add parameters `filterSustain` (0–1) and `filterRelease` (0.001–8 s)
+- [x] 5.2 Replace amp `en.ar(ampAttack, ampDecay)` with `en.adsr(ampAttack, ampDecay, ampSustain, ampRelease, gate)`; add parameters `ampSustain` (0–1) and `ampRelease` (0.001–8 s)
+- [x] 5.3 Add `drLock` parameter (0/1); when 1: `effectiveAmpRelease = ampDecay`, when 0: `effectiveAmpRelease = ampRelease`
+- [x] 5.4 Run `faust faust/synth.dsp -o /dev/null` — no errors
 
 ## 6. FAUST DSP — Glide
 
-- [ ] 6.1 Add `glideOn` (0/1) and `glideRate` (0–5 s) parameters
-- [ ] 6.2 Apply portamento to the keyboard frequency before pitch calculation: `glideFreq = freq : ba.portamento(glideOn * glideRate)`; all three oscillators use `glideFreq` as their base pitch
-- [ ] 6.3 Run `faust faust/synth.dsp -o /dev/null` — no errors
+- [x] 6.1 Add `glideOn` (0/1) and `glideRate` (0–5 s) parameters
+- [x] 6.2 Apply portamento to the keyboard frequency before pitch calculation: `glideFreq = freq : ba.portamento(glideOn * glideRate)`; all three oscillators use `glideFreq` as their base pitch
+- [x] 6.3 Run `faust faust/synth.dsp -o /dev/null` — no errors
 
 ## 7. FAUST DSP — Modulation Routing
 
-- [ ] 7.1 Add `modMix` (0–1), `modWheel` (0–1), `modToOsc1` (0/1), `modToOsc2` (0/1), `modToFilter` (0/1) parameters
-- [ ] 7.2 Compute modulation source: `modSrc = osc3Signal * (1 - modMix) + no.noise * modMix`; compute modulation signal: `modSig = modSrc * modWheel`
-- [ ] 7.3 Apply pitch modulation to OSC 1 and OSC 2 as multiplicative factor: `pitchFactor(sig) = pow(2, sig * 2 / 12)`; OSC 1 freq multiplied by `pitchFactor(modSig) * modToOsc1` (guard: when `modToOsc1=0` factor = 1)
-- [ ] 7.4 Apply filter modulation: add `modSig * modToFilter * modFilterDepth` (fixed depth constant, e.g. 2000 Hz) to `cutoffMod`
-- [ ] 7.5 Run `faust faust/synth.dsp -o /dev/null` — no errors
+- [x] 7.1 Add `modMix` (0–1), `modWheel` (0–1), `modToOsc1` (0/1), `modToOsc2` (0/1), `modToFilter` (0/1) parameters
+- [x] 7.2 Compute modulation source: `modSrc = osc3Signal * (1 - modMix) + no.noise * modMix`; compute modulation signal: `modSig = modSrc * modWheel`
+- [x] 7.3 Apply pitch modulation to OSC 1 and OSC 2 as multiplicative factor: `pitchFactor(sig) = pow(2, sig * 2 / 12)`; OSC 1 freq multiplied by `pitchFactor(modSig) * modToOsc1` (guard: when `modToOsc1=0` factor = 1)
+- [x] 7.4 Apply filter modulation: add `modSig * modToFilter * modFilterDepth` (fixed depth constant, e.g. 2000 Hz) to `cutoffMod`
+- [x] 7.5 Run `faust faust/synth.dsp -o /dev/null` — no errors
 
 ## 8. DSP Build
 
