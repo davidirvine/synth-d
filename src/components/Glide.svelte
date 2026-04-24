@@ -82,6 +82,7 @@
     cursor: pointer;
     text-transform: uppercase;
     height: 22px;
+    width: 32px;
   }
 
   .glide-btn.active {
