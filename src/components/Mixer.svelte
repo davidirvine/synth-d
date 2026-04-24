@@ -13,15 +13,16 @@
 
   let noiseType = $state(0)
 
-  function toggleNoiseType() {
-    noiseType = noiseType === 0 ? 1 : 0
+  function selectNoiseType(t) {
+    if (t === noiseType) return
+    noiseType = t
     onchange?.({ param: 'noiseType', value: noiseType })
   }
 </script>
 
 <div class="panel">
   <span class="panel-label">mixer</span>
-  <div class="knob-row">
+  <div class="mixer-col">
     <Knob
       label="osc 1"
       min={0}
@@ -58,7 +59,7 @@
       onchange={(e) => onchange?.({ param: 'osc3Level', value: e.value })}
       oncontextmenu={() => onknobcontextmenu?.('osc3Level')}
     />
-    <div class="noise-section">
+    <div class="noise-row">
       <Knob
         label="noise"
         min={0}
@@ -71,14 +72,14 @@
         onchange={(e) => onchange?.({ param: 'noiseLevel', value: e.value })}
         oncontextmenu={() => onknobcontextmenu?.('noiseLevel')}
       />
-      <button
-        class="noise-type-btn"
-        class:pink={noiseType === 1}
-        onclick={toggleNoiseType}
-        aria-pressed={noiseType === 1}
-      >
-        {noiseType === 0 ? 'wht' : 'pink'}
-      </button>
+      <div class="noise-type-row">
+        <button class="noise-btn" class:active={noiseType === 0} onclick={() => selectNoiseType(0)}>
+          wht
+        </button>
+        <button class="noise-btn" class:active={noiseType === 1} onclick={() => selectNoiseType(1)}>
+          pink
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -100,31 +101,35 @@
     letter-spacing: 0.1em;
   }
 
-  .knob-row {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-  }
-
-  .noise-section {
+  .mixer-col {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
+    gap: 6px;
   }
 
-  .noise-type-btn {
+  .noise-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .noise-type-row {
+    display: flex;
+    gap: 3px;
+  }
+
+  .noise-btn {
     font-family: inherit;
     font-size: 9px;
     background: #2a2a2a;
     color: #888;
     border: 1px solid #444;
-    padding: 2px 6px;
+    padding: 3px 5px;
     cursor: pointer;
     text-transform: uppercase;
   }
 
-  .noise-type-btn.pink {
+  .noise-btn.active {
     background: #3a2a1a;
     color: #c87941;
     border-color: #c87941;

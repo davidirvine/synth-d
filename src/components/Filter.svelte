@@ -14,6 +14,7 @@
 
 <div class="panel">
   <span class="panel-label">filter</span>
+
   <div class="knob-row">
     <Knob
       label="cutoff"
@@ -53,6 +54,76 @@
       oncontextmenu={() => onknobcontextmenu?.('keyTrack')}
     />
   </div>
+
+  <div class="section-divider"></div>
+  <span class="sub-label">env</span>
+
+  <div class="knob-row">
+    <Knob
+      label="attack"
+      min={0.001}
+      max={4}
+      default={0.01}
+      scale="log"
+      unit="s"
+      externalValue={midiState?.filterAttack?.externalValue}
+      learningMidi={midiState?.filterAttack?.learningMidi ?? false}
+      assignedCc={midiState?.filterAttack?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'filterAttack', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterAttack')}
+    />
+    <Knob
+      label="decay"
+      min={0.001}
+      max={4}
+      default={0.3}
+      scale="log"
+      unit="s"
+      externalValue={midiState?.filterDecay?.externalValue}
+      learningMidi={midiState?.filterDecay?.learningMidi ?? false}
+      assignedCc={midiState?.filterDecay?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'filterDecay', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterDecay')}
+    />
+    <Knob
+      label="sustain"
+      min={0}
+      max={1}
+      default={0.5}
+      scale="linear"
+      externalValue={midiState?.filterSustain?.externalValue}
+      learningMidi={midiState?.filterSustain?.learningMidi ?? false}
+      assignedCc={midiState?.filterSustain?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'filterSustain', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterSustain')}
+    />
+    <Knob
+      label="release"
+      min={0.001}
+      max={8}
+      default={0.3}
+      scale="log"
+      unit="s"
+      externalValue={midiState?.filterRelease?.externalValue}
+      learningMidi={midiState?.filterRelease?.learningMidi ?? false}
+      assignedCc={midiState?.filterRelease?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'filterRelease', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterRelease')}
+    />
+    <Knob
+      label="amount"
+      min={0}
+      max={10000}
+      default={0}
+      scale="linear"
+      unit="Hz"
+      externalValue={midiState?.filterEnvAmt?.externalValue}
+      learningMidi={midiState?.filterEnvAmt?.learningMidi ?? false}
+      assignedCc={midiState?.filterEnvAmt?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'filterEnvAmt', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterEnvAmt')}
+    />
+  </div>
 </div>
 
 <style>
@@ -62,7 +133,7 @@
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 
   .panel-label {
@@ -70,6 +141,18 @@
     color: #e8dcc8;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+  }
+
+  .sub-label {
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: #2a2a2a;
   }
 
   .knob-row {

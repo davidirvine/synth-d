@@ -6,7 +6,6 @@
   import Oscillator from './components/Oscillator.svelte'
   import Mixer from './components/Mixer.svelte'
   import Filter from './components/Filter.svelte'
-  import FilterEnv from './components/FilterEnv.svelte'
   import AmpEnv from './components/AmpEnv.svelte'
   import Modulation from './components/Modulation.svelte'
   import Glide from './components/Glide.svelte'
@@ -45,7 +44,7 @@
     modMix: { min: 0, max: 1 },
     modWheel: { min: 0, max: 1 },
     // Glide
-    glideRate: { min: 0, max: 5 },
+    glideRate: { min: 0.001, max: 5 },
     // Master
     masterVol: { min: 0, max: 1 },
   }
@@ -182,10 +181,17 @@
 
   let mixerMidiState = $derived(midiStateFor('osc1Level', 'osc2Level', 'osc3Level', 'noiseLevel'))
 
-  let filterMidiState = $derived(midiStateFor('cutoff', 'resonance', 'keyTrack'))
-
-  let filterEnvMidiState = $derived(
-    midiStateFor('filterAttack', 'filterDecay', 'filterSustain', 'filterRelease', 'filterEnvAmt')
+  let filterMidiState = $derived(
+    midiStateFor(
+      'cutoff',
+      'resonance',
+      'keyTrack',
+      'filterAttack',
+      'filterDecay',
+      'filterSustain',
+      'filterRelease',
+      'filterEnvAmt'
+    )
   )
 
   let ampEnvMidiState = $derived(midiStateFor('ampAttack', 'ampDecay', 'ampSustain', 'ampRelease'))
@@ -213,53 +219,52 @@
   </header>
 
   <main inert={!powered || undefined}>
-    <div class="panels" class:dimmed={!powered}>
-      <Oscillator
-        onchange={onParamChange}
-        midiState={oscMidiState}
-        onknobcontextmenu={onKnobContextMenu}
-      />
-      <Mixer
-        onchange={onParamChange}
-        midiState={mixerMidiState}
-        onknobcontextmenu={onKnobContextMenu}
-      />
-      <Filter
-        onchange={onParamChange}
-        midiState={filterMidiState}
-        onknobcontextmenu={onKnobContextMenu}
-      />
-      <FilterEnv
-        onchange={onParamChange}
-        midiState={filterEnvMidiState}
-        onknobcontextmenu={onKnobContextMenu}
-      />
-      <AmpEnv
-        onchange={onParamChange}
-        midiState={ampEnvMidiState}
-        onknobcontextmenu={onKnobContextMenu}
-      />
-      <Modulation
-        onchange={onParamChange}
-        midiState={modMidiState}
-        onknobcontextmenu={onKnobContextMenu}
-      />
-      <Glide
-        onchange={onParamChange}
-        midiState={glideMidiState}
-        onknobcontextmenu={onKnobContextMenu}
-      />
-      <Volume
-        onchange={onParamChange}
-        midiState={volumeMidiState}
-        onknobcontextmenu={onKnobContextMenu}
-      />
+    <div class="synth" class:dimmed={!powered}>
+      <div class="panels">
+        <Oscillator
+          onchange={onParamChange}
+          midiState={oscMidiState}
+          onknobcontextmenu={onKnobContextMenu}
+        />
+        <Mixer
+          onchange={onParamChange}
+          midiState={mixerMidiState}
+          onknobcontextmenu={onKnobContextMenu}
+        />
+        <Filter
+          onchange={onParamChange}
+          midiState={filterMidiState}
+          onknobcontextmenu={onKnobContextMenu}
+        />
+        <AmpEnv
+          onchange={onParamChange}
+          midiState={ampEnvMidiState}
+          onknobcontextmenu={onKnobContextMenu}
+        />
+      </div>
+      <div class="keyboard-row">
+        <Modulation
+          onchange={onParamChange}
+          midiState={modMidiState}
+          onknobcontextmenu={onKnobContextMenu}
+        />
+        <Glide
+          onchange={onParamChange}
+          midiState={glideMidiState}
+          onknobcontextmenu={onKnobContextMenu}
+        />
+        <Keyboard
+          onnote={onKeyboardNote}
+          bind:triggerNote={keyboardTriggerNote}
+          bind:releaseNote={keyboardReleaseNote}
+        />
+        <Volume
+          onchange={onParamChange}
+          midiState={volumeMidiState}
+          onknobcontextmenu={onKnobContextMenu}
+        />
+      </div>
     </div>
-    <Keyboard
-      onnote={onKeyboardNote}
-      bind:triggerNote={keyboardTriggerNote}
-      bind:releaseNote={keyboardReleaseNote}
-    />
   </main>
 </div>
 
@@ -289,19 +294,29 @@
 
   main {
     padding: 20px;
+  }
+
+  .synth {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
+    transition: opacity 0.2s;
+  }
+
+  .synth.dimmed {
+    opacity: 0.4;
   }
 
   .panels {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    transition: opacity 0.2s;
+    align-items: flex-start;
   }
 
-  .panels.dimmed {
-    opacity: 0.4;
+  .keyboard-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
   }
 </style>

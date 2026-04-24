@@ -47,7 +47,7 @@
 </script>
 
 <div class="panel">
-  <span class="panel-label">oscillator</span>
+  <span class="panel-label">oscillator bank</span>
 
   <div class="osc-section">
     <span class="osc-label">osc 1</span>

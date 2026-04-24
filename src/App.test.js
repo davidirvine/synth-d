@@ -34,14 +34,14 @@ describe('App power state', () => {
 
   it('panels are dimmed when powered off', () => {
     const { container } = render(App)
-    expect(container.querySelector('.panels').classList.contains('dimmed')).toBe(true)
+    expect(container.querySelector('.synth').classList.contains('dimmed')).toBe(true)
   })
 
   it('panels are not dimmed after power on', async () => {
     const { container } = render(App)
     await fireEvent.click(container.querySelector('button'))
     await waitFor(() => {
-      expect(container.querySelector('.panels').classList.contains('dimmed')).toBe(false)
+      expect(container.querySelector('.synth').classList.contains('dimmed')).toBe(false)
     })
   })
 })
@@ -49,7 +49,7 @@ describe('App power state', () => {
 describe('App — all eight panels render', () => {
   it('renders oscillator panel label', () => {
     const { getByText } = render(App)
-    expect(getByText('oscillator')).toBeTruthy()
+    expect(getByText('oscillator bank')).toBeTruthy()
   })
 
   it('renders mixer panel label', () => {
@@ -62,9 +62,9 @@ describe('App — all eight panels render', () => {
     expect(getAllByText('filter').length).toBeGreaterThan(0)
   })
 
-  it('renders filter env panel label', () => {
+  it('renders filter env section within filter panel', () => {
     const { getByText } = render(App)
-    expect(getByText('filter env')).toBeTruthy()
+    expect(getByText('env')).toBeTruthy()
   })
 
   it('renders amp env panel label', () => {

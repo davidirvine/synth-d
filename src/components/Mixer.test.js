@@ -14,37 +14,48 @@ describe('Mixer — rendering', () => {
     expect(svgs.length).toBe(4)
   })
 
-  it('renders the noise type toggle button', () => {
+  it('renders two noise type buttons (wht and pink)', () => {
     const { container } = render(Mixer)
-    expect(container.querySelector('.noise-type-btn')).not.toBeNull()
+    expect(container.querySelectorAll('.noise-btn').length).toBe(2)
   })
 
-  it('noise type button defaults to white (wht)', () => {
+  it('noise type defaults to white (wht button is active)', () => {
     const { container } = render(Mixer)
-    expect(container.querySelector('.noise-type-btn').textContent.trim()).toBe('wht')
+    const whtBtn = [...container.querySelectorAll('.noise-btn')].find(
+      (b) => b.textContent.trim() === 'wht'
+    )
+    expect(whtBtn.classList.contains('active')).toBe(true)
   })
 })
 
 describe('Mixer — noise type toggle', () => {
-  it('clicking noise type toggles to pink and emits noiseType 1', async () => {
+  it('clicking pink button emits noiseType 1', async () => {
     const onchange = vi.fn()
     const { container } = render(Mixer, { props: { onchange } })
-    await fireEvent.click(container.querySelector('.noise-type-btn'))
+    const pinkBtn = [...container.querySelectorAll('.noise-btn')].find(
+      (b) => b.textContent.trim() === 'pink'
+    )
+    await fireEvent.click(pinkBtn)
     expect(onchange).toHaveBeenCalledWith({ param: 'noiseType', value: 1 })
   })
 
-  it('button shows pink after toggle', async () => {
+  it('pink button has active class after clicking it', async () => {
     const { container } = render(Mixer)
-    await fireEvent.click(container.querySelector('.noise-type-btn'))
-    expect(container.querySelector('.noise-type-btn').textContent.trim()).toBe('pink')
+    const pinkBtn = [...container.querySelectorAll('.noise-btn')].find(
+      (b) => b.textContent.trim() === 'pink'
+    )
+    await fireEvent.click(pinkBtn)
+    expect(pinkBtn.classList.contains('active')).toBe(true)
   })
 
-  it('second click toggles back to white and emits noiseType 0', async () => {
+  it('clicking wht after pink emits noiseType 0', async () => {
     const onchange = vi.fn()
     const { container } = render(Mixer, { props: { onchange } })
-    const btn = container.querySelector('.noise-type-btn')
-    await fireEvent.click(btn)
-    await fireEvent.click(btn)
+    const btns = container.querySelectorAll('.noise-btn')
+    const pinkBtn = [...btns].find((b) => b.textContent.trim() === 'pink')
+    const whtBtn = [...btns].find((b) => b.textContent.trim() === 'wht')
+    await fireEvent.click(pinkBtn)
+    await fireEvent.click(whtBtn)
     const calls = onchange.mock.calls.filter((c) => c[0].param === 'noiseType')
     expect(calls[calls.length - 1][0].value).toBe(0)
   })

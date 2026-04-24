@@ -32,7 +32,7 @@
     </button>
     <Knob
       label="rate"
-      min={0}
+      min={0.001}
       max={5}
       default={0.2}
       scale="log"

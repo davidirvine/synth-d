@@ -4,13 +4,13 @@ test.describe('Subtractive Synth', () => {
   test('app loads with power button and panels dimmed', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('button[aria-label]')).toBeVisible()
-    await expect(page.locator('.panels')).toHaveClass(/dimmed/)
+    await expect(page.locator('.synth')).toHaveClass(/dimmed/)
   })
 
   test('clicking power button enables the panels', async ({ page }) => {
     await page.goto('/')
     await page.locator('button[aria-label]').click()
-    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+    await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
   })
 
   test('oscillator panel is visible', async ({ page }) => {
@@ -42,18 +42,20 @@ test.describe('Subtractive Synth', () => {
   test('mixer noise type button interaction', async ({ page }) => {
     await page.goto('/')
     await page.locator('button[aria-label]').click()
-    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
-    const noiseBtn = page.locator('.noise-type-btn')
-    await expect(noiseBtn).toBeVisible()
-    await expect(noiseBtn).toContainText('wht')
-    await noiseBtn.click()
-    await expect(noiseBtn).toContainText('pink')
+    await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+    const whtBtn = page.locator('.noise-btn', { hasText: 'wht' })
+    const pinkBtn = page.locator('.noise-btn', { hasText: 'pink' })
+    await expect(whtBtn).toBeVisible()
+    await expect(pinkBtn).toBeVisible()
+    await expect(whtBtn).toHaveClass(/active/)
+    await pinkBtn.click()
+    await expect(pinkBtn).toHaveClass(/active/)
   })
 
   test('modulation routing switch interaction', async ({ page }) => {
     await page.goto('/')
     await page.locator('button[aria-label]').click()
-    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+    await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
     const routeBtn = page.locator('.route-btn').first()
     await expect(routeBtn).toBeVisible()
     await expect(routeBtn).not.toHaveClass(/active/)
@@ -64,7 +66,7 @@ test.describe('Subtractive Synth', () => {
   test('glide toggle interaction', async ({ page }) => {
     await page.goto('/')
     await page.locator('button[aria-label]').click()
-    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+    await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
     const glideBtn = page.locator('.glide-btn')
     await expect(glideBtn).toBeVisible()
     await expect(glideBtn).toContainText('off')
@@ -75,7 +77,7 @@ test.describe('Subtractive Synth', () => {
   test('keyboard key press activates a key and does not crash', async ({ page }) => {
     await page.goto('/')
     await page.locator('button[aria-label]').click()
-    await expect(page.locator('.panels')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+    await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
 
     await page.keyboard.press('z')
 
