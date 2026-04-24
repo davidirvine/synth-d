@@ -230,10 +230,15 @@
           midiState={mixerMidiState}
           onknobcontextmenu={onKnobContextMenu}
         />
-        <div class="panel-col">
+        <div class="filter-output-grid">
           <Filter
             onchange={onParamChange}
             midiState={filterMidiState}
+            onknobcontextmenu={onKnobContextMenu}
+          />
+          <AmpEnv
+            onchange={onParamChange}
+            midiState={ampEnvMidiState}
             onknobcontextmenu={onKnobContextMenu}
           />
           <div class="panel-row">
@@ -248,13 +253,6 @@
               onknobcontextmenu={onKnobContextMenu}
             />
           </div>
-        </div>
-        <div class="panel-col">
-          <AmpEnv
-            onchange={onParamChange}
-            midiState={ampEnvMidiState}
-            onknobcontextmenu={onKnobContextMenu}
-          />
           <div class="placeholder-panel"></div>
         </div>
       </div>
@@ -313,22 +311,19 @@
     align-items: flex-start;
   }
 
-  .panel-col {
-    display: flex;
-    flex-direction: column;
+  .filter-output-grid {
+    display: grid;
+    grid-template-columns: auto auto;
     gap: 8px;
   }
 
   .panel-row {
     display: flex;
     gap: 8px;
-    align-items: flex-start;
   }
 
   .placeholder-panel {
     background: #1c1c1c;
     border: 1px dashed #2a2a2a;
-    min-height: 40px;
-    flex: 1;
   }
 </style>
