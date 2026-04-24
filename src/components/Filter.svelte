@@ -15,7 +15,7 @@
 <div class="panel">
   <span class="panel-label">filter</span>
 
-  <div class="knob-row">
+  <div class="knob-row centered">
     <Knob
       label="cutoff"
       min={20}
@@ -159,5 +159,9 @@
     display: flex;
     gap: 16px;
     align-items: flex-start;
+  }
+
+  .knob-row.centered {
+    justify-content: center;
   }
 </style>

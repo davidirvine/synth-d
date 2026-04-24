@@ -21,7 +21,7 @@
 
 <div class="panel">
   <span class="panel-label">output</span>
-  <div class="knob-row">
+  <div class="knob-row centered">
     <Knob
       label="volume"
       min={0}
@@ -136,6 +136,10 @@
     display: flex;
     gap: 16px;
     align-items: flex-start;
+  }
+
+  .knob-row.centered {
+    justify-content: center;
   }
 
   .contour-header {
