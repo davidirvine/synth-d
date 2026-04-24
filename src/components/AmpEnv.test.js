@@ -52,6 +52,19 @@ describe('AmpEnv — D/R lock switch', () => {
     const calls = onchange.mock.calls.filter((c) => c[0].param === 'drLock')
     expect(calls[calls.length - 1][0].value).toBe(0)
   })
+
+  it('release knob is disabled when D/R lock is on', async () => {
+    const { container } = render(AmpEnv)
+    await fireEvent.click(container.querySelector('.drlock-btn'))
+    const releaseWrap = container.querySelectorAll('.knob-wrap')[4]
+    expect(releaseWrap.classList.contains('disabled')).toBe(true)
+  })
+
+  it('release knob is enabled when D/R lock is off', () => {
+    const { container } = render(AmpEnv)
+    const releaseWrap = container.querySelectorAll('.knob-wrap')[4]
+    expect(releaseWrap.classList.contains('disabled')).toBe(false)
+  })
 })
 
 describe('AmpEnv — onchange events', () => {

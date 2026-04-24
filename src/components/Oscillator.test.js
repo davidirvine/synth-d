@@ -143,4 +143,19 @@ describe('Oscillator — LFO mode', () => {
     const rangeRow = sections[2].querySelector('.range-row')
     expect(rangeRow.querySelector('svg')).not.toBeNull()
   })
+
+  it('LFO rate knob is disabled when LFO mode is off', () => {
+    const { container } = render(Oscillator)
+    const sections = container.querySelectorAll('.osc-section')
+    const rateWrap = sections[2].querySelector('.range-row').querySelectorAll('.knob-wrap')[1]
+    expect(rateWrap.classList.contains('disabled')).toBe(true)
+  })
+
+  it('LFO rate knob is enabled when LFO mode is on', async () => {
+    const { container } = render(Oscillator)
+    const sections = container.querySelectorAll('.osc-section')
+    await fireEvent.click(sections[2].querySelector('.lfo-btn'))
+    const rateWrap = sections[2].querySelector('.range-row').querySelectorAll('.knob-wrap')[1]
+    expect(rateWrap.classList.contains('disabled')).toBe(false)
+  })
 })

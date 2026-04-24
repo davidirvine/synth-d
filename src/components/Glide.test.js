@@ -66,4 +66,15 @@ describe('Glide — rate knob', () => {
     const params = onchange.mock.calls.map((c) => c[0].param)
     expect(params).toContain('glideRate')
   })
+
+  it('rate knob is disabled when glide is off', () => {
+    const { container } = render(Glide)
+    expect(container.querySelector('.knob-wrap').classList.contains('disabled')).toBe(true)
+  })
+
+  it('rate knob is enabled after glide is toggled on', async () => {
+    const { container } = render(Glide)
+    await fireEvent.click(container.querySelector('.glide-btn'))
+    expect(container.querySelector('.knob-wrap').classList.contains('disabled')).toBe(false)
+  })
 })
