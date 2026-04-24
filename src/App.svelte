@@ -189,12 +189,13 @@
       'filterDecay',
       'filterSustain',
       'filterRelease',
-      'filterEnvAmt',
-      'masterVol'
+      'filterEnvAmt'
     )
   )
 
-  let ampEnvMidiState = $derived(midiStateFor('ampAttack', 'ampDecay', 'ampSustain', 'ampRelease'))
+  let ampEnvMidiState = $derived(
+    midiStateFor('ampAttack', 'ampDecay', 'ampSustain', 'ampRelease', 'masterVol')
+  )
 
   let modMidiState = $derived(midiStateFor('modMix', 'modWheel'))
 

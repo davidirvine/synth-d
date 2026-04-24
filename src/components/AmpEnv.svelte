@@ -23,6 +23,21 @@
   <span class="panel-label">loudness contour</span>
   <div class="knob-row">
     <Knob
+      label="master"
+      min={0}
+      max={1}
+      default={0.75}
+      scale="linear"
+      externalValue={midiState?.masterVol?.externalValue}
+      learningMidi={midiState?.masterVol?.learningMidi ?? false}
+      assignedCc={midiState?.masterVol?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'masterVol', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('masterVol')}
+    />
+  </div>
+  <div class="section-divider"></div>
+  <div class="knob-row">
+    <Knob
       label="attack"
       min={0.001}
       max={4}
@@ -102,6 +117,11 @@
     color: #e8dcc8;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: #2a2a2a;
   }
 
   .knob-row {

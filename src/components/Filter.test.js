@@ -22,8 +22,8 @@ describe('Filter — keyTrack knob present', () => {
     expect(getByText('key trk')).toBeTruthy()
   })
 
-  it('renders nine knobs total (cutoff, res, key trk + master vol + five env knobs)', () => {
+  it('renders eight knobs total (cutoff, res, key trk + five env knobs)', () => {
     const { container } = render(Filter)
-    expect(container.querySelectorAll('svg').length).toBe(9)
+    expect(container.querySelectorAll('svg').length).toBe(8)
   })
 })

@@ -13,9 +13,9 @@ describe('AmpEnv — sustain and release knobs', () => {
     expect(getAllByText('release').length).toBeGreaterThan(0)
   })
 
-  it('renders four knobs total (attack, decay, sustain, release)', () => {
+  it('renders five knobs total (master, attack, decay, sustain, release)', () => {
     const { container } = render(AmpEnv)
-    expect(container.querySelectorAll('svg').length).toBe(4)
+    expect(container.querySelectorAll('svg').length).toBe(5)
   })
 })
 
@@ -59,7 +59,7 @@ describe('AmpEnv — onchange events', () => {
     const onchange = vi.fn()
     const { container } = render(AmpEnv, { props: { onchange } })
     const hits = container.querySelectorAll('.knob-hit')
-    await fireEvent.dblClick(hits[2])
+    await fireEvent.dblClick(hits[3])
     const params = onchange.mock.calls.map((c) => c[0].param)
     expect(params).toContain('ampSustain')
   })
@@ -68,7 +68,7 @@ describe('AmpEnv — onchange events', () => {
     const onchange = vi.fn()
     const { container } = render(AmpEnv, { props: { onchange } })
     const hits = container.querySelectorAll('.knob-hit')
-    await fireEvent.dblClick(hits[3])
+    await fireEvent.dblClick(hits[4])
     const params = onchange.mock.calls.map((c) => c[0].param)
     expect(params).toContain('ampRelease')
   })
