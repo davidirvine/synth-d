@@ -48,6 +48,7 @@
       scale="linear"
       showLabel={false}
       showValue={false}
+      showArc={false}
       ticks={[
         { pos: 0, label: 'lp' },
         { pos: 0.5, label: 'bp' },

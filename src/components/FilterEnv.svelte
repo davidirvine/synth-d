@@ -48,6 +48,7 @@
       default={0}
       scale="linear"
       unit="Hz"
+      bipolar={true}
       externalValue={midiState?.filterEnvAmt?.externalValue}
       learningMidi={midiState?.filterEnvAmt?.learningMidi ?? false}
       assignedCc={midiState?.filterEnvAmt?.assignedCc ?? null}

@@ -12,6 +12,8 @@
     ticks = [],
     showLabel = true,
     showValue = true,
+    showArc = true,
+    bipolar = false,
     externalValue = undefined,
     learningMidi = false,
     assignedCc = null,
@@ -28,6 +30,8 @@
     ticks?: Array<{ pos: number, label: string, r?: number }>,
     showLabel?: boolean,
     showValue?: boolean,
+    showArc?: boolean,
+    bipolar?: boolean,
     externalValue?: number,
     learningMidi?: boolean,
     assignedCc?: number | null,
@@ -67,8 +71,30 @@
     return `M ${sx} ${sy} A ${R} ${R} 0 ${large} 1 ${ex} ${ey}`
   }
 
+  function bipolarArcPath(pos) {
+    if (Math.abs(pos - 0.5) < 0.001) return ''
+    const centerAngle = START_ANGLE + 0.5 * SWEEP
+    const centerRad = ((centerAngle - 90) * Math.PI) / 180
+    const cx2 = CX + R * Math.cos(centerRad)
+    const cy2 = CY + R * Math.sin(centerRad)
+    const endAngle = START_ANGLE + pos * SWEEP
+    const endRad = ((endAngle - 90) * Math.PI) / 180
+    const ex = CX + R * Math.cos(endRad)
+    const ey = CY + R * Math.sin(endRad)
+    if (pos > 0.5) {
+      // max span = 0.5 × SWEEP = 135° < 180°, so large is always 0 with current SWEEP
+      const large = (pos - 0.5) * SWEEP > 180 ? 1 : 0
+      return `M ${cx2} ${cy2} A ${R} ${R} 0 ${large} 1 ${ex} ${ey}`
+    } else {
+      // same reasoning applies for the negative half
+      const large = (0.5 - pos) * SWEEP > 180 ? 1 : 0
+      return `M ${ex} ${ey} A ${R} ${R} 0 ${large} 1 ${cx2} ${cy2}`
+    }
+  }
+
   let pos = $derived(valueToNormalized(value, min, max, scale))
   let indicatorEnd = $derived(polarToXY(START_ANGLE + pos * SWEEP, R - 3))
+  let activePath = $derived(showArc ? (bipolar ? bipolarArcPath(pos) : arcPath(pos)) : null)
 
   let dragging = false
   let lastY = 0
@@ -135,7 +161,9 @@
         <circle cx={CX} cy={CY} r={R + 4} class="learn-ring" fill="none" stroke-width="2" />
       {/if}
       <path d={arcPath(1)} class="track" fill="none" stroke-width="3" />
-      <path d={arcPath(pos)} class="arc" fill="none" stroke-width="3" />
+      {#if activePath}
+        <path d={activePath} class="arc" fill="none" stroke-width="3" />
+      {/if}
       <circle cx={CX} cy={CY} r="13" class="body" />
       <line
         x1={CX}

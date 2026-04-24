@@ -94,10 +94,15 @@
       midiStatus = 'unavailable'
     } else {
       loading = true
-      await powerOn()
-      loading = false
-      powered = true
-      await midiManager.connect()
+      try {
+        await powerOn()
+        powered = true
+        await midiManager.connect()
+      } catch (err) {
+        console.error('Power on failed:', err)
+      } finally {
+        loading = false
+      }
     }
   }
 
