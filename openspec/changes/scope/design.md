@@ -12,7 +12,7 @@ The Web Audio API provides `AnalyserNode`, which can be inserted inline in a sig
 - Render time-domain waveform data on a `<canvas>` inside a new `Scope.svelte` component
 - Display updates in sync with the browser animation loop (`requestAnimationFrame`) while powered on
 - Match the existing Moog dark aesthetic (cream trace on dark panel background)
-- Fit within the existing panel layout without shifting other panels
+- Fit within the existing panel layout by using the currently unused panel slot under Output
 
 **Non-Goals:**
 
@@ -52,6 +52,12 @@ The Web Audio API provides `AnalyserNode`, which can be inserted inline in a sig
 **Decision:** `fftSize = 2048` (yields 1024 time-domain samples), canvas rendered at `width: 100%` with a fixed 80 px height.
 
 **Rationale:** 1024 samples at 44 100 Hz ≈ 23 ms of signal, sufficient to show ~1 cycle at 40 Hz (lowest audible note). 80 px height fits the header strip without taking panel space.
+
+### 5. Scope location in existing grid
+
+**Decision:** Render `Scope` in the existing empty panel slot beneath Output (right column, second row) instead of introducing a new strip between header and controls.
+
+**Rationale:** Reusing the placeholder slot keeps the established panel architecture intact, avoids adding a new top-level layout band, and matches the existing component pattern where each panel owns its own labeled container.
 
 ## Risks / Trade-offs
 

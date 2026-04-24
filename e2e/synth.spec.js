@@ -88,4 +88,16 @@ test.describe('Subtractive Synth', () => {
         await expect(page.locator('main')).toBeAttached()
       })
   })
+
+  test('layout has no horizontal scrolling at 1200px width', async ({ page }) => {
+    await page.setViewportSize({ width: 1200, height: 900 })
+    await page.goto('/')
+
+    const hasHorizontalOverflow = await page.evaluate(() => {
+      const root = document.documentElement
+      return root.scrollWidth > root.clientWidth
+    })
+
+    expect(hasHorizontalOverflow).toBe(false)
+  })
 })
