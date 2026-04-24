@@ -205,16 +205,18 @@
 <div class="app">
   <header class="header">
     <span class="title">SYNTH-1</span>
-    <MidiStatus
-      status={midiStatus}
-      devices={midiDevices}
-      {selectedDeviceId}
-      ondevicechange={(id) => {
-        selectedDeviceId = id
-        midiManager.selectDevice(id)
-      }}
-    />
-    <PowerButton {powered} {loading} ontoggle={handleToggle} />
+    <div class="header-right">
+      <MidiStatus
+        status={midiStatus}
+        devices={midiDevices}
+        {selectedDeviceId}
+        ondevicechange={(id) => {
+          selectedDeviceId = id
+          midiManager.selectDevice(id)
+        }}
+      />
+      <PowerButton {powered} {loading} ontoggle={handleToggle} />
+    </div>
   </header>
 
   <main inert={!powered || undefined}>
@@ -279,6 +281,12 @@
     padding: 12px 20px;
     background: #1c1c1c;
     border-bottom: 1px solid #333;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
   .title {
