@@ -13,7 +13,7 @@ describe('AmpEnv — sustain and release knobs', () => {
     expect(getAllByText('release').length).toBeGreaterThan(0)
   })
 
-  it('renders five knobs total (master, attack, decay, sustain, release)', () => {
+  it('renders five knobs total (volume, attack, decay, sustain, release)', () => {
     const { container } = render(AmpEnv)
     expect(container.querySelectorAll('svg').length).toBe(5)
   })

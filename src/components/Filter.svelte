@@ -145,7 +145,7 @@
 
   .sub-label {
     font-size: 9px;
-    color: #666;
+    color: #e8dcc8;
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }

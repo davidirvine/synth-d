@@ -230,34 +230,39 @@
           midiState={mixerMidiState}
           onknobcontextmenu={onKnobContextMenu}
         />
-        <Filter
-          onchange={onParamChange}
-          midiState={filterMidiState}
-          onknobcontextmenu={onKnobContextMenu}
-        />
-        <AmpEnv
-          onchange={onParamChange}
-          midiState={ampEnvMidiState}
-          onknobcontextmenu={onKnobContextMenu}
-        />
+        <div class="panel-col">
+          <Filter
+            onchange={onParamChange}
+            midiState={filterMidiState}
+            onknobcontextmenu={onKnobContextMenu}
+          />
+          <div class="panel-row">
+            <Modulation
+              onchange={onParamChange}
+              midiState={modMidiState}
+              onknobcontextmenu={onKnobContextMenu}
+            />
+            <Glide
+              onchange={onParamChange}
+              midiState={glideMidiState}
+              onknobcontextmenu={onKnobContextMenu}
+            />
+          </div>
+        </div>
+        <div class="panel-col">
+          <AmpEnv
+            onchange={onParamChange}
+            midiState={ampEnvMidiState}
+            onknobcontextmenu={onKnobContextMenu}
+          />
+          <div class="placeholder-panel"></div>
+        </div>
       </div>
-      <div class="keyboard-row">
-        <Modulation
-          onchange={onParamChange}
-          midiState={modMidiState}
-          onknobcontextmenu={onKnobContextMenu}
-        />
-        <Glide
-          onchange={onParamChange}
-          midiState={glideMidiState}
-          onknobcontextmenu={onKnobContextMenu}
-        />
-        <Keyboard
-          onnote={onKeyboardNote}
-          bind:triggerNote={keyboardTriggerNote}
-          bind:releaseNote={keyboardReleaseNote}
-        />
-      </div>
+      <Keyboard
+        onnote={onKeyboardNote}
+        bind:triggerNote={keyboardTriggerNote}
+        bind:releaseNote={keyboardReleaseNote}
+      />
     </div>
   </main>
 </div>
@@ -308,9 +313,22 @@
     align-items: flex-start;
   }
 
-  .keyboard-row {
+  .panel-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .panel-row {
     display: flex;
     gap: 8px;
     align-items: flex-start;
+  }
+
+  .placeholder-panel {
+    background: #1c1c1c;
+    border: 1px dashed #2a2a2a;
+    min-height: 40px;
+    flex: 1;
   }
 </style>

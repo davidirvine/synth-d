@@ -67,7 +67,12 @@ describe('App — all eight panels render', () => {
     expect(getByText('filter contour')).toBeTruthy()
   })
 
-  it('renders loudness contour panel label', () => {
+  it('renders output panel label', () => {
+    const { getByText } = render(App)
+    expect(getByText('output')).toBeTruthy()
+  })
+
+  it('renders loudness contour sub-label within output panel', () => {
     const { getByText } = render(App)
     expect(getByText('loudness contour')).toBeTruthy()
   })

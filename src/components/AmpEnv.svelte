@@ -20,10 +20,10 @@
 </script>
 
 <div class="panel">
-  <span class="panel-label">loudness contour</span>
+  <span class="panel-label">output</span>
   <div class="knob-row">
     <Knob
-      label="master"
+      label="volume"
       min={0}
       max={1}
       default={0.75}
@@ -36,6 +36,7 @@
     />
   </div>
   <div class="section-divider"></div>
+  <span class="sub-label">loudness contour</span>
   <div class="knob-row">
     <Knob
       label="attack"
@@ -122,6 +123,13 @@
   .section-divider {
     height: 1px;
     background: #2a2a2a;
+  }
+
+  .sub-label {
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
   .knob-row {
