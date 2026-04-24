@@ -29,14 +29,22 @@
 - [ ] 5.3 Specify that all git interactions use stax
 - [ ] 5.4 Run `npx prettier --write CLAUDE.md`
 
-## 6. Update CLAUDE.md — Branching Rules
+## 6. Update CLAUDE.md — Branching Rules and Worktree Workflow
 
 - [ ] 6.1 Update the "Branching" section in `CLAUDE.md` to include `bugfix/<change-name>` as a valid branch prefix alongside `feature/<change-name>`
 - [ ] 6.2 Add a rule that the human must be prompted for change type (feature or bugfix) before any branch is created, so the correct prefix is applied
-- [ ] 6.3 Run `npx prettier --write CLAUDE.md`
+- [ ] 6.3 Add a "Worktree Workflow" rule to `CLAUDE.md`: the `develop` branch is reserved for OpenSpec and tooling work; all change implementation happens in an isolated worktree created by `/opsx-apply-wt`; once in the worktree, `/opsx:apply` kicks off implementation
+- [ ] 6.4 Run `npx prettier --write CLAUDE.md`
 
-## 7. Verify the Workflow End-to-End
+## 7. Update opsx-apply-wt Command and Script
 
-- [ ] 7.1 Make a test commit and verify the roborev post-commit hook fires (check `roborev tui` for a queued review)
-- [ ] 7.2 Verify `roborev status` reports the daemon as healthy
-- [ ] 7.3 Confirm `roborev refine --help` is available and lists expected flags
+- [ ] 7.1 Update `.claude/commands/opsx-apply-wt.md` to prompt the user for change type (feature or bugfix) before creating the branch, and pass the chosen prefix to the script
+- [ ] 7.2 Update `scripts/opsx-apply-worktree.sh` to accept an optional second argument `<prefix>` (default: `feature`), replacing the hardcoded `BRANCH="feature/${CHANGE_NAME}"` with `BRANCH="${PREFIX}/${CHANGE_NAME}"`
+- [ ] 7.3 Update the conflict-detection and error messages in `scripts/opsx-apply-worktree.sh` to reference the dynamic branch name rather than the hardcoded `feature/` prefix
+
+## 8. Verify the Workflow End-to-End
+
+- [ ] 8.1 Make a test commit and verify the roborev post-commit hook fires (check `roborev tui` for a queued review)
+- [ ] 8.2 Verify `roborev status` reports the daemon as healthy
+- [ ] 8.3 Confirm `roborev refine --help` is available and lists expected flags
+- [ ] 8.4 Run `/opsx-apply-wt` on a test change and verify the change-type prompt appears and the correct branch prefix is used
