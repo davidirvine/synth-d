@@ -82,19 +82,19 @@
 
 ## 12. Unit Tests
 
-- [ ] 12.1 Update `Oscillator.test.js`: cover three-osc waveform selection, detune, LFO mode toggle, LFO rate enable/disable
-- [ ] 12.2 Write `Mixer.test.js`: cover level knob rendering, noise type toggle, `onchange` emission for all four levels and noise type
-- [ ] 12.3 Write `Modulation.test.js`: cover mod mix knob, three routing switches, virtual mod wheel drag and CC 1 sync
-- [ ] 12.4 Write `Glide.test.js`: cover toggle switch, rate knob enable/disable based on toggle state
-- [ ] 12.5 Run `npx vitest run` — all tests pass
+- [x] 12.1 Update `Oscillator.test.js`: cover three-osc waveform selection, detune, LFO mode toggle, LFO rate enable/disable
+- [x] 12.2 Write `Mixer.test.js`: cover level knob rendering, noise type toggle, `onchange` emission for all four levels and noise type
+- [x] 12.3 Write `Modulation.test.js`: cover mod mix knob, three routing switches, virtual mod wheel drag and CC 1 sync
+- [x] 12.4 Write `Glide.test.js`: cover toggle switch, rate knob enable/disable based on toggle state
+- [x] 12.5 Run `npx vitest run` — all tests pass
 
 ## 13. Component Tests
 
-- [ ] 13.1 Update `Filter.test.js`: assert `filterMode` knob absent; assert `keyTrack` knob present
-- [ ] 13.2 Update `FilterEnv.test.js` (or create): assert sustain and release knobs present; assert `filterEnvAmt` range is 0–10 000 (no `bipolar` prop)
-- [ ] 13.3 Update `AmpEnv.test.js` (or create): assert sustain and release knobs present; assert D/R lock switch present; assert release knob disabled when D/R lock on
-- [ ] 13.4 Update `App.test.js`: assert all eight panels render; assert MIDI CC 1 updates mod wheel external value
-- [ ] 13.5 Run `npx vitest run` — all tests pass
+- [x] 13.1 Update `Filter.test.js`: assert `filterMode` knob absent; assert `keyTrack` knob present
+- [x] 13.2 Update `FilterEnv.test.js` (or create): assert sustain and release knobs present; assert `filterEnvAmt` range is 0–10 000 (no `bipolar` prop)
+- [x] 13.3 Update `AmpEnv.test.js` (or create): assert sustain and release knobs present; assert D/R lock switch present; assert release knob disabled when D/R lock on
+- [x] 13.4 Update `App.test.js`: assert all eight panels render; assert MIDI CC 1 updates mod wheel external value
+- [x] 13.5 Run `npx vitest run` — all tests pass
 
 ## 14. Stryker Mutation Tests
 

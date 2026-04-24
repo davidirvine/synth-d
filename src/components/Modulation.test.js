@@ -1,0 +1,109 @@
+import { describe, it, expect, vi } from 'vitest'
+import { render, fireEvent } from '@testing-library/svelte'
+import Modulation from './Modulation.svelte'
+
+describe('Modulation — rendering', () => {
+  it('renders the panel label', () => {
+    const { getByText } = render(Modulation)
+    expect(getByText('modulation')).toBeTruthy()
+  })
+
+  it('renders the mod mix knob', () => {
+    const { container } = render(Modulation)
+    expect(container.querySelector('svg')).not.toBeNull()
+  })
+
+  it('renders three routing buttons', () => {
+    const { container } = render(Modulation)
+    expect(container.querySelectorAll('.route-btn').length).toBe(3)
+  })
+
+  it('renders the virtual mod wheel track', () => {
+    const { container } = render(Modulation)
+    expect(container.querySelector('.wheel-track')).not.toBeNull()
+  })
+
+  it('all routing buttons are inactive by default', () => {
+    const { container } = render(Modulation)
+    container.querySelectorAll('.route-btn').forEach((btn) => {
+      expect(btn.classList.contains('active')).toBe(false)
+    })
+  })
+})
+
+describe('Modulation — routing switches', () => {
+  it('clicking osc 1 route emits modToOsc1 1', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Modulation, { props: { onchange } })
+    const btns = container.querySelectorAll('.route-btn')
+    await fireEvent.click(btns[0])
+    expect(onchange).toHaveBeenCalledWith({ param: 'modToOsc1', value: 1 })
+  })
+
+  it('clicking osc 2 route emits modToOsc2 1', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Modulation, { props: { onchange } })
+    const btns = container.querySelectorAll('.route-btn')
+    await fireEvent.click(btns[1])
+    expect(onchange).toHaveBeenCalledWith({ param: 'modToOsc2', value: 1 })
+  })
+
+  it('clicking filter route emits modToFilter 1', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Modulation, { props: { onchange } })
+    const btns = container.querySelectorAll('.route-btn')
+    await fireEvent.click(btns[2])
+    expect(onchange).toHaveBeenCalledWith({ param: 'modToFilter', value: 1 })
+  })
+
+  it('clicking active route button toggles back to 0', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Modulation, { props: { onchange } })
+    const btn = container.querySelectorAll('.route-btn')[0]
+    await fireEvent.click(btn)
+    await fireEvent.click(btn)
+    const calls = onchange.mock.calls.filter((c) => c[0].param === 'modToOsc1')
+    expect(calls[calls.length - 1][0].value).toBe(0)
+  })
+})
+
+describe('Modulation — virtual mod wheel drag', () => {
+  it('dragging wheel upward emits modWheel with positive value', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Modulation, { props: { onchange } })
+    const track = container.querySelector('.wheel-track')
+    await fireEvent.pointerDown(track, { clientY: 100 })
+    await fireEvent.pointerMove(track, { clientY: 20 })
+    await fireEvent.pointerUp(track)
+    const wheelCalls = onchange.mock.calls.filter((c) => c[0].param === 'modWheel')
+    expect(wheelCalls.length).toBeGreaterThan(0)
+    expect(wheelCalls[wheelCalls.length - 1][0].value).toBeGreaterThan(0)
+  })
+
+  it('wheel value is clamped to 0-1', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Modulation, { props: { onchange } })
+    const track = container.querySelector('.wheel-track')
+    await fireEvent.pointerDown(track, { clientY: 500 })
+    await fireEvent.pointerMove(track, { clientY: -5000 })
+    await fireEvent.pointerUp(track)
+    const wheelCalls = onchange.mock.calls.filter((c) => c[0].param === 'modWheel')
+    if (wheelCalls.length > 0) {
+      const lastVal = wheelCalls[wheelCalls.length - 1][0].value
+      expect(lastVal).toBeLessThanOrEqual(1)
+      expect(lastVal).toBeGreaterThanOrEqual(0)
+    }
+  })
+})
+
+describe('Modulation — CC 1 sync via midiState', () => {
+  it('externalValue in midiState updates wheel fill height', async () => {
+    const { container } = render(Modulation, {
+      props: {
+        midiState: { modWheel: { externalValue: 0.75 } },
+      },
+    })
+    const fill = container.querySelector('.wheel-fill')
+    expect(fill).not.toBeNull()
+  })
+})

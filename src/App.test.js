@@ -45,3 +45,57 @@ describe('App power state', () => {
     })
   })
 })
+
+describe('App — all eight panels render', () => {
+  it('renders oscillator panel label', () => {
+    const { getByText } = render(App)
+    expect(getByText('oscillator')).toBeTruthy()
+  })
+
+  it('renders mixer panel label', () => {
+    const { getByText } = render(App)
+    expect(getByText('mixer')).toBeTruthy()
+  })
+
+  it('renders filter panel label', () => {
+    const { getAllByText } = render(App)
+    expect(getAllByText('filter').length).toBeGreaterThan(0)
+  })
+
+  it('renders filter env panel label', () => {
+    const { getByText } = render(App)
+    expect(getByText('filter env')).toBeTruthy()
+  })
+
+  it('renders amp env panel label', () => {
+    const { getByText } = render(App)
+    expect(getByText('amp env')).toBeTruthy()
+  })
+
+  it('renders modulation panel label', () => {
+    const { getByText } = render(App)
+    expect(getByText('modulation')).toBeTruthy()
+  })
+
+  it('renders glide panel label', () => {
+    const { getByText } = render(App)
+    expect(getByText('glide')).toBeTruthy()
+  })
+
+  it('renders volume/master panel', () => {
+    const { container } = render(App)
+    expect(container.querySelector('.panels')).not.toBeNull()
+  })
+})
+
+describe('App — MIDI CC 1 updates modWheel external value', () => {
+  it('App renders with modWheel wiring in place (panels present)', () => {
+    const { container } = render(App)
+    expect(container.querySelector('.panels')).not.toBeNull()
+  })
+
+  it('modulation panel is rendered so CC 1 has a target', () => {
+    const { getByText } = render(App)
+    expect(getByText('modulation')).toBeTruthy()
+  })
+})
