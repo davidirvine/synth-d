@@ -107,7 +107,7 @@
 
 ## 16. Final Verification
 
-- [ ] 16.1 Run `npx vitest run` — all tests pass
-- [ ] 16.2 Run `npx stryker run` — mutation score ≥ 85%
-- [ ] 16.3 Run `npx playwright test` — all tests pass
+- [x] 16.1 Run `npx vitest run` — all tests pass
+- [x] 16.2 Run `npx stryker run` — mutation score ≥ 85%
+- [x] 16.3 Run `npx playwright test` — all tests pass
 - [ ] 16.4 Run `openspec archive --change moog-model-d` after all verification passes
