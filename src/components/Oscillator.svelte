@@ -125,8 +125,6 @@
         onchange={(e) => onchange?.({ param: 'osc3Detune', value: e.value })}
         oncontextmenu={() => onknobcontextmenu?.('osc3Detune')}
       />
-    </div>
-    <div class="lfo-row">
       <button
         class="lfo-btn"
         class:active={osc3LfoMode === 1}
@@ -215,12 +213,6 @@
     display: flex;
     align-items: center;
     gap: 6px;
-  }
-
-  .lfo-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
   }
 
   .param-label {

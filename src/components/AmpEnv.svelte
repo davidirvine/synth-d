@@ -20,7 +20,7 @@
 </script>
 
 <div class="panel">
-  <span class="panel-label">amp env</span>
+  <span class="panel-label">loudness contour</span>
   <div class="knob-row">
     <Knob
       label="attack"

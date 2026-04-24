@@ -59,6 +59,7 @@
       onchange={(e) => onchange?.({ param: 'osc3Level', value: e.value })}
       oncontextmenu={() => onknobcontextmenu?.('osc3Level')}
     />
+    <div class="section-divider"></div>
     <div class="noise-row">
       <Knob
         label="noise"
@@ -105,6 +106,11 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: #2a2a2a;
   }
 
   .noise-row {

@@ -9,7 +9,6 @@
   import AmpEnv from './components/AmpEnv.svelte'
   import Modulation from './components/Modulation.svelte'
   import Glide from './components/Glide.svelte'
-  import Volume from './components/Volume.svelte'
   import Keyboard from './components/Keyboard.svelte'
   import PowerButton from './components/PowerButton.svelte'
   import MidiStatus from './components/MidiStatus.svelte'
@@ -190,7 +189,8 @@
       'filterDecay',
       'filterSustain',
       'filterRelease',
-      'filterEnvAmt'
+      'filterEnvAmt',
+      'masterVol'
     )
   )
 
@@ -199,8 +199,6 @@
   let modMidiState = $derived(midiStateFor('modMix', 'modWheel'))
 
   let glideMidiState = $derived(midiStateFor('glideRate'))
-
-  let volumeMidiState = $derived(midiStateFor('masterVol'))
 </script>
 
 <div class="app">
@@ -257,11 +255,6 @@
           onnote={onKeyboardNote}
           bind:triggerNote={keyboardTriggerNote}
           bind:releaseNote={keyboardReleaseNote}
-        />
-        <Volume
-          onchange={onParamChange}
-          midiState={volumeMidiState}
-          onknobcontextmenu={onKnobContextMenu}
         />
       </div>
     </div>

@@ -62,14 +62,14 @@ describe('App — all eight panels render', () => {
     expect(getAllByText('filter').length).toBeGreaterThan(0)
   })
 
-  it('renders filter env section within filter panel', () => {
+  it('renders filter contour section within filter panel', () => {
     const { getByText } = render(App)
-    expect(getByText('env')).toBeTruthy()
+    expect(getByText('filter contour')).toBeTruthy()
   })
 
-  it('renders amp env panel label', () => {
+  it('renders loudness contour panel label', () => {
     const { getByText } = render(App)
-    expect(getByText('amp env')).toBeTruthy()
+    expect(getByText('loudness contour')).toBeTruthy()
   })
 
   it('renders modulation panel label', () => {

@@ -140,7 +140,7 @@ describe('Oscillator — LFO mode', () => {
   it('renders LFO rate knob in OSC 3 section', () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
-    const lfoRow = sections[2].querySelector('.lfo-row')
-    expect(lfoRow.querySelector('svg')).not.toBeNull()
+    const rangeRow = sections[2].querySelector('.range-row')
+    expect(rangeRow.querySelector('svg')).not.toBeNull()
   })
 })
