@@ -58,9 +58,13 @@ fi
 
 # --- Sync develop --------------------------------------------------------------
 
-echo "→ Fetching latest develop..."
-git fetch origin develop
-git merge --ff-only origin/develop
+if git remote get-url origin &>/dev/null; then
+  echo "→ Fetching latest develop..."
+  git fetch origin develop
+  git merge --ff-only origin/develop
+else
+  echo "→ No remote 'origin' — skipping fetch (local-only repo)."
+fi
 
 # --- Create worktree --------------------------------------------------------
 
