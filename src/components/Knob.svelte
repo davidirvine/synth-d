@@ -82,9 +82,11 @@
     const ex = CX + R * Math.cos(endRad)
     const ey = CY + R * Math.sin(endRad)
     if (pos > 0.5) {
+      // max span = 0.5 × SWEEP = 135° < 180°, so large is always 0 with current SWEEP
       const large = (pos - 0.5) * SWEEP > 180 ? 1 : 0
       return `M ${cx2} ${cy2} A ${R} ${R} 0 ${large} 1 ${ex} ${ey}`
     } else {
+      // same reasoning applies for the negative half
       const large = (0.5 - pos) * SWEEP > 180 ? 1 : 0
       return `M ${ex} ${ey} A ${R} ${R} 0 ${large} 1 ${cx2} ${cy2}`
     }

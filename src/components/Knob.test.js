@@ -219,9 +219,8 @@ describe('Knob — bipolar prop', () => {
     })
     const arc = container.querySelector('.arc')
     expect(arc).not.toBeNull()
-    // Standard arc starts from START_ANGLE 225°: x≈11.27, y≈36.73
     const d = arc.getAttribute('d')
-    expect(d).toMatch(/^M /)
-    expect(d).toContain(' A ')
+    // Arc must start at START_ANGLE 225° → x≈11.27, y≈36.73
+    expect(d).toMatch(/^M 11\.2\d+ 36\.7\d+/)
   })
 })
