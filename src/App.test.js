@@ -46,7 +46,7 @@ describe('App power state', () => {
   })
 })
 
-describe('App — all eight panels render', () => {
+describe('App — all six panels render', () => {
   it('renders oscillator panel label', () => {
     const { getByText } = render(App)
     expect(getByText('oscillator bank')).toBeTruthy()
@@ -87,9 +87,9 @@ describe('App — all eight panels render', () => {
     expect(getByText('glide')).toBeTruthy()
   })
 
-  it('renders volume/master panel', () => {
-    const { container } = render(App)
-    expect(container.querySelector('.panels')).not.toBeNull()
+  it('renders volume knob label within output panel', () => {
+    const { getByText } = render(App)
+    expect(getByText('volume')).toBeTruthy()
   })
 })
 
