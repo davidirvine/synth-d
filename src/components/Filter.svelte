@@ -41,24 +41,16 @@
       oncontextmenu={() => onknobcontextmenu?.('resonance')}
     />
     <Knob
-      label="mode"
+      label="key trk"
       min={0}
-      max={2}
+      max={1}
       default={0}
       scale="linear"
-      showLabel={false}
-      showValue={false}
-      showArc={false}
-      ticks={[
-        { pos: 0, label: 'lp' },
-        { pos: 0.5, label: 'bp' },
-        { pos: 1, label: 'hp' },
-      ]}
-      externalValue={midiState?.filterMode?.externalValue}
-      learningMidi={midiState?.filterMode?.learningMidi ?? false}
-      assignedCc={midiState?.filterMode?.assignedCc ?? null}
-      onchange={(e) => onchange?.({ param: 'filterMode', value: e.value })}
-      oncontextmenu={() => onknobcontextmenu?.('filterMode')}
+      externalValue={midiState?.keyTrack?.externalValue}
+      learningMidi={midiState?.keyTrack?.learningMidi ?? false}
+      assignedCc={midiState?.keyTrack?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'keyTrack', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('keyTrack')}
     />
   </div>
 </div>

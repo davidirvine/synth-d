@@ -1,0 +1,89 @@
+<script>
+  import Knob from './Knob.svelte'
+
+  let {
+    onchange,
+    midiState = {},
+    onknobcontextmenu,
+  } = /** @type {{
+    onchange?: (e: { param: string, value: number }) => void,
+    midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
+    onknobcontextmenu?: (param: string) => void
+  }} */ ($props())
+
+  let glideOn = $state(0)
+
+  function toggleGlide() {
+    glideOn = glideOn === 0 ? 1 : 0
+    onchange?.({ param: 'glideOn', value: glideOn })
+  }
+</script>
+
+<div class="panel">
+  <span class="panel-label">glide</span>
+  <div class="glide-row">
+    <button
+      class="glide-btn"
+      class:active={glideOn === 1}
+      onclick={toggleGlide}
+      aria-pressed={glideOn === 1}
+    >
+      {glideOn === 1 ? 'on' : 'off'}
+    </button>
+    <Knob
+      label="rate"
+      min={0}
+      max={5}
+      default={0.2}
+      scale="log"
+      unit="s"
+      externalValue={midiState?.glideRate?.externalValue}
+      learningMidi={midiState?.glideRate?.learningMidi ?? false}
+      assignedCc={midiState?.glideRate?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'glideRate', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('glideRate')}
+    />
+  </div>
+</div>
+
+<style>
+  .panel {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .panel-label {
+    font-size: 10px;
+    color: #e8dcc8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .glide-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .glide-btn {
+    font-family: inherit;
+    font-size: 9px;
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    padding: 3px 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    height: 22px;
+  }
+
+  .glide-btn.active {
+    background: #3a2a1a;
+    color: #c87941;
+    border-color: #c87941;
+  }
+</style>

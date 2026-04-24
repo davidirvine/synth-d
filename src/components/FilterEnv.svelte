@@ -42,13 +42,37 @@
       oncontextmenu={() => onknobcontextmenu?.('filterDecay')}
     />
     <Knob
+      label="sustain"
+      min={0}
+      max={1}
+      default={0.5}
+      scale="linear"
+      externalValue={midiState?.filterSustain?.externalValue}
+      learningMidi={midiState?.filterSustain?.learningMidi ?? false}
+      assignedCc={midiState?.filterSustain?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'filterSustain', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterSustain')}
+    />
+    <Knob
+      label="release"
+      min={0.001}
+      max={8}
+      default={0.3}
+      scale="log"
+      unit="s"
+      externalValue={midiState?.filterRelease?.externalValue}
+      learningMidi={midiState?.filterRelease?.learningMidi ?? false}
+      assignedCc={midiState?.filterRelease?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'filterRelease', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('filterRelease')}
+    />
+    <Knob
       label="amount"
-      min={-10000}
+      min={0}
       max={10000}
       default={0}
       scale="linear"
       unit="Hz"
-      bipolar={true}
       externalValue={midiState?.filterEnvAmt?.externalValue}
       learningMidi={midiState?.filterEnvAmt?.learningMidi ?? false}
       assignedCc={midiState?.filterEnvAmt?.assignedCc ?? null}

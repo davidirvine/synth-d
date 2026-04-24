@@ -48,37 +48,37 @@
 
 ## 8. DSP Build
 
-- [ ] 8.1 Run `npm run faust:build` — produces `public/synth.wasm` and `public/synth.json` without errors
-- [ ] 8.2 Commit `faust/synth.dsp`, `public/synth.wasm`, `public/synth.json`
-- [ ] 8.3 Run `npx vitest run` — all tests pass
+- [x] 8.1 Run `npm run faust:build` — produces `public/synth.wasm` and `public/synth.json` without errors
+- [x] 8.2 Commit `faust/synth.dsp`, `public/synth.wasm`, `public/synth.json`
+- [x] 8.3 Run `npx vitest run` — all tests pass
 
 ## 9. Oscillator Component Redesign
 
-- [ ] 9.1 Rewrite `Oscillator.svelte`: three sub-sections (OSC 1 / OSC 2 / OSC 3), each with a six-option waveform selector (tri / rev-saw / saw / sq / wide / narrow) and an octave range stepper (±2)
-- [ ] 9.2 Add bipolar detune `Knob` (±100 cents, `bipolar={true}`) to OSC 2 and OSC 3 sub-sections
-- [ ] 9.3 Add LFO mode toggle switch and LFO rate `Knob` (0.1–20 Hz) to OSC 3 sub-section; rate knob is disabled when LFO mode is off
-- [ ] 9.4 Emit `onchange` events for all new parameters (`osc1Wave`, `osc1Range`, `osc2Wave`, `osc2Range`, `osc2Detune`, `osc3Wave`, `osc3Range`, `osc3Detune`, `osc3LfoMode`, `osc3LfoRate`)
-- [ ] 9.5 Run `npx eslint --fix src/components/Oscillator.svelte && npx prettier --write src/components/Oscillator.svelte`
-- [ ] 9.6 Run `npx vitest run` — all tests pass
+- [x] 9.1 Rewrite `Oscillator.svelte`: three sub-sections (OSC 1 / OSC 2 / OSC 3), each with a six-option waveform selector (tri / rev-saw / saw / sq / wide / narrow) and an octave range stepper (±2)
+- [x] 9.2 Add bipolar detune `Knob` (±100 cents, `bipolar={true}`) to OSC 2 and OSC 3 sub-sections
+- [x] 9.3 Add LFO mode toggle switch and LFO rate `Knob` (0.1–20 Hz) to OSC 3 sub-section; rate knob is disabled when LFO mode is off
+- [x] 9.4 Emit `onchange` events for all new parameters (`osc1Wave`, `osc1Range`, `osc2Wave`, `osc2Range`, `osc2Detune`, `osc3Wave`, `osc3Range`, `osc3Detune`, `osc3LfoMode`, `osc3LfoRate`)
+- [x] 9.5 Run `npx eslint --fix src/components/Oscillator.svelte && npx prettier --write src/components/Oscillator.svelte`
+- [x] 9.6 Run `npx vitest run` — all tests pass
 
 ## 10. New Components — Mixer, Modulation, Glide
 
-- [ ] 10.1 Create `Mixer.svelte`: four `Knob` components for `osc1Level`, `osc2Level`, `osc3Level`, `noiseLevel`; white/pink toggle switch emitting `noiseType`; standard `onchange` + `midiState` + `onknobcontextmenu` props
-- [ ] 10.2 Create `Modulation.svelte`: `modMix` knob; three toggle switches (`modToOsc1`, `modToOsc2`, `modToFilter`); vertical slider for `modWheel` (virtual mod wheel); standard props
-- [ ] 10.3 Create `Glide.svelte`: on/off toggle for `glideOn`; `Knob` for `glideRate` (0–5 s, log); rate knob visually disabled when glide is off; standard props
-- [ ] 10.4 Run eslint + prettier on all three new files
-- [ ] 10.5 Run `npx vitest run` — all tests pass
+- [x] 10.1 Create `Mixer.svelte`: four `Knob` components for `osc1Level`, `osc2Level`, `osc3Level`, `noiseLevel`; white/pink toggle switch emitting `noiseType`; standard `onchange` + `midiState` + `onknobcontextmenu` props
+- [x] 10.2 Create `Modulation.svelte`: `modMix` knob; three toggle switches (`modToOsc1`, `modToOsc2`, `modToFilter`); vertical slider for `modWheel` (virtual mod wheel); standard props
+- [x] 10.3 Create `Glide.svelte`: on/off toggle for `glideOn`; `Knob` for `glideRate` (0–5 s, log); rate knob visually disabled when glide is off; standard props
+- [x] 10.4 Run eslint + prettier on all three new files
+- [x] 10.5 Run `npx vitest run` — all tests pass
 
 ## 11. Update Existing Components + App.svelte Wiring
 
-- [ ] 11.1 Update `Filter.svelte`: remove `filterMode` knob; add `keyTrack` knob (0–1, linear)
-- [ ] 11.2 Update `FilterEnv.svelte`: add `filterSustain` knob (0–1, linear) and `filterRelease` knob (0.001–8 s, log); change `filterEnvAmt` range to 0–10 000 Hz (remove `bipolar` prop)
-- [ ] 11.3 Update `AmpEnv.svelte`: add `ampSustain` knob (0–1, linear) and `ampRelease` knob (0.001–8 s, log); add D/R lock toggle switch emitting `drLock`; disable release knob when `drLock` is on
-- [ ] 11.4 Update `App.svelte` `KNOB_PARAMS` registry: remove `filterMode`; add all new parameters with correct min/max ranges; add `modWheel` CC 1 mapping
-- [ ] 11.5 Import and mount `Mixer`, `Modulation`, `Glide` in `App.svelte`; add derived `midiState` objects for each new component
-- [ ] 11.6 Wire MIDI CC 1 to `modWheel`: incoming CC 1 updates `ccExternalValues.modWheel` which flows to the `Modulation` virtual wheel
-- [ ] 11.7 Run eslint + prettier on all modified files
-- [ ] 11.8 Run `npx vitest run` — all tests pass
+- [x] 11.1 Update `Filter.svelte`: remove `filterMode` knob; add `keyTrack` knob (0–1, linear)
+- [x] 11.2 Update `FilterEnv.svelte`: add `filterSustain` knob (0–1, linear) and `filterRelease` knob (0.001–8 s, log); change `filterEnvAmt` range to 0–10 000 Hz (remove `bipolar` prop)
+- [x] 11.3 Update `AmpEnv.svelte`: add `ampSustain` knob (0–1, linear) and `ampRelease` knob (0.001–8 s, log); add D/R lock toggle switch emitting `drLock`; disable release knob when `drLock` is on
+- [x] 11.4 Update `App.svelte` `KNOB_PARAMS` registry: remove `filterMode`; add all new parameters with correct min/max ranges; add `modWheel` CC 1 mapping
+- [x] 11.5 Import and mount `Mixer`, `Modulation`, `Glide` in `App.svelte`; add derived `midiState` objects for each new component
+- [x] 11.6 Wire MIDI CC 1 to `modWheel`: incoming CC 1 updates `ccExternalValues.modWheel` which flows to the `Modulation` virtual wheel
+- [x] 11.7 Run eslint + prettier on all modified files
+- [x] 11.8 Run `npx vitest run` — all tests pass
 
 ## 12. Unit Tests
 

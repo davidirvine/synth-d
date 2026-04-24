@@ -4,9 +4,12 @@
   import { MidiManager } from './audio/midi.js'
   import { MidiCcMap } from './audio/midiCcMap.js'
   import Oscillator from './components/Oscillator.svelte'
+  import Mixer from './components/Mixer.svelte'
   import Filter from './components/Filter.svelte'
   import FilterEnv from './components/FilterEnv.svelte'
   import AmpEnv from './components/AmpEnv.svelte'
+  import Modulation from './components/Modulation.svelte'
+  import Glide from './components/Glide.svelte'
   import Volume from './components/Volume.svelte'
   import Keyboard from './components/Keyboard.svelte'
   import PowerButton from './components/PowerButton.svelte'
@@ -14,14 +17,36 @@
 
   // Knob param registry: param name → { min, max } for CC scaling
   const KNOB_PARAMS = {
+    // Oscillators
+    osc2Detune: { min: -100, max: 100 },
+    osc3Detune: { min: -100, max: 100 },
+    osc3LfoRate: { min: 0.1, max: 20 },
+    // Mixer
+    osc1Level: { min: 0, max: 1 },
+    osc2Level: { min: 0, max: 1 },
+    osc3Level: { min: 0, max: 1 },
+    noiseLevel: { min: 0, max: 1 },
+    // Filter
     cutoff: { min: 20, max: 20000 },
     resonance: { min: 0, max: 1 },
-    filterMode: { min: 0, max: 2 },
+    keyTrack: { min: 0, max: 1 },
+    // Filter env
     filterAttack: { min: 0.001, max: 4 },
     filterDecay: { min: 0.001, max: 4 },
-    filterEnvAmt: { min: -10000, max: 10000 },
+    filterSustain: { min: 0, max: 1 },
+    filterRelease: { min: 0.001, max: 8 },
+    filterEnvAmt: { min: 0, max: 10000 },
+    // Amp env
     ampAttack: { min: 0.001, max: 4 },
     ampDecay: { min: 0.001, max: 4 },
+    ampSustain: { min: 0, max: 1 },
+    ampRelease: { min: 0.001, max: 8 },
+    // Modulation
+    modMix: { min: 0, max: 1 },
+    modWheel: { min: 0, max: 1 },
+    // Glide
+    glideRate: { min: 0, max: 5 },
+    // Master
     masterVol: { min: 0, max: 1 },
   }
 
@@ -45,7 +70,6 @@
       midiActiveNotes++
       if (midiStatus === 'connected') midiStatus = 'active'
       keyboardTriggerNote?.(note)
-      // triggerNote uses midiToFreq internally; override freq for pitchbend accuracy
       setParam('freq', freq)
     },
     onNoteOff: (note) => {
@@ -64,6 +88,13 @@
           learningParam = null
           return
         }
+      }
+      // CC 1 always routes to modWheel
+      if (cc === 1) {
+        const scaled = value / 127
+        ccExternalValues = { ...ccExternalValues, modWheel: scaled }
+        setParam('modWheel', scaled)
+        return
       }
       const mapping = midiCcMap.resolve(cc)
       if (!mapping) return
@@ -134,63 +165,36 @@
     midiManager.destroy()
   })
 
-  // Derived per-panel midiState objects
-  let filterMidiState = $derived({
-    cutoff: {
-      externalValue: ccExternalValues.cutoff,
-      learningMidi: learningParam === 'cutoff',
-      assignedCc: midiCcMap.getAssignedCc('cutoff'),
-    },
-    resonance: {
-      externalValue: ccExternalValues.resonance,
-      learningMidi: learningParam === 'resonance',
-      assignedCc: midiCcMap.getAssignedCc('resonance'),
-    },
-    filterMode: {
-      externalValue: ccExternalValues.filterMode,
-      learningMidi: learningParam === 'filterMode',
-      assignedCc: midiCcMap.getAssignedCc('filterMode'),
-    },
-  })
+  function midiStateFor(...params) {
+    return Object.fromEntries(
+      params.map((p) => [
+        p,
+        {
+          externalValue: ccExternalValues[p],
+          learningMidi: learningParam === p,
+          assignedCc: midiCcMap.getAssignedCc(p),
+        },
+      ])
+    )
+  }
 
-  let filterEnvMidiState = $derived({
-    filterAttack: {
-      externalValue: ccExternalValues.filterAttack,
-      learningMidi: learningParam === 'filterAttack',
-      assignedCc: midiCcMap.getAssignedCc('filterAttack'),
-    },
-    filterDecay: {
-      externalValue: ccExternalValues.filterDecay,
-      learningMidi: learningParam === 'filterDecay',
-      assignedCc: midiCcMap.getAssignedCc('filterDecay'),
-    },
-    filterEnvAmt: {
-      externalValue: ccExternalValues.filterEnvAmt,
-      learningMidi: learningParam === 'filterEnvAmt',
-      assignedCc: midiCcMap.getAssignedCc('filterEnvAmt'),
-    },
-  })
+  let oscMidiState = $derived(midiStateFor('osc2Detune', 'osc3Detune', 'osc3LfoRate'))
 
-  let ampEnvMidiState = $derived({
-    ampAttack: {
-      externalValue: ccExternalValues.ampAttack,
-      learningMidi: learningParam === 'ampAttack',
-      assignedCc: midiCcMap.getAssignedCc('ampAttack'),
-    },
-    ampDecay: {
-      externalValue: ccExternalValues.ampDecay,
-      learningMidi: learningParam === 'ampDecay',
-      assignedCc: midiCcMap.getAssignedCc('ampDecay'),
-    },
-  })
+  let mixerMidiState = $derived(midiStateFor('osc1Level', 'osc2Level', 'osc3Level', 'noiseLevel'))
 
-  let volumeMidiState = $derived({
-    masterVol: {
-      externalValue: ccExternalValues.masterVol,
-      learningMidi: learningParam === 'masterVol',
-      assignedCc: midiCcMap.getAssignedCc('masterVol'),
-    },
-  })
+  let filterMidiState = $derived(midiStateFor('cutoff', 'resonance', 'keyTrack'))
+
+  let filterEnvMidiState = $derived(
+    midiStateFor('filterAttack', 'filterDecay', 'filterSustain', 'filterRelease', 'filterEnvAmt')
+  )
+
+  let ampEnvMidiState = $derived(midiStateFor('ampAttack', 'ampDecay', 'ampSustain', 'ampRelease'))
+
+  let modMidiState = $derived(midiStateFor('modMix', 'modWheel'))
+
+  let glideMidiState = $derived(midiStateFor('glideRate'))
+
+  let volumeMidiState = $derived(midiStateFor('masterVol'))
 </script>
 
 <div class="app">
@@ -210,7 +214,16 @@
 
   <main inert={!powered || undefined}>
     <div class="panels" class:dimmed={!powered}>
-      <Oscillator onchange={onParamChange} />
+      <Oscillator
+        onchange={onParamChange}
+        midiState={oscMidiState}
+        onknobcontextmenu={onKnobContextMenu}
+      />
+      <Mixer
+        onchange={onParamChange}
+        midiState={mixerMidiState}
+        onknobcontextmenu={onKnobContextMenu}
+      />
       <Filter
         onchange={onParamChange}
         midiState={filterMidiState}
@@ -224,6 +237,16 @@
       <AmpEnv
         onchange={onParamChange}
         midiState={ampEnvMidiState}
+        onknobcontextmenu={onKnobContextMenu}
+      />
+      <Modulation
+        onchange={onParamChange}
+        midiState={modMidiState}
+        onknobcontextmenu={onKnobContextMenu}
+      />
+      <Glide
+        onchange={onParamChange}
+        midiState={glideMidiState}
         onknobcontextmenu={onKnobContextMenu}
       />
       <Volume
