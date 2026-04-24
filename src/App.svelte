@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
-  import { powerOn, powerOff, setParam } from './audio/engine.js'
+  import { getAnalyser, powerOn, powerOff, setParam } from './audio/engine.js'
   import { MidiManager } from './audio/midi.js'
   import { MidiCcMap } from './audio/midiCcMap.js'
   import Oscillator from './components/Oscillator.svelte'
@@ -12,6 +12,7 @@
   import Keyboard from './components/Keyboard.svelte'
   import PowerButton from './components/PowerButton.svelte'
   import MidiStatus from './components/MidiStatus.svelte'
+  import Scope from './components/Scope.svelte'
 
   // Knob param registry: param name → { min, max } for CC scaling
   const KNOB_PARAMS = {
@@ -50,6 +51,7 @@
 
   let powered = $state(false)
   let loading = $state(false)
+  let analyser = $state(null)
 
   // MIDI state
   let midiStatus = $state(/** @type {'unavailable'|'connected'|'active'} */ ('unavailable'))
@@ -125,6 +127,7 @@
       loading = true
       try {
         await powerOn()
+        analyser = getAnalyser()
         powered = true
         await midiManager.connect()
       } catch (err) {
@@ -255,7 +258,7 @@
               onknobcontextmenu={onKnobContextMenu}
             />
           </div>
-          <div class="placeholder-panel"></div>
+          <Scope {analyser} {powered} />
         </div>
       </div>
       <Keyboard
@@ -328,10 +331,5 @@
   .panel-row {
     display: flex;
     gap: 8px;
-  }
-
-  .placeholder-panel {
-    background: #1c1c1c;
-    border: 1px dashed #2a2a2a;
   }
 </style>
