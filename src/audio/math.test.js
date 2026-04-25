@@ -100,6 +100,57 @@ describe('valueToNormalized — linear scale', () => {
   })
 })
 
+describe('normalizedToValue — log-reverse scale', () => {
+  const min = 0.01
+  const max = 1
+
+  it('pos=0 returns min', () => {
+    expect(normalizedToValue(0, min, max, 'log-reverse')).toBeCloseTo(min, 5)
+  })
+
+  it('pos=1 returns max', () => {
+    expect(normalizedToValue(1, min, max, 'log-reverse')).toBeCloseTo(max, 5)
+  })
+
+  it('pos=0.5 concentrates travel at the high end (value > arithmetic midpoint)', () => {
+    const midpoint = (min + max) / 2
+    const v = normalizedToValue(0.5, min, max, 'log-reverse')
+    expect(v).toBeGreaterThan(midpoint)
+    expect(v).toBeCloseTo(max + min - Math.sqrt(min * max), 5)
+  })
+
+  it('interior point is strictly between min and max', () => {
+    const v = normalizedToValue(0.75, min, max, 'log-reverse')
+    expect(v).toBeGreaterThan(min)
+    expect(v).toBeLessThan(max)
+  })
+})
+
+describe('valueToNormalized — log-reverse scale', () => {
+  const min = 0.01
+  const max = 1
+
+  it('min maps to 0', () => {
+    expect(valueToNormalized(min, min, max, 'log-reverse')).toBeCloseTo(0, 5)
+  })
+
+  it('max maps to 1', () => {
+    expect(valueToNormalized(max, min, max, 'log-reverse')).toBeCloseTo(1, 5)
+  })
+
+  it('midpoint value maps to 0.5', () => {
+    const mid = max + min - Math.sqrt(min * max)
+    expect(valueToNormalized(mid, min, max, 'log-reverse')).toBeCloseTo(0.5, 5)
+  })
+
+  it('value above max+min threshold returns NaN (callers must clamp to [min,max])', () => {
+    // Math.log((max+min-val)/min) goes negative when val > max+min.
+    // Knob always clamps externalValue and drag output to [min,max], so this is unreachable in practice.
+    const pos = valueToNormalized(max + min + 0.001, min, max, 'log-reverse')
+    expect(Number.isNaN(pos)).toBe(true)
+  })
+})
+
 describe('round-trip normalizedToValue / valueToNormalized', () => {
   const cases = [
     { val: 440, min: 20, max: 20000, scale: 'log' },
@@ -107,6 +158,9 @@ describe('round-trip normalizedToValue / valueToNormalized', () => {
     { val: 5000, min: 20, max: 20000, scale: 'log' },
     { val: 0.3, min: 0, max: 1, scale: 'linear' },
     { val: 0.75, min: 0, max: 1, scale: 'linear' },
+    { val: 0.5, min: 0.01, max: 1, scale: 'log-reverse' },
+    { val: 0.9, min: 0.01, max: 1, scale: 'log-reverse' },
+    { val: 0.1, min: 0.01, max: 1, scale: 'log-reverse' },
   ]
 
   cases.forEach(({ val, min, max, scale }) => {
