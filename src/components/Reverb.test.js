@@ -22,14 +22,13 @@ describe('Reverb — rendering', () => {
 
   it('renders three knobs', () => {
     const { container } = render(Reverb)
-    expect(container.querySelectorAll('svg')).toHaveLength(3)
+    expect(container.querySelectorAll('.knob-hit')).toHaveLength(3)
   })
 
   it('mix knob defaults to 0.5', () => {
     const { container } = render(Reverb)
     const knobValues = container.querySelectorAll('.knob-value')
-    const mixValue = Array.from(knobValues).find((el) => el.textContent.includes('0.5'))
-    expect(mixValue).toBeTruthy()
+    expect(knobValues[0].textContent).toBe('0.50')
   })
 })
 
@@ -120,7 +119,29 @@ describe('Reverb — onknobcontextmenu', () => {
 })
 
 describe('Reverb — midiState externalValue', () => {
-  it('midiState.reverbShimmer.externalValue drives shimmer knob display', async () => {
+  it('midiState.reverbMix.externalValue drives mix knob display', () => {
+    const midiState = {
+      reverbMix: { externalValue: 0.25, learningMidi: false, assignedCc: null },
+      reverbDecay: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbShimmer: { externalValue: undefined, learningMidi: false, assignedCc: null },
+    }
+    const { container } = render(Reverb, { props: { midiState } })
+    const knobValues = container.querySelectorAll('.knob-value')
+    expect(knobValues[0].textContent).toBe('0.25') // formatValue uses toFixed(2)
+  })
+
+  it('midiState.reverbDecay.externalValue drives decay knob display', () => {
+    const midiState = {
+      reverbMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbDecay: { externalValue: 0.8, learningMidi: false, assignedCc: null },
+      reverbShimmer: { externalValue: undefined, learningMidi: false, assignedCc: null },
+    }
+    const { container } = render(Reverb, { props: { midiState } })
+    const knobValues = container.querySelectorAll('.knob-value')
+    expect(knobValues[1].textContent).toBe('0.80')
+  })
+
+  it('midiState.reverbShimmer.externalValue drives shimmer knob display', () => {
     const midiState = {
       reverbMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
       reverbDecay: { externalValue: undefined, learningMidi: false, assignedCc: null },
@@ -128,7 +149,6 @@ describe('Reverb — midiState externalValue', () => {
     }
     const { container } = render(Reverb, { props: { midiState } })
     const knobValues = container.querySelectorAll('.knob-value')
-    const shimmerValue = Array.from(knobValues).find((el) => el.textContent.includes('0.75'))
-    expect(shimmerValue).toBeTruthy()
+    expect(knobValues[2].textContent).toBe('0.75') // formatValue uses toFixed(2)
   })
 })
