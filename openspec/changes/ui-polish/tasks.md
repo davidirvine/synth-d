@@ -19,6 +19,8 @@
 - [ ] 4.1 In `src/components/Filter.svelte`, add `let keyTrackOn = $state(0)` and a `toggleKeyTrack` function that flips between `0` and `1` and calls `onchange?.({ param: 'keyTrack', value: keyTrackOn })`
 - [ ] 4.2 In `src/components/Filter.svelte`, remove the `key trk` `<Knob>` and replace it with a `<button class="toggle-btn" class:active={keyTrackOn === 1} onclick={toggleKeyTrack} aria-pressed={keyTrackOn === 1}>Key Track</button>` — keep it in the top knob row alongside the cutoff and res knobs
 - [ ] 4.3 In `src/components/Filter.svelte`, add `.toggle-btn` base and `.toggle-btn.active` CSS — base: `font-family: inherit; font-size: 9px; background: #2a2a2a; color: #888; border: 1px solid #444; padding: 3px 8px; cursor: pointer; text-transform: uppercase; height: 22px; width: auto; min-width: 32px` — active: `background: #1a2a1a; color: #20b040; border-color: #20b040`
+- [ ] 4.4 In `Filter.test.js`, replace the `'key trk'` label test: rename it to `'renders a Key Track button'` and change `getByText('key trk')` to `screen.getByRole('button', { name: /key track/i })`
+- [ ] 4.5 In `Filter.test.js`, update the knob-count test description from `'renders eight knobs total (cutoff, res, key trk + five env knobs)'` to `'renders seven knobs total (cutoff, res + five env knobs)'` and change `toBe(8)` to `toBe(7)`
 
 ## 5. On/Off Switch Active Color
 
@@ -28,8 +30,7 @@
 ## 6. Component Tests (vitest)
 
 - [ ] 6.1 In the Filter component test, assert that `keyTrack` initial value is `0` (default off state)
-- [ ] 6.2 In the Filter component test, query the button with `const keyTrackButton = screen.getByRole('button', { name: /key track/i })`, click it with `fireEvent.click(keyTrackButton)`, and assert the `active` CSS class is present on the button
-- [ ] 6.3 In the Filter component test, click the Key Track button a second time with `fireEvent.click(keyTrackButton)` and assert the `active` CSS class is absent
+- [ ] 6.2 In a single `it` block in the Filter component test: query `const keyTrackButton = screen.getByRole('button', { name: /key track/i })`; call `fireEvent.click(keyTrackButton)` and assert the `active` CSS class is present; call `fireEvent.click(keyTrackButton)` a second time and assert the `active` CSS class is absent
 - [ ] 6.4 In the Effects component test, assert that the delay knob row contains exactly 3 knobs (time, feedback, mix) and no toggle button
 - [ ] 6.5 In the Effects component test, assert that the reverb knob row contains exactly 3 knobs (mix, decay, tone) and no toggle button
 
