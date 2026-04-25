@@ -40,7 +40,8 @@ Feedback ≥ 1.0 produces infinite (self-oscillating) delay. Unlike the shimmer 
 
 ```faust
 delayFeedbackSafe = delayFeedback : ba.clip(0, 0.9);
-delayWet = +~(de.sdelay(96000, 1024, delayTime * ma.SR) * delayFeedbackSafe);
+// Circuit definition only — input gating is wired in the bypass decision below
+delayCircuit = +~(de.sdelay(96000, 1024, delayTime * ma.SR) * delayFeedbackSafe);
 ```
 
 **Alternative considered:** Cap at 1.0 (allow self-oscillation). Rejected — poses a speaker safety risk in live contexts.

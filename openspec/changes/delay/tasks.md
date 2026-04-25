@@ -1,9 +1,9 @@
 ## 1. FAUST DSP — Feedback Delay Stage
 
 - [ ] 1.1 Add `delayOn`, `delayTime`, `delayFeedback`, and `delayMix` parameters to `faust/synth.dsp` (`nentry` for `delayOn`; `hslider` for the others with ranges: time 0.01–1.0 s, feedback 0–0.9, mix 0–1)
-- [ ] 1.2 Implement the feedback delay circuit: `delayFeedbackSafe = delayFeedback : ba.clip(0, 0.9)` (caps the scalar gain, not the audio signal); `delayWet = +~(de.sdelay(96000, 1024, delayTime * ma.SR) * delayFeedbackSafe)`
-- [ ] 1.3 Implement wet/dry blend: `delayOut = vcaOut * (1 - delayMix) + delayWet * delayMix`, where `delayWet` is the output of the feedback circuit from 1.2
-- [ ] 1.4 Wire the bypass by gating the delay input: `delayInput = vcaOut * int(delayOn)` (feeds zeros to the buffer when bypassed); then `select2(int(delayOn), vcaOut, delayOut)` post-VCA, before `* masterVol`
+- [ ] 1.2 Define the gated delay input and feedback circuit together: `delayFeedbackSafe = delayFeedback : ba.clip(0, 0.9)`; `delayInput = vcaOut * int(delayOn)` (feeds zeros to buffer when `delayOn = 0`); `delayWet = delayInput : +~(de.sdelay(96000, 1024, delayTime * ma.SR) * delayFeedbackSafe)`
+- [ ] 1.3 Implement wet/dry blend: `delayOut = vcaOut * (1 - delayMix) + delayWet * delayMix`, where `delayWet` is the signal from the feedback circuit defined in 1.2
+- [ ] 1.4 Wire the bypass: `select2(int(delayOn), vcaOut, delayOut)` post-VCA, before `* masterVol`
 - [ ] 1.5 Validate FAUST DSP compiles without errors: `npm run faust:build`
 
 ## 2. Delay UI Component
