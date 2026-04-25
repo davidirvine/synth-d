@@ -248,6 +248,11 @@
             midiState={filterMidiState}
             onknobcontextmenu={onKnobContextMenu}
           />
+          <Reverb
+            onchange={onParamChange}
+            midiState={reverbMidiState}
+            onknobcontextmenu={onKnobContextMenu}
+          />
           <AmpEnv
             onchange={onParamChange}
             midiState={ampEnvMidiState}
@@ -331,7 +336,7 @@
 
   .filter-output-grid {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: auto auto auto;
     gap: 8px;
   }
 
