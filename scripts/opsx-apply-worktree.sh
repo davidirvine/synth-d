@@ -73,6 +73,13 @@ fi
 echo "→ Creating branch ${BRANCH} via stax..."
 stax create "${CHANGE_NAME}" --prefix "${PREFIX}/"
 
+# stax create switches the current worktree to the new branch; switch back
+# to develop before attaching the sibling worktree (git worktree add requires
+# the target branch to not be checked out anywhere).
+if [[ "$(git rev-parse --abbrev-ref HEAD)" != "develop" ]]; then
+  git switch develop
+fi
+
 echo "→ Attaching worktree at ${WORKTREE_PATH}..."
 git worktree add "$WORKTREE_PATH" "$BRANCH"
 
