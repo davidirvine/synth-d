@@ -4,11 +4,10 @@ The synthesizer has no time-based repeat effect. A digital delay gives sounds rh
 
 ## What Changes
 
-- Add a delay DSP stage to `faust/synth.dsp` post-VCA (after the amplifier envelope, before master volume) using `de.sdelay` from the FAUST standard library
+- Add a delay DSP stage to `faust/synth.dsp` post-master-volume (after `masterVol`, before the reverb stage) using `de.sdelay` from the FAUST standard library, so delay repeats feed into the reverb
 - Add `delayOn`, `delayTime`, `delayFeedback`, and `delayMix` parameters to the FAUST parameter set; `delayOn` bypasses the stage entirely when 0
-- Add a `Delay.svelte` UI component with an on/off toggle button and three knobs (time, feedback, mix) in the same style as the Glide and Reverb panels
+- Replace the standalone `Reverb.svelte` with a combined `Effects.svelte` panel that hosts both the delay and reverb controls under a single "EFFECTS" panel label — "DELAY" sub-label on top, a divider line, "REVERB" sub-label below — matching the "LOUDNESS CONTOUR" label style used in `AmpEnv.svelte`
 - Expose `delayTime`, `delayFeedback`, and `delayMix` via the MIDI CC learn system
-- Mount the Delay panel in `App.svelte` directly below the Reverb panel in the `filter-output-grid` (column 2, row 2), so the two time-based effects are stacked vertically
 
 ## Capabilities
 
@@ -18,10 +17,10 @@ The synthesizer has no time-based repeat effect. A digital delay gives sounds rh
 
 ### Modified Capabilities
 
-- `dsp-engine`: Signal chain gains a post-VCA delay stage; `delayOn`, `delayTime`, `delayFeedback`, and `delayMix` are added to the parameter contract
+- `dsp-engine`: Signal chain gains a delay stage between master volume and the reverb stage; `delayOn`, `delayTime`, `delayFeedback`, and `delayMix` are added to the parameter contract
 
 ## Impact
 
-- `faust/synth.dsp`: new delay parameters and processing stage post-VCA
-- `src/components/Delay.svelte` + `src/components/Delay.test.js`: new component
-- `src/App.svelte`: Delay panel mounted below Reverb; `KNOB_PARAMS` extended with `delayTime`, `delayFeedback`, `delayMix`
+- `faust/synth.dsp`: new delay parameters and processing stage inserted between master volume and the shimmer reverb stage
+- `src/components/Effects.svelte` + `src/components/Effects.test.js`: combined effects panel replacing `Reverb.svelte`
+- `src/App.svelte`: `<Reverb>` replaced with `<Effects>`; `KNOB_PARAMS` extended with `delayTime`, `delayFeedback`, `delayMix`
