@@ -58,6 +58,12 @@ modToOsc1   = nentry("modToOsc1", 0, 0, 1, 1);
 modToOsc2   = nentry("modToOsc2", 0, 0, 1, 1);
 modToFilter = nentry("modToFilter", 0, 0, 1, 1);
 
+// Reverb
+reverbOn      = nentry("reverbOn", 0, 0, 1, 1);
+reverbMix     = hslider("reverbMix", 0.5, 0, 1, 0.001);
+reverbDecay   = hslider("reverbDecay", 0.5, 0, 1, 0.001);
+reverbShimmer = hslider("reverbShimmer", 0, 0, 1, 0.001);
+
 // Master
 masterVol = hslider("masterVol", 0.75, 0, 1, 0.001);
 
