@@ -208,6 +208,8 @@
   let modMidiState = $derived(midiStateFor('modMix', 'modWheel'))
 
   let glideMidiState = $derived(midiStateFor('glideRate'))
+
+  let reverbMidiState = $derived(midiStateFor('reverbMix', 'reverbDecay', 'reverbShimmer'))
 </script>
 
 <div class="app">
