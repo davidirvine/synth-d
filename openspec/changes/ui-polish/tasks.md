@@ -31,8 +31,8 @@
 
 - [ ] 6.1 In the Filter component test, assert that `keyTrack` initial value is `0` (default off state)
 - [ ] 6.2 In a single `it` block in the Filter component test: query `const keyTrackButton = screen.getByRole('button', { name: /key track/i })`; call `fireEvent.click(keyTrackButton)` and assert the `active` CSS class is present; call `fireEvent.click(keyTrackButton)` a second time and assert the `active` CSS class is absent
-- [ ] 6.4 In the Effects component test, assert that the delay knob row contains exactly 3 knobs (time, feedback, mix) and no toggle button
-- [ ] 6.5 In the Effects component test, assert that the reverb knob row contains exactly 3 knobs (mix, decay, tone) and no toggle button
+- [ ] 6.3 In the Effects component test, assert that the delay knob row contains exactly 3 knobs (time, feedback, mix) and no toggle button
+- [ ] 6.4 In the Effects component test, assert that the reverb knob row contains exactly 3 knobs (mix, decay, tone) and no toggle button
 
 ## 7. Playwright Tests
 
