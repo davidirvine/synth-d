@@ -46,15 +46,15 @@
 
 ## 7. Update opsx-apply-wt Command and Script
 
-- [ ] 7.1 Update `.claude/commands/opsx-apply-wt.md` to prompt the user for change type (feature or bugfix) before creating the branch, and pass the chosen prefix to the script
-- [ ] 7.2 Update `scripts/opsx-apply-worktree.sh` to accept an optional second argument `<prefix>` (default: `feature`): change the arg guard from `[[ $# -ne 1 ]]` to `[[ $# -lt 1 || $# -gt 2 ]]`; construct `BRANCH="${PREFIX}/${CHANGE_NAME}"`; replace the `git worktree add -b $BRANCH` call with `stax create $CHANGE_NAME --prefix "${PREFIX}/"` (creates branch with stax tracking while on develop) followed by `git worktree add $WORKTREE_PATH $BRANCH` (attaches the worktree to the stax-created branch)
-- [ ] 7.3 Update the conflict-detection and error messages in `scripts/opsx-apply-worktree.sh` to reference the dynamic branch name rather than the hardcoded `feature/` prefix
-- [ ] 7.3b Run `npx vitest run` and confirm all tests pass before committing
-- [ ] 7.4 Commit `.claude/commands/opsx-apply-wt.md` and `scripts/opsx-apply-worktree.sh`
+- [x] 7.1 Update `.claude/commands/opsx-apply-wt.md` to prompt the user for change type (feature or bugfix) before creating the branch, and pass the chosen prefix to the script
+- [x] 7.2 Update `scripts/opsx-apply-worktree.sh` to accept an optional second argument `<prefix>` (default: `feature`): change the arg guard from `[[ $# -ne 1 ]]` to `[[ $# -lt 1 || $# -gt 2 ]]`; construct `BRANCH="${PREFIX}/${CHANGE_NAME}"`; replace the `git worktree add -b $BRANCH` call with `stax create $CHANGE_NAME --prefix "${PREFIX}/"` (creates branch with stax tracking while on develop) followed by `git worktree add $WORKTREE_PATH $BRANCH` (attaches the worktree to the stax-created branch)
+- [x] 7.3 Update the conflict-detection and error messages in `scripts/opsx-apply-worktree.sh` to reference the dynamic branch name rather than the hardcoded `feature/` prefix
+- [x] 7.3b Run `npx vitest run` and confirm all tests pass before committing
+- [x] 7.4 Commit `.claude/commands/opsx-apply-wt.md` and `scripts/opsx-apply-worktree.sh`
 
 ## 8. Verify the Workflow End-to-End
 
-- [ ] 8.1 Make a test commit and verify the roborev post-commit hook fires (check `roborev tui` for a queued review)
-- [ ] 8.2 Verify `roborev status` reports the daemon as healthy
-- [ ] 8.3 Confirm `roborev refine --help` is available and lists expected flags
+- [x] 8.1 Make a test commit and verify the roborev post-commit hook fires (check `roborev tui` for a queued review)
+- [x] 8.2 Verify `roborev status` reports the daemon as healthy
+- [x] 8.3 Confirm `roborev refine --help` is available and lists expected flags
 - [ ] 8.4 Run `/opsx-apply-wt` on a test change and verify the change-type prompt appears, the correct branch prefix is used, and `stax ls` shows the new branch tracked under `develop`
