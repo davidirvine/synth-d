@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.0.1...subtractive-synth-v1.0.2) (2026-04-25)
+
+
+### Bug Fixes
+
+* **audio:** use BASE_URL for WASM asset paths ([3140c0e](https://github.com/davidirvine/synth-d/commit/3140c0e8331cc8a98d13d27bd91523e4c4f64753))
+
 ## [1.0.1](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.0.0...subtractive-synth-v1.0.1) (2026-04-25)
 
 
