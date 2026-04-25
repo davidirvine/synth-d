@@ -136,12 +136,14 @@ filteredSig = mixerOut : ve.moog_vcf(resonance, cutoffMod);
 
 // ─── Shimmer Reverb ───────────────────────────────────────────────────────────
 
-shimmerUnit = +~(re.mono_freeverb(reverbDecay, 0.5, 0.5, 0)
-               : (_ * reverbShimmer : ef.transpose(512, 256, 12) : (_, -1) : max : (_, 1) : min));
+// output = freeverb(input + prev_output * shimmer : transpose)
+// With shimmer=0: output = freeverb(input) — reverb works at all shimmer values.
+shimmerWet = (+ : re.mono_freeverb(reverbDecay, 0.5, 0.5, 0))
+           ~ (_ * reverbShimmer : ef.transpose(512, 256, 12) : (_, -1) : max : (_, 1) : min);
 
 // ─── Signal Chain ─────────────────────────────────────────────────────────────
 
 vcaOut     = filteredSig * ampEnvOut;
 masterOut  = vcaOut * masterVol;
-shimmerOut = masterOut <: (_ * (1 - reverbMix), shimmerUnit * reverbMix) :> _;
+shimmerOut = masterOut <: (_ * (1 - reverbMix), shimmerWet * reverbMix) :> _;
 process    = select2(int(reverbOn), masterOut, shimmerOut) <: _, _;

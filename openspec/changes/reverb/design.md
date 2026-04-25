@@ -29,23 +29,26 @@ The FAUST standard library provides `re.mono_freeverb` (Schroeder/Moorer) and `e
 The shimmer architecture is a feedback loop: the reverb output is pitch-shifted up one octave and mixed back into the reverb input, controlled by the `reverbShimmer` parameter. The reverb body is `re.mono_freeverb` which provides the dense diffuse tail characteristic of a plate.
 
 ```faust
-// Shimmer feedback using FAUST's +~ idiom:
-//   +~(f) = adder whose second input is fed by f's output.
-//   External inputs = inputs(+) - outputs(feedback chain) = 2 - 1 = 1.
-// The signal is split before entering the shimmer unit so the dry path is tapped correctly.
-shimmerUnit = +~(re.mono_freeverb(reverbDecay, 0.5, 0.5, 0)
-               : (_ * reverbShimmer : ef.transpose(512, 256, 12) : (_, -1) : max : (_, 1) : min));
+// shimmerWet: freeverb body with optional pitch-shifted recirculation.
+// Architecture: output = freeverb(input + prev_output * shimmer : transpose)
+// The ~ operator feeds the scaled/shifted output back into the freeverb input.
+// With shimmer=0: output = freeverb(input) — basic reverb, no pitch content.
+// With shimmer>0: each recirculation pass adds octave-up harmonic buildup.
+shimmerWet = (+ : re.mono_freeverb(reverbDecay, 0.5, 0.5, 0))
+           ~ (_ * reverbShimmer : ef.transpose(512, 256, 12) : (_, -1) : max : (_, 1) : min);
 
 // Signal chain: VCA and master volume first, then reverb as the final stage
 vcaOut     = filteredSig * ampEnvOut;
 masterOut  = vcaOut * masterVol;
-shimmerOut = masterOut <: (_ * (1 - reverbMix), shimmerUnit * reverbMix) :> _;
+shimmerOut = masterOut <: (_ * (1 - reverbMix), shimmerWet * reverbMix) :> _;
 process    = select2(int(reverbOn), masterOut, shimmerOut) <: _, _;
 ```
 
 `reverbOn` is an `nentry` (0 or 1, default 0). When 0, the signal bypasses the reverb via `select2`, saving CPU cycles. The knobs remain active but have no effect while bypassed — consistent with how `glideOn` works for the Glide panel.
 
-`+~(f)` is the FAUST idiom for a feedback adder: `+` has 2 inputs; `~` feeds the output of `f` back to the second input, leaving 1 external input. This avoids the 0-external-input type error that occurs with `A ~ B` when A has 1 input and B has 1 output. The `<: ... :>` split-merge ensures both branches (dry and wet) are mono, matching the `select2` bypass branch. `(_, -1) : max : (_, 1) : min` symmetrically bounds the shimmer feedback to prevent infinite buildup; `ba.clip` is not available in FAUST 2.85.5 so the equivalent primitive form is used instead.
+`A ~ B` is FAUST's feedback operator: `A`'s output passes through `B`, and `B`'s output feeds back to `A`'s last input (with 1 sample delay). Here `A = (+ : freeverb)` has 2 inputs and 1 output; `B = (_ * shimmer : transpose : clip)` has 1 input and 1 output. The result has `2 − 1 = 1` external input. This architecture ensures freeverb is always excited by the external signal (giving reverb at any shimmer setting), while the feedback path adds the pitch-shifted recirculation only when `reverbShimmer > 0`. The earlier `+~(freeverb : (_ * shimmer : ...))` idiom was incorrect: it placed the shimmer scale before the feedback injection, meaning shimmer=0 silenced the entire reverb.
+
+`(_, -1) : max : (_, 1) : min` symmetrically bounds the shimmer feedback to prevent infinite buildup; `ba.clip` is not available in FAUST 2.85.5 so the equivalent primitive form is used.
 
 Note: `masterVol` is applied before the reverb stage. The reverb operates on the already-shaped, level-adjusted signal; both the amp envelope and master volume are upstream of the effect.
 
