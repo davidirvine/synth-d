@@ -24,6 +24,12 @@ export default [
     },
   },
   {
+    files: ['*.config.js', '*.config.ts', '*.config.mjs'],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
+  {
     ignores: ['dist/', 'node_modules/', 'public/synth.js', 'public/synth.wasm'],
   },
 ]
