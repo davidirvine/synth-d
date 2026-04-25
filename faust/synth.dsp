@@ -137,7 +137,7 @@ filteredSig = mixerOut : ve.moog_vcf(resonance, cutoffMod);
 // ─── Shimmer Reverb ───────────────────────────────────────────────────────────
 
 shimmerUnit = +~(re.mono_freeverb(reverbDecay, 0.5, 0.5, 0)
-               : (_ * reverbShimmer : ef.transpose(512, 256, 12) : ba.clip(-1, 1)));
+               : (_ * reverbShimmer : ef.transpose(512, 256, 12) : (_, -1) : max : (_, 1) : min));
 shimmerOut  = filteredSig <: (_ * (1 - reverbMix), shimmerUnit * reverbMix) :> _;
 
 // ─── Signal Chain ─────────────────────────────────────────────────────────────
