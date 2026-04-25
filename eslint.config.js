@@ -18,7 +18,7 @@ export default [
     },
   },
   {
-    files: ['src/test-setup.js', '**/*.test.js'],
+    files: ['src/test-setup.js', '**/*.test.js', 'e2e/**/*.spec.js'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
     },
