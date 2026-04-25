@@ -8,11 +8,11 @@
 
 ## 2. Reverb UI Component
 
-- [ ] 2.1 Create `src/components/Reverb.svelte` with on/off toggle (matching Glide button style, `reverbOn` state), mix knob (0–1, default 0.5), decay knob (0–1, default 0.5), and shimmer knob (0–1, default 0)
-- [ ] 2.2 Wire the toggle to dispatch `{ param: 'reverbOn', value: 0|1 }` via `onchange`
-- [ ] 2.3 Wire each knob to dispatch the correct param name (`reverbMix`, `reverbDecay`, `reverbShimmer`) via `onchange`
-- [ ] 2.4 Accept and pass through `midiState` and `onknobcontextmenu` props for all three knobs
-- [ ] 2.5 Run `npx eslint --fix src/components/Reverb.svelte && npx prettier --write src/components/Reverb.svelte`
+- [x] 2.1 Create `src/components/Reverb.svelte` with on/off toggle (matching Glide button style, `reverbOn` state), mix knob (0–1, default 0.5), decay knob (0–1, default 0.5), and shimmer knob (0–1, default 0)
+- [x] 2.2 Wire the toggle to dispatch `{ param: 'reverbOn', value: 0|1 }` via `onchange`
+- [x] 2.3 Wire each knob to dispatch the correct param name (`reverbMix`, `reverbDecay`, `reverbShimmer`) via `onchange`
+- [x] 2.4 Accept and pass through `midiState` and `onknobcontextmenu` props for all three knobs
+- [x] 2.5 Run `npx eslint --fix src/components/Reverb.svelte && npx prettier --write src/components/Reverb.svelte`
 
 ## 3. App.svelte Integration
 
