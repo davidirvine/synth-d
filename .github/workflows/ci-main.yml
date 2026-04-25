@@ -31,9 +31,9 @@ jobs:
             public/synth.wasm
             public/synth.js
             public/synth.json
-          key: faust-v2-${{ hashFiles('faust/synth.dsp') }}
+          key: faust-v3-${{ hashFiles('faust/synth.dsp') }}
           restore-keys: |
-            faust-v2-
+            faust-v3-
 
       - name: Build Faust WASM
         if: steps.faust-cache.outputs.cache-hit != 'true'
