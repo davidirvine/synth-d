@@ -145,5 +145,5 @@ shimmerWet = (+ : re.mono_freeverb(reverbDecay, 0.5, 0.5, 0))
 
 vcaOut     = filteredSig * ampEnvOut;
 masterOut  = vcaOut * masterVol;
-shimmerOut = masterOut <: (_ * (1 - reverbMix), shimmerWet * reverbMix) :> _;
+shimmerOut = masterOut <: (_ * (1 - reverbMix), (shimmerWet : fi.dcblocker) * reverbMix) :> _;
 process    = select2(int(reverbOn), masterOut, shimmerOut) <: _, _;
