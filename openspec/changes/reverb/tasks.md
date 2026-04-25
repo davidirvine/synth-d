@@ -25,8 +25,8 @@
 
 ## 4. Unit Tests
 
-- [ ] 4.1 Create `src/components/Reverb.test.js` with tests: toggle defaults to off and dispatches `reverbOn`; each knob dispatches the correct param name; `onknobcontextmenu` is called with correct param; `midiState` externalValue drives knob display
-- [ ] 4.2 Run `npx vitest run` and confirm all new and existing tests pass
+- [x] 4.1 Create `src/components/Reverb.test.js` with tests: toggle defaults to off and dispatches `reverbOn`; each knob dispatches the correct param name; `onknobcontextmenu` is called with correct param; `midiState` externalValue drives knob display
+- [x] 4.2 Run `npx vitest run` and confirm all new and existing tests pass
 
 ## 5. Final Verification
 
