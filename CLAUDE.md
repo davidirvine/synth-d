@@ -37,6 +37,16 @@ The `develop` branch is reserved exclusively for OpenSpec proposals and tooling 
 
 Do not implement changes directly on `develop`. If you find yourself on `develop` with implementation work, halt and ask the human how to proceed.
 
+## Code review with roborev
+
+This repo uses roborev for continuous code review. After each commit,
+reviews run automatically in the background.
+
+- Browse open reviews interactively with `roborev tui`, or list them with `roborev fix --open --list`
+- To address open findings, use the `/roborev-fix` skill
+- Commit often so reviews stay scoped and contextual
+- Configuration lives in `.roborev.toml` at the repo root
+
 ## Linting and Formatting
 
 After EVERY file edit, run the appropriate tool BEFORE moving to the next task. Do not proceed to the next task if linting or formatting fails.
@@ -77,7 +87,7 @@ Do not proceed to the next section until all three conditions above are met.
 
 ## Stacked PRs
 
-> **MANDATORY: All branch creation, rebase, sync, and PR submission MUST use stax. Raw `git` commands for branch management or PR operations are FORBIDDEN. No exceptions.**
+> **MANDATORY: All branch creation, rebase, sync, and PR submission MUST use stax. There is a stax skill available. Raw `git` commands for branch management or PR operations are FORBIDDEN. No exceptions.**
 
 One stacked PR MUST be created per section — all 1.x tasks become one PR, all 2.x tasks become one PR, and so on. This is a required workflow step, not optional. The next section MUST NOT begin until the PR for the current section has been created and confirmed.
 
