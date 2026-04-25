@@ -134,6 +134,11 @@ cutoffMod   = max(20, min(20000,
 
 filteredSig = mixerOut : ve.moog_vcf(resonance, cutoffMod);
 
+// ─── Shimmer Reverb ───────────────────────────────────────────────────────────
+
+shimmerUnit = +~(re.mono_freeverb(reverbDecay, 0.5, 0.5, 0)
+               : (_ * reverbShimmer : ef.transpose(512, 256, 12) : ba.clip(-1, 1)));
+
 // ─── Signal Chain ─────────────────────────────────────────────────────────────
 
 vcaOut  = filteredSig * ampEnvOut;
