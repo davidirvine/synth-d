@@ -22,7 +22,11 @@ export async function powerOn() {
   if (typeof window !== 'undefined') window.__audioCtx = ctx
   await ctx.resume()
 
-  const factory = await FaustWasmInstantiator.loadDSPFactory('/synth.wasm', '/synth.json')
+  const base = import.meta.env.BASE_URL
+  const factory = await FaustWasmInstantiator.loadDSPFactory(
+    `${base}synth.wasm`,
+    `${base}synth.json`
+  )
 
   const generator = new FaustMonoDspGenerator()
   generator.factory = factory
