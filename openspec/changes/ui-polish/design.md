@@ -5,15 +5,21 @@ The synth UI top-level layout (`App.svelte`) uses a CSS flexbox container (`.pan
 ## Goals / Non-Goals
 
 **Goals:**
+
 - All three top-level panel columns reach the same bottom edge
 - The layout does not change when the browser window is resized (no reflow/wrap)
 - Outer spacing around the synth matches the `8px` inter-panel gap
 - Product name reads `SYNTH-D` in both the header and the browser tab
+- The delay and reverb on/off toggle buttons appear on the same row as their "DELAY" / "REVERB" section labels
+- The Key Track control is a binary on/off switch, not a continuous knob
+- All on/off toggle switches (Key Track, Glide, Delay, Reverb) use the same active green (`#20b040`) as the power button
 
 **Non-Goals:**
+
 - Responsive / mobile layout
-- Any change to the internal layout of individual panel components
 - Changes to the filter-output-grid's internal grid structure
+- Any change to knob layout within the delay or reverb sections
+- MIDI learn or CC assignment on the Key Track switch
 
 ## Decisions
 
@@ -34,6 +40,24 @@ The synth UI top-level layout (`App.svelte`) uses a CSS flexbox container (`.pan
 **Decision:** Update the literal string `SYNTH-1` → `SYNTH-D` in `App.svelte` and `<title>` in `index.html`.
 
 **Rationale:** Two-character change, no architectural consequence.
+
+### Toggle button co-located with section label
+
+**Decision:** In `Effects.svelte`, wrap each section label and its toggle button together in a flex row (e.g. `.section-header { display: flex; align-items: center; justify-content: space-between }`). Remove the toggle button from `.effects-row`, which will then contain only knobs.
+
+**Rationale:** Placing the on/off control next to the label makes the enable/disable action visually associated with the section name rather than appearing as a peer of the knobs. It also cleans up the knob row, which no longer needs to accommodate a differently-sized element. No layout change is needed for the knobs themselves.
+
+### Key Track as a binary switch
+
+**Decision:** Remove the `key trk` `<Knob>` from `Filter.svelte` and replace it with a toggle button labeled "Key Track" that emits `keyTrack: 0.0` when off and `keyTrack: 1.0` when on. Default state is off (0.0).
+
+**Rationale:** Key tracking is a boolean feature on this instrument — either the filter cutoff tracks the played note or it does not. Offering a continuous 0–1 range implies partial tracking behaviour that the DSP engine does not use. A switch more accurately represents the control's semantics and is consistent with the glide and effects on/off switches.
+
+### Active switch color
+
+**Decision:** Change the active (on) state CSS for all toggle switches — Key Track, Glide, Delay, Reverb — to use `color: #20b040; border-color: #20b040` (dropping the amber `#c87941` currently used). Background remains dark; no glow is added.
+
+**Rationale:** The power button uses `#20b040` (green) to indicate an active powered state. Using the same hue for all on/off controls creates a consistent visual language: green means active. The amber used by the delay/reverb and glide buttons today has no distinct semantic meaning and conflicts with the power button's established color.
 
 ## Risks / Trade-offs
 
