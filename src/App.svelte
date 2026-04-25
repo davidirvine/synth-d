@@ -46,7 +46,8 @@
     modWheel: { min: 0, max: 1 },
     // Glide
     glideRate: { min: 0.001, max: 5 },
-    // Reverb
+    // Reverb — reverbOn is intentionally excluded: it is a toggle, not a knob,
+    // and is not MIDI-learnable per the reverb spec.
     reverbMix: { min: 0, max: 1 },
     reverbDecay: { min: 0, max: 1 },
     reverbShimmer: { min: 0, max: 1 },
