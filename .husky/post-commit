@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# roborev post-commit hook v4 - auto-reviews every commit
+_roborev_hook() {
+ROBOREV="/usr/local/Cellar/roborev/0.52.0/bin/roborev"
+if [ ! -x "$ROBOREV" ]; then
+    ROBOREV=$(command -v roborev 2>/dev/null)
+    [ -z "$ROBOREV" ] || [ ! -x "$ROBOREV" ] && return 0
+fi
+"$ROBOREV" post-commit 2>/dev/null
+}
+_roborev_hook
