@@ -99,4 +99,4 @@ In the Effects panel, each section's on/off toggle button SHALL appear on the sa
 
 - **WHEN** the Effects panel is rendered
 - **THEN** the delay knob row contains only the time, feedback, and mix knobs (no toggle button)
-- **AND** the reverb knob row contains only the mix, decay, and tone knobs (no toggle button)
+- **AND** the reverb knob row contains only the mix, LPF, decay, and pre-delay knobs (no toggle button)
