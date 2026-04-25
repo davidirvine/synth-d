@@ -6,6 +6,7 @@
   import Oscillator from './components/Oscillator.svelte'
   import Mixer from './components/Mixer.svelte'
   import Filter from './components/Filter.svelte'
+  import Reverb from './components/Reverb.svelte'
   import AmpEnv from './components/AmpEnv.svelte'
   import Modulation from './components/Modulation.svelte'
   import Glide from './components/Glide.svelte'
