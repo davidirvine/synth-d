@@ -8,7 +8,13 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          // Required: headless Chromium blocks AudioContext even on programmatic clicks without this flag.
+          args: ['--autoplay-policy=no-user-gesture-required'],
+        },
+      },
     },
   ],
   webServer: {
