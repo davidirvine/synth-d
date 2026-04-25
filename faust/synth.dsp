@@ -58,6 +58,12 @@ modToOsc1   = nentry("modToOsc1", 0, 0, 1, 1);
 modToOsc2   = nentry("modToOsc2", 0, 0, 1, 1);
 modToFilter = nentry("modToFilter", 0, 0, 1, 1);
 
+// Reverb
+reverbOn      = nentry("reverbOn", 0, 0, 1, 1);
+reverbMix     = hslider("reverbMix", 0.5, 0, 1, 0.001);
+reverbDecay   = hslider("reverbDecay", 0.5, 0, 1, 0.001);
+reverbShimmer = hslider("reverbShimmer", 0, 0, 1, 0.001);
+
 // Master
 masterVol = hslider("masterVol", 0.75, 0, 1, 0.001);
 
@@ -128,7 +134,21 @@ cutoffMod   = max(20, min(20000,
 
 filteredSig = mixerOut : ve.moog_vcf(resonance, cutoffMod);
 
+// ─── Shimmer Reverb ───────────────────────────────────────────────────────────
+
+// Smooth all reverb params to prevent zipper noise when knobs are adjusted.
+reverbDecayS   = reverbDecay   : si.smoo;
+reverbShimmerS = reverbShimmer : si.smoo;
+reverbMixS     = reverbMix     : si.smoo;
+
+// output = freeverb(input + clip(transpose(prev_output * shimmer)))
+// With shimmer=0: output = freeverb(input) — reverb works at all shimmer values.
+shimmerWet = (+ : re.mono_freeverb(reverbDecayS, 0.5, 0.5, 0))
+           ~ (_ * reverbShimmerS : ef.transpose(512, 256, 12) : (_, -1) : max : (_, 1) : min);
+
 // ─── Signal Chain ─────────────────────────────────────────────────────────────
 
-vcaOut  = filteredSig * ampEnvOut;
-process = vcaOut * masterVol <: _, _;
+vcaOut     = filteredSig * ampEnvOut;
+masterOut  = vcaOut * masterVol;
+shimmerOut = masterOut <: (_ * (1 - reverbMixS), (shimmerWet : fi.dcblocker) * reverbMixS) :> _;
+process    = select2(int(reverbOn), masterOut, shimmerOut) <: _, _;

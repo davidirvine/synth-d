@@ -8,6 +8,7 @@ dist/
 # FAUST compiled artifacts (regenerate with: faust -lang wasm faust/synth.dsp -o public/synth)
 public/synth.wasm
 public/synth.js
+public/synth.json
 
 # Test output
 coverage/

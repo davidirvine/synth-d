@@ -6,6 +6,7 @@
   import Oscillator from './components/Oscillator.svelte'
   import Mixer from './components/Mixer.svelte'
   import Filter from './components/Filter.svelte'
+  import Reverb from './components/Reverb.svelte'
   import AmpEnv from './components/AmpEnv.svelte'
   import Modulation from './components/Modulation.svelte'
   import Glide from './components/Glide.svelte'
@@ -45,6 +46,11 @@
     modWheel: { min: 0, max: 1 },
     // Glide
     glideRate: { min: 0.001, max: 5 },
+    // Reverb — reverbOn is intentionally excluded: it is a toggle, not a knob,
+    // and is not MIDI-learnable per the reverb spec.
+    reverbMix: { min: 0, max: 1 },
+    reverbDecay: { min: 0, max: 1 },
+    reverbShimmer: { min: 0, max: 1 },
     // Master
     masterVol: { min: 0, max: 1 },
   }
@@ -203,6 +209,8 @@
   let modMidiState = $derived(midiStateFor('modMix', 'modWheel'))
 
   let glideMidiState = $derived(midiStateFor('glideRate'))
+
+  let reverbMidiState = $derived(midiStateFor('reverbMix', 'reverbDecay', 'reverbShimmer'))
 </script>
 
 <div class="app">
@@ -244,6 +252,11 @@
           <AmpEnv
             onchange={onParamChange}
             midiState={ampEnvMidiState}
+            onknobcontextmenu={onKnobContextMenu}
+          />
+          <Reverb
+            onchange={onParamChange}
+            midiState={reverbMidiState}
             onknobcontextmenu={onKnobContextMenu}
           />
           <div class="panel-row">
@@ -324,7 +337,7 @@
 
   .filter-output-grid {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: auto auto auto;
     gap: 8px;
   }
 
