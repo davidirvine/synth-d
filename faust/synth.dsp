@@ -142,5 +142,6 @@ shimmerOut  = filteredSig <: (_ * (1 - reverbMix), shimmerUnit * reverbMix) :> _
 
 // ─── Signal Chain ─────────────────────────────────────────────────────────────
 
-vcaOut  = filteredSig * ampEnvOut;
-process = vcaOut * masterVol <: _, _;
+reverbedSig = select2(int(reverbOn), filteredSig, shimmerOut);
+vcaOut      = reverbedSig * ampEnvOut;
+process     = vcaOut * masterVol <: _, _;
