@@ -5,6 +5,7 @@ The project is a Svelte 5 / Vite application with a Faust DSP engine compiled to
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Automated quality gate on every PR to `develop` (tests including Playwright e2e + lint + format)
 - Automated quality gate on every PR to `main` (tests only)
 - Automated production deployment to GitHub Pages on merge to `main`
@@ -14,6 +15,7 @@ The project is a Svelte 5 / Vite application with a Faust DSP engine compiled to
 - Fast CI via dependency caching (`node_modules` + Faust WASM outputs)
 
 **Non-Goals:**
+
 - Stryker mutation testing in CI (too slow for PR gates; run locally)
 - Staging environment separate from PR previews
 - Docker or containerised builds
@@ -28,8 +30,9 @@ The project is a Svelte 5 / Vite application with a Faust DSP engine compiled to
 **Rationale:** Keeps the WASM reproducible and tied to the DSP source. The cache means the expensive install+compile step only runs when `synth.dsp` actually changes — typically rare relative to UI work. On cache hit the step is skipped entirely.
 
 **Alternatives considered:**
-- *Commit the WASM* — simpler CI but risks silent drift between source and binary; rejected.
-- *Conditional workflow triggered on DSP changes only* — cleaner separation but adds workflow complexity and risks stale WASM in some build paths; rejected.
+
+- _Commit the WASM_ — simpler CI but risks silent drift between source and binary; rejected.
+- _Conditional workflow triggered on DSP changes only_ — cleaner separation but adds workflow complexity and risks stale WASM in some build paths; rejected.
 
 **Faust version:** `apt-get install faust` installs the version Ubuntu ships. No version pin is applied. If WASM output ever diverges from local builds, the fix is to pin to a specific Faust release binary from GitHub.
 
@@ -40,8 +43,9 @@ The project is a Svelte 5 / Vite application with a Faust DSP engine compiled to
 **Rationale:** PR previews cover the real review use case. Every-branch previews would accumulate stale directories and are noisy. The action handles deploy-on-open and cleanup-on-close automatically.
 
 **Alternatives considered:**
-- *Every-branch previews* — more coverage but operational overhead; rejected for now.
-- *Third-party hosting (Netlify/Vercel)* — native branch preview support but adds an external service dependency; rejected in favour of keeping everything in GitHub.
+
+- _Every-branch previews_ — more coverage but operational overhead; rejected for now.
+- _Third-party hosting (Netlify/Vercel)_ — native branch preview support but adds an external service dependency; rejected in favour of keeping everything in GitHub.
 
 ### D3 — Versioning: release-please with release PR
 
@@ -50,19 +54,20 @@ The project is a Svelte 5 / Vite application with a Faust DSP engine compiled to
 **Rationale:** Gives the owner a human gate before a version is published. Conventional commit history drives the version bump automatically. The release PR is a natural review checkpoint.
 
 **Alternatives considered:**
-- *semantic-release* — fully automated, no human gate; rejected because the owner wants control over when versions land.
+
+- _semantic-release_ — fully automated, no human gate; rejected because the owner wants control over when versions land.
 
 ### D4 — Workflow split: separate files per concern
 
 **Choice:** Five separate workflow files rather than one monolithic workflow.
 
-| File | Trigger | Purpose |
-|---|---|---|
-| `ci-develop.yml` | PR to `develop` | Tests (vitest + Playwright) + lint + format |
-| `ci-main.yml` | PR to `main` | Tests (vitest + Playwright) |
-| `deploy.yml` | Push to `main` (all commits, including release-please) | Build + deploy to Pages |
-| `preview.yml` | PR to `main` opened/synchronised/reopened/closed | PR preview deploy/cleanup |
-| `release-please.yml` | Push to `main` | Release PR management |
+| File                 | Trigger                                                | Purpose                                     |
+| -------------------- | ------------------------------------------------------ | ------------------------------------------- |
+| `ci-develop.yml`     | PR to `develop`                                        | Tests (vitest + Playwright) + lint + format |
+| `ci-main.yml`        | PR to `main`                                           | Tests (vitest + Playwright)                 |
+| `deploy.yml`         | Push to `main` (all commits, including release-please) | Build + deploy to Pages                     |
+| `preview.yml`        | PR to `main` opened/synchronised/reopened/closed       | PR preview deploy/cleanup                   |
+| `release-please.yml` | Push to `main`                                         | Release PR management                       |
 
 **Rationale:** Single-responsibility workflows are easier to read, debug, and selectively re-run. A failure in preview deploy doesn't block the release workflow.
 
@@ -71,8 +76,8 @@ The project is a Svelte 5 / Vite application with a Faust DSP engine compiled to
 ### D5 — Caching strategy
 
 - `node_modules`: use `actions/setup-node` with `cache: 'npm'` — caches the npm cache directory and always runs `npm ci` (fast on hit, correct on miss, avoids stale native binaries)
-- Faust outputs: `actions/cache` keyed on `hashFiles('faust/synth.dsp')`, paths `public/synth.wasm`, `public/synth.js`, `public/synth.json`
-- Playwright browsers: `actions/cache` keyed on `hashFiles('node_modules/@playwright/test/package.json')` with path `~/.cache/ms-playwright`; only an actual Playwright version upgrade busts the cache; `npx playwright install --with-deps` runs only on cache miss. **Ordering constraint:** this cache step must run after `npm ci` — `node_modules/` does not exist at checkout, so `hashFiles()` returns an empty string if evaluated before `npm ci` completes, silently degenerating the cache key
+- Faust outputs: `actions/cache` keyed on `faust-v1-${{ hashFiles('faust/synth.dsp') }}` with `restore-keys: faust-v1-`, paths `public/synth.wasm`, `public/synth.js`, `public/synth.json`. The `v1` prefix allows deliberate cache-busting if the Faust compiler is upgraded without a DSP source change; the restore-key provides a partial-hit fallback on a DSP change.
+- Playwright browsers: `actions/cache` keyed on `hashFiles('node_modules/@playwright/test/package.json')` with path `~/.cache/ms-playwright`; only an actual Playwright version upgrade busts the cache. Browser installation is split into two steps: `npx playwright install-deps chromium` runs **unconditionally** (OS-level system libraries are not cached — the runner is a fresh VM every run), then `npx playwright install chromium` runs **only on cache miss** (downloads browser binaries). **Ordering constraint:** the cache step must run after `npm ci` — `node_modules/` does not exist at checkout, so `hashFiles()` returns an empty string if evaluated before `npm ci` completes, silently degenerating the cache key
 - Vite build output (`dist/`) is not cached — it's always rebuilt from source on deployment runs.
 
 ### D6 — GitHub Pages source: `gh-pages` branch

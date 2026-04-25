@@ -1,0 +1,69 @@
+name: PR Preview
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        if: github.event.action != 'closed'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: npm ci
+
+      - name: Restore Faust WASM cache
+        id: faust-cache
+        if: github.event.action != 'closed'
+        uses: actions/cache@v4
+        with:
+          path: |
+            public/synth.wasm
+            public/synth.js
+            public/synth.json
+          key: faust-v1-${{ hashFiles('faust/synth.dsp') }}
+          restore-keys: |
+            faust-v1-
+
+      - name: Install Faust compiler
+        if: github.event.action != 'closed' && steps.faust-cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y faust
+
+      - name: Build Faust WASM
+        if: github.event.action != 'closed' && steps.faust-cache.outputs.cache-hit != 'true'
+        run: npm run faust:build
+
+      - name: Build
+        if: github.event.action != 'closed'
+        run: npm run build
+
+      - name: Deploy PR preview
+        uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1
+        with:
+          source-dir: ./dist
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto
