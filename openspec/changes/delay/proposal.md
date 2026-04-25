@@ -8,7 +8,7 @@ The synthesizer has no time-based repeat effect. A digital delay gives sounds rh
 - Add `delayOn`, `delayTime`, `delayFeedback`, and `delayMix` parameters to the FAUST parameter set; `delayOn` bypasses the stage entirely when 0
 - Add a `Delay.svelte` UI component with an on/off toggle button and three knobs (time, feedback, mix) in the same style as the Glide and Reverb panels
 - Expose `delayTime`, `delayFeedback`, and `delayMix` via the MIDI CC learn system
-- Mount the Delay panel in `App.svelte` after the Amp Env panel, reflecting its post-VCA position in the signal chain
+- Mount the Delay panel in `App.svelte` directly below the Reverb panel in the `filter-output-grid` (column 2, row 2), so the two time-based effects are stacked vertically
 
 ## Capabilities
 
@@ -22,7 +22,6 @@ The synthesizer has no time-based repeat effect. A digital delay gives sounds rh
 
 ## Impact
 
-- `faust/synth.dsp`: new delay parameters and processing stage after VCA
+- `faust/synth.dsp`: new delay parameters and processing stage post-VCA
 - `src/components/Delay.svelte` + `src/components/Delay.test.js`: new component
-- `src/App.svelte`: Delay panel mounted after Amp Env; `KNOB_PARAMS` extended
-- `src/audio/midiCcMap.js`: three new CC entries
+- `src/App.svelte`: Delay panel mounted below Reverb; `KNOB_PARAMS` extended with `delayTime`, `delayFeedback`, `delayMix`

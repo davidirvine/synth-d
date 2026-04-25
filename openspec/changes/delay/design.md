@@ -34,11 +34,29 @@ filteredSig → reverb stage → vcaOut → delay stage → vcaOut * masterVol �
 
 **Alternative considered:** `de.fdelay` — linear interpolation, simpler. Adequate for moderate-speed knob sweeps but produces subtle zipper noise on fast changes. `de.sdelay` is the robust choice for a live-playable instrument.
 
-### Decision: Cap feedback at 0.9 via `ba.clip(-1, 0.9)` in FAUST
+### Decision: Cap feedback coefficient at 0.9 via `ba.clip(0, 0.9)` in FAUST
 
-Feedback ≥ 1.0 produces infinite (self-oscillating) delay. Unlike the shimmer reverb where runaway can be a feature, uncontrolled delay oscillation is unmusical and potentially loud. Capping at 0.9 in the DSP (not just the UI) provides a hard safety limit independent of UI range clamping.
+Feedback ≥ 1.0 produces infinite (self-oscillating) delay. Unlike the shimmer reverb where runaway can be a feature, uncontrolled delay oscillation is unmusical and potentially loud. Capping the feedback *coefficient* (a scalar 0–0.9) in the DSP provides a hard safety limit independent of UI range clamping and protects against misconfigured MIDI CC mappings that could send out-of-range values. The lower bound is 0, not a negative number, because the feedback gain is not a bipolar audio signal — negative feedback would invert phase on each repeat, which is not a documented feature.
 
-**Alternative considered:** Cap at 1.0 (allow self-oscillation as a feature). Rejected — no musical use case justifies this for a basic delay, and it poses a clip/speaker risk in live contexts.
+```faust
+delayFeedbackSafe = delayFeedback : ba.clip(0, 0.9);
+delayWet = +~(de.sdelay(96000, 1024, delayTime * ma.SR) * delayFeedbackSafe);
+```
+
+**Alternative considered:** Cap at 1.0 (allow self-oscillation). Rejected — poses a speaker safety risk in live contexts.
+
+### Decision: Feed zeros into the delay buffer when bypassed
+
+FAUST's `select2` evaluates both branches on every sample regardless of the selector. A naïve `select2(int(delayOn), vcaOut, delayStage(vcaOut))` would feed the live VCA signal into the delay buffer even while `delayOn = 0`, so enabling delay for the first time would immediately play back however many seconds of buffered audio — a jarring burst of unexpected sound. The fix is to gate the delay input:
+
+```faust
+delayInput = vcaOut * int(delayOn);   // feeds 0 to buffer when bypassed
+delayWet   = delayInput : +~(de.sdelay(96000, 1024, delayTime * ma.SR) * delayFeedbackSafe);
+delayOut   = vcaOut * (1 - delayMix) + delayWet * delayMix;
+process_delay = select2(int(delayOn), vcaOut, delayOut);
+```
+
+When `delayOn = 0`, `delayInput = 0`, the buffer stays silent, and `select2` passes `vcaOut` through. When `delayOn = 1`, the buffer starts filling immediately and the first audible repeat arrives one `delayTime` later.
 
 ### Decision: Max delay 2 seconds (96 000 samples at 48 kHz)
 
@@ -50,9 +68,9 @@ Post-VCA placement means the amp envelope shapes only the dry attack/release; de
 
 **Alternative considered:** Pre-VCA (before amplifier, mirroring the reverb's position). The VCA would then gate each delay repeat, producing a rhythmic choppy effect. This is an unusual and restrictive sonic choice; post-VCA is correct for a general-purpose delay.
 
-### Decision: Delay panel mounted after Amp Env in App.svelte
+### Decision: Delay panel mounted below Reverb in the filter-output-grid (column 2, row 2)
 
-Signal flow: filter → reverb → VCA (Amp Env) → delay. The Delay panel appears directly after Amp Env, reflecting this order. No grid restructuring is required — it appends to the existing `filter-output-grid` or sits adjacent in the `panels` flex row.
+The `filter-output-grid` is a 3-column grid (after the reverb change): Filter | Reverb | AmpEnv in row 1. Placing Delay directly below Reverb (column 2, row 2) groups the two time-based effects vertically — an intuitive spatial pairing — without disrupting the Filter or AmpEnv columns. The Modulation+Glide row below may need `grid-column` adjustments to span correctly across the updated row structure.
 
 ### Decision: Parameter names follow camelCase convention
 
@@ -62,4 +80,4 @@ Signal flow: filter → reverb → VCA (Amp Env) → delay. The Delay panel appe
 
 - **Memory allocation** → `de.sdelay` allocates a static delay buffer of `maxLen` samples at WASM compile time. At 96 000 samples × 4 bytes = 384 KB; negligible in a browser context. Mitigation: none required.
 - **Delay time off by one** → `de.sdelay` interprets `len` as samples; passing `delayTime * ma.SR` can produce a fractional sample count. Mitigation: FAUST handles fractional lengths internally via interpolation — no action needed.
-- **Feedback accumulation with reverb** → With both reverb and delay active, delay repeats pass through the reverb (pre-VCA reverb is baked into each repeat). This is musically valid and expected, but deep reverb + high feedback can produce a dense wash. Mitigation: document as intentional interaction; no DSP guard needed.
+- **Feedback accumulation with reverb** → Delay repeats already contain the pre-VCA reverb baked in; they do not pass through the reverb a second time. With deep reverb settings and high feedback, the cumulative wash can become dense. Mitigation: document as intentional interaction; no DSP guard needed.

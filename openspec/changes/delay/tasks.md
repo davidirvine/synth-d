@@ -1,9 +1,9 @@
 ## 1. FAUST DSP — Feedback Delay Stage
 
 - [ ] 1.1 Add `delayOn`, `delayTime`, `delayFeedback`, and `delayMix` parameters to `faust/synth.dsp` (`nentry` for `delayOn`; `hslider` for the others with ranges: time 0.01–1.0 s, feedback 0–0.9, mix 0–1)
-- [ ] 1.2 Implement the feedback delay circuit using `de.sdelay(96000, 1024, delayTime * ma.SR)` with `ba.clip(-1, 0.9)` on the recirculated feedback signal
-- [ ] 1.3 Implement wet/dry blend via `_ <: (_ * (1 - delayMix), delayWet * delayMix) :> _` so the dry tap precedes the delay
-- [ ] 1.4 Wire the bypass using `select2(int(delayOn), vcaOut, delayStage(vcaOut))` post-VCA, before `* masterVol`
+- [ ] 1.2 Implement the feedback delay circuit: `delayFeedbackSafe = delayFeedback : ba.clip(0, 0.9)` (caps the scalar gain, not the audio signal); `delayWet = +~(de.sdelay(96000, 1024, delayTime * ma.SR) * delayFeedbackSafe)`
+- [ ] 1.3 Implement wet/dry blend: `delayOut = vcaOut * (1 - delayMix) + delayWet * delayMix`, where `delayWet` is the output of the feedback circuit from 1.2
+- [ ] 1.4 Wire the bypass by gating the delay input: `delayInput = vcaOut * int(delayOn)` (feeds zeros to the buffer when bypassed); then `select2(int(delayOn), vcaOut, delayOut)` post-VCA, before `* masterVol`
 - [ ] 1.5 Validate FAUST DSP compiles without errors: `npm run faust:build`
 
 ## 2. Delay UI Component
@@ -19,7 +19,7 @@
 - [ ] 3.1 Import `Delay` component in `App.svelte`
 - [ ] 3.2 Add `delayTime` (0.01–1.0), `delayFeedback` (0–0.9), and `delayMix` (0–1) entries to `KNOB_PARAMS` in `App.svelte`
 - [ ] 3.3 Add `delayMidiState` derived state using `midiStateFor('delayTime', 'delayFeedback', 'delayMix')`
-- [ ] 3.4 Mount `<Delay>` after `<AmpEnv>` in the layout
+- [ ] 3.4 Mount `<Delay>` in the `filter-output-grid` at column 2, row 2 (directly below `<Reverb>`); adjust `grid-column` spans on the Modulation+Glide row as needed to keep the bottom row correct
 - [ ] 3.5 Run `npx eslint --fix src/App.svelte && npx prettier --write src/App.svelte`
 
 ## 4. Unit Tests
@@ -31,6 +31,6 @@
 
 - [ ] 5.1 Run `npm run faust:build` to confirm WASM artifacts rebuild cleanly
 - [ ] 5.2 Start the dev server, enable delay, play a note, and verify audible repeats; confirm repeats continue after note release (post-VCA behavior)
-- [ ] 5.3 Verify the Delay panel appears after the Amp Env panel in the UI
+- [ ] 5.3 Verify the Delay panel appears directly below the Reverb panel in the UI
 - [ ] 5.4 Verify MIDI CC learn works for all three delay knobs
 - [ ] 5.5 Run `npx vitest run` for final pass

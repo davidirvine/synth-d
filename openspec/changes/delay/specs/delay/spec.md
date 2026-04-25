@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Feedback delay DSP stage inserted post-VCA
-The system SHALL implement a feedback delay stage in `faust/synth.dsp` positioned after the VCA (amp envelope × VCA output) and before master volume. The delay SHALL use `de.sdelay(96000, 1024, delayTime * ma.SR)` for smooth, click-free time changes. The feedback loop SHALL recirculate the delay output scaled by `delayFeedback`, capped at 0.9 via `ba.clip(-1, 0.9)` to prevent unbounded buildup. The wet/dry blend SHALL be controlled by `delayMix` (0–1). A `delayOn` parameter (0 or 1, default 0) SHALL bypass the entire delay stage via `select2` when 0. Default values: `delayOn` = 0, `delayTime` = 0.3 s, `delayFeedback` = 0.3, `delayMix` = 0.3.
+The system SHALL implement a feedback delay stage in `faust/synth.dsp` positioned after the VCA (amp envelope × VCA output) and before master volume. The delay SHALL use `de.sdelay(96000, 1024, delayTime * ma.SR)` for smooth, click-free time changes. The feedback loop SHALL recirculate the delay output scaled by `delayFeedback`, with the feedback coefficient capped via `ba.clip(0, 0.9)` to prevent unbounded buildup and negative-feedback inversion. When `delayOn` is 0 the delay input SHALL be driven with zeros (not the live VCA signal) so the buffer stays silent and enabling delay for the first time produces no jarring burst of buffered audio. The wet/dry blend SHALL be controlled by `delayMix` (0–1). A `delayOn` parameter (0 or 1, default 0) SHALL bypass the entire delay stage via `select2` when 0. Default values: `delayOn` = 0, `delayTime` = 0.3 s, `delayFeedback` = 0.3, `delayMix` = 0.3.
 
 #### Scenario: delayOn at zero bypasses the delay
 - **WHEN** `delayOn` is 0
@@ -31,9 +31,13 @@ The system SHALL implement a feedback delay stage in `faust/synth.dsp` positione
 - **WHEN** `delayOn` is 1 and `delayFeedback` is 0.9
 - **THEN** multiple repeats are audible, decaying slowly over several seconds
 
-#### Scenario: Feedback is capped at 0.9 in the DSP
+#### Scenario: Feedback coefficient is capped at 0.9 in the DSP
 - **WHEN** `delayFeedback` is set to any value via UI or MIDI CC
-- **THEN** the signal fed back into the delay never exceeds 0.9, preventing self-oscillation
+- **THEN** the feedback gain applied inside the delay circuit is clamped to [0, 0.9], preventing self-oscillation and negative-feedback phase inversion
+
+#### Scenario: Enabling delay produces no burst of buffered audio
+- **WHEN** `delayOn` transitions from 0 to 1 for the first time
+- **THEN** no delay repeats from before the toggle are audible; the first repeat arrives one `delayTime` after the toggle
 
 #### Scenario: Time change is smooth with no clicks
 - **WHEN** `delayTime` is adjusted while `delayOn` is 1 and audio is playing
@@ -83,12 +87,12 @@ The system SHALL register `delayTime` (range 0.01–1.0 s), `delayFeedback` (ran
 
 ---
 
-### Requirement: Delay panel mounted after Amp Env in App.svelte
-The system SHALL mount the `Delay` panel in `App.svelte` after the `AmpEnv` panel, reflecting the post-VCA position of the delay in the signal chain.
+### Requirement: Delay panel mounted below Reverb in the filter-output-grid
+The system SHALL mount the `Delay` panel in `App.svelte` inside the `filter-output-grid` at column 2, row 2 — directly below the Reverb panel — grouping the two time-based effects vertically.
 
-#### Scenario: Delay panel is visible in the UI
+#### Scenario: Delay panel is visible below Reverb in the UI
 - **WHEN** the application loads
-- **THEN** a panel labelled "delay" is visible in the synthesizer interface, positioned after the amp env panel
+- **THEN** a panel labelled "delay" is visible directly below the reverb panel in the synthesizer interface
 
 #### Scenario: Delay panel wires onchange to engine
 - **WHEN** a delay knob value or toggle changes
