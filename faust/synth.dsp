@@ -141,7 +141,7 @@ reverbDecayS   = reverbDecay   : si.smoo;
 reverbShimmerS = reverbShimmer : si.smoo;
 reverbMixS     = reverbMix     : si.smoo;
 
-// output = freeverb(input + prev_output * shimmer : transpose)
+// output = freeverb(input + clip(transpose(prev_output * shimmer)))
 // With shimmer=0: output = freeverb(input) — reverb works at all shimmer values.
 shimmerWet = (+ : re.mono_freeverb(reverbDecayS, 0.5, 0.5, 0))
            ~ (_ * reverbShimmerS : ef.transpose(512, 256, 12) : (_, -1) : max : (_, 1) : min);
