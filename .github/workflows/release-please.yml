@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - develop
 
 permissions:
   contents: write
@@ -16,8 +15,21 @@ jobs:
 
     steps:
       - uses: google-github-actions/release-please-action@e4dc86ba9405554aeba3c6bb2d169500e7d3b4ee # v4
+        id: release
         with:
           # PAT required: GITHUB_TOKEN does not trigger downstream workflows on push
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      - name: Open backmerge PR to develop
+        if: steps.release.outputs.release_created
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+        run: |
+          gh pr create \
+            --base develop \
+            --head main \
+            --title "chore: backmerge release ${{ steps.release.outputs.tag_name }} to develop" \
+            --body "Brings the version bump from the ${{ steps.release.outputs.tag_name }} release back to develop so the next promotion PR is conflict-free." \
+          || echo "Backmerge PR already exists"
