@@ -17,7 +17,7 @@
 ## 3. App.svelte Integration
 
 - [x] 3.1 Import `Reverb` component in `App.svelte`
-- [ ] 3.2 Add `reverbMix`, `reverbDecay`, `reverbShimmer` entries to `KNOB_PARAMS` in `App.svelte`
+- [x] 3.2 Add `reverbMix`, `reverbDecay`, `reverbShimmer` entries to `KNOB_PARAMS` in `App.svelte`
 - [ ] 3.2b Add `reverbMix` (0–1), `reverbDecay` (0–1), and `reverbShimmer` (0–1) entries to `src/audio/midiCcMap.js` following the existing pattern
 - [ ] 3.3 Add `reverbMidiState` derived state using `midiStateFor('reverbMix', 'reverbDecay', 'reverbShimmer')`
 - [ ] 3.4 Mount `<Reverb>` in the `filter-output-grid` between `<Filter>` and `<AmpEnv>`, updating `grid-template-columns` from `auto auto` to `auto auto auto`

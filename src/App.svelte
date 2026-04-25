@@ -46,6 +46,10 @@
     modWheel: { min: 0, max: 1 },
     // Glide
     glideRate: { min: 0.001, max: 5 },
+    // Reverb
+    reverbMix: { min: 0, max: 1 },
+    reverbDecay: { min: 0, max: 1 },
+    reverbShimmer: { min: 0, max: 1 },
     // Master
     masterVol: { min: 0, max: 1 },
   }
