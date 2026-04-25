@@ -18,7 +18,7 @@
 
 - [ ] 4.1 In `src/components/Filter.svelte`, add `let keyTrackOn = $state(0)` and a `toggleKeyTrack` function that flips between `0` and `1` and calls `onchange?.({ param: 'keyTrack', value: keyTrackOn })`
 - [ ] 4.2 In `src/components/Filter.svelte`, remove the `key trk` `<Knob>` and replace it with a `<button class="toggle-btn" class:active={keyTrackOn === 1} onclick={toggleKeyTrack} aria-pressed={keyTrackOn === 1}>Key Track</button>` — keep it in the top knob row alongside the cutoff and res knobs
-- [ ] 4.3 In `src/components/Filter.svelte`, add `.toggle-btn` and `.toggle-btn.active` CSS: `.toggle-btn.active { background: #1a2a1a; color: #20b040; border-color: #20b040 }`
+- [ ] 4.3 In `src/components/Filter.svelte`, add `.toggle-btn` base and `.toggle-btn.active` CSS — base: `font-family: inherit; font-size: 9px; background: #2a2a2a; color: #888; border: 1px solid #444; padding: 3px 8px; cursor: pointer; text-transform: uppercase; height: 22px; width: 32px` — active: `background: #1a2a1a; color: #20b040; border-color: #20b040`
 
 ## 5. On/Off Switch Active Color
 
@@ -28,8 +28,8 @@
 ## 6. Component Tests (vitest)
 
 - [ ] 6.1 In the Filter component test, assert that `keyTrack` initial value is `0` (default off state)
-- [ ] 6.2 In the Filter component test, assert that after `toggleKeyTrack()` the `active` CSS class is present on the button
-- [ ] 6.3 In the Filter component test, assert that after a second `toggleKeyTrack()` the `active` CSS class is absent
+- [ ] 6.2 In the Filter component test, assert that after clicking the Key Track button (e.g. `await fireEvent.click(keyTrackButton)`) the `active` CSS class is present on the button
+- [ ] 6.3 In the Filter component test, assert that after clicking the Key Track button a second time (e.g. `await fireEvent.click(keyTrackButton)`) the `active` CSS class is absent
 - [ ] 6.4 In the Effects component test, assert that the delay knob row contains exactly 3 knobs (time, feedback, mix) and no toggle button
 - [ ] 6.5 In the Effects component test, assert that the reverb knob row contains exactly 3 knobs (mix, decay, tone) and no toggle button
 
