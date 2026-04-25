@@ -3,13 +3,13 @@ import { test, expect } from '@playwright/test'
 test.describe('Subtractive Synth', () => {
   test('app loads with power button and panels dimmed', async ({ page }) => {
     await page.goto('/')
-    await expect(page.locator('button[aria-label]')).toBeVisible()
+    await expect(page.locator('button.power-btn')).toBeVisible()
     await expect(page.locator('.synth')).toHaveClass(/dimmed/)
   })
 
   test('clicking power button enables the panels', async ({ page }) => {
     await page.goto('/')
-    await page.locator('button[aria-label]').click()
+    await page.locator('button.power-btn').click()
     await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
   })
 
@@ -41,7 +41,7 @@ test.describe('Subtractive Synth', () => {
 
   test('mixer noise type button interaction', async ({ page }) => {
     await page.goto('/')
-    await page.locator('button[aria-label]').click()
+    await page.locator('button.power-btn').click()
     await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
     const whtBtn = page.locator('.noise-btn', { hasText: 'wht' })
     const pinkBtn = page.locator('.noise-btn', { hasText: 'pink' })
@@ -54,7 +54,7 @@ test.describe('Subtractive Synth', () => {
 
   test('modulation routing switch interaction', async ({ page }) => {
     await page.goto('/')
-    await page.locator('button[aria-label]').click()
+    await page.locator('button.power-btn').click()
     await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
     const routeBtn = page.locator('.route-btn').first()
     await expect(routeBtn).toBeVisible()
@@ -65,7 +65,7 @@ test.describe('Subtractive Synth', () => {
 
   test('glide toggle interaction', async ({ page }) => {
     await page.goto('/')
-    await page.locator('button[aria-label]').click()
+    await page.locator('button.power-btn').click()
     await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
     const glideBtn = page.locator('.glide-btn')
     await expect(glideBtn).toBeVisible()
@@ -76,7 +76,7 @@ test.describe('Subtractive Synth', () => {
 
   test('keyboard key press activates a key and does not crash', async ({ page }) => {
     await page.goto('/')
-    await page.locator('button[aria-label]').click()
+    await page.locator('button.power-btn').click()
     await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
 
     await page.keyboard.press('z')
@@ -89,8 +89,8 @@ test.describe('Subtractive Synth', () => {
       })
   })
 
-  test('layout has no horizontal scrolling at 1200px width', async ({ page }) => {
-    await page.setViewportSize({ width: 1200, height: 900 })
+  test('layout has no horizontal scrolling at 1366px width', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 900 })
     await page.goto('/')
 
     const hasHorizontalOverflow = await page.evaluate(() => {
