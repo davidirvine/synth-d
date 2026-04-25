@@ -28,8 +28,8 @@
 <div class="panel">
   <span class="panel-label">effects</span>
 
-  <span class="sub-label">delay</span>
-  <div class="effects-row">
+  <div class="section-header">
+    <span class="sub-label">delay</span>
     <button
       class="toggle-btn"
       class:active={delayOn === 1}
@@ -38,6 +38,8 @@
     >
       {delayOn === 1 ? 'on' : 'off'}
     </button>
+  </div>
+  <div class="effects-row">
     <Knob
       label="time"
       min={0.01}
@@ -79,8 +81,8 @@
 
   <div class="section-divider"></div>
 
-  <span class="sub-label">reverb</span>
-  <div class="effects-row reverb-row">
+  <div class="section-header">
+    <span class="sub-label">reverb</span>
     <button
       class="toggle-btn"
       class:active={reverbOn === 1}
@@ -89,6 +91,8 @@
     >
       {reverbOn === 1 ? 'on' : 'off'}
     </button>
+  </div>
+  <div class="effects-row reverb-row">
     <Knob
       label="mix"
       min={0}
@@ -160,6 +164,12 @@
     letter-spacing: 0.1em;
   }
 
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .sub-label {
     font-size: 9px;
     color: #666;
@@ -193,14 +203,14 @@
   }
 
   .toggle-btn.active {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
   }
 
-  /* Reserve fixed width for the LPF knob value (3rd child: button + mix + LPF).
+  /* Reserve fixed width for the LPF knob value (2nd child: mix + LPF).
      Prevents layout shift when the displayed string changes between e.g. "1.0 kHz" and "16.0 kHz". */
-  .reverb-row :global(:nth-child(3) .knob-value) {
+  .reverb-row :global(:nth-child(2) .knob-value) {
     min-width: 5.5em;
     display: inline-block;
     text-align: center;
