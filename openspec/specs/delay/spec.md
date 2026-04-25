@@ -19,7 +19,13 @@ The system SHALL implement a tape-delay-modelled feedback delay stage in `faust/
 #### Scenario: Delay repeats ring freely after VCA closes
 
 - **WHEN** `delayOn` is 1, `delayFeedback` is greater than 0, and the note is released (VCA closes)
-- **THEN** delay repeats continue to decay after the VCA output reaches zero, and the repeats feed into the reverb stage
+- **THEN** delay repeats continue to decay after the VCA output reaches zero
+
+#### Scenario: Delay output feeds into reverb stage
+
+- **GIVEN** an audio signal is present, a note is playing, and `delayTime` is 0.3 s (the default)
+- **WHEN** `delayOn` is 1, `reverbOn` is 1, and `delayFeedback` is greater than 0
+- **THEN** the output signal in a 500 ms window beginning at note-off has non-zero energy that exceeds the dry-only baseline, confirming delay signal is entering the reverb wet path
 
 #### Scenario: Tape character — repeats darken and soften over time
 
@@ -65,7 +71,7 @@ The system SHALL implement a tape-delay-modelled feedback delay stage in `faust/
 
 ### Requirement: Combined Effects panel with DELAY and REVERB sub-sections
 
-The system SHALL provide an `Effects.svelte` component that hosts both the delay and reverb controls in a single panel. The outer panel label SHALL read "EFFECTS". A sub-label "DELAY" SHALL appear above the delay controls: an on/off toggle (amber active style, grey inactive) and three `Knob` components labelled `time`, `feedback`, and `mix`. A `section-divider` line SHALL visually separate the two sub-sections. A sub-label "REVERB" SHALL appear above the reverb controls: an on/off toggle and three `Knob` components labelled `mix`, `decay`, and `shimmer`. The sub-label style SHALL match the `AmpEnv.svelte` "loudness contour" label. The component SHALL accept `onchange`, `midiState`, and `onknobcontextmenu` props. The `delayTime`, `delayFeedback`, `delayMix`, `reverbMix`, `reverbDecay`, and `reverbShimmer` knobs SHALL all participate in the MIDI CC learn workflow. `delayOn` and `reverbOn` are not MIDI-learnable.
+The system SHALL provide an `Effects.svelte` component that hosts both the delay and reverb controls in a single panel. The outer panel label SHALL read "EFFECTS". A sub-label "DELAY" SHALL appear above the delay controls: an on/off toggle (amber active style, grey inactive) and three `Knob` components labelled `time`, `feedback`, and `mix`. A `section-divider` line SHALL visually separate the two sub-sections. A sub-label "REVERB" SHALL appear above the reverb controls: an on/off toggle and four `Knob` components labelled `mix`, `LPF`, `decay`, and `pre-delay`. The sub-label style SHALL match the `AmpEnv.svelte` "loudness contour" label. The component SHALL accept `onchange`, `midiState`, and `onknobcontextmenu` props. The `delayTime`, `delayFeedback`, `delayMix`, `reverbMix`, `reverbDecay`, `reverbTone` (the `LPF` knob), and `reverbPreDelay` knobs SHALL all participate in the MIDI CC learn workflow. `delayOn` and `reverbOn` are not MIDI-learnable. For reverb knob parameter names, defaults, and scenarios, see `openspec/specs/reverb/spec.md`.
 
 #### Scenario: Toggle defaults to off
 
@@ -76,6 +82,11 @@ The system SHALL provide an `Effects.svelte` component that hosts both the delay
 
 - **WHEN** the on/off toggle is clicked from the off state
 - **THEN** `onchange` is called with `{ param: 'delayOn', value: 1 }`
+
+#### Scenario: Toggle sends delayOn off param
+
+- **WHEN** the on/off toggle is clicked from the on state
+- **THEN** `onchange` is called with `{ param: 'delayOn', value: 0 }`
 
 #### Scenario: Time knob defaults to 0.3 s
 

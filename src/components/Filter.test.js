@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render } from '@testing-library/svelte'
+import { render, screen, fireEvent } from '@testing-library/svelte'
 import Filter from './Filter.svelte'
 
 describe('Filter — filterMode removed', () => {
@@ -17,13 +17,31 @@ describe('Filter — filterMode removed', () => {
 })
 
 describe('Filter — keyTrack knob present', () => {
-  it('renders a key trk label', () => {
-    const { getByText } = render(Filter)
-    expect(getByText('key trk')).toBeTruthy()
+  it('renders a Key Track button', () => {
+    render(Filter)
+    expect(screen.getByRole('button', { name: /key track/i })).toBeTruthy()
   })
 
-  it('renders eight knobs total (cutoff, res, key trk + five env knobs)', () => {
+  it('renders seven knobs total (cutoff, res + five env knobs)', () => {
     const { container } = render(Filter)
-    expect(container.querySelectorAll('svg').length).toBe(8)
+    expect(container.querySelectorAll('svg').length).toBe(7)
+  })
+})
+
+describe('Filter — Key Track switch', () => {
+  it('Key Track defaults to off', () => {
+    render(Filter)
+    const keyTrackButton = screen.getByRole('button', { name: /key track/i })
+    expect(keyTrackButton.classList.contains('active')).toBe(false)
+    expect(keyTrackButton.getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('toggles on on first click and back off on second click', async () => {
+    render(Filter)
+    const keyTrackButton = screen.getByRole('button', { name: /key track/i })
+    await fireEvent.click(keyTrackButton)
+    expect(keyTrackButton.classList.contains('active')).toBe(true)
+    await fireEvent.click(keyTrackButton)
+    expect(keyTrackButton.classList.contains('active')).toBe(false)
   })
 })

@@ -66,12 +66,9 @@ describe('Keyboard — pointer interaction', () => {
 
 describe('Keyboard — bindable triggerNote / releaseNote', () => {
   it('exposes triggerNote as a bindable function', () => {
-    let triggerNote
     render(Keyboard, {
       props: {
-        'bind:triggerNote': (fn) => {
-          triggerNote = fn
-        },
+        'bind:triggerNote': () => {},
       },
     })
     // In testing-library/svelte, we verify the prop was set by calling triggerNote
@@ -84,9 +81,6 @@ describe('Keyboard — bindable triggerNote / releaseNote', () => {
 
     // We test via the component's internal exposed functions by rendering
     // with direct access — use component's triggerNote / releaseNote props
-    let externalTrigger
-    let externalRelease
-
     const { container } = render(Keyboard, {
       props: {
         onnote,
