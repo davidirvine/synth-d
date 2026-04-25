@@ -15,7 +15,7 @@
 - [ ] 2.5 Wire the delay toggle to dispatch `{ param: 'delayOn', value: 0|1 }` and each delay knob to dispatch `delayTime`, `delayFeedback`, `delayMix`; wire the reverb toggle to dispatch `reverbOn` and each reverb knob to dispatch `reverbMix`, `reverbDecay`, `reverbShimmer`
 - [ ] 2.6 Accept and pass through `midiState` and `onknobcontextmenu` props for all six learnable knobs
 - [ ] 2.7 Run `npx eslint --fix src/components/Effects.svelte && npx prettier --write src/components/Effects.svelte`
-- [ ] 2.8 Delete `src/components/Reverb.svelte` and `src/components/Reverb.test.js`; run `npx vitest run` to confirm the suite still passes without them
+- [ ] 2.8 Delete `src/components/Reverb.svelte` (the component is fully superseded by `Effects.svelte`); `Reverb.test.js` is NOT deleted here — it continues to guard reverb control behaviour until task 4.1 provides equivalent coverage in `Effects.test.js`
 
 ## 3. App.svelte Integration
 
@@ -27,8 +27,8 @@
 
 ## 4. Unit Tests
 
-- [ ] 4.1 Create `src/components/Effects.test.js` with tests: delay toggle defaults to off and dispatches `delayOn`; reverb toggle defaults to off and dispatches `reverbOn`; each delay knob dispatches the correct param name; each reverb knob dispatches the correct param name; `onknobcontextmenu` is called with the correct param for all six knobs; `midiState.delayTime.externalValue` drives the time knob display
-- [ ] 4.2 Run `npx vitest run` and confirm all new and existing tests pass
+- [ ] 4.1 Create `src/components/Effects.test.js` with tests: delay toggle defaults to off and dispatches `delayOn`; reverb toggle defaults to off and dispatches `reverbOn`; each delay knob dispatches the correct param name; each reverb knob dispatches the correct param name; `onknobcontextmenu` is called with the correct param for all six knobs; `midiState.delayTime.externalValue` drives the time knob display — then delete `src/components/Reverb.test.js` once all reverb scenarios are confirmed green in `Effects.test.js`
+- [ ] 4.2 Run `npx vitest run` and confirm all new and existing tests pass with `Reverb.test.js` removed
 
 ## 5. Final Verification
 
