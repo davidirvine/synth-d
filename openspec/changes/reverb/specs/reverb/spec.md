@@ -1,11 +1,11 @@
 ## ADDED Requirements
 
-### Requirement: Shimmer reverb DSP stage inserted after VCA
-The system SHALL implement a shimmer reverb stage in `faust/synth.dsp` positioned after the VCA and before the final stereo split. The reverb SHALL use `re.mono_freeverb` as the diffusion body with `ef.transpose` (grain 512, crossfade 256, +12 semitones) in the recirculation feedback path. The feedback tap SHALL be scaled by `reverbShimmer` (0–1). The wet/dry blend SHALL be controlled by `reverbMix` (0–1). The tail length SHALL be controlled by `reverbDecay` (0–1) mapped to freeverb's `fb1` parameter. An `reverbOn` parameter (0 or 1, default 0) SHALL bypass the entire reverb stage via `select2` when 0, passing the signal through unchanged. Default values: `reverbOn` = 0, `reverbMix` = 0.5, `reverbDecay` = 0.5, `reverbShimmer` = 0.
+### Requirement: Shimmer reverb DSP stage inserted between filter and VCA
+The system SHALL implement a shimmer reverb stage in `faust/synth.dsp` positioned between the ladder filter output and the VCA (amp envelope stage). The reverb SHALL use `re.mono_freeverb` as the diffusion body with `ef.transpose` (grain 512, crossfade 256, +12 semitones) in the recirculation feedback path. The feedback tap SHALL be scaled by `reverbShimmer` (0–1). The wet/dry blend SHALL be controlled by `reverbMix` (0–1). The tail length SHALL be controlled by `reverbDecay` (0–1) mapped to freeverb's `fb1` parameter. A `reverbOn` parameter (0 or 1, default 0) SHALL bypass the entire reverb stage via `select2` when 0, passing the filter signal through to the VCA unchanged. Default values: `reverbOn` = 0, `reverbMix` = 0.5, `reverbDecay` = 0.5, `reverbShimmer` = 0.
 
 #### Scenario: reverbOn at zero bypasses the reverb
 - **WHEN** `reverbOn` is 0
-- **THEN** the output is identical to the pre-reverb VCA output with no reverb or shimmer processing applied
+- **THEN** the filter signal passes directly to the VCA with no reverb or shimmer processing applied, and the output is identical to the pre-reverb signal chain
 
 #### Scenario: reverbOn at one activates the reverb
 - **WHEN** `reverbOn` is 1 and `reverbMix` is greater than 0
@@ -30,6 +30,10 @@ The system SHALL implement a shimmer reverb stage in `faust/synth.dsp` positione
 #### Scenario: Decay controls tail length
 - **WHEN** `reverbOn` is 1, `reverbMix` is greater than 0, and `reverbDecay` is increased from 0 to 1
 - **THEN** the reverb tail grows longer
+
+#### Scenario: Amp envelope shapes the reverb tail
+- **WHEN** `reverbOn` is 1, `reverbMix` is greater than 0, and the amp release is short (e.g. 0.05 s)
+- **THEN** the reverb tail is trimmed by the VCA closing, producing a gated reverb character with no trailing decay after note release
 
 #### Scenario: Feedback is clipped to prevent infinite buildup
 - **WHEN** `reverbDecay` and `reverbShimmer` are both at 1.0 and `reverbOn` is 1

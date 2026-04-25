@@ -2,8 +2,8 @@
 
 - [ ] 1.1 Add `reverbOn`, `reverbMix`, `reverbDecay`, and `reverbShimmer` `hslider`/`nentry` parameters to `faust/synth.dsp`
 - [ ] 1.2 Implement the shimmer feedback loop: `ef.transpose(512, 256, 12)` scaled by `reverbShimmer` feeding back into `re.mono_freeverb(reverbDecay, 0.5, 1, 0)`
-- [ ] 1.3 Implement the wet/dry blend using `reverbMix` and apply `clip` to the feedback signal to prevent unbounded buildup
-- [ ] 1.4 Wire the bypass using `select2(int(reverbOn), dryOut, wetOut)` before the final `<: _, _` stereo split
+- [ ] 1.3 Implement wet/dry blend via `<: (dry, wet) :>` split-merge, and add `clip(0, 1)` in the `~` feedback path after `ef.transpose` to prevent unbounded buildup
+- [ ] 1.4 Wire the bypass using `select2(int(reverbOn), filteredSig, shimmerOut)` between `filteredSig` and `vcaOut`, so the amp envelope is applied after the reverb stage
 - [ ] 1.5 Validate FAUST DSP compiles without errors: `npm run faust:build`
 
 ## 2. Reverb UI Component
@@ -18,13 +18,14 @@
 
 - [ ] 3.1 Import `Reverb` component in `App.svelte`
 - [ ] 3.2 Add `reverbMix`, `reverbDecay`, `reverbShimmer` entries to `KNOB_PARAMS` in `App.svelte`
+- [ ] 3.2b Add `reverbMix` (0–1), `reverbDecay` (0–1), and `reverbShimmer` (0–1) entries to `src/audio/midiCcMap.js` following the existing pattern
 - [ ] 3.3 Add `reverbMidiState` derived state using `midiStateFor('reverbMix', 'reverbDecay', 'reverbShimmer')`
 - [ ] 3.4 Mount `<Reverb>` in the `filter-output-grid` between `<Filter>` and `<AmpEnv>`, updating `grid-template-columns` from `auto auto` to `auto auto auto`
 - [ ] 3.5 Run `npx eslint --fix src/App.svelte && npx prettier --write src/App.svelte`
 
 ## 4. Unit Tests
 
-- [ ] 4.1 Create `src/components/Reverb.test.js` with tests: toggle defaults to off and dispatches `reverbOn`; each knob dispatches the correct param name; `onknobcontextmenu` is called with correct param; `midiState` externalValue drives knob display
+- [ ] 4.1 Create `src/components/Reverb.test.js` with tests: toggle defaults to off and dispatches `reverbOn`; each knob dispatches the correct param name; `onknobcontextmenu` is called with correct param; `midiState` externalValue drives knob display; DSP output level stays bounded (≤ 1.0 amplitude) when shimmer and decay are both at 1.0
 - [ ] 4.2 Run `npx vitest run` and confirm all new and existing tests pass
 
 ## 5. Final Verification

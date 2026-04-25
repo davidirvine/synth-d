@@ -9,4 +9,4 @@ The system SHALL provide a `faust/synth.dsp` FAUST source file implementing the 
 
 #### Scenario: Signal chain order
 - **WHEN** an audio buffer is processed
-- **THEN** signal flows: oscillator bank (OSC 1 + OSC 2 + OSC 3) → mixer (level-scaled sum + noise) → ladder filter (with ADSR contour + key tracking) → VCA (ADSR) → shimmer reverb (bypass when reverbOn = 0) → master volume → stereo output
+- **THEN** signal flows: oscillator bank (OSC 1 + OSC 2 + OSC 3) → mixer (level-scaled sum + noise) → ladder filter (with ADSR contour + key tracking) → shimmer reverb (bypass when reverbOn = 0) → VCA (ADSR) → master volume → stereo output
