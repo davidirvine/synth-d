@@ -1,0 +1,10 @@
+dist/
+node_modules/
+public/synth.js
+public/synth.wasm
+
+# Tooling and project management — not application source
+.claude/
+openspec/
+.github/prompts/
+.github/skills/
