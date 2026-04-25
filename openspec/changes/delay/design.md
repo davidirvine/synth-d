@@ -1,6 +1,6 @@
 ## Context
 
-The synthesizer has a shimmer reverb stage applied after the VCA and master volume (`masterOut`). A tape-delay-modelled effect is placed after master volume but before the reverb stage, so delay repeats feed into the reverb — the classic "delay into reverb" effects chain. The FAUST standard library provides `de.fdelay`, `fi.lowpass`, `ma.tanh`, and `ba.clip`. No third-party dependency is required.
+The synthesizer has a shimmer reverb stage applied after the VCA and master volume (`masterOut`). A tape-delay-modelled effect is placed after master volume but before the reverb stage, so delay repeats feed into the reverb — the classic "delay into reverb" effects chain. The FAUST standard library provides `de.fdelay`, `fi.lowpass`, `ma.tanh`, `max`, and `min`. No third-party dependency is required.
 
 The current signal chain end (as of `develop`) is:
 
@@ -32,12 +32,12 @@ filteredSig → vcaOut → masterOut → delayStage → reverb stage → stereo 
 
 ## Decisions
 
-### Decision: Cap feedback coefficient at 0.9 via `ba.clip(0, 0.9)` in FAUST
+### Decision: Cap feedback coefficient at 0.9 via `max(0) : min(0.9)` in FAUST
 
 Feedback ≥ 1.0 produces infinite (self-oscillating) delay. Unlike the shimmer reverb where runaway can be a feature, uncontrolled delay oscillation is unmusical and potentially loud. Capping the feedback _coefficient_ (a scalar 0–0.9) in the DSP provides a hard safety limit independent of UI range clamping and protects against misconfigured MIDI CC mappings that could send out-of-range values. The lower bound is 0, not a negative number, because the feedback gain is not a bipolar audio signal — negative feedback would invert phase on each repeat, which is not a documented feature.
 
 ```faust
-delayFeedbackSafe = delayFeedback : ba.clip(0, 0.9);
+delayFeedbackSafe = delayFeedback : max(0) : min(0.9);
 // Tape feedback path: gain cap → HF rolloff → soft saturation
 feedbackPath = _ * delayFeedbackSafe : fi.lowpass(1, 6000) : ma.tanh;
 ```

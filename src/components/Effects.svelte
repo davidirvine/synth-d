@@ -11,7 +11,13 @@
     onknobcontextmenu?: (param: string) => void
   }} */ ($props())
 
+  let delayOn = $state(0)
   let reverbOn = $state(0)
+
+  function toggleDelay() {
+    delayOn = delayOn === 0 ? 1 : 0
+    onchange?.({ param: 'delayOn', value: delayOn })
+  }
 
   function toggleReverb() {
     reverbOn = reverbOn === 0 ? 1 : 0
@@ -20,10 +26,63 @@
 </script>
 
 <div class="panel">
-  <span class="panel-label">reverb</span>
-  <div class="reverb-row">
+  <span class="panel-label">effects</span>
+
+  <span class="sub-label">delay</span>
+  <div class="effects-row">
     <button
-      class="reverb-btn"
+      class="toggle-btn"
+      class:active={delayOn === 1}
+      onclick={toggleDelay}
+      aria-pressed={delayOn === 1}
+    >
+      {delayOn === 1 ? 'on' : 'off'}
+    </button>
+    <Knob
+      label="time"
+      min={0.01}
+      max={1.0}
+      default={0.3}
+      scale="log"
+      unit="s"
+      externalValue={midiState?.delayTime?.externalValue}
+      learningMidi={midiState?.delayTime?.learningMidi ?? false}
+      assignedCc={midiState?.delayTime?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'delayTime', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('delayTime')}
+    />
+    <Knob
+      label="feedback"
+      min={0}
+      max={0.9}
+      default={0.3}
+      scale="linear"
+      externalValue={midiState?.delayFeedback?.externalValue}
+      learningMidi={midiState?.delayFeedback?.learningMidi ?? false}
+      assignedCc={midiState?.delayFeedback?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'delayFeedback', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('delayFeedback')}
+    />
+    <Knob
+      label="mix"
+      min={0}
+      max={1}
+      default={0.3}
+      scale="linear"
+      externalValue={midiState?.delayMix?.externalValue}
+      learningMidi={midiState?.delayMix?.learningMidi ?? false}
+      assignedCc={midiState?.delayMix?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'delayMix', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('delayMix')}
+    />
+  </div>
+
+  <div class="section-divider"></div>
+
+  <span class="sub-label">reverb</span>
+  <div class="effects-row">
+    <button
+      class="toggle-btn"
       class:active={reverbOn === 1}
       onclick={toggleReverb}
       aria-pressed={reverbOn === 1}
@@ -87,14 +146,26 @@
     letter-spacing: 0.1em;
   }
 
-  .reverb-row {
+  .sub-label {
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: #2a2a2a;
+  }
+
+  .effects-row {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
   }
 
-  .reverb-btn {
+  .toggle-btn {
     font-family: inherit;
     font-size: 9px;
     background: #2a2a2a;
@@ -107,7 +178,7 @@
     width: 32px;
   }
 
-  .reverb-btn.active {
+  .toggle-btn.active {
     background: #3a2a1a;
     color: #c87941;
     border-color: #c87941;

@@ -58,6 +58,12 @@ modToOsc1   = nentry("modToOsc1", 0, 0, 1, 1);
 modToOsc2   = nentry("modToOsc2", 0, 0, 1, 1);
 modToFilter = nentry("modToFilter", 0, 0, 1, 1);
 
+// Delay
+delayOn       = nentry("delayOn", 0, 0, 1, 1);
+delayTime     = hslider("delayTime [unit:s]", 0.3, 0.01, 1.0, 0.001);
+delayFeedback = hslider("delayFeedback", 0.3, 0, 0.9, 0.001);
+delayMix      = hslider("delayMix", 0.3, 0, 1, 0.001);
+
 // Reverb
 reverbOn      = nentry("reverbOn", 0, 0, 1, 1);
 reverbMix     = hslider("reverbMix", 0.5, 0, 1, 0.001);
@@ -134,6 +140,18 @@ cutoffMod   = max(20, min(20000,
 
 filteredSig = mixerOut : ve.moog_vcf(resonance, cutoffMod);
 
+// ─── Tape Delay ───────────────────────────────────────────────────────────────
+
+maxDelayLen       = 96000;
+wowLfo            = os.osc(0.5) * 0.003;
+tapeTime          = min(maxDelayLen - 1, max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR));
+delayFeedbackSafe = delayFeedback : max(0) : min(0.9);
+feedbackPath      = _ * delayFeedbackSafe : fi.lowpass(1, 6000) : ma.tanh;
+delayInput        = masterOut * int(delayOn);
+delayWet          = delayInput : +~(de.fdelay(maxDelayLen, tapeTime) : feedbackPath);
+delayOut          = masterOut * (1 - delayMix) + delayWet * delayMix;
+delayStage        = select2(int(delayOn), masterOut, delayOut);
+
 // ─── Shimmer Reverb ───────────────────────────────────────────────────────────
 
 // Smooth all reverb params to prevent zipper noise when knobs are adjusted.
@@ -150,5 +168,5 @@ shimmerWet = (+ : re.mono_freeverb(reverbDecayS, 0.5, 0.5, 0))
 
 vcaOut     = filteredSig * ampEnvOut;
 masterOut  = vcaOut * masterVol;
-shimmerOut = masterOut <: (_ * (1 - reverbMixS), (shimmerWet : fi.dcblocker) * reverbMixS) :> _;
-process    = select2(int(reverbOn), masterOut, shimmerOut) <: _, _;
+shimmerOut = delayStage <: (_ * (1 - reverbMixS), (shimmerWet : fi.dcblocker) * reverbMixS) :> _;
+process    = select2(int(reverbOn), delayStage, shimmerOut) <: _, _;

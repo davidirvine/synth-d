@@ -6,7 +6,7 @@
   import Oscillator from './components/Oscillator.svelte'
   import Mixer from './components/Mixer.svelte'
   import Filter from './components/Filter.svelte'
-  import Reverb from './components/Reverb.svelte'
+  import Effects from './components/Effects.svelte'
   import AmpEnv from './components/AmpEnv.svelte'
   import Modulation from './components/Modulation.svelte'
   import Glide from './components/Glide.svelte'
@@ -46,8 +46,11 @@
     modWheel: { min: 0, max: 1 },
     // Glide
     glideRate: { min: 0.001, max: 5 },
-    // Reverb — reverbOn is intentionally excluded: it is a toggle, not a knob,
-    // and is not MIDI-learnable per the reverb spec.
+    // Delay — delayOn is intentionally excluded: it is a toggle, not a knob.
+    delayTime: { min: 0.01, max: 1.0 },
+    delayFeedback: { min: 0, max: 0.9 },
+    delayMix: { min: 0, max: 1 },
+    // Reverb — reverbOn is intentionally excluded: it is a toggle, not a knob.
     reverbMix: { min: 0, max: 1 },
     reverbDecay: { min: 0, max: 1 },
     reverbShimmer: { min: 0, max: 1 },
@@ -210,7 +213,16 @@
 
   let glideMidiState = $derived(midiStateFor('glideRate'))
 
-  let reverbMidiState = $derived(midiStateFor('reverbMix', 'reverbDecay', 'reverbShimmer'))
+  let effectsMidiState = $derived(
+    midiStateFor(
+      'reverbMix',
+      'reverbDecay',
+      'reverbShimmer',
+      'delayTime',
+      'delayFeedback',
+      'delayMix'
+    )
+  )
 </script>
 
 <div class="app">
@@ -254,9 +266,9 @@
             midiState={ampEnvMidiState}
             onknobcontextmenu={onKnobContextMenu}
           />
-          <Reverb
+          <Effects
             onchange={onParamChange}
-            midiState={reverbMidiState}
+            midiState={effectsMidiState}
             onknobcontextmenu={onKnobContextMenu}
           />
           <div class="panel-row">
