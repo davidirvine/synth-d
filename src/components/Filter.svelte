@@ -10,6 +10,13 @@
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void
   }} */ ($props())
+
+  let keyTrackOn = $state(0)
+
+  function toggleKeyTrack() {
+    keyTrackOn = keyTrackOn === 0 ? 1 : 0
+    onchange?.({ param: 'keyTrack', value: keyTrackOn })
+  }
 </script>
 
 <div class="panel">
@@ -41,18 +48,20 @@
       onchange={(e) => onchange?.({ param: 'resonance', value: e.value })}
       oncontextmenu={() => onknobcontextmenu?.('resonance')}
     />
-    <Knob
-      label="key trk"
-      min={0}
-      max={1}
-      default={0}
-      scale="linear"
-      externalValue={midiState?.keyTrack?.externalValue}
-      learningMidi={midiState?.keyTrack?.learningMidi ?? false}
-      assignedCc={midiState?.keyTrack?.assignedCc ?? null}
-      onchange={(e) => onchange?.({ param: 'keyTrack', value: e.value })}
-      oncontextmenu={() => onknobcontextmenu?.('keyTrack')}
-    />
+    <div class="key-track-col">
+      <span class="key-track-label">Key Track</span>
+      <div class="key-track-btn-wrap">
+        <button
+          class="toggle-btn"
+          class:active={keyTrackOn === 1}
+          onclick={toggleKeyTrack}
+          aria-pressed={keyTrackOn === 1}
+          aria-label="Key Track"
+        >
+          {keyTrackOn === 1 ? 'on' : 'off'}
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="section-divider"></div>
@@ -171,5 +180,46 @@
 
   .knob-row.centered {
     justify-content: center;
+  }
+
+  .key-track-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .key-track-btn-wrap {
+    height: var(--knob-body-size, 48px);
+    display: flex;
+    align-items: center;
+  }
+
+  .key-track-label {
+    font-size: 10px;
+    color: #e8dcc8;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .toggle-btn {
+    font-family: inherit;
+    font-size: 9px;
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    padding: 3px 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    height: 22px;
+    width: auto;
+    min-width: 32px;
+  }
+
+  .toggle-btn.active {
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
   }
 </style>

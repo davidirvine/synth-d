@@ -333,3 +333,19 @@ describe('Effects — midiState externalValue', () => {
     expect(knobValues[6].textContent).toBe('50 ms')
   })
 })
+
+describe('Effects — section-header restructure', () => {
+  it('delay knob row contains exactly 3 knobs and no toggle button', () => {
+    const { container } = render(Effects)
+    const delayRow = container.querySelector('.effects-row:not(.reverb-row)')
+    expect(delayRow.querySelectorAll('.knob-hit')).toHaveLength(3)
+    expect(delayRow.querySelector('.toggle-btn')).toBeNull()
+  })
+
+  it('reverb knob row contains exactly 4 knobs and no toggle button', () => {
+    const { container } = render(Effects)
+    const reverbRow = container.querySelector('.reverb-row')
+    expect(reverbRow.querySelectorAll('.knob-hit')).toHaveLength(4)
+    expect(reverbRow.querySelector('.toggle-btn')).toBeNull()
+  })
+})

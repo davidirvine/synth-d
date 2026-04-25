@@ -229,7 +229,7 @@
 
 <div class="app">
   <header class="header">
-    <span class="title">SYNTH-1</span>
+    <span class="title">SYNTH-D</span>
     <div class="header-right">
       <MidiStatus
         status={midiStatus}
@@ -299,6 +299,7 @@
 
 <style>
   .app {
+    --knob-body-size: 48px;
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -328,7 +329,7 @@
   }
 
   main {
-    padding: 20px;
+    padding: 8px;
   }
 
   .synth {
@@ -343,16 +344,17 @@
   }
 
   .panels {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto auto;
     gap: 8px;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    justify-content: start;
   }
 
   .filter-output-grid {
     display: grid;
     grid-template-columns: auto auto auto;
     gap: 8px;
+    justify-content: start;
   }
 
   .panel-row {

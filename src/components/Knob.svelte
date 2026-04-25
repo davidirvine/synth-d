@@ -158,7 +158,10 @@
     ondblclick={onDblClick}
     oncontextmenu={handleContextMenu}
   >
-    <svg width="48" height="48" viewBox="0 0 48 48" style="overflow: visible;">
+    <svg
+      viewBox="0 0 48 48"
+      style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"
+    >
       {#if learningMidi}
         <circle cx={CX} cy={CY} r={R + 4} class="learn-ring" fill="none" stroke-width="2" />
       {/if}
@@ -209,6 +212,7 @@
     color: #e8dcc8;
     letter-spacing: 0.05em;
     text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .knob-value {

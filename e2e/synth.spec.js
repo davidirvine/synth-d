@@ -33,9 +33,9 @@ test.describe('Subtractive Synth', () => {
     await expect(page.locator('.panel-label', { hasText: 'glide' })).toBeVisible()
   })
 
-  test('filter panel has key trk knob instead of mode knob', async ({ page }) => {
+  test('filter panel has Key Track button instead of mode knob', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByText('key trk')).toBeVisible()
+    await expect(page.getByRole('button', { name: /key track/i })).toBeVisible()
     await expect(page.getByText('mode')).not.toBeVisible()
   })
 
@@ -99,5 +99,43 @@ test.describe('Subtractive Synth', () => {
     })
 
     expect(hasHorizontalOverflow).toBe(false)
+  })
+
+  test('all three top-level panel columns share the same bottom bounding-box coordinate', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    const bottoms = await page.evaluate(() => {
+      const panels = document.querySelector('.panels')
+      if (!panels) return null
+      const children = Array.from(panels.children)
+      return children.map((el) => el.getBoundingClientRect().bottom)
+    })
+
+    expect(bottoms).not.toBeNull()
+    expect(bottoms.length).toBe(3)
+    expect(bottoms[0]).toBeCloseTo(bottoms[1], 0)
+    expect(bottoms[0]).toBeCloseTo(bottoms[2], 0)
+  })
+
+  test('three top-level panel columns remain in a single row at narrow viewport width', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 800, height: 900 })
+    await page.goto('/')
+
+    const singleRow = await page.evaluate(() => {
+      const panels = document.querySelector('.panels')
+      if (!panels) return false
+      const children = Array.from(panels.children)
+      if (children.length < 3) return false
+      const tops = children.map((el) => el.getBoundingClientRect().top)
+      const maxTop = Math.max(...tops)
+      const minTop = Math.min(...tops)
+      return maxTop - minTop < 5
+    })
+
+    expect(singleRow).toBe(true)
   })
 })
