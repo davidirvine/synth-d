@@ -1,26 +1,28 @@
 #!/usr/bin/env bash
-# opsx-apply-worktree.sh <change-name>
+# opsx-apply-worktree.sh <change-name> [<prefix>]
 #
 # Creates a sibling git worktree for implementing an approved OpenSpec proposal.
 # Assumes the proposal at openspec/changes/<change-name>/ has been committed to develop.
+# <prefix> defaults to "feature" if omitted; use "bugfix" for bug-fix changes.
 #
 # Resulting layout:
 #   ../<repo>/              <- develop worktree, stays on develop
-#   ../<repo>-<change>/     <- new worktree on feature/<change>
+#   ../<repo>-<change>/     <- new worktree on <prefix>/<change>
 
 set -euo pipefail
 
-if [[ $# -ne 1 ]]; then
-  echo "Usage: $0 <change-name>" >&2
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  echo "Usage: $0 <change-name> [<prefix>]" >&2
   exit 2
 fi
 
 CHANGE_NAME="$1"
+PREFIX="${2:-feature}"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 REPO_NAME="$(basename "$REPO_ROOT")"
 PARENT_DIR="$(dirname "$REPO_ROOT")"
 WORKTREE_PATH="${PARENT_DIR}/${REPO_NAME}-${CHANGE_NAME}"
-BRANCH="feature/${CHANGE_NAME}"
+BRANCH="${PREFIX}/${CHANGE_NAME}"
 CHANGE_DIR="${REPO_ROOT}/openspec/changes/${CHANGE_NAME}"
 
 # --- Preflight checks -------------------------------------------------------
@@ -33,7 +35,7 @@ fi
 
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 if [[ "$CURRENT_BRANCH" != "develop" ]]; then
-  echo "✗ Must be on 'develop' to create a feature worktree (you are on '${CURRENT_BRANCH}')." >&2
+  echo "✗ Must be on 'develop' to create a ${PREFIX} worktree (you are on '${CURRENT_BRANCH}')." >&2
   exit 1
 fi
 
@@ -66,10 +68,13 @@ else
   echo "→ No remote 'origin' — skipping fetch (local-only repo)."
 fi
 
-# --- Create worktree --------------------------------------------------------
+# --- Create branch via stax and attach worktree --------------------------------
 
-echo "→ Creating worktree at ${WORKTREE_PATH} on branch ${BRANCH}..."
-git worktree add "$WORKTREE_PATH" -b "$BRANCH"
+echo "→ Creating branch ${BRANCH} via stax..."
+stax create "${CHANGE_NAME}" --prefix "${PREFIX}/"
+
+echo "→ Attaching worktree at ${WORKTREE_PATH}..."
+git worktree add "$WORKTREE_PATH" "$BRANCH"
 
 # --- Copy untracked essentials ----------------------------------------------
 # Add or remove filenames here to match what your project needs.
