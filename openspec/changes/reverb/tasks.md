@@ -1,8 +1,8 @@
 ## 1. FAUST DSP — Shimmer Reverb Stage
 
 - [ ] 1.1 Add `reverbOn`, `reverbMix`, `reverbDecay`, and `reverbShimmer` `hslider`/`nentry` parameters to `faust/synth.dsp`
-- [ ] 1.2 Implement the shimmer feedback loop: `ef.transpose(512, 256, 12)` scaled by `reverbShimmer` feeding back into `re.mono_freeverb(reverbDecay, 0.5, 1, 0)`
-- [ ] 1.3 Implement wet/dry blend via `<: (dry, wet) :>` split-merge, and add `clip(0, 1)` in the `~` feedback path after `ef.transpose` to prevent unbounded buildup
+- [ ] 1.2 Implement the shimmer feedback loop using the `+~` idiom: `+~(re.mono_freeverb(reverbDecay, 0.5, 0.5, 0) : (_ * reverbShimmer : ef.transpose(512, 256, 12) : ba.clip(0, 1)))`
+- [ ] 1.3 Implement wet/dry blend via `_ <: (_ * (1 - reverbMix), shimmerUnit * reverbMix) :> _` so the dry tap precedes the reverb; `ba.clip(0, 1)` is already inside the feedback chain from 1.2
 - [ ] 1.4 Wire the bypass using `select2(int(reverbOn), filteredSig, shimmerOut)` between `filteredSig` and `vcaOut`, so the amp envelope is applied after the reverb stage
 - [ ] 1.5 Validate FAUST DSP compiles without errors: `npm run faust:build`
 
@@ -25,12 +25,12 @@
 
 ## 4. Unit Tests
 
-- [ ] 4.1 Create `src/components/Reverb.test.js` with tests: toggle defaults to off and dispatches `reverbOn`; each knob dispatches the correct param name; `onknobcontextmenu` is called with correct param; `midiState` externalValue drives knob display; DSP output level stays bounded (≤ 1.0 amplitude) when shimmer and decay are both at 1.0
+- [ ] 4.1 Create `src/components/Reverb.test.js` with tests: toggle defaults to off and dispatches `reverbOn`; each knob dispatches the correct param name; `onknobcontextmenu` is called with correct param; `midiState` externalValue drives knob display
 - [ ] 4.2 Run `npx vitest run` and confirm all new and existing tests pass
 
 ## 5. Final Verification
 
-- [ ] 5.1 Run `npm run faust:build` to confirm WASM artifacts rebuild cleanly
+- [ ] 5.1 Run `npm run faust:build` to confirm WASM artifacts rebuild cleanly; manually verify DSP output stays bounded at max shimmer + max decay (no infinite growth)
 - [ ] 5.2 Start the dev server, power on the synth, enable reverb, and verify audible reverb tail; increase shimmer and verify octave-up harmonic buildup
 - [ ] 5.3 Verify the Reverb panel appears between Filter and Amp Env in the UI layout
 - [ ] 5.4 Verify MIDI CC learn works for all three reverb knobs

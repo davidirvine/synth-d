@@ -27,15 +27,16 @@ The FAUST standard library provides `re.mono_freeverb` (Schroeder/Moorer) and `e
 The shimmer architecture is a feedback loop: the reverb output is pitch-shifted up one octave and mixed back into the reverb input, controlled by the `reverbShimmer` parameter. The reverb body is `re.mono_freeverb` which provides the dense diffuse tail characteristic of a plate.
 
 ```faust
-// Shimmer feedback: tap reverb output, pitch-shift up one octave, feed back into reverb input.
-// FAUST's ~ operator wires the reverb unit in a feedback loop with the pitch shifter.
-// The signal is split before the reverb so the dry path is tapped correctly.
+// Shimmer feedback using FAUST's +~ idiom:
+//   +~(f) = adder whose second input is fed by f's output.
+//   External inputs = inputs(+) - outputs(feedback chain) = 2 - 1 = 1.
+// The signal is split before entering the shimmer unit so the dry path is tapped correctly.
 shimmerReverb(mix, decay, shimmer) =
   _ <: (
     _ * (1 - mix),
-    (_ : re.mono_freeverb(decay, 0.5, 0.5, 0)
-         ~ (_ * shimmer : ef.transpose(512, 256, 12) : clip(0, 1))
-    ) * mix
+    +~(re.mono_freeverb(decay, 0.5, 0.5, 0)
+       : (_ * shimmer : ef.transpose(512, 256, 12) : ba.clip(0, 1))
+      ) * mix
   ) :> _;
 
 // on/off bypass — inserted between filter output and VCA
@@ -52,7 +53,7 @@ process     = vcaOut * masterVol <: _, _;
 
 `reverbOn` is an `nentry` (0 or 1, default 0). When 0, the signal bypasses the reverb via `select2`, saving CPU cycles. The knobs remain active but have no effect while bypassed — consistent with how `glideOn` works for the Glide panel.
 
-The `<: ... :>` idiom splits the input before the reverb so the dry path (`_ * (1 - mix)`) taps the original signal, not the reverb output. Both branches are mono, so `select2` and the final `:>` merge produce a single mono channel that matches the bypass branch. `clip(0, 1)` in the feedback path bounds the shimmer recirculation.
+`+~(f)` is the FAUST idiom for a feedback adder: `+` has 2 inputs; `~` feeds the output of `f` back to the second input, leaving 1 external input. This avoids the 0-external-input type error that occurs with `A ~ B` when A has 1 input and B has 1 output. The `<: ... :>` split-merge ensures both branches (dry and wet) are mono, matching the `select2` bypass branch. `ba.clip(0, 1)` bounds the shimmer feedback; `clip` alone is not in FAUST's standard library.
 
 Note: `masterVol` is applied after the VCA, not inside `reverbStage`. The reverb operates on the filter output at unity gain; the amp envelope and master volume apply downstream.
 
