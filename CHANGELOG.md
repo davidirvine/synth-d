@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.2](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.0.1...subtractive-synth-v1.0.2) (2026-04-25)
+
+
+### Bug Fixes
+
+* **audio:** use BASE_URL for WASM asset paths ([3140c0e](https://github.com/davidirvine/synth-d/commit/3140c0e8331cc8a98d13d27bd91523e4c4f64753))
+
+## [1.0.1](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.0.0...subtractive-synth-v1.0.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **ci:** trigger release-please on develop pushes ([61b5cf4](https://github.com/davidirvine/synth-d/commit/61b5cf45c64bc60f605bcee3d843bb3d5ac8df38))
+* **deploy:** set Vite base path for GitHub Pages ([03ae3d6](https://github.com/davidirvine/synth-d/commit/03ae3d6ef570dac2316a1476440fd080de73564a))
+
 ## 1.0.0 (2026-04-25)
 
 
