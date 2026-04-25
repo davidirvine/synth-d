@@ -9,6 +9,7 @@ stax manages stacked git branches and PRs, with a Claude Code skill already inst
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Trigger roborev review automatically after every commit via post-commit hook
 - Preserve review history across squashes via post-rewrite hook
 - Enforce a section boundary gate: all reviews must pass before squashing
@@ -18,6 +19,7 @@ stax manages stacked git branches and PRs, with a Claude Code skill already inst
 - Configure roborev to use Claude Code as the review agent
 
 **Non-Goals:**
+
 - Automated design file review (human-driven, out of scope)
 - Pre-commit review (roborev reviews committed code, not staged changes)
 - Replacing test suite gates (vitest, stryker, playwright requirements are unchanged)
@@ -30,6 +32,8 @@ stax manages stacked git branches and PRs, with a Claude Code skill already inst
 The project uses Husky v9, which sets `core.hooksPath = .husky/_`. This means `.git/hooks/` scripts are never executed. `roborev init` is run to generate the hook scripts, then the content is migrated to `.husky/post-commit` and `.husky/post-rewrite` so Husky's bootstrap picks them up. The `.git/hooks/` versions are deleted to avoid confusion.
 
 **Alternative considered**: Leaving hooks in `.git/hooks/` and relying on roborev init. Rejected because Husky v9 bypasses `.git/hooks/` entirely — the hooks would silently never fire.
+
+**Worktree note**: During development on this change, `core.hooksPath` points to the main repo's `.husky/_`. Because `.husky/_/` is gitignored, the user hooks in `.husky/post-commit` and `.husky/post-rewrite` are only visible to `h` once this branch merges to `develop`. Until then, the local `.husky/_/post-commit` and `.husky/_/post-rewrite` must contain the roborev code directly so hooks fire in the worktree. After merge, running `npm install` (which runs `husky`) regenerates `.husky/_/` with plain pass-through scripts, and the committed `.husky/post-commit` / `.husky/post-rewrite` take over as intended.
 
 ### D2: roborev refine runs only at section boundaries (not after every commit)
 
@@ -49,7 +53,7 @@ Each section's commits are squashed into a single commit and pushed as a stacked
 
 ### D5: roborev configured to use Claude Code as review agent
 
-`.roborev.toml` at the repo root sets `agent = "claude-code"` and `post_commit_review = true`. `auto_close_passing_reviews = true` keeps the ledger clean.
+`.roborev.toml` at the repo root sets `agent = "claude-code"` and `post_commit_review = "commit"`. `auto_close_passing_reviews = true` keeps the ledger clean.
 
 ### D6: PR feedback commits use a lightweight review path
 

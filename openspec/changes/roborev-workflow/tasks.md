@@ -4,11 +4,11 @@
 - [x] 1.2 Run `roborev init` to generate hook scripts in `.git/hooks/post-commit` and `.git/hooks/post-rewrite`
 - [x] 1.3a Copy the generated hook content from `.git/hooks/post-commit` → `.husky/post-commit` and `.git/hooks/post-rewrite` → `.husky/post-rewrite`; run `chmod +x .husky/post-commit .husky/post-rewrite`; verify both `.husky/` files are non-empty before proceeding
 - [x] 1.3b Only after confirming both `.husky/` files are correct and non-empty, delete `.git/hooks/post-commit` and `.git/hooks/post-rewrite`
-- [x] 1.4 Create `.roborev.toml` at the repository root with `agent = "claude-code"`, `post_commit_review = true`, and `auto_close_passing_reviews = true`
+- [x] 1.4 Create `.roborev.toml` at the repository root with `agent = "claude-code"`, `post_commit_review = "commit"`, and `auto_close_passing_reviews = true`
 - [x] 1.5 Install prettier-plugin-toml as a dev dependency (`npm install -D prettier-plugin-toml`) and add `"prettier-plugin-toml"` to the plugins array in `.prettierrc`
 - [x] 1.6 Run `npx prettier --write .roborev.toml` to format the config file
 
-- [x] 1.7 Commit all new and modified files from section 1 to `develop`: `.husky/post-commit`, `.husky/post-rewrite`, `.roborev.toml`, `.prettierrc`, `package.json`, `package-lock.json`
+- [x] 1.7 Commit all new and modified files from section 1: `.husky/post-commit`, `.husky/post-rewrite`, `.roborev.toml`, `.prettierrc`, `package.json`, `package-lock.json`
 
 ## 2. Verify stax is Ready
 
