@@ -62,7 +62,7 @@ The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer,
 #### Scenario: Panel arrangement
 
 - **WHEN** the UI is rendered
-- **THEN** panels appear with header above, then Oscillator Bank | Mixer | [Filter over Modulation+Glide] | [Output over Oscilloscope], keyboard below
+- **THEN** panels appear with header above, then three columns: Oscillator Bank | Mixer | filter-output-grid ([Filter/AmpEnv/Effects] over [Modulation+Glide/Scope]), keyboard below
 
 #### Scenario: All top-level columns the same height
 
