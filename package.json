@@ -4,7 +4,7 @@
   "version": "1.0.2",
   "type": "module",
   "scripts": {
-    "faust:build": "faust -lang wasm -O public/ -o synth.wasm faust/synth.dsp && faust -json faust/synth.dsp > public/synth.json",
+    "faust:build": "node node_modules/@grame/faustwasm/scripts/faust2wasm.js faust/synth.dsp public/",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
