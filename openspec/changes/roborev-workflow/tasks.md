@@ -1,15 +1,19 @@
 ## 1. Install and Configure roborev
 
 - [ ] 1.1 Verify roborev is installed (`roborev version`); if not, install via `brew install roborev-dev/tap/roborev` or curl installer
-- [ ] 1.2 Run `roborev init` in the repository root to install post-commit and post-rewrite git hooks
-- [ ] 1.3 Verify hooks exist at `.git/hooks/post-commit` and `.git/hooks/post-rewrite`
+- [ ] 1.2 Run `roborev init` to generate hook scripts in `.git/hooks/post-commit` and `.git/hooks/post-rewrite`
+- [ ] 1.3 Copy the generated hook content from `.git/hooks/post-commit` → `.husky/post-commit` and `.git/hooks/post-rewrite` → `.husky/post-rewrite`; run `chmod +x .husky/post-commit .husky/post-rewrite`; delete the `.git/hooks/` versions
 - [ ] 1.4 Create `.roborev.toml` at the repository root with `agent = "claude-code"`, `post_commit_review = true`, and `auto_close_passing_reviews = true`
-- [ ] 1.5 Run `npx prettier --write .roborev.toml` to format the config file
+- [ ] 1.5 Install prettier-plugin-toml as a dev dependency (`npm install -D prettier-plugin-toml`) and add `"prettier-plugin-toml"` to the plugins array in `.prettierrc`
+- [ ] 1.6 Run `npx prettier --write .roborev.toml` to format the config file
+
+- [ ] 1.7 Commit all new and modified files from section 1 to `develop`: `.husky/post-commit`, `.husky/post-rewrite`, `.roborev.toml`, `.prettierrc`, `package.json`, `package-lock.json`
 
 ## 2. Verify stax is Ready
 
 - [ ] 2.1 Verify stax is installed (`stax --version`); if not, install it
 - [ ] 2.2 Confirm the stax Claude Code skill is available and loaded
+- [ ] 2.3 Run `stax trunk develop` to set develop as the trunk branch, then verify with `stax ls` that the stack is rooted correctly
 
 ## 3. Update CLAUDE.md — Commit Cadence
 
@@ -18,16 +22,18 @@
 
 ## 4. Update CLAUDE.md — Section Completion Gate
 
-- [ ] 4.1 Update the "Section Completion" table in `CLAUDE.md` to add the roborev requirement: all sections require all roborev reviews to pass (via `roborev refine`) in addition to existing test suite gates
-- [ ] 4.2 Add a note that `roborev status` must be verified before running `roborev refine` at a section boundary
-- [ ] 4.3 Run `npx prettier --write CLAUDE.md`
+- [ ] 4.1 Update the "Section Completion" table in `CLAUDE.md` to add the roborev requirement: all sections require all roborev reviews to pass (via `roborev refine --max-iterations 3`) in addition to existing test suite gates
+- [ ] 4.2 Add a note that `roborev status` must be verified before running `roborev refine` at a section boundary, and document what to do if the 3-iteration limit is exhausted (present remaining findings to human; human decides whether to retry, fix manually, or override)
+- [ ] 4.3 Add a `*.toml` row to the "Linting and Formatting" table in `CLAUDE.md`: command is `npx prettier --write <file>`
+- [ ] 4.4 Run `npx prettier --write CLAUDE.md`
 
 ## 5. Update CLAUDE.md — Stacked PR Workflow
 
-- [ ] 5.1 Add a new "Stacked PRs" section to `CLAUDE.md` describing the section boundary workflow: refine → human checkpoint → squash → stax PR
+- [ ] 5.1 Add a new "Stacked PRs" section to `CLAUDE.md` describing the section boundary workflow: `roborev refine --max-iterations 3` → human checkpoint → squash all section commits with `git rebase -i` → `stax ss` to push and create the stacked PR
 - [ ] 5.2 Specify that one stacked PR is created per section (all 1.x tasks = one PR, all 2.x = one PR, etc.)
 - [ ] 5.3 Specify that all git interactions use stax
-- [ ] 5.4 Run `npx prettier --write CLAUDE.md`
+- [ ] 5.4 Add a "PR Feedback" subsection to `CLAUDE.md` documenting the lightweight path: response commits trigger post-commit review (no refine), human reviews findings directly, squash+force-push (`git rebase -i` to squash + `stax ss` to push), then `stax refresh` to sync trunk and restack all downstream section branches
+- [ ] 5.5 Run `npx prettier --write CLAUDE.md`
 
 ## 6. Update CLAUDE.md — Branching Rules and Worktree Workflow
 
@@ -35,16 +41,18 @@
 - [ ] 6.2 Add a rule that the human must be prompted for change type (feature or bugfix) before any branch is created, so the correct prefix is applied
 - [ ] 6.3 Add a "Worktree Workflow" rule to `CLAUDE.md`: the `develop` branch is reserved for OpenSpec and tooling work; all change implementation happens in an isolated worktree created by `/opsx-apply-wt`; once in the worktree, `/opsx:apply` kicks off implementation
 - [ ] 6.4 Run `npx prettier --write CLAUDE.md`
+- [ ] 6.5 Commit `CLAUDE.md` with all changes from sections 3–6
 
 ## 7. Update opsx-apply-wt Command and Script
 
 - [ ] 7.1 Update `.claude/commands/opsx-apply-wt.md` to prompt the user for change type (feature or bugfix) before creating the branch, and pass the chosen prefix to the script
-- [ ] 7.2 Update `scripts/opsx-apply-worktree.sh` to accept an optional second argument `<prefix>` (default: `feature`), replacing the hardcoded `BRANCH="feature/${CHANGE_NAME}"` with `BRANCH="${PREFIX}/${CHANGE_NAME}"`
+- [ ] 7.2 Update `scripts/opsx-apply-worktree.sh` to accept an optional second argument `<prefix>` (default: `feature`), construct `BRANCH="${PREFIX}/${CHANGE_NAME}"`, replace the `git worktree add -b $BRANCH` call with: first `stax create $BRANCH` (creates the branch with stax tracking while on develop), then `git worktree add $WORKTREE_PATH $BRANCH` (attaches the worktree to the already-created branch)
 - [ ] 7.3 Update the conflict-detection and error messages in `scripts/opsx-apply-worktree.sh` to reference the dynamic branch name rather than the hardcoded `feature/` prefix
+- [ ] 7.4 Commit `.claude/commands/opsx-apply-wt.md` and `scripts/opsx-apply-worktree.sh`
 
 ## 8. Verify the Workflow End-to-End
 
 - [ ] 8.1 Make a test commit and verify the roborev post-commit hook fires (check `roborev tui` for a queued review)
 - [ ] 8.2 Verify `roborev status` reports the daemon as healthy
 - [ ] 8.3 Confirm `roborev refine --help` is available and lists expected flags
-- [ ] 8.4 Run `/opsx-apply-wt` on a test change and verify the change-type prompt appears and the correct branch prefix is used
+- [ ] 8.4 Run `/opsx-apply-wt` on a test change and verify the change-type prompt appears, the correct branch prefix is used, and `stax ls` shows the new branch tracked under `develop`

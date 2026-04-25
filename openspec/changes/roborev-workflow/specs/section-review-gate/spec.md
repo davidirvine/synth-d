@@ -8,8 +8,12 @@ When all tasks in a section are complete (e.g., all 1.x tasks), the system SHALL
 - **THEN** `roborev refine` is invoked on the current branch
 
 #### Scenario: Refine iterates until all reviews pass
-- **WHEN** `roborev refine` is running and open findings exist
-- **THEN** it deploys an agent to fix findings, commits the fixes, awaits re-review, and repeats until all reviews pass or the iteration limit is reached
+- **WHEN** `roborev refine --max-iterations 3` is running and open findings exist
+- **THEN** it deploys an agent to fix findings, commits the fixes, awaits re-review, and repeats until all reviews pass or 3 iterations are exhausted
+
+#### Scenario: Refine iteration limit exhausted with remaining findings
+- **WHEN** `roborev refine --max-iterations 3` completes but open findings remain
+- **THEN** the remaining findings are presented to the human, and the human decides whether to run refine again, address findings manually, or override and proceed
 
 #### Scenario: Refine runs only at section boundary, not after every commit
 - **WHEN** an individual task step commit is made mid-section

@@ -47,6 +47,28 @@ The system SHALL use stax for all branch creation, rebase, sync, and PR submissi
 
 ---
 
+### Requirement: PR review feedback commits follow a lightweight review path
+When addressing comments left by a human reviewer on a stacked PR, the system SHALL use a lighter review gate than the standard section boundary workflow:
+
+1. Response commits are made on the section branch; the roborev post-commit hook fires and queues async reviews as normal
+2. The human reviews the response commits and any roborev findings directly — `roborev refine` is NOT run
+3. On human approval, the section branch is squash+force-pushed (`git rebase -i` to squash, then `stax ss` to push)
+4. `stax refresh` syncs trunk and restacks all downstream section branches on top of the updated section
+
+#### Scenario: PR feedback commits trigger post-commit review but not refine
+- **WHEN** commits are made to address PR review comments
+- **THEN** roborev post-commit review fires asynchronously, but `roborev refine` is NOT invoked
+
+#### Scenario: Human approves response commits before squash
+- **WHEN** the human has reviewed the response commits and any roborev findings
+- **THEN** the section branch is squash+force-pushed with the response commits included
+
+#### Scenario: Downstream branches rebased after section update
+- **WHEN** a section branch is force-pushed with PR feedback changes
+- **THEN** `stax refresh` is run to sync trunk and restack all downstream section branches
+
+---
+
 ### Requirement: roborev post-rewrite hook preserves review history through squash
 When section commits are squashed, the roborev post-rewrite hook SHALL remap all associated reviews to the new squash SHA so that the review record for the section remains intact and visible.
 
