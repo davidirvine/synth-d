@@ -24,8 +24,8 @@ export async function powerOn() {
 
   const base = import.meta.env.BASE_URL
   const factory = await FaustWasmInstantiator.loadDSPFactory(
-    `${base}synth.wasm`,
-    `${base}synth.json`
+    `${base}dsp-module.wasm`,
+    `${base}dsp-meta.json`
   )
 
   const generator = new FaustMonoDspGenerator()

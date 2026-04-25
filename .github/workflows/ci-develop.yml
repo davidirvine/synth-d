@@ -34,9 +34,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            public/synth.wasm
-            public/synth.js
-            public/synth.json
+            public/dsp-module.wasm
+            public/dsp-meta.json
           key: faust-v3-${{ hashFiles('faust/synth.dsp') }}
           restore-keys: |
             faust-v3-

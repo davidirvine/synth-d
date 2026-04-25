@@ -5,10 +5,12 @@ node_modules/
 dist/
 .vite/
 
-# FAUST compiled artifacts (regenerate with: faust -lang wasm faust/synth.dsp -o public/synth)
+# FAUST compiled artifacts (regenerate with: npm run faust:build)
 public/synth.wasm
 public/synth.js
 public/synth.json
+public/dsp-module.wasm
+public/dsp-meta.json
 
 # Test output
 coverage/
