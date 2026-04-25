@@ -249,14 +249,14 @@
             midiState={filterMidiState}
             onknobcontextmenu={onKnobContextMenu}
           />
-          <Reverb
-            onchange={onParamChange}
-            midiState={reverbMidiState}
-            onknobcontextmenu={onKnobContextMenu}
-          />
           <AmpEnv
             onchange={onParamChange}
             midiState={ampEnvMidiState}
+            onknobcontextmenu={onKnobContextMenu}
+          />
+          <Reverb
+            onchange={onParamChange}
+            midiState={reverbMidiState}
             onknobcontextmenu={onKnobContextMenu}
           />
           <div class="panel-row">

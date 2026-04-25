@@ -4,11 +4,11 @@ The synthesizer signal chain currently has no spatial or time-based effects. Add
 
 ## What Changes
 
-- Add a custom shimmer reverb DSP stage to `faust/synth.dsp` between the ladder filter and the VCA, implementing a plate-style diffusion network with a granular pitch shifter (octave up) feeding back into the reverb input
+- Add a custom shimmer reverb DSP stage to `faust/synth.dsp` after the VCA and master volume (post-output), implementing a plate-style diffusion network with a granular pitch shifter (octave up) feeding back into the reverb input
 - Add `reverbOn`, `reverbMix`, `reverbDecay`, and `reverbShimmer` parameters to the FAUST parameter set; `reverbOn` bypasses the reverb stage entirely when 0
 - Add a `Reverb.svelte` UI component with an on/off toggle button and three knobs (mix, decay, shimmer) in the same style as existing panels
 - Expose `reverbMix`, `reverbDecay`, and `reverbShimmer` via the MIDI CC learn system
-- Mount the Reverb panel in `App.svelte` in the `filter-output-grid`, between the Filter and Amp Env panels
+- Mount the Reverb panel in `App.svelte` in the `filter-output-grid`, to the right of the Amp Env/output panel
 
 ## Capabilities
 
@@ -18,7 +18,7 @@ The synthesizer signal chain currently has no spatial or time-based effects. Add
 
 ### Modified Capabilities
 
-- `dsp-engine`: The signal chain changes from `filteredSig → VCA` to `filteredSig → reverb → VCA`; `reverbOn`, `reverbMix`, `reverbDecay`, and `reverbShimmer` are added to the parameter contract
+- `dsp-engine`: The signal chain changes from `masterOut → stereo split` to `masterOut → reverb → stereo split`; `reverbOn`, `reverbMix`, `reverbDecay`, and `reverbShimmer` are added to the parameter contract
 
 ## Impact
 
