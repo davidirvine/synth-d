@@ -1,0 +1,29 @@
+name: Open Promotion PR
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Open promotion PR if absent
+        env:
+          # PAT required so CI triggers on the created PR
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head develop \
+            --title "chore: promote develop to main" \
+            --body "Merge when ready to deploy to GitHub Pages." \
+          || echo "Promotion PR already exists"

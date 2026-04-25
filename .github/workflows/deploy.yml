@@ -36,9 +36,9 @@ jobs:
             public/synth.wasm
             public/synth.js
             public/synth.json
-          key: faust-v1-${{ hashFiles('faust/synth.dsp') }}
+          key: faust-v2-${{ hashFiles('faust/synth.dsp') }}
           restore-keys: |
-            faust-v1-
+            faust-v2-
 
       - name: Install Faust compiler
         if: steps.faust-cache.outputs.cache-hit != 'true'
