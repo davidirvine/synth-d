@@ -11,7 +11,7 @@ filteredSig → vcaOut (filteredSig * ampEnvOut) → masterOut (vcaOut * masterV
 With delay before reverb (this change):
 
 ```
-filteredSig → vcaOut → masterOut → delay stage → delayStage → reverb stage → stereo output
+filteredSig → vcaOut → masterOut → delayStage → reverb stage → stereo output
 ```
 
 ## Goals / Non-Goals
@@ -50,7 +50,7 @@ FAUST's `select2` evaluates both branches on every sample regardless of the sele
 
 ```faust
 delayInput = masterOut * int(delayOn);   // feeds 0 to buffer when bypassed
-delayWet   = delayInput : +~(de.sdelay(maxDelayLen, 1024, delayTime * ma.SR) * delayFeedbackSafe);
+delayWet   = delayInput : +~(de.fdelay(maxDelayLen, tapeTime) : feedbackPath);
 delayOut   = masterOut * (1 - delayMix) + delayWet * delayMix;
 delayStage = select2(int(delayOn), masterOut, delayOut);
 ```
@@ -86,7 +86,7 @@ The delay is modelled on a tape delay rather than a clean digital delay. Three c
 ```faust
 maxDelayLen = 96000;                         // 2 s at 48 kHz
 wowLfo      = os.osc(0.5) * 0.003;          // ±0.3% wow
-tapeTime    = max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR);
+tapeTime    = min(maxDelayLen - 1, max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR));
 tapeFilter  = fi.lowpass(1, 6000);           // HF rolloff per repeat
 tapeSat     = _ : ma.tanh;                   // soft saturation per repeat
 feedbackPath = _ * delayFeedbackSafe : tapeFilter : tapeSat;
@@ -105,5 +105,6 @@ delayStage  = select2(int(delayOn), masterOut, delayOut);
 ## Risks / Trade-offs
 
 - **Memory allocation** → `de.fdelay` allocates a static delay buffer of `maxDelayLen` samples at WASM compile time. At 96 000 samples × 4 bytes = 384 KB; negligible in a browser context. Mitigation: none required.
+- **Buffer overrun at high sample rates** → `maxDelayLen = 96000` gives exactly 2 s at 48 kHz. At 96 kHz, `delayTime = 1.0 s` yields `tapeTime ≈ 96288` samples — beyond the buffer — which `de.fdelay` handles with undefined behaviour. Mitigation: `tapeTime` is clamped to `maxDelayLen - 1` in the DSP definition. This synth targets 48 kHz; operation at higher host sample rates reduces the maximum clean delay time proportionally but is otherwise safe.
 - **Wow LFO modulates read position** → The LFO adds up to ±0.3% of delay time per cycle (≈ ±0.9 ms at 300 ms delay time). This is subtle but audible on long delay times with high feedback. The fixed 0.3% depth is a deliberate tuning choice; if it proves too prominent it can be reduced without any spec or API change.
 - **Feedback accumulation with reverb** → Delay repeats pass through the reverb stage. With deep reverb and high feedback, the cumulative wash can become dense. Mitigation: intentional interaction — document as a feature of the "delay into reverb" chain.

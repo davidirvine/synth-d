@@ -4,7 +4,7 @@ The synthesizer has no time-based repeat effect. A digital delay gives sounds rh
 
 ## What Changes
 
-- Add a delay DSP stage to `faust/synth.dsp` post-master-volume (after `masterVol`, before the reverb stage) using `de.sdelay` from the FAUST standard library, so delay repeats feed into the reverb
+- Add a delay DSP stage to `faust/synth.dsp` post-master-volume (after `masterVol`, before the reverb stage) using `de.fdelay` from the FAUST standard library, so delay repeats feed into the reverb
 - Add `delayOn`, `delayTime`, `delayFeedback`, and `delayMix` parameters to the FAUST parameter set; `delayOn` bypasses the stage entirely when 0
 - Replace the standalone `Reverb.svelte` with a combined `Effects.svelte` panel that hosts both the delay and reverb controls under a single "EFFECTS" panel label — "DELAY" sub-label on top, a divider line, "REVERB" sub-label below — matching the "LOUDNESS CONTOUR" label style used in `AmpEnv.svelte`
 - Expose `delayTime`, `delayFeedback`, and `delayMix` via the MIDI CC learn system

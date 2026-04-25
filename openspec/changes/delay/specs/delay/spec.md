@@ -54,10 +54,10 @@ The system SHALL implement a tape-delay-modelled feedback delay stage in `faust/
 - **WHEN** `delayOn` transitions from 0 to 1 for the first time
 - **THEN** no delay repeats from before the toggle are audible; the first repeat arrives one `delayTime` after the toggle
 
-#### Scenario: Time change is smooth with no clicks
+#### Scenario: Time change is smooth with no hard clicks
 
 - **WHEN** `delayTime` is adjusted while `delayOn` is 1 and audio is playing
-- **THEN** the delay time transitions without audible clicks or discontinuities
+- **THEN** the delay time transitions without hard clicks; subtle interpolation artefacts consistent with the tape character of `de.fdelay` are acceptable
 
 ---
 

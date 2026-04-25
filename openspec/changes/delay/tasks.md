@@ -1,7 +1,7 @@
 ## 1. FAUST DSP — Tape Delay Stage
 
 - [ ] 1.1 Add `delayOn`, `delayTime`, `delayFeedback`, and `delayMix` parameters to `faust/synth.dsp` (`nentry` for `delayOn`; `hslider` for the others with ranges: time 0.01–1.0 s, feedback 0–0.9, mix 0–1)
-- [ ] 1.2 Define the tape delay model: `maxDelayLen = 96000`; wow LFO `wowLfo = os.osc(0.5) * 0.003`; `tapeTime = max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR)`; `delayFeedbackSafe = delayFeedback : ba.clip(0, 0.9)`; feedback path `feedbackPath = _ * delayFeedbackSafe : fi.lowpass(1, 6000) : ma.tanh`; `delayInput = masterOut * int(delayOn)` (feeds zeros to buffer when `delayOn = 0`); `delayWet = delayInput : +~(de.fdelay(maxDelayLen, tapeTime) : feedbackPath)`
+- [ ] 1.2 Define the tape delay model: `maxDelayLen = 96000`; wow LFO `wowLfo = os.osc(0.5) * 0.003`; `tapeTime = min(maxDelayLen - 1, max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR))`; `delayFeedbackSafe = delayFeedback : ba.clip(0, 0.9)`; feedback path `feedbackPath = _ * delayFeedbackSafe : fi.lowpass(1, 6000) : ma.tanh`; `delayInput = masterOut * int(delayOn)` (feeds zeros to buffer when `delayOn = 0`); `delayWet = delayInput : +~(de.fdelay(maxDelayLen, tapeTime) : feedbackPath)`
 - [ ] 1.3 Implement wet/dry blend: `delayOut = masterOut * (1 - delayMix) + delayWet * delayMix`; bypass: `delayStage = select2(int(delayOn), masterOut, delayOut)`
 - [ ] 1.4 Wire `delayStage` as the input to the shimmer reverb stage (in place of `masterOut`), so the signal chain becomes `masterOut → delayStage → shimmerOut → process`
 - [ ] 1.5 Validate FAUST DSP compiles without errors: `npm run faust:build`
@@ -15,6 +15,7 @@
 - [ ] 2.5 Wire the delay toggle to dispatch `{ param: 'delayOn', value: 0|1 }` and each delay knob to dispatch `delayTime`, `delayFeedback`, `delayMix`; wire the reverb toggle to dispatch `reverbOn` and each reverb knob to dispatch `reverbMix`, `reverbDecay`, `reverbShimmer`
 - [ ] 2.6 Accept and pass through `midiState` and `onknobcontextmenu` props for all six learnable knobs
 - [ ] 2.7 Run `npx eslint --fix src/components/Effects.svelte && npx prettier --write src/components/Effects.svelte`
+- [ ] 2.8 Delete `src/components/Reverb.svelte` and `src/components/Reverb.test.js`; run `npx vitest run` to confirm the suite still passes without them
 
 ## 3. App.svelte Integration
 
