@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.0.2...subtractive-synth-v1.1.0) (2026-04-25)
+
+
+### Features
+
+* **ci:** add promotion and backmerge PR automation ([2edabe2](https://github.com/davidirvine/synth-d/commit/2edabe2b596596c07214e5d584d5436901ee69dd))
+
+
+### Bug Fixes
+
+* **build:** generate synth.json and bust Faust cache ([e296e4f](https://github.com/davidirvine/synth-d/commit/e296e4f41d32bb34d38c6f90b26b009e5a38ba7f))
+* **ci:** bump Faust cache key in preview workflow to faust-v2- ([5e681a4](https://github.com/davidirvine/synth-d/commit/5e681a4fe565329da7d8444909e24ef6202e8b76))
+
 ## [1.0.2](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.0.1...subtractive-synth-v1.0.2) (2026-04-25)
 
 

@@ -34,16 +34,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            public/synth.wasm
-            public/synth.js
-            public/synth.json
-          key: faust-v2-${{ hashFiles('faust/synth.dsp') }}
+            public/dsp-module.wasm
+            public/dsp-meta.json
+          key: faust-v3-${{ hashFiles('faust/synth.dsp') }}
           restore-keys: |
-            faust-v2-
-
-      - name: Install Faust compiler
-        if: steps.faust-cache.outputs.cache-hit != 'true'
-        run: sudo apt-get update && sudo apt-get install -y faust
+            faust-v3-
 
       - name: Build Faust WASM
         if: steps.faust-cache.outputs.cache-hit != 'true'
