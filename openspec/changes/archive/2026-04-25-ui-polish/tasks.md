@@ -16,7 +16,7 @@
 
 ## 4. Filter Panel — Key Track Switch
 
-- [x] 4.1 In `src/components/Filter.svelte`, add `let keyTrackOn = $state(0)` and a `toggleKeyTrack` function that flips between `0` and `1` and calls `onchange?.({ param: 'keyTrack', value: keyTrackOn })`
+- [x] 4.1 In `src/components/Filter.svelte`, add `let keyTrackOn = $state(0)` and a `toggleKeyTrack` function that flips `keyTrackOn` to the new value first, then dispatches `onchange?.({ param: 'keyTrack', value: keyTrackOn })` using the updated value
 - [x] 4.2 In `src/components/Filter.svelte`, remove the `key trk` `<Knob>` and replace it with a `<button class="toggle-btn" class:active={keyTrackOn === 1} onclick={toggleKeyTrack} aria-pressed={keyTrackOn === 1}>Key Track</button>` — keep it in the top knob row alongside the cutoff and res knobs
 - [x] 4.3 In `src/components/Filter.svelte`, add `.toggle-btn` base and `.toggle-btn.active` CSS — base: `font-family: inherit; font-size: 9px; background: #2a2a2a; color: #888; border: 1px solid #444; padding: 3px 8px; cursor: pointer; text-transform: uppercase; height: 22px; width: auto; min-width: 32px` — active: `background: #1a2a1a; color: #20b040; border-color: #20b040`
 - [x] 4.4 In `Filter.test.js`, replace the `'key trk'` label test: rename it to `'renders a Key Track button'` and change `getByText('key trk')` to `screen.getByRole('button', { name: /key track/i })`
@@ -37,4 +37,4 @@
 ## 7. Playwright Tests
 
 - [x] 7.1 Add a Playwright test that renders the full app and asserts all three top-level panel columns (Oscillator Bank, Mixer, filter-output-grid) share the same `bottom` bounding-box coordinate
-- [x] 7.2 Add a Playwright test that resizes the browser viewport to a narrow width and asserts the three top-level panel columns remain in a single row (no wrapping)
+- [x] 7.2 Add a Playwright test that resizes the browser viewport to 480 px width and asserts all three top-level panel column elements share the same `top` bounding-box coordinate, confirming they remain in a single row with no wrapping

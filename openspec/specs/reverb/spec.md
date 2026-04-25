@@ -4,7 +4,13 @@
 
 ### Requirement: Reverb DSP stage with pre-delay, diffusion, and tone filter
 
-The system SHALL implement a reverb DSP stage in `faust/synth.dsp` positioned after the tape delay stage. The reverb signal chain SHALL be: pre-delay line → `re.mono_freeverb` (diffusion body) → `fi.lowpass` (tone filter) → `fi.dcblocker`. The freeverb internal `damp` parameter SHALL be fixed at `0`. The wet/dry blend SHALL be controlled by `reverbMix` (0–1, default 0.5). Tail length SHALL be controlled by `reverbDecay` (0–1, mapped to freeverb `fb1`, default 0.5). High-frequency rolloff of the wet signal SHALL be controlled by `reverbTone` (1000–16000 Hz, default 16000). Time before signal enters the diffusion body SHALL be controlled by `reverbPreDelay` (0–0.1 s, default 0). A `reverbOn` parameter (0 or 1, default 0) SHALL bypass the entire reverb stage when 0. All four continuous parameters SHALL be smoothed with `si.smoo` before use. The pre-delay buffer SHALL be sized at 4801 samples (covers 100 ms at 48 kHz with one sample of headroom), implemented with `de.fdelay`.
+The system SHALL implement a reverb DSP stage in `faust/synth.dsp` positioned after the tape delay stage. The reverb signal chain SHALL be: pre-delay line → `re.mono_freeverb` (diffusion body) → `fi.lowpass` (tone filter) → `fi.dcblocker`. The freeverb internal `damp` parameter SHALL be fixed at `0`. The wet/dry blend SHALL be controlled by `reverbMix` (0–1, default 0.5).
+
+> Note: The freeverb room-size coefficient `fb2` is set to `0.5` in the implementation. This is an internal DSP constant not surfaced as a user-facing parameter; it is a non-normative implementation detail and does not impose a testable requirement.
+
+Tail length SHALL be controlled by `reverbDecay` (DSP range 0–1, mapped to freeverb `fb1`, default 0.5); the UI clamps the minimum to 0.01 to prevent a completely dead reverb tail. High-frequency rolloff of the wet signal SHALL be controlled by `reverbTone` (1000–16000 Hz, default 4000). Time before signal enters the diffusion body SHALL be controlled by `reverbPreDelay` (0–0.1 s, default 0). A `reverbOn` parameter (0 or 1, default 0) SHALL bypass the entire reverb stage when 0. All four continuous parameters SHALL be smoothed with `si.smoo` before use. The pre-delay buffer SHALL be sized at 4801 samples (covers 100 ms at 48 kHz with one sample of headroom), implemented with `de.fdelay`.
+
+> Note: The implementation targets 48 kHz; the 4801-sample buffer must be resized for other sample rates. This is a non-normative observation and does not impose a testable requirement.
 
 #### Scenario: reverbOn at zero bypasses the reverb
 
@@ -65,7 +71,7 @@ The system SHALL implement a reverb DSP stage in `faust/synth.dsp` positioned af
 
 ### Requirement: Reverb UI panel with on/off toggle and four MIDI-learnable knobs
 
-The system SHALL provide reverb controls inside `Effects.svelte`. The reverb section SHALL contain an on/off toggle button (controlling `reverbOn`) and four `Knob` components: `mix` (linear, 0–1, default 0.5), `tone` (log, 1000–16000 Hz, default 16000), `decay` (log, 0.01–1, default 0.5), and `pre-delay` (linear, 0–0.1 s, default 0). The toggle SHALL use the existing amber active / grey inactive button style. The four knobs SHALL participate in the MIDI CC learn workflow via `midiState` and `onknobcontextmenu` props. The `reverbOn` toggle SHALL NOT be MIDI-learnable. The `reverbShimmer` knob SHALL NOT be present.
+The system SHALL provide reverb controls inside `Effects.svelte`. The reverb section SHALL contain an on/off toggle button (controlling `reverbOn`) and four `Knob` components: `mix` (linear, 0–1, default 0.5), `LPF` (log, 1000–16000 Hz, default 4000, param `reverbTone`), `decay` (log, 0.01–1, default 0.5), and `pre-delay` (linear, 0–0.1 s, default 0). The toggle SHALL use the existing amber active / grey inactive button style. The four knobs SHALL participate in the MIDI CC learn workflow via `midiState` and `onknobcontextmenu` props. The `reverbOn` toggle SHALL NOT be MIDI-learnable. The `reverbShimmer` knob SHALL NOT be present.
 
 #### Scenario: Toggle defaults to off
 
@@ -77,15 +83,20 @@ The system SHALL provide reverb controls inside `Effects.svelte`. The reverb sec
 - **WHEN** the reverb toggle is clicked from the off state
 - **THEN** `onchange` is called with `{ param: 'reverbOn', value: 1 }`
 
+#### Scenario: Toggle sends reverbOn param on deactivation
+
+- **WHEN** the reverb toggle is clicked from the on state
+- **THEN** `onchange` is called with `{ param: 'reverbOn', value: 0 }`
+
 #### Scenario: Mix knob defaults to 0.5
 
 - **WHEN** the Effects panel is rendered with no external state
 - **THEN** the mix knob displays a value of 0.5
 
-#### Scenario: Tone knob defaults to 16000
+#### Scenario: LPF knob defaults to 4000
 
 - **WHEN** the Effects panel is rendered with no external state
-- **THEN** the tone knob displays a value of 16000
+- **THEN** the LPF knob displays a value of 4000
 
 #### Scenario: Decay knob defaults to 0.5
 
@@ -97,9 +108,9 @@ The system SHALL provide reverb controls inside `Effects.svelte`. The reverb sec
 - **WHEN** the Effects panel is rendered with no external state
 - **THEN** the pre-delay knob displays a value of 0
 
-#### Scenario: Knob change dispatches correct param name for tone
+#### Scenario: Knob change dispatches correct param name for LPF
 
-- **WHEN** the tone knob is adjusted
+- **WHEN** the LPF knob is adjusted
 - **THEN** `onchange` is called with `{ param: 'reverbTone', value: <new value> }`
 
 #### Scenario: Knob change dispatches correct param name for pre-delay
