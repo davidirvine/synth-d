@@ -88,9 +88,7 @@ test.describe('Subtractive Synth', () => {
   })
 
   test.describe('powered interactions (require WASM)', () => {
-    test.beforeEach(async (_page, testInfo) => {
-      testInfo.skip(!wasmBuilt, 'Requires WASM build: npm run faust:build')
-    })
+    test.skip(!wasmBuilt, 'Requires WASM build: npm run faust:build')
 
     test('clicking power button enables the panels', async ({ page }) => {
       await page.goto('/')
