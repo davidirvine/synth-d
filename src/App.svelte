@@ -52,8 +52,9 @@
     delayMix: { min: 0, max: 1 },
     // Reverb — reverbOn is intentionally excluded: it is a toggle, not a knob.
     reverbMix: { min: 0, max: 1 },
-    reverbDecay: { min: 0, max: 1 },
-    reverbShimmer: { min: 0, max: 1 },
+    reverbDecay: { min: 0.01, max: 1 },
+    reverbTone: { min: 1000, max: 16000 },
+    reverbPreDelay: { min: 0, max: 0.1 },
     // Master
     masterVol: { min: 0, max: 1 },
   }
@@ -216,8 +217,9 @@
   let effectsMidiState = $derived(
     midiStateFor(
       'reverbMix',
+      'reverbTone',
       'reverbDecay',
-      'reverbShimmer',
+      'reverbPreDelay',
       'delayTime',
       'delayFeedback',
       'delayMix'

@@ -20,9 +20,9 @@ describe('Effects — rendering', () => {
     expect(labels.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('renders six knobs', () => {
+  it('renders seven knobs', () => {
     const { container } = render(Effects)
-    expect(container.querySelectorAll('.knob-hit')).toHaveLength(6)
+    expect(container.querySelectorAll('.knob-hit')).toHaveLength(7)
   })
 
   it('renders two toggle buttons', () => {
@@ -34,6 +34,13 @@ describe('Effects — rendering', () => {
     const { container } = render(Effects)
     const knobValues = container.querySelectorAll('.knob-value')
     expect(knobValues[3].textContent).toBe('0.50')
+  })
+
+  it('shimmer knob is absent from the rendered reverb section', () => {
+    const { container } = render(Effects)
+    const labels = container.querySelectorAll('.knob-label')
+    const labelTexts = Array.from(labels).map((el) => el.textContent.trim().toLowerCase())
+    expect(labelTexts).not.toContain('shimmer')
   })
 })
 
@@ -144,22 +151,31 @@ describe('Effects — reverb knob param names', () => {
     expect(params).toContain('reverbMix')
   })
 
-  it('decay knob double-click dispatches reverbDecay', async () => {
+  it('tone knob double-click dispatches reverbTone', async () => {
     const onchange = vi.fn()
     const { container } = render(Effects, { props: { onchange } })
     const hits = container.querySelectorAll('.knob-hit')
     await fireEvent.dblClick(hits[4])
     const params = onchange.mock.calls.map((c) => c[0].param)
-    expect(params).toContain('reverbDecay')
+    expect(params).toContain('reverbTone')
   })
 
-  it('shimmer knob double-click dispatches reverbShimmer', async () => {
+  it('decay knob double-click dispatches reverbDecay', async () => {
     const onchange = vi.fn()
     const { container } = render(Effects, { props: { onchange } })
     const hits = container.querySelectorAll('.knob-hit')
     await fireEvent.dblClick(hits[5])
     const params = onchange.mock.calls.map((c) => c[0].param)
-    expect(params).toContain('reverbShimmer')
+    expect(params).toContain('reverbDecay')
+  })
+
+  it('pre-delay knob double-click dispatches reverbPreDelay', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Effects, { props: { onchange } })
+    const hits = container.querySelectorAll('.knob-hit')
+    await fireEvent.dblClick(hits[6])
+    const params = onchange.mock.calls.map((c) => c[0].param)
+    expect(params).toContain('reverbPreDelay')
   })
 })
 
@@ -196,20 +212,48 @@ describe('Effects — onknobcontextmenu', () => {
     expect(onknobcontextmenu).toHaveBeenCalledWith('reverbMix')
   })
 
-  it('right-click on decay knob calls onknobcontextmenu with reverbDecay', async () => {
+  it('right-click on tone knob calls onknobcontextmenu with reverbTone', async () => {
     const onknobcontextmenu = vi.fn()
     const { container } = render(Effects, { props: { onknobcontextmenu } })
     const hits = container.querySelectorAll('.knob-hit')
     await fireEvent.contextMenu(hits[4])
-    expect(onknobcontextmenu).toHaveBeenCalledWith('reverbDecay')
+    expect(onknobcontextmenu).toHaveBeenCalledWith('reverbTone')
   })
 
-  it('right-click on shimmer knob calls onknobcontextmenu with reverbShimmer', async () => {
+  it('right-click on decay knob calls onknobcontextmenu with reverbDecay', async () => {
     const onknobcontextmenu = vi.fn()
     const { container } = render(Effects, { props: { onknobcontextmenu } })
     const hits = container.querySelectorAll('.knob-hit')
     await fireEvent.contextMenu(hits[5])
-    expect(onknobcontextmenu).toHaveBeenCalledWith('reverbShimmer')
+    expect(onknobcontextmenu).toHaveBeenCalledWith('reverbDecay')
+  })
+
+  it('right-click on pre-delay knob calls onknobcontextmenu with reverbPreDelay', async () => {
+    const onknobcontextmenu = vi.fn()
+    const { container } = render(Effects, { props: { onknobcontextmenu } })
+    const hits = container.querySelectorAll('.knob-hit')
+    await fireEvent.contextMenu(hits[6])
+    expect(onknobcontextmenu).toHaveBeenCalledWith('reverbPreDelay')
+  })
+})
+
+describe('Effects — reverb knob defaults', () => {
+  it('LPF knob defaults to 4000 Hz', () => {
+    const { container } = render(Effects)
+    const knobValues = container.querySelectorAll('.knob-value')
+    expect(knobValues[4].textContent).toBe('4.0 kHz')
+  })
+
+  it('reverb decay knob defaults to 0.50', () => {
+    const { container } = render(Effects)
+    const knobValues = container.querySelectorAll('.knob-value')
+    expect(knobValues[5].textContent).toBe('0.50')
+  })
+
+  it('pre-delay knob defaults to 0', () => {
+    const { container } = render(Effects)
+    const knobValues = container.querySelectorAll('.knob-value')
+    expect(knobValues[6].textContent).toBe('0 ms')
   })
 })
 
@@ -220,8 +264,9 @@ describe('Effects — midiState externalValue', () => {
       delayFeedback: { externalValue: undefined, learningMidi: false, assignedCc: null },
       delayMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
       reverbMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbTone: { externalValue: undefined, learningMidi: false, assignedCc: null },
       reverbDecay: { externalValue: undefined, learningMidi: false, assignedCc: null },
-      reverbShimmer: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbPreDelay: { externalValue: undefined, learningMidi: false, assignedCc: null },
     }
     const { container } = render(Effects, { props: { midiState } })
     const knobValues = container.querySelectorAll('.knob-value')
@@ -234,8 +279,9 @@ describe('Effects — midiState externalValue', () => {
       delayFeedback: { externalValue: undefined, learningMidi: false, assignedCc: null },
       delayMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
       reverbMix: { externalValue: 0.25, learningMidi: false, assignedCc: null },
+      reverbTone: { externalValue: undefined, learningMidi: false, assignedCc: null },
       reverbDecay: { externalValue: undefined, learningMidi: false, assignedCc: null },
-      reverbShimmer: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbPreDelay: { externalValue: undefined, learningMidi: false, assignedCc: null },
     }
     const { container } = render(Effects, { props: { midiState } })
     const knobValues = container.querySelectorAll('.knob-value')
@@ -248,25 +294,42 @@ describe('Effects — midiState externalValue', () => {
       delayFeedback: { externalValue: undefined, learningMidi: false, assignedCc: null },
       delayMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
       reverbMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbTone: { externalValue: undefined, learningMidi: false, assignedCc: null },
       reverbDecay: { externalValue: 0.3, learningMidi: false, assignedCc: null },
-      reverbShimmer: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbPreDelay: { externalValue: undefined, learningMidi: false, assignedCc: null },
     }
     const { container } = render(Effects, { props: { midiState } })
     const knobValues = container.querySelectorAll('.knob-value')
-    expect(knobValues[4].textContent).toBe('0.30')
+    expect(knobValues[5].textContent).toBe('0.30')
   })
 
-  it('midiState.reverbShimmer.externalValue drives shimmer knob display', () => {
+  it('midiState.reverbTone.externalValue drives LPF knob display', () => {
     const midiState = {
       delayTime: { externalValue: undefined, learningMidi: false, assignedCc: null },
       delayFeedback: { externalValue: undefined, learningMidi: false, assignedCc: null },
       delayMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
       reverbMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbTone: { externalValue: 8000, learningMidi: false, assignedCc: null },
       reverbDecay: { externalValue: undefined, learningMidi: false, assignedCc: null },
-      reverbShimmer: { externalValue: 0.7, learningMidi: false, assignedCc: null },
+      reverbPreDelay: { externalValue: undefined, learningMidi: false, assignedCc: null },
     }
     const { container } = render(Effects, { props: { midiState } })
     const knobValues = container.querySelectorAll('.knob-value')
-    expect(knobValues[5].textContent).toBe('0.70')
+    expect(knobValues[4].textContent).toBe('8.0 kHz')
+  })
+
+  it('midiState.reverbPreDelay.externalValue drives pre-delay knob display', () => {
+    const midiState = {
+      delayTime: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      delayFeedback: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      delayMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbTone: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbDecay: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbPreDelay: { externalValue: 0.05, learningMidi: false, assignedCc: null },
+    }
+    const { container } = render(Effects, { props: { midiState } })
+    const knobValues = container.querySelectorAll('.knob-value')
+    expect(knobValues[6].textContent).toBe('50 ms')
   })
 })

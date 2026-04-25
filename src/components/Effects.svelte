@@ -80,7 +80,7 @@
   <div class="section-divider"></div>
 
   <span class="sub-label">reverb</span>
-  <div class="effects-row">
+  <div class="effects-row reverb-row">
     <button
       class="toggle-btn"
       class:active={reverbOn === 1}
@@ -102,11 +102,24 @@
       oncontextmenu={() => onknobcontextmenu?.('reverbMix')}
     />
     <Knob
+      label="LPF"
+      min={1000}
+      max={16000}
+      default={4000}
+      scale="log"
+      unit="Hz"
+      externalValue={midiState?.reverbTone?.externalValue}
+      learningMidi={midiState?.reverbTone?.learningMidi ?? false}
+      assignedCc={midiState?.reverbTone?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'reverbTone', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('reverbTone')}
+    />
+    <Knob
       label="decay"
-      min={0}
+      min={0.01}
       max={1}
       default={0.5}
-      scale="linear"
+      scale="log-reverse"
       externalValue={midiState?.reverbDecay?.externalValue}
       learningMidi={midiState?.reverbDecay?.learningMidi ?? false}
       assignedCc={midiState?.reverbDecay?.assignedCc ?? null}
@@ -114,16 +127,17 @@
       oncontextmenu={() => onknobcontextmenu?.('reverbDecay')}
     />
     <Knob
-      label="shimmer"
+      label="pre-delay"
       min={0}
-      max={1}
+      max={0.1}
       default={0}
       scale="linear"
-      externalValue={midiState?.reverbShimmer?.externalValue}
-      learningMidi={midiState?.reverbShimmer?.learningMidi ?? false}
-      assignedCc={midiState?.reverbShimmer?.assignedCc ?? null}
-      onchange={(e) => onchange?.({ param: 'reverbShimmer', value: e.value })}
-      oncontextmenu={() => onknobcontextmenu?.('reverbShimmer')}
+      unit="s"
+      externalValue={midiState?.reverbPreDelay?.externalValue}
+      learningMidi={midiState?.reverbPreDelay?.learningMidi ?? false}
+      assignedCc={midiState?.reverbPreDelay?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'reverbPreDelay', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('reverbPreDelay')}
     />
   </div>
 </div>
@@ -182,5 +196,13 @@
     background: #3a2a1a;
     color: #c87941;
     border-color: #c87941;
+  }
+
+  /* Reserve fixed width for the LPF knob value (3rd child: button + mix + LPF).
+     Prevents layout shift when the displayed string changes between e.g. "1.0 kHz" and "16.0 kHz". */
+  .reverb-row :global(:nth-child(3) .knob-value) {
+    min-width: 5.5em;
+    display: inline-block;
+    text-align: center;
   }
 </style>
