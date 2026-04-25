@@ -35,7 +35,7 @@ shimmerReverb(mix, decay, shimmer) =
   _ <: (
     _ * (1 - mix),
     +~(re.mono_freeverb(decay, 0.5, 0.5, 0)
-       : (_ * shimmer : ef.transpose(512, 256, 12) : ba.clip(0, 1))
+       : (_ * shimmer : ef.transpose(512, 256, 12) : ba.clip(-1, 1))
       ) * mix
   ) :> _;
 
@@ -53,7 +53,7 @@ process     = vcaOut * masterVol <: _, _;
 
 `reverbOn` is an `nentry` (0 or 1, default 0). When 0, the signal bypasses the reverb via `select2`, saving CPU cycles. The knobs remain active but have no effect while bypassed — consistent with how `glideOn` works for the Glide panel.
 
-`+~(f)` is the FAUST idiom for a feedback adder: `+` has 2 inputs; `~` feeds the output of `f` back to the second input, leaving 1 external input. This avoids the 0-external-input type error that occurs with `A ~ B` when A has 1 input and B has 1 output. The `<: ... :>` split-merge ensures both branches (dry and wet) are mono, matching the `select2` bypass branch. `ba.clip(0, 1)` bounds the shimmer feedback; `clip` alone is not in FAUST's standard library.
+`+~(f)` is the FAUST idiom for a feedback adder: `+` has 2 inputs; `~` feeds the output of `f` back to the second input, leaving 1 external input. This avoids the 0-external-input type error that occurs with `A ~ B` when A has 1 input and B has 1 output. The `<: ... :>` split-merge ensures both branches (dry and wet) are mono, matching the `select2` bypass branch. `ba.clip(-1, 1)` symmetrically bounds the shimmer feedback to prevent infinite buildup without half-wave rectifying the signal; `clip` alone (without the `ba.` prefix) is not in FAUST's standard library.
 
 Note: `masterVol` is applied after the VCA, not inside `reverbStage`. The reverb operates on the filter output at unity gain; the amp envelope and master volume apply downstream.
 
@@ -88,7 +88,7 @@ The `filter-output-grid` currently uses `grid-template-columns: auto auto` with 
 ## Risks / Trade-offs
 
 - **Granular pitch shifter artifacts** → `ef.transpose` is granular; at very short grain sizes or extreme feedback levels (shimmer near 1.0) the pitch shift may produce noticeable graininess. Mitigation: choose grain/crossfade sizes that are inaudible at moderate shimmer settings; document that shimmer above 0.8 may produce artefacts.
-- **Feedback instability at high shimmer + high decay** → When both `reverbDecay` and `reverbShimmer` approach 1.0, the loop gain can exceed 1.0 and produce an infinite buildup. Mitigation: add a `clip(0, 1)` on the feedback signal in the DSP, or document the combination as a deliberate runaway effect (the UltraSheer itself allows this intentionally).
+- **Feedback instability at high shimmer + high decay** → When both `reverbDecay` and `reverbShimmer` approach 1.0, the loop gain can exceed 1.0 and produce an infinite buildup. Mitigation: `ba.clip(-1, 1)` in the feedback path bounds amplitude symmetrically; if the UltraSheer-style intentional runaway is desired, this can be removed in a follow-up.
 - **CPU headroom** → Adding `ef.transpose` (granular pitch shifter) on top of `re.mono_freeverb` meaningfully increases DSP cost. Mitigation: both are optimised FAUST primitives; the combined cost has been benchmarked as acceptable in comparable WASM audio projects.
 - **Mono shimmer tail** → The output is mono (split to stereo via `<: _, _`). The shimmer will not have stereo width. Mitigation: acceptable for this scope; true stereo shimmer is a non-goal.
 - **Amp envelope trims reverb tail** → Because reverb is pre-VCA, a short amp release will gate the reverb tail. This is intentional (see placement decision) but may surprise users who expect the tail to ring out after note release. Mitigation: this behaviour is documented as a feature, not a bug; users wanting free-ringing tails should set a longer amp release.

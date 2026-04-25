@@ -1,8 +1,8 @@
 ## 1. FAUST DSP — Shimmer Reverb Stage
 
 - [ ] 1.1 Add `reverbOn`, `reverbMix`, `reverbDecay`, and `reverbShimmer` `hslider`/`nentry` parameters to `faust/synth.dsp`
-- [ ] 1.2 Implement the shimmer feedback loop using the `+~` idiom: `+~(re.mono_freeverb(reverbDecay, 0.5, 0.5, 0) : (_ * reverbShimmer : ef.transpose(512, 256, 12) : ba.clip(0, 1)))`
-- [ ] 1.3 Implement wet/dry blend via `_ <: (_ * (1 - reverbMix), shimmerUnit * reverbMix) :> _` so the dry tap precedes the reverb; `ba.clip(0, 1)` is already inside the feedback chain from 1.2
+- [ ] 1.2 Implement the shimmer feedback loop using the `+~` idiom: `+~(re.mono_freeverb(reverbDecay, 0.5, 0.5, 0) : (_ * reverbShimmer : ef.transpose(512, 256, 12) : ba.clip(-1, 1)))`
+- [ ] 1.3 Implement wet/dry blend via `_ <: (_ * (1 - reverbMix), shimmerUnit * reverbMix) :> _` so the dry tap precedes the reverb; `ba.clip(-1, 1)` is already inside the feedback chain from 1.2
 - [ ] 1.4 Wire the bypass using `select2(int(reverbOn), filteredSig, shimmerOut)` between `filteredSig` and `vcaOut`, so the amp envelope is applied after the reverb stage
 - [ ] 1.5 Validate FAUST DSP compiles without errors: `npm run faust:build`
 
