@@ -34,4 +34,4 @@
 - [ ] 5.2 Start the dev server, power on the synth, enable reverb, and verify audible reverb tail; increase shimmer and verify octave-up harmonic buildup
 - [ ] 5.3 Verify the Reverb panel appears between Filter and Amp Env in the UI layout
 - [ ] 5.4 Verify MIDI CC learn works for all three reverb knobs
-- [ ] 5.5 Run `npx vitest run` for final pass
+- [x] 5.5 Run `npx vitest run` for final pass
