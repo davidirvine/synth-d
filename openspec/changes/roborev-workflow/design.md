@@ -57,8 +57,8 @@ When a human reviewer leaves comments on a stacked PR, the commits addressing th
 
 1. Response commits are made on the section branch — the post-commit hook fires and queues async roborev reviews as normal
 2. The human reviews the response commits and any roborev findings directly (no automated refine cycle)
-3. On human approval, the section branch is squash+force-pushed (`git rebase -i` to squash, then `stax ss` to push)
-4. `stax refresh` syncs trunk and restacks all downstream section branches
+3. On human approval, the section branch is squash+force-pushed (`git rebase -i` to squash, then `stax ss --yes --no-prompt` to push)
+4. `stax sync --restack` syncs trunk and restacks all downstream section branches
 
 **Rationale**: PR review comments are already human-vetted (the reviewer wrote them). Running a full `roborev refine` cycle — which is designed for catching issues in raw implementation commits — adds friction without proportional benefit. The post-commit review still runs; it's the automated fix-and-iterate loop that is skipped.
 
@@ -68,7 +68,7 @@ When a human reviewer leaves comments on a stacked PR, the commits addressing th
 
 - **roborev refine commits additional fix commits** → These are included in the section squash; the post-rewrite hook preserves review history across the squash.
 - **refine iteration limit (3) reached before all reviews pass** → Human checkpoint surfaces remaining findings; human decides whether to retry, fix manually, or override and proceed.
-- **stax rebase conflicts during `stax refresh`** → Conflicts require manual resolution before proceeding; use `stax restack --continue` after resolving.
+- **stax rebase conflicts during `stax sync --restack`** → Conflicts require manual resolution before proceeding; use `stax restack --continue` after resolving.
 - **roborev daemon not running** → `roborev status` can detect this; check at section boundary before running refine.
 
 ## Migration Plan

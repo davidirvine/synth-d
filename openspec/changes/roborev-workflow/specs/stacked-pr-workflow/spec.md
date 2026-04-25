@@ -52,8 +52,8 @@ When addressing comments left by a human reviewer on a stacked PR, the system SH
 
 1. Response commits are made on the section branch; the roborev post-commit hook fires and queues async reviews as normal
 2. The human reviews the response commits and any roborev findings directly — `roborev refine` is NOT run
-3. On human approval, the section branch is squash+force-pushed (`git rebase -i` to squash, then `stax ss` to push)
-4. `stax refresh` syncs trunk and restacks all downstream section branches on top of the updated section
+3. On human approval, the section branch is squash+force-pushed (`git rebase -i` to squash, then `stax ss --yes --no-prompt` to push)
+4. `stax sync --restack` syncs trunk and restacks all downstream section branches on top of the updated section
 
 #### Scenario: PR feedback commits trigger post-commit review but not refine
 - **WHEN** commits are made to address PR review comments
@@ -65,7 +65,7 @@ When addressing comments left by a human reviewer on a stacked PR, the system SH
 
 #### Scenario: Downstream branches rebased after section update
 - **WHEN** a section branch is force-pushed with PR feedback changes
-- **THEN** `stax refresh` is run to sync trunk and restack all downstream section branches
+- **THEN** `stax sync --restack` is run to sync trunk and restack all downstream section branches
 
 ---
 
