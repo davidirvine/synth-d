@@ -1,7 +1,7 @@
 {
   "name": "subtractive-synth",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "faust:build": "faust -lang wasm -O public/ -o synth.wasm faust/synth.dsp && faust -json faust/synth.dsp > public/synth.json",
