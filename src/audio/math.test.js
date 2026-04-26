@@ -151,6 +151,45 @@ describe('valueToNormalized — log-reverse scale', () => {
   })
 })
 
+describe('normalizedToValue — fine-center scale', () => {
+  const min = -100
+  const max = 100
+
+  it('pos=0.5 returns center (0 cents)', () => {
+    expect(normalizedToValue(0.5, min, max, 'fine-center')).toBeCloseTo(0, 10)
+  })
+
+  it('pos=0 returns min (-100 cents)', () => {
+    expect(normalizedToValue(0, min, max, 'fine-center')).toBeCloseTo(-100, 5)
+  })
+
+  it('pos=1 returns max (100 cents)', () => {
+    expect(normalizedToValue(1, min, max, 'fine-center')).toBeCloseTo(100, 5)
+  })
+
+  it('pos≈0.342 returns approximately -10 cents (within 0.1)', () => {
+    const val = normalizedToValue(0.342, min, max, 'fine-center')
+    expect(Math.abs(val - -10)).toBeLessThan(0.1)
+  })
+})
+
+describe('valueToNormalized — fine-center scale', () => {
+  const min = -100
+  const max = 100
+
+  it('center (0 cents) maps to pos 0.5', () => {
+    expect(valueToNormalized(0, min, max, 'fine-center')).toBeCloseTo(0.5, 10)
+  })
+
+  it('min (-100 cents) maps to pos 0', () => {
+    expect(valueToNormalized(-100, min, max, 'fine-center')).toBeCloseTo(0, 5)
+  })
+
+  it('max (100 cents) maps to pos 1', () => {
+    expect(valueToNormalized(100, min, max, 'fine-center')).toBeCloseTo(1, 5)
+  })
+})
+
 describe('round-trip normalizedToValue / valueToNormalized', () => {
   const cases = [
     { val: 440, min: 20, max: 20000, scale: 'log' },
@@ -161,6 +200,10 @@ describe('round-trip normalizedToValue / valueToNormalized', () => {
     { val: 0.5, min: 0.01, max: 1, scale: 'log-reverse' },
     { val: 0.9, min: 0.01, max: 1, scale: 'log-reverse' },
     { val: 0.1, min: 0.01, max: 1, scale: 'log-reverse' },
+    { val: 0, min: -100, max: 100, scale: 'fine-center' },
+    { val: -50, min: -100, max: 100, scale: 'fine-center' },
+    { val: 30, min: -100, max: 100, scale: 'fine-center' },
+    { val: -10, min: -100, max: 100, scale: 'fine-center' },
   ]
 
   cases.forEach(({ val, min, max, scale }) => {

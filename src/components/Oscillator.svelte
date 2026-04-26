@@ -85,7 +85,7 @@
         min={-100}
         max={100}
         default={0}
-        scale="linear"
+        scale="fine-center"
         unit="c"
         bipolar={true}
         externalValue={midiState?.osc2Detune?.externalValue}
@@ -120,7 +120,7 @@
         min={-100}
         max={100}
         default={0}
-        scale="linear"
+        scale="fine-center"
         unit="c"
         bipolar={true}
         disabled={osc3LfoMode === 1}
