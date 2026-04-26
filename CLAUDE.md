@@ -85,6 +85,12 @@ A section is NOT complete until ALL of the following are true:
 
 Do not proceed to the next section until all three conditions above are met.
 
+## Build Configuration
+
+**`build: { minify: false }` MUST remain in `vite.config.js`. Do not enable minification.**
+
+`@grame/faustwasm`'s `FaustMonoDspGenerator.createNode` uses `Function.prototype.toString()` on its internal helper functions to construct an AudioWorklet processor blob URL at runtime. Minification renames those functions (e.g. `FaustWasmInstantiator` → `Na`), so the blob URL references identifiers that do not exist in its scope. The AudioWorklet module silently fails to evaluate, `registerProcessor` is never called, and any subsequent `new AudioWorkletNode(context, 'synth')` throws `InvalidStateError: No ScriptProcessor was registered with this name`. Safari makes this especially hard to debug because `audioWorklet.addModule()` resolves even when the module evaluation throws.
+
 ## Stacked PRs
 
 > **MANDATORY: All branch creation, rebase, sync, and PR submission MUST use stax. There is a stax skill available. Raw `git` commands for branch management or PR operations are FORBIDDEN. No exceptions.**

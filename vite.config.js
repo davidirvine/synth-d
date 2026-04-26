@@ -3,6 +3,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 export default defineConfig({
   base: './',
+  build: { minify: false },
   plugins: [svelte()],
   resolve: {
     conditions: ['browser'],
