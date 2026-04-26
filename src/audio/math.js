@@ -27,7 +27,9 @@ export function valueToNormalized(val, min, max, scale) {
 
 export function formatValue(val, unit) {
   if (unit === 'Hz') {
-    return Math.abs(val) >= 1000 ? `${(val / 1000).toFixed(1)} kHz` : `${Math.round(val)} Hz`
+    if (Math.abs(val) >= 1000) return `${(val / 1000).toFixed(1)} kHz`
+    if (Math.abs(val) < 10) return `${val.toFixed(2)} Hz`
+    return `${Math.round(val)} Hz`
   }
   if (unit === 's') {
     return val < 1 ? `${Math.round(val * 1000)} ms` : `${val.toFixed(2)} s`
