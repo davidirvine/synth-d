@@ -102,7 +102,11 @@ osc3Signal     = selectWave(osc3Wave, osc3ActualFreq);
 
 // ─── Modulation ──────────────────────────────────────────────────────────────
 
-modSrc = osc3Signal * (1 - modMix) + no.noise * modMix;
+// noiseSrc is also used in the Mixer below; Faust CSE-folds the signal so both
+// paths share the same generator instance (intentional — correlated noise).
+noiseSrc = select2(int(noiseType), no.noise, no.pink_noise);
+
+modSrc = osc3Signal * (1 - modMix) + noiseSrc * modMix;
 modSig = modSrc * modWheel;
 
 modFilterDepth = 2000;
@@ -116,7 +120,6 @@ osc2ModSig = selectWave(osc2Wave, osc2ModFreq);
 
 // ─── Mixer ────────────────────────────────────────────────────────────────────
 
-noiseSrc = select2(int(noiseType), no.noise, no.pink_noise);
 osc3Mix  = osc3Signal * osc3Level * (1 - osc3LfoMode);
 
 mixerOut = osc1ModSig * osc1Level
