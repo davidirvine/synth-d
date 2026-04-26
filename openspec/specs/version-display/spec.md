@@ -9,7 +9,7 @@ A version label SHALL appear directly below the SYNTH-D title in the header. Its
 
 #### Scenario: Version label on a non-main branch
 - **WHEN** the app is built from any branch other than `main`
-- **THEN** the version label displays `v<major>.<minor>.<patch> (<branch-name>)` (e.g., `v1.1.0 (planing/links-version-ui)`) (visually uppercased via CSS; assertions should target the raw lowercase value)
+- **THEN** the version label displays `v<major>.<minor>.<patch> (<branch-name>)` (e.g., `v1.1.0 (feature/links-version-ui)`) (visually uppercased via CSS; assertions should target the raw lowercase value)
 
 #### Scenario: Version and branch are injected at build time
 - **WHEN** the Vite build runs
