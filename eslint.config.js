@@ -34,6 +34,6 @@ export default [
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', 'public/synth.js', 'public/synth.wasm'],
+    ignores: ['dist/', 'node_modules/', 'public/'],
   },
 ]

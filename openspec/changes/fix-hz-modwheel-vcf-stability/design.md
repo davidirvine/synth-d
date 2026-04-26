@@ -9,7 +9,7 @@ Three independent one-line correctness bugs discovered during low-frequency LFO 
 ## Goals / Non-Goals
 
 **Goals:**
-- Sub-10 Hz knob labels show one decimal place (e.g., "0.1 Hz")
+- Sub-10 Hz knob labels show two decimal places (e.g., "0.10 Hz")
 - Mod wheel Svelte state and FAUST DSP agree at 0.5 on power-on
 - `filterModHz` is smoothed before entering the cutoff sum, removing audio-rate transients
 
@@ -22,7 +22,7 @@ Three independent one-line correctness bugs discovered during low-frequency LFO 
 
 ### Hz decimal threshold at < 10
 
-`formatValue` will branch on `Math.abs(val) < 10`: use `val.toFixed(1)` there, keep `Math.round(val)` for 10–999 Hz, and the existing `kHz` branch above 1000. Threshold at 10 keeps whole-number display for values that read cleanly as integers (e.g., "12 Hz") while fixing the sub-10 regime where a whole number is meaningless.
+`formatValue` will branch on `Math.abs(val) < 10`: use `val.toFixed(2)` there, keep `Math.round(val)` for 10–999 Hz, and the existing `kHz` branch above 1000. Threshold at 10 keeps whole-number display for values that read cleanly as integers (e.g., "12 Hz") while fixing the sub-10 regime where a whole number is meaningless.
 
 **Alternative considered:** Always use `toFixed(1)` for all Hz values. Rejected because "1200.0 Hz" is visual noise; users don't need sub-Hz precision at audio rates.
 
