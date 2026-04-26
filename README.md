@@ -1,5 +1,7 @@
 # SYNTH-D
 
+<p align="center"><a href="https://davidirvine.github.io/synth-d/">▶ Live Synth</a></p>
+
 A browser-based subtractive synthesizer inspired by the Moog Model D, built with Svelte 5 and a FAUST DSP engine compiled to WebAssembly.
 
 ---
@@ -21,43 +23,6 @@ A browser-based subtractive synthesizer inspired by the Moog Model D, built with
 ---
 
 ## Architecture
-
-```
-┌───────────────────────────────────────────────────────────────────────┐
-│  Browser                                                              │
-│                                                                       │
-│  ┌─────────────────────────────────────────────────────────────────┐  │
-│  │  Svelte 5 UI  (src/)                                            │  │
-│  │                                                                 │  │
-│  │  App.svelte                                                     │  │
-│  │   ├── Oscillator  ├── Mixer     ├── Filter    ├── AmpEnv        │  │
-│  │   ├── Effects     ├── Modulation├── Glide     ├── Scope         │  │
-│  │   ├── Keyboard    ├── PowerButton              └── MidiStatus   │  │
-│  │                                                                 │  │
-│  │  Knob.svelte  — shared rotary knob with MIDI-learn overlay      │  │
-│  └──────────────────┬───────────────────────────────┬─────────────┘  │
-│                     │ setParam / noteOn / noteOff    │ Web MIDI API   │
-│  ┌──────────────────▼──────────────────┐  ┌─────────▼─────────────┐  │
-│  │  Audio Engine  (src/audio/)         │  │  MIDI Manager         │  │
-│  │                                     │  │  midi.js              │  │
-│  │  engine.js                          │  │  midiCcMap.js         │  │
-│  │  • AudioContext lifecycle           │  │  • device selection   │  │
-│  │  • loads synth.wasm via faustwasm   │  │  • CC → param mapping │  │
-│  │  • AnalyserNode for oscilloscope    │  │  • pitch bend         │  │
-│  └──────────────────┬───────────────────┘  └───────────────────────┘  │
-│                     │ AudioWorkletNode                                  │
-│  ┌──────────────────▼──────────────────┐                               │
-│  │  FAUST DSP  (public/synth.wasm)     │                               │
-│  │                                     │                               │
-│  │  Signal chain:                      │                               │
-│  │  OSC1 ──┐                           │                               │
-│  │  OSC2 ──┼──▶ Mixer ──▶ Ladder  ──▶ VCA ──▶ Master Vol             │
-│  │  OSC3 ──┘    + Noise   Filter        │       ──▶ Tape Delay        │
-│  │  (or LFO/                ADSR env    │       ──▶ Freeverb          │
-│  │   mod src)               key track  │       ──▶ stereo out        │
-│  └─────────────────────────────────────┘                               │
-└───────────────────────────────────────────────────────────────────────┘
-```
 
 ### DSP (`faust/synth.dsp`)
 
@@ -111,6 +76,25 @@ npm install
 | `npm run format`        | Prettier                                                                |
 
 > The WASM artefacts (`public/synth.wasm`, `public/synth.json`) are pre-built and committed. Only run `faust:build` when `faust/synth.dsp` changes.
+
+### Branching & Deployment
+
+| Branch      | Role                                                                  |
+| ----------- | --------------------------------------------------------------------- |
+| `main`      | Production. Deploys automatically to GitHub Pages on every merge.     |
+| `develop`   | Integration branch. All feature and bugfix branches merge here first. |
+| `feature/*` | New capability branches, cut from `develop`.                          |
+| `bugfix/*`  | Fix branches, cut from `develop`.                                     |
+
+**CI checks on PRs to `develop`:** tests, lint, and format must all pass.
+
+**Auto-promotion:** a pull request from `develop` → `main` is raised automatically once CI is green on `develop`. CI on PRs to `main` runs tests only (lint and format are already verified upstream).
+
+**Production deploy:** merging to `main` triggers a GitHub Actions workflow that builds `dist/` and publishes it to GitHub Pages.
+
+**PR previews:** every open pull request gets a preview deployment at `https://davidirvine.github.io/synth-d/pr-preview/pr-<N>/`.
+
+**Releases:** `release-please` tracks commits on `main`, bumps the version in `package.json`, and opens a release PR. Merging that PR creates a git tag, a `CHANGELOG.md` entry, and a GitHub Release.
 
 ---
 
