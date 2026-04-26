@@ -4,15 +4,9 @@ const mockNode = { connect: vi.fn(), setParamValue: vi.fn() }
 
 vi.mock('@grame/faustwasm', () => {
   function FaustMonoDspGenerator() {
-    this.factory = null
     this.createNode = vi.fn().mockResolvedValue(mockNode)
   }
-  return {
-    FaustWasmInstantiator: {
-      loadDSPFactory: vi.fn().mockResolvedValue({}),
-    },
-    FaustMonoDspGenerator,
-  }
+  return { FaustMonoDspGenerator }
 })
 
 function makeMockCtx() {
@@ -36,10 +30,14 @@ describe('powerOn / powerOff', () => {
   beforeEach(async () => {
     vi.resetModules()
     mockCtx = makeMockCtx()
-    const MockAudioContext = vi.fn(function () {
-      return mockCtx
-    })
-    vi.stubGlobal('AudioContext', MockAudioContext)
+    vi.stubGlobal(
+      'AudioContext',
+      vi.fn(function () {
+        return mockCtx
+      })
+    )
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ json: vi.fn().mockResolvedValue({}) }))
+    vi.stubGlobal('WebAssembly', { compileStreaming: vi.fn().mockResolvedValue({}) })
   })
 
   it('getAnalyser returns null before powerOn is called', async () => {
