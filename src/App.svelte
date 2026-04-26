@@ -14,6 +14,7 @@
   import PowerButton from './components/PowerButton.svelte'
   import MidiStatus from './components/MidiStatus.svelte'
   import Scope from './components/Scope.svelte'
+  import EmptyPanel from './components/EmptyPanel.svelte'
 
   const branch = __GIT_BRANCH__
   const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
@@ -297,6 +298,7 @@
             />
           </div>
           <Scope {analyser} {powered} />
+          <EmptyPanel />
         </div>
       </div>
       <Keyboard
