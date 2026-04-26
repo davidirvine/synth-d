@@ -2,7 +2,7 @@
 
 - [ ] 1.1 In `faust/synth.dsp`, add `resonanceSafe = min(0.97, resonance)` and pass `resonanceSafe` to `ve.moog_vcf` instead of `resonance`
 - [ ] 1.2 In `faust/synth.dsp`, apply `ma.tanh` to `mixerOut` before the filter: `filteredSig = mixerOut : ma.tanh : ve.moog_vcf(resonanceSafe, cutoffMod)`
-- [ ] 1.3 In `faust/synth.dsp`, replace `masterOut = vcaOut * masterVol` with a renamed pre-effects saturated signal: `saturatedOut = vcaOut * (masterVol / 0.6) : ma.tanh`, then update all downstream references (`delayInput`, `delayOut`, `reverbOut`, `process`) to consume `saturatedOut` instead of `masterOut`
+- [ ] 1.3 In `faust/synth.dsp`, introduce a named intermediate for the saturated output: replace `masterOut = vcaOut * masterVol` with two assignments — `masterOut = vcaOut * masterVol` (unsaturated, unchanged) and `saturatedOut = vcaOut * (masterVol / 0.6) : ma.tanh` (final output tap). The DSP process output MUST use `saturatedOut`. Verify that all delay and reverb stages continue to reference `masterOut` (the pre-saturation signal), not `saturatedOut`.
 - [ ] 1.4 Validate DSP compiles: `faust faust/synth.dsp -o /dev/null`
 - [ ] 1.5 Rebuild WASM: `npm run faust:build` (or equivalent) and confirm `public/dsp-module.wasm` and `public/dsp-meta.json` are updated
 
@@ -46,6 +46,6 @@
 ## 6. Update Tests
 
 - [ ] 6.1 Update `src/audio/engine.test.js` to reflect always-init powerOn and full-teardown powerOff behaviour
-- [ ] 6.2 Add or update tests for the reset prop in all seven panel components: `Oscillator.test.js`, `Mixer.test.js`, `Filter.test.js`, `AmpEnv.test.js`, `Modulation.test.js`, `Glide.test.js`, `Effects.test.js` — each asserting that discrete state returns to defaults and `onchange` fires on reset
-- [ ] 6.3 Add tests to `Knob.test.js` covering the three spring animation scenarios from `specs/knob/spec.md`: (a) visual position springs to new externalValue, (b) no spring lag during drag, (c) onchange fires immediately on externalValue change regardless of animation state
+- [ ] 6.2 Add or update tests for the reset prop in all seven panel components: `Oscillator.test.js`, `Mixer.test.js`, `Filter.test.js`, `AmpEnv.test.js`, `Modulation.test.js`, `Glide.test.js`, and `Effects.test.js` — each receiving a distinct discrete state reset that must be verified
+- [ ] 6.3 Add or update `src/components/Knob.test.js` to cover the three spring scenarios from `specs/knob/spec.md`: (1) knob animates to new external value via spring, (2) no spring lag during pointer drag, (3) `onchange` fires immediately on `externalValue` change regardless of animation state
 - [ ] 6.4 Run `npx vitest run` and confirm all tests pass

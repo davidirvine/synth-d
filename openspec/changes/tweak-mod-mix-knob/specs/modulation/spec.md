@@ -1,6 +1,8 @@
 ## MODIFIED Requirements
 
 ### Requirement: Modulation source mix between OSC 3 and noise
+> **Note:** The panel label for the OSC 3 source at pos=0 is "LFO" (as specified in `mod-mix-knob-labels/spec.md`). This follows the original Minimoog panel design where the modulation oscillator (OSC 3) is labelled "LFO" in the modulation routing context.
+
 The modulation section SHALL provide a mix knob that crossfades the modulation source signal between OSC 3 output (at 0) and noise (at 1). The noise used SHALL be the same type selected by the mixer noise-type control: white noise when noise type is 0, pink noise when noise type is 1. The resulting modulation signal is used by all active routing destinations.
 
 The mix knob SHALL NOT display a numeric value label. The mix knob arc highlight SHALL span from the current indicator position to the 12 o'clock (top-center) position on the arc, communicating the offset from a neutral center-mix position.
