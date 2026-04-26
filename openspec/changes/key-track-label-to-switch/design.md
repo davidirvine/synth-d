@@ -7,8 +7,8 @@
 **Goals:**
 - Button reads "KEY TRACK" in both the active and inactive state
 - Separate `key-track-label` span is removed entirely
-- Button top edge aligns with the cutoff and resonance knob SVG tops (no CSS rewrite needed — removing the label achieves this automatically given the existing `align-items: flex-start` on `.knob-row`)
-- Accessibility preserved via `aria-label` and `aria-pressed`
+- Button top edge aligns with the cutoff and resonance knob SVG tops via `padding-top: 14px` on `.key-track-col`
+- Accessibility preserved via button text content as accessible name and `aria-pressed` for state
 
 **Non-Goals:**
 - No change to button styling, colours, or active/inactive visual treatment
@@ -23,9 +23,9 @@ The previous "on"/"off" text was supplementary to the separate label. Now that t
 
 **Alternative considered:** Show "KEY TRACK ON" / "KEY TRACK OFF". Rejected — verbose, inconsistent with how other boolean controls in the synth are labelled, and `aria-pressed` already handles state semantics.
 
-### No layout changes beyond removing the label span
+### CSS adjustment required for top-edge alignment
 
-The `.key-track-btn-wrap` already has `height: var(--knob-body-size, 48px)` with `align-items: center`, which vertically centres the button within the same height as the knob SVG. Removing the label span means the btn-wrap starts at the very top of `.key-track-col`, aligning with the knob tops. No additional CSS adjustments are needed.
+The `.key-track-btn-wrap` already has `height: var(--knob-body-size, 48px)` with `align-items: center`, which vertically centres the button within the same height as the knob SVG. However, removing the label span alone was not sufficient for precise alignment — `padding-top: 14px` was added to `.key-track-col` to align the button top edge with the knob SVG tops.
 
 ## Risks / Trade-offs
 
