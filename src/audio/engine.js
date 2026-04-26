@@ -1,4 +1,4 @@
-import { FaustMonoDspGenerator, FaustWasmInstantiator } from '@grame/faustwasm'
+import { FaustMonoDspGenerator } from '@grame/faustwasm'
 import { buildNoteOnMessages } from './keyboard.js'
 
 const PARAM_PREFIX = '/synth/'
@@ -23,15 +23,15 @@ export async function powerOn() {
   await ctx.resume()
 
   const base = import.meta.env.BASE_URL
-  const factory = await FaustWasmInstantiator.loadDSPFactory(
-    `${base}dsp-module.wasm`,
-    `${base}dsp-meta.json`
-  )
+  const dspMeta = await (await fetch(`${base}dsp-meta.json`)).json()
+  const dspModule = await WebAssembly.compileStreaming(await fetch(`${base}dsp-module.wasm`))
 
   const generator = new FaustMonoDspGenerator()
-  generator.factory = factory
-
-  node = await generator.createNode(ctx, 'synth', factory)
+  node = await generator.createNode(ctx, 'synth', {
+    module: dspModule,
+    json: JSON.stringify(dspMeta),
+    soundfiles: {},
+  })
   node.connect(analyserNode)
   analyserNode.connect(ctx.destination)
   initialized = true
