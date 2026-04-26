@@ -14,7 +14,7 @@
   let modToOsc1 = $state(0)
   let modToOsc2 = $state(0)
   let modToFilter = $state(0)
-  let modWheel = $state(0)
+  let modWheel = $state(0.5)
 
   // Allow parent to push external modWheel updates (e.g. from MIDI CC 1)
   $effect(() => {

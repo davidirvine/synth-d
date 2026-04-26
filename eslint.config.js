@@ -12,9 +12,13 @@ export default [
     },
   },
   {
-    files: ['*.svelte'],
+    files: ['*.svelte', 'src/**/*.svelte'],
     languageOptions: {
       parser: svelteParser,
+      globals: {
+        __APP_VERSION__: 'readonly',
+        __GIT_BRANCH__: 'readonly',
+      },
     },
   },
   {
@@ -30,6 +34,6 @@ export default [
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', 'public/synth.js', 'public/synth.wasm'],
+    ignores: ['dist/', 'node_modules/', 'public/'],
   },
 ]

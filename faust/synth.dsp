@@ -53,7 +53,7 @@ glideRate = hslider("glideRate [unit:s]", 0, 0, 5, 0.001);
 
 // Modulation
 modMix      = hslider("modMix", 0, 0, 1, 0.001);
-modWheel    = hslider("modWheel", 0, 0, 1, 0.001);
+modWheel    = hslider("modWheel", 0.5, 0, 1, 0.001);
 modToOsc1   = nentry("modToOsc1", 0, 0, 1, 1);
 modToOsc2   = nentry("modToOsc2", 0, 0, 1, 1);
 modToFilter = nentry("modToFilter", 0, 0, 1, 1);
@@ -102,7 +102,11 @@ osc3Signal     = selectWave(osc3Wave, osc3ActualFreq);
 
 // ─── Modulation ──────────────────────────────────────────────────────────────
 
-modSrc = osc3Signal * (1 - modMix) + no.noise * modMix;
+// noiseSrc is also used in the Mixer below; Faust CSE-folds the signal so both
+// paths share the same generator instance (intentional — correlated noise).
+noiseSrc = select2(int(noiseType), no.noise, no.pink_noise);
+
+modSrc = osc3Signal * (1 - modMix) + noiseSrc * modMix;
 modSig = modSrc * modWheel;
 
 modFilterDepth = 2000;
@@ -116,7 +120,6 @@ osc2ModSig = selectWave(osc2Wave, osc2ModFreq);
 
 // ─── Mixer ────────────────────────────────────────────────────────────────────
 
-noiseSrc = select2(int(noiseType), no.noise, no.pink_noise);
 osc3Mix  = osc3Signal * osc3Level * (1 - osc3LfoMode);
 
 mixerOut = osc1ModSig * osc1Level
@@ -132,7 +135,8 @@ ampEnvOut          = en.adsr(ampAttack, ampDecay, ampSustain, effectiveAmpReleas
 
 // ─── Ladder Filter ────────────────────────────────────────────────────────────
 
-filterModHz = modSig * modToFilter * modFilterDepth;
+filterModHzRaw = modSig * modToFilter * modFilterDepth;
+filterModHz = filterModHzRaw : si.smooth(ba.tau2pole(0.005));
 cutoffMod   = max(20, min(20000,
                 cutoff
                 + keyTrack * (glideFreq - 261.63)

@@ -108,9 +108,13 @@
     </div>
     <div class="range-row">
       <span class="param-label">range</span>
-      <button class="step-btn" onclick={() => stepRange(3, -1)}>−</button>
+      <button class="step-btn" disabled={osc3LfoMode === 1} onclick={() => stepRange(3, -1)}
+        >−</button
+      >
       <span class="range-val">{osc3Range > 0 ? '+' : ''}{osc3Range}</span>
-      <button class="step-btn" onclick={() => stepRange(3, 1)}>+</button>
+      <button class="step-btn" disabled={osc3LfoMode === 1} onclick={() => stepRange(3, 1)}
+        >+</button
+      >
       <Knob
         label="detune"
         min={-100}
@@ -119,6 +123,7 @@
         scale="linear"
         unit="c"
         bipolar={true}
+        disabled={osc3LfoMode === 1}
         externalValue={midiState?.osc3Detune?.externalValue}
         learningMidi={midiState?.osc3Detune?.learningMidi ?? false}
         assignedCc={midiState?.osc3Detune?.assignedCc ?? null}
@@ -232,6 +237,11 @@
     height: 20px;
     cursor: pointer;
     line-height: 1;
+  }
+
+  .step-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   .range-val {

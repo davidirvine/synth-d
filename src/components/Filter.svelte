@@ -49,16 +49,14 @@
       oncontextmenu={() => onknobcontextmenu?.('resonance')}
     />
     <div class="key-track-col">
-      <span class="key-track-label">Key Track</span>
       <div class="key-track-btn-wrap">
         <button
           class="toggle-btn"
           class:active={keyTrackOn === 1}
           onclick={toggleKeyTrack}
           aria-pressed={keyTrackOn === 1}
-          aria-label="Key Track"
         >
-          {keyTrackOn === 1 ? 'on' : 'off'}
+          KEY TRACK
         </button>
       </div>
     </div>
@@ -187,20 +185,13 @@
     flex-direction: column;
     align-items: center;
     gap: 2px;
+    padding-top: 14px; /* offset knob-label height (~12px) + knob-wrap gap (2px) */
   }
 
   .key-track-btn-wrap {
     height: var(--knob-body-size, 48px);
     display: flex;
     align-items: center;
-  }
-
-  .key-track-label {
-    font-size: 10px;
-    color: #e8dcc8;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    white-space: nowrap;
   }
 
   .toggle-btn {

@@ -217,6 +217,22 @@ describe('formatValue', () => {
     expect(formatValue(0.999, 's')).toBe('999 ms')
   })
 
+  it('formats sub-10 Hz with two decimal places', () => {
+    expect(formatValue(0.1, 'Hz')).toBe('0.10 Hz')
+  })
+
+  it('formats 9.9 Hz with two decimals (below 10 boundary)', () => {
+    expect(formatValue(9.9, 'Hz')).toBe('9.90 Hz')
+  })
+
+  it('formats 0.5 Hz with two decimals', () => {
+    expect(formatValue(0.5, 'Hz')).toBe('0.50 Hz')
+  })
+
+  it('formats 10 Hz as integer (boundary: 10 is not < 10)', () => {
+    expect(formatValue(10, 'Hz')).toBe('10 Hz')
+  })
+
   it('formats dimensionless values to two decimals', () => {
     expect(formatValue(0.75, '')).toBe('0.75')
   })

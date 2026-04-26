@@ -11,6 +11,10 @@ public/synth.js
 public/synth.json
 public/dsp-module.wasm
 public/dsp-meta.json
+public/index.html
+public/index.js
+public/create-node.js
+public/faustwasm/
 
 # Test output
 coverage/
@@ -34,6 +38,9 @@ pnpm-debug.log*
 .env
 .env.local
 .env.*.local
+
+# Claude Code runtime
+.claude/*.lock
 
 # macOS
 .DS_Store

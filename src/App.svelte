@@ -14,6 +14,10 @@
   import PowerButton from './components/PowerButton.svelte'
   import MidiStatus from './components/MidiStatus.svelte'
   import Scope from './components/Scope.svelte'
+  import EmptyPanel from './components/EmptyPanel.svelte'
+
+  const branch = __GIT_BRANCH__
+  const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
 
   // Knob param registry: param name → { min, max } for CC scaling
   const KNOB_PARAMS = {
@@ -229,7 +233,15 @@
 
 <div class="app">
   <header class="header">
-    <span class="title">SYNTH-D</span>
+    <div class="title-block">
+      <a
+        class="title"
+        href="https://github.com/davidirvine/synth-d"
+        target="_blank"
+        rel="noopener noreferrer">SYNTH-D</a
+      >
+      <span class="version-label">{versionLabel}</span>
+    </div>
     <div class="header-right">
       <MidiStatus
         status={midiStatus}
@@ -286,6 +298,7 @@
             />
           </div>
           <Scope {analyser} {powered} />
+          <EmptyPanel />
         </div>
       </div>
       <Keyboard
@@ -320,12 +333,27 @@
     gap: 12px;
   }
 
+  .title-block {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
   .title {
     font-family: monospace;
     font-size: 16px;
     font-weight: bold;
     color: #e8dcc8;
     letter-spacing: 0.2em;
+    text-decoration: none;
+  }
+
+  .version-label {
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
   main {

@@ -7,7 +7,7 @@ Provides the modulation section for the synthesizer, enabling LFO-style modulati
 ## Requirements
 
 ### Requirement: Modulation source mix between OSC 3 and noise
-The modulation section SHALL provide a mix knob that crossfades the modulation source signal between OSC 3 output (at 0) and white noise (at 1). The resulting modulation signal is used by all active routing destinations.
+The modulation section SHALL provide a mix knob that crossfades the modulation source signal between OSC 3 output (at 0) and noise (at 1). The noise used SHALL be the same type selected by the mixer noise-type control: white noise when noise type is 0, pink noise when noise type is 1. The resulting modulation signal is used by all active routing destinations.
 
 #### Scenario: Mix fully to OSC 3
 - **WHEN** mod mix is 0
@@ -15,11 +15,19 @@ The modulation section SHALL provide a mix knob that crossfades the modulation s
 
 #### Scenario: Mix fully to noise
 - **WHEN** mod mix is 1
-- **THEN** the modulation signal is white noise exclusively
+- **THEN** the modulation signal is noise exclusively
 
 #### Scenario: Mid-mix blends both sources
 - **WHEN** mod mix is 0.5
 - **THEN** the modulation signal is an equal blend of OSC 3 and noise
+
+#### Scenario: Noise type white — modulation uses white noise
+- **WHEN** mixer noise type is set to white and mod mix is non-zero
+- **THEN** the modulation noise component is white noise
+
+#### Scenario: Noise type pink — modulation uses pink noise
+- **WHEN** mixer noise type is set to pink and mod mix is non-zero
+- **THEN** the modulation noise component is pink noise
 
 ---
 
@@ -63,11 +71,15 @@ The modulation signal is scaled by the mod wheel value (0–1) before routing to
 ---
 
 ### Requirement: Virtual mod wheel on-screen control
-The modulation panel SHALL display a vertical slider functioning as a virtual mod wheel. Dragging it upward increases modulation depth from 0 to 1. The virtual wheel SHALL remain in sync with incoming MIDI CC 1 messages: when CC 1 is received, the on-screen slider updates to match.
+The modulation panel SHALL display a vertical slider functioning as a virtual mod wheel. Dragging it upward increases modulation depth from 0 to 1. The virtual wheel SHALL initialise to 0.5 (center position) at power-on. The virtual wheel SHALL remain in sync with incoming MIDI CC 1 messages: when CC 1 is received, the on-screen slider updates to match. The FAUST DSP `modWheel` hslider default SHALL also be 0.5 so that the DSP and Svelte state agree at power-on without requiring any user interaction.
 
 #### Scenario: Dragging virtual wheel increases modulation
 - **WHEN** user drags the virtual mod wheel slider upward
 - **THEN** modulation depth increases and audible modulation deepens if routing is active
+
+#### Scenario: Virtual wheel defaults to center at power-on
+- **WHEN** the synth starts with no saved state
+- **THEN** the virtual mod wheel is at 0.5 and the DSP modWheel parameter is also 0.5
 
 #### Scenario: MIDI CC 1 updates virtual wheel position
 - **WHEN** MIDI CC 1 message is received
