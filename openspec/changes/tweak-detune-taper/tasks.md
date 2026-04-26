@@ -1,6 +1,6 @@
 ## 1. Add fine-center scale to math.js
 
-- [ ] 1.1 Confirm `engine.js` stores detune state as raw cents (not normalized pos) to rule out preset-loading regression
+- [ ] 1.1 **BLOCKER** — Confirm `engine.js` stores detune state as raw cents (not normalized pos). If state is stored as normalized pos, halt and resolve the migration strategy before proceeding to 1.2 — switching the scale with pos-stored state silently corrupts any saved patches
 - [ ] 1.2 Add `'fine-center'` branch to `normalizedToValue` in `src/audio/math.js`
 - [ ] 1.3 Add `'fine-center'` branch to `valueToNormalized` in `src/audio/math.js`
 - [ ] 1.4 Run `npx prettier --write src/audio/math.js`

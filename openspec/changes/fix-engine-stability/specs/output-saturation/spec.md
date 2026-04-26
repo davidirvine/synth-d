@@ -3,9 +3,9 @@
 ### Requirement: Output stage soft saturation driven by master volume
 The master volume control SHALL drive a soft saturator such that at 60% master volume the signal passes through cleanly (no saturation), and above 60% the signal is progressively soft-clipped via `ma.tanh`. At 100% master volume the drive into the saturator SHALL be approximately 1.67× unity, producing noticeable harmonic saturation. Output level SHALL plateau as the saturator limits peaks, replicating the behaviour of a pushed analog output stage.
 
-#### Scenario: Below 60% master vol — no saturation
+#### Scenario: Below 60% master vol — approximately linear
 - **WHEN** master volume is at or below 0.6
-- **THEN** the output signal is clean with no soft clipping applied
+- **THEN** the output signal is approximately linear with no perceptible clipping distortion (`ma.tanh` is always in the signal path but operates near its linear region at drives ≤ 1.0)
 
 #### Scenario: Above 60% master vol — progressive saturation
 - **WHEN** master volume is above 0.6

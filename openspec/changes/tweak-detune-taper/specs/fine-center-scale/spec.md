@@ -5,7 +5,7 @@ The `normalizedToValue` and `valueToNormalized` functions in `math.js` SHALL sup
 
 For a bipolar range with `center = (max + min) / 2` and `range = (max − min) / 2`:
 - Forward: `value = center + sign(t) × t² × range` where `t = (pos − 0.5) × 2`
-- Inverse: `normT = sign(v) × sqrt(|v − center| / range)`, `pos = normT / 2 + 0.5`
+- Inverse: `normT = sign(v − center) × sqrt(|v − center| / range)`, `pos = normT / 2 + 0.5`
 
 The mapping SHALL be exactly invertible: `valueToNormalized(normalizedToValue(pos, min, max, 'fine-center'), min, max, 'fine-center') === pos` for all pos ∈ [0, 1].
 

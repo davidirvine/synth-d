@@ -21,8 +21,8 @@
 - [ ] 4.2 Implement 8-segment vertical LED strip rendered as CSS divs
 - [ ] 4.3 Define segment thresholds: segments 1–4 green (0–0.5), 5–6 yellow (0.5–0.85), 7 orange (0.85–1.0), 8 red clip (>1.0)
 - [ ] 4.4 Implement `requestAnimationFrame` polling loop that calls `getPeak()` and updates lit segment count each frame
-- [ ] 4.5 Implement clip latch: when peak > 1.0 set a `clipLit` flag and schedule a `setTimeout` of 1500ms to clear it; refreshing the timeout on each new clip event
-- [ ] 4.6 Stop polling and set all segments dark when `powered` is false
+- [ ] 4.5 Implement clip latch: when peak > 1.0 set a `clipLit` flag; store the `setTimeout` return value in a variable, call `clearTimeout` on any outstanding handle before scheduling a new 1500ms clip-clear callback
+- [ ] 4.6 In the rAF callback, check `powered` on every frame tick — if `powered` is false, set all segments dark without calling `getPeak()` and return immediately; also cancel the rAF handle in a reactive block that responds to `powered` going false mid-session
 - [ ] 4.7 Cancel `rAF` and any pending `setTimeout` in `onDestroy`
 - [ ] 4.8 Run `npx eslint --fix src/components/LevelMeter.svelte && npx prettier --write src/components/LevelMeter.svelte`
 
