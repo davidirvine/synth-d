@@ -12,9 +12,13 @@ export default [
     },
   },
   {
-    files: ['*.svelte'],
+    files: ['*.svelte', 'src/**/*.svelte'],
     languageOptions: {
       parser: svelteParser,
+      globals: {
+        __APP_VERSION__: 'readonly',
+        __GIT_BRANCH__: 'readonly',
+      },
     },
   },
   {
