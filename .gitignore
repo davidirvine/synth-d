@@ -35,6 +35,9 @@ pnpm-debug.log*
 .env.local
 .env.*.local
 
+# Claude Code runtime
+.claude/*.lock
+
 # macOS
 .DS_Store
 
