@@ -29,6 +29,50 @@ describe('Modulation — rendering', () => {
       expect(btn.classList.contains('active')).toBe(false)
     })
   })
+
+  it('mod mix knob value label is not visible', () => {
+    const { container } = render(Modulation)
+    const knob = container.querySelector('[data-testid="mod-mix-knob"]')
+    const valueSpan = knob.querySelector('.knob-value')
+    expect(valueSpan).not.toBeNull()
+    expect(valueSpan.classList.contains('invisible')).toBe(true)
+  })
+
+  it('mod mix knob renders LFO tick label', () => {
+    const { container } = render(Modulation)
+    const knob = container.querySelector('[data-testid="mod-mix-knob"]')
+    const tickLabels = Array.from(knob.querySelectorAll('.tick-label'))
+    expect(tickLabels.some((el) => el.textContent === 'LFO')).toBe(true)
+  })
+
+  it('mod mix knob renders NOISE tick label', () => {
+    const { container } = render(Modulation)
+    const knob = container.querySelector('[data-testid="mod-mix-knob"]')
+    const tickLabels = Array.from(knob.querySelectorAll('.tick-label'))
+    expect(tickLabels.some((el) => el.textContent === 'NOISE')).toBe(true)
+  })
+
+  it('mod mix knob arc highlight is present at minimum mix (value=0)', () => {
+    const { container } = render(Modulation)
+    const knob = container.querySelector('[data-testid="mod-mix-knob"]')
+    expect(knob.querySelector('.arc')).not.toBeNull()
+  })
+
+  it('mod mix knob arc highlight is absent at center mix (value=0.5)', () => {
+    const { container } = render(Modulation, {
+      props: { midiState: { modMix: { externalValue: 0.5 } } },
+    })
+    const knob = container.querySelector('[data-testid="mod-mix-knob"]')
+    expect(knob.querySelector('.arc')).toBeNull()
+  })
+
+  it('mod mix knob arc highlight is present at maximum mix (value=1)', () => {
+    const { container } = render(Modulation, {
+      props: { midiState: { modMix: { externalValue: 1 } } },
+    })
+    const knob = container.querySelector('[data-testid="mod-mix-knob"]')
+    expect(knob.querySelector('.arc')).not.toBeNull()
+  })
 })
 
 describe('Modulation — routing switches', () => {

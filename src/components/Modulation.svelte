@@ -64,18 +64,26 @@
 <div class="panel">
   <span class="panel-label">modulation</span>
   <div class="mod-layout">
-    <Knob
-      label="mix"
-      min={0}
-      max={1}
-      default={0}
-      scale="linear"
-      externalValue={midiState?.modMix?.externalValue}
-      learningMidi={midiState?.modMix?.learningMidi ?? false}
-      assignedCc={midiState?.modMix?.assignedCc ?? null}
-      onchange={(e) => onchange?.({ param: 'modMix', value: e.value })}
-      oncontextmenu={() => onknobcontextmenu?.('modMix')}
-    />
+    <div data-testid="mod-mix-knob">
+      <Knob
+        label="mix"
+        min={0}
+        max={1}
+        default={0}
+        scale="linear"
+        showValue={false}
+        bipolar={true}
+        ticks={[
+          { pos: 0, label: 'LFO' },
+          { pos: 1, label: 'NOISE' },
+        ]}
+        externalValue={midiState?.modMix?.externalValue}
+        learningMidi={midiState?.modMix?.learningMidi ?? false}
+        assignedCc={midiState?.modMix?.assignedCc ?? null}
+        onchange={(e) => onchange?.({ param: 'modMix', value: e.value })}
+        oncontextmenu={() => onknobcontextmenu?.('modMix')}
+      />
+    </div>
     <div class="routes">
       <button
         class="route-btn"
