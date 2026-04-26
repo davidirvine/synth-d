@@ -179,6 +179,11 @@ body {
     line-height: 1;
   }
 
+  .step-btn.svelte-19bkkl2:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
   .range-val.svelte-19bkkl2 {
     font-size: 11px;
     color: #e8dcc8;
@@ -309,20 +314,13 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 2px;
+    padding-top: 14px; /* offset knob-label height (~12px) + knob-wrap gap (2px) */
   }
 
   .key-track-btn-wrap.svelte-xeds7y {
     height: var(--knob-body-size, 48px);
     display: flex;
     align-items: center;
-  }
-
-  .key-track-label.svelte-xeds7y {
-    font-size: 10px;
-    color: #e8dcc8;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    white-space: nowrap;
   }
 
   .toggle-btn.svelte-xeds7y {
@@ -741,6 +739,12 @@ body {
     align-items: center;
   }
 
+  .panel.svelte-1phgu47 {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    padding: 10px 12px;
+  }
+
   .app.svelte-1n46o8q {
     --knob-body-size: 48px;
     display: flex;
@@ -763,12 +767,27 @@ body {
     gap: 12px;
   }
 
+  .title-block.svelte-1n46o8q {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
   .title.svelte-1n46o8q {
     font-family: monospace;
     font-size: 16px;
     font-weight: bold;
     color: #e8dcc8;
     letter-spacing: 0.2em;
+    text-decoration: none;
+  }
+
+  .version-label.svelte-1n46o8q {
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
   main.svelte-1n46o8q {

@@ -24,8 +24,8 @@
         "/usr/share/faust",
         "."
     ],
-    "size": 1159864,
-    "code": "uGH9BlQ8Hw==",
+    "size": 1159880,
+    "code": "SFIjB1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -254,7 +254,7 @@
                     "varname": "fHslider20",
                     "shortname": "ampAttack",
                     "address": "/synth/ampAttack",
-                    "index": 311676,
+                    "index": 311692,
                     "meta": [
                         {
                             "unit": "s"
@@ -271,7 +271,7 @@
                     "varname": "fHslider22",
                     "shortname": "ampDecay",
                     "address": "/synth/ampDecay",
-                    "index": 311684,
+                    "index": 311700,
                     "meta": [
                         {
                             "unit": "s"
@@ -288,7 +288,7 @@
                     "varname": "fHslider23",
                     "shortname": "ampRelease",
                     "address": "/synth/ampRelease",
-                    "index": 311692,
+                    "index": 311708,
                     "meta": [
                         {
                             "unit": "s"
@@ -305,7 +305,7 @@
                     "varname": "fHslider21",
                     "shortname": "ampSustain",
                     "address": "/synth/ampSustain",
-                    "index": 311680,
+                    "index": 311696,
                     "init": 0.7,
                     "min": 0,
                     "max": 1,
@@ -334,7 +334,7 @@
                     "varname": "fHslider25",
                     "shortname": "delayFeedback",
                     "address": "/synth/delayFeedback",
-                    "index": 311712,
+                    "index": 311728,
                     "init": 0.3,
                     "min": 0,
                     "max": 0.9,
@@ -346,7 +346,7 @@
                     "varname": "fHslider24",
                     "shortname": "delayMix",
                     "address": "/synth/delayMix",
-                    "index": 311696,
+                    "index": 311712,
                     "init": 0.3,
                     "min": 0,
                     "max": 1,
@@ -370,7 +370,7 @@
                     "varname": "fHslider26",
                     "shortname": "delayTime",
                     "address": "/synth/delayTime",
-                    "index": 311716,
+                    "index": 311732,
                     "meta": [
                         {
                             "unit": "s"
@@ -387,7 +387,7 @@
                     "varname": "fEntry14",
                     "shortname": "drLock",
                     "address": "/synth/drLock",
-                    "index": 311688,
+                    "index": 311704,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -396,10 +396,10 @@
                 {
                     "type": "hslider",
                     "label": "filterAttack",
-                    "varname": "fHslider14",
+                    "varname": "fHslider13",
                     "shortname": "filterAttack",
                     "address": "/synth/filterAttack",
-                    "index": 295152,
+                    "index": 295148,
                     "meta": [
                         {
                             "unit": "s"
@@ -413,10 +413,10 @@
                 {
                     "type": "hslider",
                     "label": "filterDecay",
-                    "varname": "fHslider16",
+                    "varname": "fHslider15",
                     "shortname": "filterDecay",
                     "address": "/synth/filterDecay",
-                    "index": 295180,
+                    "index": 295176,
                     "meta": [
                         {
                             "unit": "s"
@@ -430,10 +430,10 @@
                 {
                     "type": "hslider",
                     "label": "filterEnvAmt",
-                    "varname": "fHslider13",
+                    "varname": "fHslider12",
                     "shortname": "filterEnvAmt",
                     "address": "/synth/filterEnvAmt",
-                    "index": 295148,
+                    "index": 295144,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -447,10 +447,10 @@
                 {
                     "type": "hslider",
                     "label": "filterRelease",
-                    "varname": "fHslider17",
+                    "varname": "fHslider16",
                     "shortname": "filterRelease",
                     "address": "/synth/filterRelease",
-                    "index": 295184,
+                    "index": 295180,
                     "meta": [
                         {
                             "unit": "s"
@@ -464,10 +464,10 @@
                 {
                     "type": "hslider",
                     "label": "filterSustain",
-                    "varname": "fHslider15",
+                    "varname": "fHslider14",
                     "shortname": "filterSustain",
                     "address": "/synth/filterSustain",
-                    "index": 295176,
+                    "index": 295172,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -496,7 +496,7 @@
                     "varname": "fButton0",
                     "shortname": "gate",
                     "address": "/synth/gate",
-                    "index": 295156
+                    "index": 295152
                 },
                 {
                     "type": "nentry",
@@ -530,10 +530,10 @@
                 {
                     "type": "hslider",
                     "label": "keyTrack",
-                    "varname": "fHslider12",
+                    "varname": "fHslider17",
                     "shortname": "keyTrack",
                     "address": "/synth/keyTrack",
-                    "index": 295144,
+                    "index": 295212,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -569,7 +569,7 @@
                     "varname": "fEntry10",
                     "shortname": "modToFilter",
                     "address": "/synth/modToFilter",
-                    "index": 295196,
+                    "index": 295200,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -581,7 +581,7 @@
                     "varname": "fEntry13",
                     "shortname": "modToOsc1",
                     "address": "/synth/modToOsc1",
-                    "index": 295212,
+                    "index": 295228,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -606,7 +606,7 @@
                     "shortname": "modWheel",
                     "address": "/synth/modWheel",
                     "index": 278712,
-                    "init": 0,
+                    "init": 0.5,
                     "min": 0,
                     "max": 1,
                     "step": 0.001
@@ -641,7 +641,7 @@
                     "varname": "fHslider18",
                     "shortname": "osc1Level",
                     "address": "/synth/osc1Level",
-                    "index": 295200,
+                    "index": 295216,
                     "init": 0.75,
                     "min": 0,
                     "max": 1,
@@ -653,7 +653,7 @@
                     "varname": "fEntry12",
                     "shortname": "osc1Range",
                     "address": "/synth/osc1Range",
-                    "index": 295208,
+                    "index": 295224,
                     "init": 0,
                     "min": -2,
                     "max": 2,
@@ -665,7 +665,7 @@
                     "varname": "fEntry11",
                     "shortname": "osc1Wave",
                     "address": "/synth/osc1Wave",
-                    "index": 295204,
+                    "index": 295220,
                     "init": 0,
                     "min": 0,
                     "max": 5,
@@ -812,7 +812,7 @@
                     "varname": "fHslider19",
                     "shortname": "resonance",
                     "address": "/synth/resonance",
-                    "index": 311632,
+                    "index": 311648,
                     "init": 0.3,
                     "min": 0,
                     "max": 1,
@@ -824,7 +824,7 @@
                     "varname": "fHslider30",
                     "shortname": "reverbDecay",
                     "address": "/synth/reverbDecay",
-                    "index": 868852,
+                    "index": 868868,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -836,7 +836,7 @@
                     "varname": "fHslider27",
                     "shortname": "reverbMix",
                     "address": "/synth/reverbMix",
-                    "index": 868808,
+                    "index": 868824,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -860,7 +860,7 @@
                     "varname": "fHslider29",
                     "shortname": "reverbPreDelay",
                     "address": "/synth/reverbPreDelay",
-                    "index": 868840,
+                    "index": 868856,
                     "meta": [
                         {
                             "unit": "s"
@@ -877,7 +877,7 @@
                     "varname": "fHslider28",
                     "shortname": "reverbTone",
                     "address": "/synth/reverbTone",
-                    "index": 868828,
+                    "index": 868844,
                     "meta": [
                         {
                             "unit": "Hz"
