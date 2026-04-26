@@ -5308,11 +5308,11 @@ export default ${(_a = jsCode.match(jsCodeHead)) == null ? void 0 : _a[1]};
 		wasmBinary = await (await fetch(wasmFile)).arrayBuffer();
 	} else {
 		const { promises: fs } = await __vitePreload(async () => {
-			const { promises: fs } = await import("./__vite-browser-external-D2YKkGfI.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { promises: fs } = await import("./__vite-browser-external-Cm8ifU4u.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { promises: fs };
 		}, [], import.meta.url);
 		const { pathToFileURL } = await __vitePreload(async () => {
-			const { pathToFileURL } = await import("./__vite-browser-external-D2YKkGfI.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { pathToFileURL } = await import("./__vite-browser-external-Cm8ifU4u.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { pathToFileURL };
 		}, [], import.meta.url);
 		let jsCode = await fs.readFile(jsFile, { encoding: "utf-8" });
@@ -11336,7 +11336,7 @@ function AmpEnv($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Modulation.svelte
-var root$7 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><!> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div> <div class="wheel-container svelte-1ddpss2"><span class="param-label svelte-1ddpss2">wheel</span> <div class="wheel-track svelte-1ddpss2" role="slider" aria-label="mod wheel"><div class="wheel-fill svelte-1ddpss2"></div></div></div></div></div>`);
+var root$7 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div> <div class="wheel-container svelte-1ddpss2"><span class="param-label svelte-1ddpss2">wheel</span> <div class="wheel-track svelte-1ddpss2" role="slider" aria-label="mod wheel"><div class="wheel-fill svelte-1ddpss2"></div></div></div></div></div>`);
 function Modulation($$anchor, $$props) {
 	push($$props, true);
 	let midiState = prop($$props, "midiState", 19, () => ({}));
@@ -11397,7 +11397,8 @@ function Modulation($$anchor, $$props) {
 	}
 	var div = root$7();
 	var div_1 = sibling(child(div), 2);
-	var node = child(div_1);
+	var div_2 = child(div_1);
+	var node = child(div_2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.modMix?.externalValue);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.modMix?.learningMidi ?? false);
@@ -11408,6 +11409,15 @@ function Modulation($$anchor, $$props) {
 			max: 1,
 			default: 0,
 			scale: "linear",
+			showValue: false,
+			bipolar: true,
+			ticks: [{
+				pos: 0,
+				label: "LFO"
+			}, {
+				pos: 1,
+				label: "NOISE"
+			}],
 			get externalValue() {
 				return get($0);
 			},
@@ -11424,22 +11434,23 @@ function Modulation($$anchor, $$props) {
 			oncontextmenu: () => $$props.onknobcontextmenu?.("modMix")
 		});
 	}
-	var div_2 = sibling(node, 2);
-	var button = child(div_2);
+	reset(div_2);
+	var div_3 = sibling(div_2, 2);
+	var button = child(div_3);
 	let classes;
 	var button_1 = sibling(button, 2);
 	let classes_1;
 	var button_2 = sibling(button_1, 2);
 	let classes_2;
-	reset(div_2);
-	var div_3 = sibling(div_2, 2);
-	var div_4 = sibling(child(div_3), 2);
-	set_attribute(div_4, "tabindex", 0);
-	set_attribute(div_4, "aria-valuemin", 0);
-	set_attribute(div_4, "aria-valuemax", 1);
-	var div_5 = child(div_4);
-	reset(div_4);
 	reset(div_3);
+	var div_4 = sibling(div_3, 2);
+	var div_5 = sibling(child(div_4), 2);
+	set_attribute(div_5, "tabindex", 0);
+	set_attribute(div_5, "aria-valuemin", 0);
+	set_attribute(div_5, "aria-valuemax", 1);
+	var div_6 = child(div_5);
+	reset(div_5);
+	reset(div_4);
 	reset(div_1);
 	reset(div);
 	template_effect(() => {
@@ -11449,16 +11460,16 @@ function Modulation($$anchor, $$props) {
 		set_attribute(button_1, "aria-pressed", get(modToOsc2) === 1);
 		classes_2 = set_class(button_2, 1, "route-btn svelte-1ddpss2", null, classes_2, { active: get(modToFilter) === 1 });
 		set_attribute(button_2, "aria-pressed", get(modToFilter) === 1);
-		set_attribute(div_4, "aria-valuenow", get(modWheel));
-		set_style(div_5, `height: ${get(modWheel) * 100}%`);
+		set_attribute(div_5, "aria-valuenow", get(modWheel));
+		set_style(div_6, `height: ${get(modWheel) * 100}%`);
 	});
 	delegated("click", button, () => toggleRoute("modToOsc1"));
 	delegated("click", button_1, () => toggleRoute("modToOsc2"));
 	delegated("click", button_2, () => toggleRoute("modToFilter"));
-	delegated("pointerdown", div_4, onWheelPointerDown);
-	delegated("pointermove", div_4, onWheelPointerMove);
-	delegated("pointerup", div_4, onWheelPointerUp);
-	event("pointercancel", div_4, onWheelPointerUp);
+	delegated("pointerdown", div_5, onWheelPointerDown);
+	delegated("pointermove", div_5, onWheelPointerMove);
+	delegated("pointerup", div_5, onWheelPointerUp);
+	event("pointercancel", div_5, onWheelPointerUp);
 	append($$anchor, div);
 	pop();
 }
