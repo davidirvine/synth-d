@@ -108,7 +108,7 @@ describe('App — all six panels render', () => {
     expect(grid).not.toBeNull()
 
     const gridChildren = Array.from(grid.children)
-    expect(gridChildren).toHaveLength(5)
+    expect(gridChildren).toHaveLength(6)
     expect(gridChildren[2].textContent).toContain('reverb')
     expect(gridChildren[3].classList.contains('panel-row')).toBe(true)
     expect(gridChildren[4].textContent).toContain('OSCILLOSCOPE')
