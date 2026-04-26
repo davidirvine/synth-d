@@ -1,4 +1,4 @@
-import { t as __commonJSMin } from "./index-B4trWs64.js";
+import { t as __commonJSMin } from "./index-BpUEiXz0.js";
 //#region __vite-browser-external
 var require___vite_browser_external = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = {};

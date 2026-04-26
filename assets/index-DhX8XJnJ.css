@@ -750,6 +750,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0;
+    width: fit-content;
   }
 
   .header.svelte-1n46o8q {
