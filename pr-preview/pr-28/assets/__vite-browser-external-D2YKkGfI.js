@@ -1,4 +1,4 @@
-import { t as __commonJSMin } from "./index-CW-wympn.js";
+import { t as __commonJSMin } from "./index-CAU_ALIi.js";
 //#region __vite-browser-external
 var require___vite_browser_external = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = {};

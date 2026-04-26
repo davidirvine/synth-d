@@ -5308,11 +5308,11 @@ export default ${(_a = jsCode.match(jsCodeHead)) == null ? void 0 : _a[1]};
 		wasmBinary = await (await fetch(wasmFile)).arrayBuffer();
 	} else {
 		const { promises: fs } = await __vitePreload(async () => {
-			const { promises: fs } = await import("./__vite-browser-external-DRXJXatI.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { promises: fs } = await import("./__vite-browser-external-D2YKkGfI.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { promises: fs };
 		}, [], import.meta.url);
 		const { pathToFileURL } = await __vitePreload(async () => {
-			const { pathToFileURL } = await import("./__vite-browser-external-DRXJXatI.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { pathToFileURL } = await import("./__vite-browser-external-D2YKkGfI.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { pathToFileURL };
 		}, [], import.meta.url);
 		let jsCode = await fs.readFile(jsFile, { encoding: "utf-8" });
@@ -9761,11 +9761,23 @@ function mtof(midiNote) {
 function normalizedToValue(pos, min, max, scale) {
 	if (scale === "log") return min * Math.pow(max / min, pos);
 	if (scale === "log-reverse") return max + min - min * Math.pow(max / min, 1 - pos);
+	if (scale === "fine-center") {
+		const center = (max + min) / 2;
+		const range = (max - min) / 2;
+		const t = (pos - .5) * 2;
+		return center + Math.sign(t) * t * t * range;
+	}
 	return min + (max - min) * pos;
 }
 function valueToNormalized(val, min, max, scale) {
 	if (scale === "log") return Math.log(val / min) / Math.log(max / min);
 	if (scale === "log-reverse") return 1 - Math.log((max + min - val) / min) / Math.log(max / min);
+	if (scale === "fine-center") {
+		const center = (max + min) / 2;
+		const range = (max - min) / 2;
+		const v = val - center;
+		return Math.sign(v) * Math.sqrt(Math.abs(v) / range) / 2 + .5;
+	}
 	return (val - min) / (max - min);
 }
 function formatValue(val, unit) {
@@ -10371,7 +10383,7 @@ function Oscillator($$anchor, $$props) {
 			min: -100,
 			max: 100,
 			default: 0,
-			scale: "linear",
+			scale: "fine-center",
 			unit: "c",
 			bipolar: true,
 			get externalValue() {
@@ -10424,7 +10436,7 @@ function Oscillator($$anchor, $$props) {
 			min: -100,
 			max: 100,
 			default: 0,
-			scale: "linear",
+			scale: "fine-center",
 			unit: "c",
 			bipolar: true,
 			get disabled() {
