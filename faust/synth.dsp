@@ -143,7 +143,8 @@ cutoffMod   = max(20, min(20000,
                 + filterEnvOut * filterEnvAmt
                 + filterModHz));
 
-filteredSig = mixerOut : ve.moog_vcf(resonance, cutoffMod);
+resonanceSafe = min(0.97, resonance);
+filteredSig = mixerOut : ma.tanh : ve.moog_vcf(resonanceSafe, cutoffMod);
 
 // ─── Tape Delay ───────────────────────────────────────────────────────────────
 
@@ -176,6 +177,6 @@ reverbWet = de.fdelay(4801, reverbPreDelayS * ma.SR)
 // oscillators → mixer → ladder filter → VCA → master volume → tape delay → reverb → stereo split
 
 vcaOut    = filteredSig * ampEnvOut;
-masterOut = vcaOut * masterVol;
+masterOut = vcaOut * (masterVol / 0.6) : ma.tanh;
 reverbOut = delayStage <: (_ * (1 - reverbMixS), reverbWet * reverbMixS) :> _;
 process   = select2(int(reverbOn), delayStage, reverbOut) <: _, _;

@@ -151,3 +151,39 @@ describe('Modulation — CC 1 sync via midiState', () => {
     expect(fill).not.toBeNull()
   })
 })
+
+describe('Modulation — reset prop', () => {
+  it('incrementing reset fires onchange for all routing params with value 0', async () => {
+    const onchange = vi.fn()
+    const { rerender } = render(Modulation, { props: { onchange, reset: 0 } })
+    await rerender({ onchange, reset: 1 })
+    const params = onchange.mock.calls.map((c) => c[0].param)
+    expect(params).toContain('modToOsc1')
+    expect(params).toContain('modToOsc2')
+    expect(params).toContain('modToFilter')
+    onchange.mock.calls
+      .filter((c) => ['modToOsc1', 'modToOsc2', 'modToFilter'].includes(c[0].param))
+      .forEach((c) => expect(c[0].value).toBe(0))
+  })
+
+  it('incrementing reset twice fires both resets', async () => {
+    const onchange = vi.fn()
+    const { rerender } = render(Modulation, { props: { onchange, reset: 0 } })
+    await rerender({ onchange, reset: 1 })
+    await rerender({ onchange, reset: 2 })
+    const routingCalls = onchange.mock.calls.filter((c) =>
+      ['modToOsc1', 'modToOsc2', 'modToFilter'].includes(c[0].param)
+    )
+    expect(routingCalls.length).toBe(6)
+  })
+
+  it('buttons reflect reset state (all inactive after reset)', async () => {
+    const onchange = vi.fn()
+    const { container, rerender } = render(Modulation, { props: { onchange, reset: 0 } })
+    const btns = container.querySelectorAll('.route-btn')
+    await fireEvent.click(btns[0])
+    await fireEvent.click(btns[1])
+    await rerender({ onchange, reset: 1 })
+    btns.forEach((btn) => expect(btn.classList.contains('active')).toBe(false))
+  })
+})

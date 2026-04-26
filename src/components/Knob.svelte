@@ -1,4 +1,5 @@
 <script>
+  import { spring } from 'svelte/motion'
   import { normalizedToValue, valueToNormalized, formatValue } from '../audio/math.js'
 
   let {
@@ -95,20 +96,29 @@
   }
 
   let pos = $derived(valueToNormalized(value, min, max, scale))
-  let indicatorEnd = $derived(polarToXY(START_ANGLE + pos * SWEEP, R - 3))
+
+  // Spring for visual position only — logical value and onchange update immediately.
+  // Stiffness/damping tuned for ~400–600 ms sweep on a full-range step.
+  const springPos = spring(
+    valueToNormalized(initialValue !== undefined ? initialValue : defaultValue, min, max, scale),
+    { stiffness: 0.1, damping: 0.85 }
+  )
+
+  let indicatorEnd = $derived(polarToXY(START_ANGLE + $springPos * SWEEP, R - 3))
   let activePath = $derived(showArc ? (bipolar ? bipolarArcPath(pos) : arcPath(pos)) : null)
 
   let dragging = false
   let lastY = 0
   let shiftHeld = false
 
-  // Apply externalValue when not dragging
+  // Apply externalValue when not dragging — fires onchange immediately, then animates spring
   $effect(() => {
     if (externalValue !== undefined && !dragging) {
       const clamped = Math.max(min, Math.min(max, externalValue))
       if (clamped !== value) {
         value = clamped
         onchange?.({ value: clamped })
+        springPos.set(valueToNormalized(clamped, min, max, scale))
       }
     }
   })
@@ -129,6 +139,7 @@
     const newPos = Math.max(0, Math.min(1, pos + delta * sensitivity))
     const newValue = normalizedToValue(newPos, min, max, scale)
     value = newValue
+    springPos.set(newPos, { instant: true })
     onchange?.({ value: newValue })
   }
 
@@ -138,6 +149,7 @@
 
   function onDblClick() {
     value = defaultValue
+    springPos.set(valueToNormalized(defaultValue, min, max, scale), { instant: true })
     onchange?.({ value: defaultValue })
   }
 

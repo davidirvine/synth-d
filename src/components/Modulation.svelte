@@ -5,10 +5,12 @@
     onchange,
     midiState = {},
     onknobcontextmenu,
+    reset = 0,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
-    onknobcontextmenu?: (param: string) => void
+    onknobcontextmenu?: (param: string) => void,
+    reset?: number
   }} */ ($props())
 
   let modToOsc1 = $state(0)
@@ -22,6 +24,16 @@
     if (ext !== undefined) {
       modWheel = ext
     }
+  })
+
+  $effect(() => {
+    if (reset === 0) return
+    modToOsc1 = 0
+    modToOsc2 = 0
+    modToFilter = 0
+    onchange?.({ param: 'modToOsc1', value: 0 })
+    onchange?.({ param: 'modToOsc2', value: 0 })
+    onchange?.({ param: 'modToFilter', value: 0 })
   })
 
   function toggleRoute(param) {

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const mockNode = { connect: vi.fn(), setParamValue: vi.fn() }
+const mockNode = { connect: vi.fn(), disconnect: vi.fn(), setParamValue: vi.fn() }
 
 vi.mock('@grame/faustwasm', () => {
   function FaustMonoDspGenerator() {
@@ -17,7 +17,7 @@ function makeMockCtx() {
 
   return {
     resume: vi.fn().mockResolvedValue(undefined),
-    suspend: vi.fn().mockResolvedValue(undefined),
+    close: vi.fn().mockResolvedValue(undefined),
     destination: {},
     createAnalyser: vi.fn().mockReturnValue(analyserNode),
     analyserNode,
@@ -29,6 +29,9 @@ describe('powerOn / powerOff', () => {
 
   beforeEach(async () => {
     vi.resetModules()
+    mockNode.connect.mockClear()
+    mockNode.disconnect.mockClear()
+    mockNode.setParamValue.mockClear()
     mockCtx = makeMockCtx()
     vi.stubGlobal(
       'AudioContext',
@@ -45,7 +48,14 @@ describe('powerOn / powerOff', () => {
     expect(getAnalyser()).toBeNull()
   })
 
-  it('powerOn creates AudioContext and resumes on first call', async () => {
+  it('powerOn creates a new AudioContext on every call', async () => {
+    const { powerOn } = await import('./engine.js')
+    await powerOn()
+    await powerOn()
+    expect(AudioContext).toHaveBeenCalledTimes(2)
+  })
+
+  it('powerOn always initialises a fresh AudioContext and DSP node', async () => {
     const { powerOn } = await import('./engine.js')
     await powerOn()
     expect(AudioContext).toHaveBeenCalledOnce()
@@ -54,41 +64,51 @@ describe('powerOn / powerOff', () => {
     expect(mockCtx.analyserNode.fftSize).toBe(2048)
   })
 
-  it('powerOn resumes without creating a new AudioContext on subsequent calls', async () => {
-    const { powerOn } = await import('./engine.js')
-    await powerOn()
-    await powerOn()
-    expect(AudioContext).toHaveBeenCalledOnce()
-    expect(mockCtx.resume).toHaveBeenCalledTimes(2)
-  })
-
-  it('powerOff suspends the AudioContext', async () => {
+  it('powerOff disconnects the node and closes the AudioContext', async () => {
     const { powerOn, powerOff } = await import('./engine.js')
     await powerOn()
     await powerOff()
-    expect(mockCtx.suspend).toHaveBeenCalledOnce()
+    expect(mockNode.disconnect).toHaveBeenCalledOnce()
+    expect(mockCtx.close).toHaveBeenCalledOnce()
   })
 
   it('powerOff before powerOn is a no-op', async () => {
     const { powerOff } = await import('./engine.js')
     await expect(powerOff()).resolves.toBeUndefined()
-    expect(mockCtx.suspend).not.toHaveBeenCalled()
+    expect(mockCtx.close).not.toHaveBeenCalled()
   })
 
-  it('powerOn after powerOff resumes without re-initialising', async () => {
+  it('powerOff on an already-closed context (crash recovery) resolves and nulls refs', async () => {
+    const { powerOn, powerOff, getAnalyser } = await import('./engine.js')
+    await powerOn()
+    // Simulate a crashed AudioContext: close() resolves immediately even when already closed
+    mockCtx.close.mockResolvedValue(undefined)
+    await powerOff()
+    // Second powerOff should be a no-op (ctx is null after first teardown)
+    await expect(powerOff()).resolves.toBeUndefined()
+    expect(getAnalyser()).toBeNull()
+  })
+
+  it('powerOn after powerOff creates a fresh AudioContext', async () => {
     const { powerOn, powerOff } = await import('./engine.js')
     await powerOn()
     await powerOff()
     await powerOn()
-    expect(AudioContext).toHaveBeenCalledOnce()
-    expect(mockCtx.resume).toHaveBeenCalledTimes(2)
-    expect(mockCtx.suspend).toHaveBeenCalledOnce()
+    expect(AudioContext).toHaveBeenCalledTimes(2)
+    expect(mockCtx.close).toHaveBeenCalledOnce()
   })
 
   it('getAnalyser returns the analyser node after powerOn completes', async () => {
     const { powerOn, getAnalyser } = await import('./engine.js')
     await powerOn()
     expect(getAnalyser()).toBe(mockCtx.analyserNode)
+  })
+
+  it('getAnalyser returns null after powerOff', async () => {
+    const { powerOn, powerOff, getAnalyser } = await import('./engine.js')
+    await powerOn()
+    await powerOff()
+    expect(getAnalyser()).toBeNull()
   })
 
   it('connects the worklet node through the analyser to destination', async () => {

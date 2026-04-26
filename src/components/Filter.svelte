@@ -5,10 +5,12 @@
     onchange,
     midiState = {},
     onknobcontextmenu,
+    reset = 0,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
-    onknobcontextmenu?: (param: string) => void
+    onknobcontextmenu?: (param: string) => void,
+    reset?: number
   }} */ ($props())
 
   let keyTrackOn = $state(0)
@@ -17,6 +19,12 @@
     keyTrackOn = keyTrackOn === 0 ? 1 : 0
     onchange?.({ param: 'keyTrack', value: keyTrackOn })
   }
+
+  $effect(() => {
+    if (reset === 0) return
+    keyTrackOn = 0
+    onchange?.({ param: 'keyTrack', value: 0 })
+  })
 </script>
 
 <div class="panel">

@@ -5,10 +5,12 @@
     onchange,
     midiState = {},
     onknobcontextmenu,
+    reset = 0,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
-    onknobcontextmenu?: (param: string) => void
+    onknobcontextmenu?: (param: string) => void,
+    reset?: number
   }} */ ($props())
 
   let noiseType = $state(0)
@@ -18,6 +20,12 @@
     noiseType = t
     onchange?.({ param: 'noiseType', value: noiseType })
   }
+
+  $effect(() => {
+    if (reset === 0) return
+    noiseType = 0
+    onchange?.({ param: 'noiseType', value: 0 })
+  })
 </script>
 
 <div class="panel">

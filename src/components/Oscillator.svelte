@@ -5,10 +5,12 @@
     onchange,
     midiState = {},
     onknobcontextmenu,
+    reset = 0,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
-    onknobcontextmenu?: (param: string) => void
+    onknobcontextmenu?: (param: string) => void,
+    reset?: number
   }} */ ($props())
 
   const WAVEFORMS = ['tri', 'rev-saw', 'saw', 'sq', 'wide', 'narrow']
@@ -44,6 +46,24 @@
     osc3LfoMode = osc3LfoMode === 0 ? 1 : 0
     onchange?.({ param: 'osc3LfoMode', value: osc3LfoMode })
   }
+
+  $effect(() => {
+    if (reset === 0) return
+    osc1Wave = 0
+    osc2Wave = 0
+    osc3Wave = 0
+    osc1Range = 0
+    osc2Range = 0
+    osc3Range = 0
+    osc3LfoMode = 0
+    onchange?.({ param: 'osc1Wave', value: 0 })
+    onchange?.({ param: 'osc2Wave', value: 0 })
+    onchange?.({ param: 'osc3Wave', value: 0 })
+    onchange?.({ param: 'osc1Range', value: 0 })
+    onchange?.({ param: 'osc2Range', value: 0 })
+    onchange?.({ param: 'osc3Range', value: 0 })
+    onchange?.({ param: 'osc3LfoMode', value: 0 })
+  })
 </script>
 
 <div class="panel">
@@ -85,7 +105,7 @@
         min={-100}
         max={100}
         default={0}
-        scale="fine-center"
+        scale="linear"
         unit="c"
         bipolar={true}
         externalValue={midiState?.osc2Detune?.externalValue}
@@ -120,7 +140,7 @@
         min={-100}
         max={100}
         default={0}
-        scale="fine-center"
+        scale="linear"
         unit="c"
         bipolar={true}
         disabled={osc3LfoMode === 1}
