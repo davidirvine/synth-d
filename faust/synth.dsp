@@ -63,6 +63,9 @@ delayOn       = nentry("delayOn", 0, 0, 1, 1);
 delayTime     = hslider("delayTime [unit:s]", 0.3, 0.01, 2.0, 0.001);
 delayFeedback = hslider("delayFeedback", 0.3, 0, 0.9, 0.001);
 delayMix      = hslider("delayMix", 0.3, 0, 1, 0.001);
+delayModOn    = nentry("delayModOn", 0, 0, 1, 1);
+delayModRate  = hslider("delayModRate [unit:Hz]", 0.5, 0.1, 10, 0.01);
+delayModDepth = hslider("delayModDepth [unit:s]", 0, 0, 0.025, 0.0001);
 
 // Reverb
 reverbOn       = nentry("reverbOn", 0, 0, 1, 1);
