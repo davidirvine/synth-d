@@ -116,17 +116,17 @@
       oncontextmenu={() => onknobcontextmenu?.('reverbMix')}
     />
     <Knob
-      label="LPF"
-      min={1000}
-      max={16000}
-      default={4000}
-      scale="log"
-      unit="Hz"
-      externalValue={midiState?.reverbTone?.externalValue}
-      learningMidi={midiState?.reverbTone?.learningMidi ?? false}
-      assignedCc={midiState?.reverbTone?.assignedCc ?? null}
-      onchange={(e) => onchange?.({ param: 'reverbTone', value: e.value })}
-      oncontextmenu={() => onknobcontextmenu?.('reverbTone')}
+      label="damp"
+      min={0}
+      max={1}
+      default={0.5}
+      scale="linear"
+      showValue={false}
+      externalValue={midiState?.reverbDamp?.externalValue}
+      learningMidi={midiState?.reverbDamp?.learningMidi ?? false}
+      assignedCc={midiState?.reverbDamp?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'reverbDamp', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('reverbDamp')}
     />
     <Knob
       label="decay"
@@ -216,13 +216,5 @@
     background: #1a2a1a;
     color: #20b040;
     border-color: #20b040;
-  }
-
-  /* Reserve fixed width for the LPF knob value (2nd child: mix + LPF).
-     Prevents layout shift when the displayed string changes between e.g. "1.0 kHz" and "16.0 kHz". */
-  .reverb-row :global(:nth-child(2) .knob-value) {
-    min-width: 5.5em;
-    display: inline-block;
-    text-align: center;
   }
 </style>
