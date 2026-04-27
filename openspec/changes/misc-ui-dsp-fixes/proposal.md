@@ -4,7 +4,7 @@ Five small independent bugs and polish issues have accumulated across the DSP an
 
 ## What Changes
 
-- **Pink noise silent**: When the noise type is switched to pink in the Mixer, no audio is produced. White noise works correctly. Root cause to be confirmed during implementation (likely a missing `noiseType` parameter in the initial DSP sync or a Faust `no.pink_noise` routing issue).
+- **Pink noise silent** *(investigated — no code change required)*: The `noiseType` parameter path `/synth/noiseType` is correctly routed through `setParam` to the DSP node; `no.pink_noise` compiles and plays correctly. Pink noise was verified to work as intended. No fix is needed.
 - **D/R lock defaults to off**: The Decay/Release lock switch in the Amp Envelope initialises to off. It should default to on so that decay and release move together out of the box.
 - **Max delay time doubled**: The delay time maximum is 1 second. Doubling it to 2 seconds requires updating the DSP hslider range, the UI knob max, and the App.svelte CC scaling registry. The AudioContext must also be explicitly locked to 48 kHz so that the existing `maxDelayLen = 96000` buffer (2 × 48 000 samples) is guaranteed to cover the full 2-second range at runtime.
 - **Oscillator waveshape switches not centred**: The three `.wave-row` button groups in the Oscillator panel sit left-aligned. They should be centred within the panel column.
@@ -18,8 +18,8 @@ None.
 
 ### Modified Capabilities
 
-- `mixer`: Pink noise selection must produce audible output identical in level to white noise at the same `noiseLevel` setting.
-- `dsp-engine`: AudioContext must be created at exactly 48 kHz; `setParam` must correctly route `noiseType` to the DSP node.
+- `mixer`: Pink noise selection produces audible output (verified working — no change required).
+- `dsp-engine`: AudioContext must be created at exactly 48 kHz; `setParam` correctly routes `noiseType` to the DSP node (verified — no change required).
 - `delay`: Delay time range extended from 0.01–1.0 s to 0.01–2.0 s.
 - `ad-envelope`: D/R lock initialises to on (locked) rather than off.
 - `knob`: Value label must have a stable fixed minimum width to prevent layout reflow on value change.
@@ -27,7 +27,7 @@ None.
 ## Impact
 
 - `faust/synth.dsp`: `delayTime` hslider max `1.0` → `2.0`
-- `src/audio/engine.js`: `AudioContext` constructor gains `{ sampleRate: 48000 }`; investigate pink noise `noiseType` routing
+- `src/audio/engine.js`: `AudioContext` constructor gains `{ sampleRate: 48000 }`
 - `src/App.svelte`: `delayTime` CC registry max `1.0` → `2.0`
 - `src/components/Effects.svelte`: `delayTime` knob `max={1.0}` → `max={2.0}`; remove scoped `.knob-value` min-width override
 - `src/components/AmpEnv.svelte`: `drLock` initial state and reset value `0` → `1`

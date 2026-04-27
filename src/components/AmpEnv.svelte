@@ -13,7 +13,7 @@
     reset?: number
   }} */ ($props())
 
-  let drLock = $state(0)
+  let drLock = $state(1)
   let decayValue = $state(0.5)
 
   function toggleDrLock() {
@@ -23,8 +23,8 @@
 
   $effect(() => {
     if (reset === 0) return
-    drLock = 0
-    onchange?.({ param: 'drLock', value: 0 })
+    drLock = 1
+    onchange?.({ param: 'drLock', value: 1 })
   })
 </script>
 

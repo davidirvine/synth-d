@@ -334,6 +334,38 @@ describe('Effects — midiState externalValue', () => {
   })
 })
 
+describe('Effects — delay time knob props', () => {
+  it('delay time knob defaults to 300 ms', () => {
+    const { container } = render(Effects)
+    const knobValues = container.querySelectorAll('.knob-value')
+    expect(knobValues[0].textContent).toBe('300 ms')
+  })
+
+  it('delay time knob accepts externalValue of 2.0 s (max = 2.0)', () => {
+    const midiState = {
+      delayTime: { externalValue: 2.0, learningMidi: false, assignedCc: null },
+      delayFeedback: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      delayMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbMix: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbTone: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbDecay: { externalValue: undefined, learningMidi: false, assignedCc: null },
+      reverbPreDelay: { externalValue: undefined, learningMidi: false, assignedCc: null },
+    }
+    const { container } = render(Effects, { props: { midiState } })
+    const knobValues = container.querySelectorAll('.knob-value')
+    expect(knobValues[0].textContent).toBe('2.00 s')
+  })
+
+  it('delay time knob double-click resets to 0.3 s default (linear scale, default unchanged)', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Effects, { props: { onchange } })
+    const hit = container.querySelectorAll('.knob-hit')[0]
+    await fireEvent.dblClick(hit)
+    const call = onchange.mock.calls.find((c) => c[0].param === 'delayTime')
+    expect(call[0].value).toBeCloseTo(0.3, 5)
+  })
+})
+
 describe('Effects — section-header restructure', () => {
   it('delay knob row contains exactly 3 knobs and no toggle button', () => {
     const { container } = render(Effects)
