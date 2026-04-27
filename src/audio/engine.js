@@ -10,7 +10,7 @@ let active = false
 let mixerPeakValue = 0
 
 export async function powerOn() {
-  ctx = new AudioContext()
+  ctx = new AudioContext({ sampleRate: 48000 })
   analyserNode = ctx.createAnalyser()
   analyserNode.fftSize = 2048
   // Expose for Playwright smoke tests
@@ -49,6 +49,7 @@ export async function powerOff() {
 
 export function setParam(name, value) {
   if (!node) return
+  if (!Number.isFinite(value)) return
   node.setParamValue(PARAM_PREFIX + name, value)
 }
 

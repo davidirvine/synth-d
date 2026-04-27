@@ -124,3 +124,37 @@ describe('powerOn / powerOff', () => {
     expect(mockCtx.analyserNode.connect).toHaveBeenCalledWith(mockCtx.destination)
   })
 })
+
+describe('setParam', () => {
+  let mockCtx
+
+  beforeEach(async () => {
+    vi.resetModules()
+    mockNode.setParamValue.mockClear()
+    mockCtx = makeMockCtx()
+    vi.stubGlobal(
+      'AudioContext',
+      vi.fn(function () {
+        return mockCtx
+      })
+    )
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ json: vi.fn().mockResolvedValue({}) }))
+    vi.stubGlobal('WebAssembly', { compileStreaming: vi.fn().mockResolvedValue({}) })
+  })
+
+  it.each([NaN, Infinity, -Infinity])('does not forward %s to setParamValue', async (value) => {
+    const { powerOn, setParam } = await import('./engine.js')
+    await powerOn()
+    mockNode.setParamValue.mockClear()
+    setParam('cutoff', value)
+    expect(mockNode.setParamValue).not.toHaveBeenCalled()
+  })
+
+  it('calls node.setParamValue with the correct path and value for a valid finite input', async () => {
+    const { powerOn, setParam } = await import('./engine.js')
+    await powerOn()
+    mockNode.setParamValue.mockClear()
+    setParam('cutoff', 440)
+    expect(mockNode.setParamValue).toHaveBeenCalledWith('/synth/cutoff', 440)
+  })
+})

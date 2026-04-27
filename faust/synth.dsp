@@ -139,14 +139,18 @@ ampEnvOut          = en.adsr(ampAttack, ampDecay, ampSustain, effectiveAmpReleas
 
 filterModHzRaw = modSig * modToFilter * modFilterDepth;
 filterModHz = filterModHzRaw : si.smooth(ba.tau2pole(0.005));
-cutoffMod   = max(20, min(20000,
+// 18 kHz: stability ceiling for ve.moog_vcf at resonance ≤ 0.97, SR = 48 kHz
+// (engine.js forces sampleRate: 48000; lower this ceiling if SR can be 44.1 kHz)
+cutoffMod   = max(20, min(18000,
                 cutoff
                 + keyTrack * (glideFreq - 261.63)
                 + filterEnvOut * filterEnvAmt
-                + filterModHz));
+                + filterModHz))
+              // smooth the fully-summed, clamped value — one slew-rate limit covers all modulation sources simultaneously
+              : si.smooth(ba.tau2pole(0.002));
 
-resonanceSafe = min(0.97, resonance);
-filteredSig = attach(mixerOut, mixerPeak) : ma.tanh : ve.moog_vcf(resonanceSafe, cutoffMod);
+resonanceSafe = min(0.7, resonance);
+filteredSig = attach(mixerOut, mixerPeak) : ma.tanh : ve.moog_vcf_2bn(resonanceSafe, cutoffMod) : ma.tanh; // tanh: soft-clip transient overload; also adds mild saturation at high levels (intentional, not redundant with the pre-filter tanh)
 
 // ─── Tape Delay ───────────────────────────────────────────────────────────────
 

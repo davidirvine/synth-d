@@ -1,5 +1,14 @@
 ## ADDED Requirements
 
+### Requirement: Final cutoff frequency signal is hard-clamped to 18 000 Hz
+
+The fully-summed `cutoffMod` value SHALL be clamped to a maximum of 18 000 Hz before the smoother and before `ve.moog_vcf`. This keeps the filter below its mathematical stability limit (`4·r·(g/(1+g))⁴ < 1`) for all resonance values up to the 0.97 cap at SR 48 kHz.
+
+#### Scenario: Total cutoff never reaches the VCF instability region
+
+- **WHEN** `cutoff`, `filterEnvAmt`, and key tracking combine to exceed 18 000 Hz
+- **THEN** the summed `cutoffMod` is clamped to 18 000 Hz and the filter remains stable
+
 ### Requirement: Final cutoff frequency signal is slew-rate limited before entering the VCF
 
 The fully-summed, clamped `cutoffMod` value — which includes base cutoff, key tracking, filter envelope contribution, and modulation — SHALL be passed through a one-pole IIR smoother with a time constant of approximately 2 ms before being supplied to `ve.moog_vcf`. This prevents discontinuous jumps in the cutoff coefficient from destabilising the filter's internal feedback state, regardless of whether the jump originates from the envelope, a MIDI CC sweep, key tracking, or any combination.
