@@ -217,4 +217,12 @@
     color: #20b040;
     border-color: #20b040;
   }
+
+  /* Reserve fixed width for the LPF knob value (2nd child: mix + LPF).
+     Prevents layout shift when the displayed string changes between e.g. "1.0 kHz" and "16.0 kHz". */
+  .reverb-row :global(:nth-child(2) .knob-value) {
+    min-width: 5.5em;
+    display: inline-block;
+    text-align: center;
+  }
 </style>
