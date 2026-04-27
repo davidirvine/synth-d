@@ -8,6 +8,7 @@
 ## 2. JS engine — setParam guard
 
 - [ ] 2.1 In `src/audio/engine.js`, add `if (!Number.isFinite(value)) return` at the top of `setParam` (after the `!node` guard)
+- [ ] 2.2 Run `npx eslint --fix src/audio/engine.js && npx prettier --write src/audio/engine.js`
 
 ## 3. Tests
 

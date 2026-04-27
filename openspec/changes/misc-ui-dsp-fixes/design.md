@@ -48,4 +48,4 @@ The Amp Envelope `reset()` function is called when the synth powers off. Changin
 
 ## Open Questions
 
-- What formatted string width should `.knob-value` `min-width` be set to? The existing Effects.svelte fix uses `5.5em`; a consistent value across all knobs needs visual verification during implementation.
+- ~~What formatted string width should `.knob-value` `min-width` be set to?~~ **Resolved**: Use `5.5em`, matching the existing scoped override in `Effects.svelte` that this global rule replaces. Visual verification during implementation remains recommended to confirm no label clipping on narrow knobs.
