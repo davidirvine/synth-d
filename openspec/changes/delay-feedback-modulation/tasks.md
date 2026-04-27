@@ -1,40 +1,40 @@
 ## 1. FAUST DSP — modulation parameters and LFO
 
-- [ ] 1.1 In `faust/synth.dsp`, add `delayModOn` (`nentry`, default 0), `delayModRate` (`hslider`, 0.1–10 Hz, default 0.5), and `delayModDepth` (`hslider`, 0–0.025 s, default 0) to the Delay parameter block
-- [ ] 1.2 In the Tape Delay section, compute smoothed variants: `delayModOnS`, `delayModRateS`, and `delayModDepthS` using `si.smoo`
-- [ ] 1.3 Compute `modLfo = os.osc(delayModRateS) * delayModDepthS * ma.SR * delayModOnS`
-- [ ] 1.4 Update the `tapeTime` expression to sum `modLfo` alongside the existing `wowLfo` term
-- [ ] 1.5 Validate the DSP compiles cleanly: `faust faust/synth.dsp -o /dev/null`
-- [ ] 1.6 Rebuild the WASM artefacts: `npm run faust:build`
+- [x] 1.1 In `faust/synth.dsp`, add `delayModOn` (`nentry`, default 0), `delayModRate` (`hslider`, 0.1–10 Hz, default 0.5), and `delayModDepth` (`hslider`, 0–0.025 s, default 0) to the Delay parameter block
+- [x] 1.2 In the Tape Delay section, compute smoothed variants: `delayModOnS`, `delayModRateS`, and `delayModDepthS` using `si.smoo`
+- [x] 1.3 Compute `modLfo = os.osc(delayModRateS) * delayModDepthS * ma.SR * delayModOnS`
+- [x] 1.4 Update the `tapeTime` expression to sum `modLfo` alongside the existing `wowLfo` term
+- [x] 1.5 Validate the DSP compiles cleanly: `faust faust/synth.dsp -o /dev/null`
+- [x] 1.6 Rebuild the WASM artefacts: `npm run faust:build`
 
 ## 2. Effects UI — MOD row with toggle, rate, and depth knobs
 
-- [ ] 2.1 In `src/components/Effects.svelte`, add `let delayModOn = $state(0)` alongside the existing toggle state variables
-- [ ] 2.2 Add a `toggleDelayMod` function that flips `delayModOn` and dispatches `{ param: 'delayModOn', value: delayModOn }`
-- [ ] 2.3 Add `delayModOn = 0` and the corresponding `onchange` dispatch to the reset `$effect`
-- [ ] 2.4 Below the existing delay `effects-row`, add a new `mod-row` div containing the MOD toggle button followed by the rate and depth `Knob` components
-- [ ] 2.5 MOD toggle: same style as `delayOn` toggle (amber active, grey inactive), label "on"/"off", `aria-pressed` reflects state
-- [ ] 2.6 Rate knob: label "rate", min 0.1, max 10, default 0.5, scale "log", unit "Hz"; wire `externalValue`, `learningMidi`, `assignedCc`, `onchange`, `oncontextmenu`
-- [ ] 2.7 Depth knob: label "depth", min 0, max 0.025, default 0, scale "linear", unit "s"; wire same props
-- [ ] 2.8 Run `npx eslint --fix src/components/Effects.svelte` then `npx prettier --write src/components/Effects.svelte`
+- [x] 2.1 In `src/components/Effects.svelte`, add `let delayModOn = $state(0)` alongside the existing toggle state variables
+- [x] 2.2 Add a `toggleDelayMod` function that flips `delayModOn` and dispatches `{ param: 'delayModOn', value: delayModOn }`
+- [x] 2.3 Add `delayModOn = 0` and the corresponding `onchange` dispatch to the reset `$effect`
+- [x] 2.4 Below the existing delay `effects-row`, add a new `mod-row` div containing the MOD toggle button followed by the rate and depth `Knob` components
+- [x] 2.5 MOD toggle: same style as `delayOn` toggle (amber active, grey inactive), label "on"/"off", `aria-pressed` reflects state
+- [x] 2.6 Rate knob: label "rate", min 0.1, max 10, default 0.5, scale "log", unit "Hz"; wire `externalValue`, `learningMidi`, `assignedCc`, `onchange`, `oncontextmenu`
+- [x] 2.7 Depth knob: label "depth", min 0, max 0.025, default 0, scale "linear", unit "s"; wire same props
+- [x] 2.8 Run `npx eslint --fix src/components/Effects.svelte` then `npx prettier --write src/components/Effects.svelte`
 
 ## 3. App wiring — params, defaults, MIDI state
 
-- [ ] 3.1 In `src/App.svelte`, add `delayModRate: { min: 0.1, max: 10 }` and `delayModDepth: { min: 0, max: 0.025 }` to `KNOB_PARAMS` (`delayModOn` is a toggle — do not add it)
-- [ ] 3.2 Add `delayModRate: 0.5` and `delayModDepth: 0` to `DEFAULTS`
-- [ ] 3.3 Add `'delayModRate'` and `'delayModDepth'` to the `effectsMidiState` `midiStateFor(...)` call
-- [ ] 3.4 Run `npx eslint --fix src/App.svelte` then `npx prettier --write src/App.svelte`
+- [x] 3.1 In `src/App.svelte`, add `delayModRate: { min: 0.1, max: 10 }` and `delayModDepth: { min: 0, max: 0.025 }` to `KNOB_PARAMS` (`delayModOn` is a toggle — do not add it)
+- [x] 3.2 Add `delayModRate: 0.5` and `delayModDepth: 0` to `DEFAULTS`
+- [x] 3.3 Add `'delayModRate'` and `'delayModDepth'` to the `effectsMidiState` `midiStateFor(...)` call
+- [x] 3.4 Run `npx eslint --fix src/App.svelte` then `npx prettier --write src/App.svelte`
 
 ## 4. Tests
 
-- [ ] 4.1 In `src/components/Effects.test.js`, add a test that the MOD toggle dispatches `{ param: 'delayModOn', value: 1 }` when clicked from off
-- [ ] 4.2 Add a test that the MOD toggle dispatches `{ param: 'delayModOn', value: 0 }` when clicked from on
-- [ ] 4.3 Add a test that the rate knob dispatches `{ param: 'delayModRate', value: ... }` on change
-- [ ] 4.4 Add a test that the depth knob dispatches `{ param: 'delayModDepth', value: ... }` on change
-- [ ] 4.5 Add a test that right-clicking the rate knob calls `onknobcontextmenu` with `'delayModRate'`
-- [ ] 4.6 Add a test that right-clicking the depth knob calls `onknobcontextmenu` with `'delayModDepth'`
-- [ ] 4.7 Add a test that `delayModOn` resets to 0 and dispatches when the reset counter increments
-- [ ] 4.8 Run `npx vitest run` and confirm all tests pass
+- [x] 4.1 In `src/components/Effects.test.js`, add a test that the MOD toggle dispatches `{ param: 'delayModOn', value: 1 }` when clicked from off
+- [x] 4.2 Add a test that the MOD toggle dispatches `{ param: 'delayModOn', value: 0 }` when clicked from on
+- [x] 4.3 Add a test that the rate knob dispatches `{ param: 'delayModRate', value: ... }` on change
+- [x] 4.4 Add a test that the depth knob dispatches `{ param: 'delayModDepth', value: ... }` on change
+- [x] 4.5 Add a test that right-clicking the rate knob calls `onknobcontextmenu` with `'delayModRate'`
+- [x] 4.6 Add a test that right-clicking the depth knob calls `onknobcontextmenu` with `'delayModDepth'`
+- [x] 4.7 Add a test that `delayModOn` resets to 0 and dispatches when the reset counter increments
+- [x] 4.8 Run `npx vitest run` and confirm all tests pass
 
 ## 5. Verification
 
