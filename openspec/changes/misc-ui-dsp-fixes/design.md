@@ -11,7 +11,7 @@ The codebase uses `@grame/faustwasm` to compile `synth.dsp` to WebAssembly at bu
 - D/R lock is on by default; reset() also returns it to on
 - Delay time range is 0.01–2.0 s across DSP, UI, and MIDI CC scaling
 - AudioContext is locked to 48 kHz so `maxDelayLen = 96000` safely covers the 2-second maximum
-- Oscillator waveshape button rows are horizontally centred within the panel
+- Oscillator waveshape button rows are horizontally centred within the panel (reverted — user prefers left-aligned)
 - All knob value labels have a stable minimum width; no layout reflow when displayed value changes width
 
 **Non-Goals:**
@@ -34,8 +34,8 @@ A scoped workaround already exists in `Effects.svelte` for the reverb LPF knob. 
 
 *Alternatives considered*: CSS container queries or `ch`-based width — over-engineered; a simple `em`-based `min-width` matches the existing pattern.
 
-### D3 — Pink noise investigation first
-The `noiseType` parameter is not in App.svelte's defaults map or CC registry (unlike every continuous parameter). The Mixer component manages it as internal state and fires `onchange` when the user clicks, which routes to `setParam`. Whether this is the root cause of the silent pink noise requires confirming during implementation by checking the Faust parameter path and verifying `setParam('noiseType', 1)` reaches the DSP. No architectural change is assumed until the root cause is known.
+### D3 — Pink noise investigation (resolved)
+The `noiseType` parameter path `/synth/noiseType` was verified correct; `setParam('noiseType', 1)` reaches the DSP node as expected. `no.pink_noise` compiles and produces audible output. Pink noise was found to be working correctly — no code change is required.
 
 ### D4 — D/R lock reset value
 The Amp Envelope `reset()` function is called when the synth powers off. Changing the reset value to `1` (locked) alongside the `$state(1)` initialisation ensures that power-cycle always returns the knob to the intended default.
@@ -44,7 +44,7 @@ The Amp Envelope `reset()` function is called when the synth powers off. Changin
 
 - **48 kHz lock may not match device hardware rate** → Browsers resample transparently; audible quality impact is negligible at 48 kHz. Safari and Chrome both support `{ sampleRate: 48000 }` on `AudioContext`.
 - **Global `.knob-value` min-width may clip very short labels on small knobs** → The value is set to match the widest expected formatted string for typical parameter ranges; visual regression testing will catch any clipping.
-- **Pink noise root cause unknown** → If the fix is deeper than a routing issue (e.g., a Faust library bug with `no.pink_noise`), the task may expand. The task is written to allow for investigation time before committing to a specific fix.
+- **Pink noise** → Investigated and confirmed working; no risk remains.
 
 ## Open Questions
 

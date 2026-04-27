@@ -60,7 +60,7 @@ modToFilter = nentry("modToFilter", 0, 0, 1, 1);
 
 // Delay
 delayOn       = nentry("delayOn", 0, 0, 1, 1);
-delayTime     = hslider("delayTime [unit:s]", 0.3, 0.01, 1.0, 0.001);
+delayTime     = hslider("delayTime [unit:s]", 0.3, 0.01, 2.0, 0.001);
 delayFeedback = hslider("delayFeedback", 0.3, 0, 0.9, 0.001);
 delayMix      = hslider("delayMix", 0.3, 0, 1, 0.001);
 

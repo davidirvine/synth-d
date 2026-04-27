@@ -51,7 +51,7 @@
     // Glide
     glideRate: { min: 0.001, max: 5 },
     // Delay — delayOn is intentionally excluded: it is a toggle, not a knob.
-    delayTime: { min: 0.01, max: 1.0 },
+    delayTime: { min: 0.01, max: 2.0 },
     delayFeedback: { min: 0, max: 0.9 },
     delayMix: { min: 0, max: 1 },
     // Reverb — reverbOn is intentionally excluded: it is a toggle, not a knob.

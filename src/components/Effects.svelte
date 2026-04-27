@@ -53,9 +53,9 @@
     <Knob
       label="time"
       min={0.01}
-      max={1.0}
+      max={2.0}
       default={0.3}
-      scale="log"
+      scale="linear"
       unit="s"
       externalValue={midiState?.delayTime?.externalValue}
       learningMidi={midiState?.delayTime?.learningMidi ?? false}
