@@ -14,7 +14,7 @@ The JS `setParam` function passes all values directly to the FAUST node without 
 
 **Goals:**
 
-- Prevent `ve.moog_vcf` from receiving discontinuous cutoff frequency jumps
+- Prevent audible zipper noise by limiting the rate of change of discontinuous cutoff parameter jumps
 - Catch any downstream NaN/Inf at the filter output before it reaches the VCA or effects chain
 - Block non-finite values at the `setParam` boundary regardless of origin
 
@@ -26,7 +26,28 @@ The JS `setParam` function passes all values directly to the FAUST node without 
 
 ## Decisions
 
-### Decision 1: Smooth `cutoffMod` after the clamp, not before
+### Decision 1a: Switch from `ve.moog_vcf` to `ve.moog_vcf_2bn`
+
+`ve.moog_vcf` (Julius O. Smith 1982 first-order approximation) uses a stage pole of `1 - 2πf/SR`. When `f > SR/π` the pole leaves `[-1, 1]` and the filter diverges unconditionally, producing Inf → NaN. The hard stability limits are:
+- 48 kHz → ~15 278 Hz
+- 44.1 kHz → ~14 036 Hz
+- 32 kHz → ~10 186 Hz (some mobile browsers)
+
+There is no safe static frequency ceiling that prevents crashes across all browser sample rates. Browser verification confirmed the crash with `filterEnvAmt = 10 000 Hz` after both the original 20 000 Hz ceiling and a revised 18 000 Hz ceiling — the 18 000 Hz ceiling is still above the 48 kHz stability limit.
+
+`ve.moog_vcf_2bn` (bilinear-transform implementation using protected normalized-ladder biquads) is unconditionally stable for any `f < SR/2` (Nyquist) and any `res < 1`. The crash cannot occur regardless of cutoff frequency or sample rate.
+
+**Resonance parameter equivalence:** per the FAUST docs, `moog_vcf(r, f) ≡ moog_vcf_2b(r⁴, f)` as SR → ∞. With the same resonance value (Option Y), `moog_vcf_2bn(0.7)` sounds equivalent to `moog_vcf(0.7^(1/4) ≈ 0.915)` — strong resonance, no self-oscillation.
+
+### Decision 1b: Lower `resonanceSafe` ceiling from 0.97 to 0.7
+
+With `ve.moog_vcf_2bn`, the same resonance knob value produces more pronounced resonance than the old `ve.moog_vcf` (bilinear transform is more accurate). Keeping the 0.97 ceiling would cause strong self-oscillation at maximum resonance. Lowering to 0.7 gives a maximum character equivalent to the old filter at ~0.915 — clearly resonant, sweepable, no self-oscillation.
+
+### Decision 1c: Keep `cutoffMod` ceiling at 18 000 Hz
+
+`ve.moog_vcf_2bn` is stable to Nyquist so the ceiling is no longer required for crash prevention. It is retained as an audible-range bound. At SR ≥ 44.1 kHz (the minimum for modern desktop browsers) the ceiling sits well below Nyquist (22.05 kHz). At SR = 32 kHz (some mobile browsers, where Nyquist = 16 kHz), 18 kHz exceeds Nyquist and the bilinear warp `g = tan(πf/SR)` approaches extreme values near Nyquist. If 32 kHz support becomes a requirement, the ceiling should be lowered to 15 000 Hz. This change targets SR ≥ 44.1 kHz environments.
+
+### Decision 1d: Smooth `cutoffMod` after the clamp, not before
 
 Smoothing is applied to the fully-summed, clamped `cutoffMod` value rather than to individual contributions (envelope, cutoff knob, key tracking). This ensures a single slew-rate limit covers all sources simultaneously with no duplication.
 
@@ -38,7 +59,7 @@ Smoothing is applied to the fully-summed, clamped `cutoffMod` value rather than 
 
 ### Decision 2: `ma.tanh` on filter output, not a hard clip
 
-`ma.tanh` is already used on the mixer output (before the filter) and on the master output. Applying it after `ve.moog_vcf` is consistent with the existing saturation strategy and handles any instability that escapes the smoother gracefully — including edge cases where the smoother itself could briefly produce unexpected values (e.g., if `cutoffMod` is already unstable when the smoother is first initialised).
+`ma.tanh` is already used on the mixer output (before the filter) and on the master output. Applying it after `ve.moog_vcf_2bn` is consistent with the existing saturation strategy and acts as an intentional soft-saturation stage for sonic character — not a stability fallback. `ve.moog_vcf_2bn` is unconditionally stable so no instability escapes the filter; the `tanh` here shapes the timbre in the same way as the pre-filter and master stages.
 
 **Alternatives considered:**
 - Hard clip (min/max) — would introduce harsh distortion if triggered; tanh is softer and sonically less objectionable
