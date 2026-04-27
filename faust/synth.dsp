@@ -162,6 +162,7 @@ wowLfo            = os.osc(0.5) * 0.003;
 delayModOnS       = delayModOn    : si.smoo;
 delayModRateS     = delayModRate  : si.smoo;
 delayModDepthS    = delayModDepth : si.smoo;
+modLfo            = os.osc(delayModRateS) * delayModDepthS * ma.SR * delayModOnS;
 tapeTime          = min(maxDelayLen - 1, max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR));
 delayFeedbackSafe = delayFeedback : max(0) : min(0.9);
 feedbackPath      = _ * delayFeedbackSafe : fi.lowpass(1, 6000) : ma.tanh;
