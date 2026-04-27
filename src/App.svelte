@@ -57,10 +57,12 @@
     modWheel: { min: 0, max: 1 },
     // Glide
     glideRate: { min: 0.001, max: 5 },
-    // Delay — delayOn is intentionally excluded: it is a toggle, not a knob.
+    // Delay — delayOn and delayModOn are intentionally excluded: they are toggles, not knobs.
     delayTime: { min: 0.01, max: 2.0 },
     delayFeedback: { min: 0, max: 0.9 },
     delayMix: { min: 0, max: 1 },
+    delayModRate: { min: 0.1, max: 10 },
+    delayModDepth: { min: 0, max: 0.025 },
     // Reverb — reverbOn is intentionally excluded: it is a toggle, not a knob.
     reverbMix: { min: 0, max: 1 },
     reverbDecay: { min: 0.01, max: 1 },
@@ -107,6 +109,8 @@
     delayTime: 0.3,
     delayFeedback: 0.3,
     delayMix: 0.3,
+    delayModRate: 0.5,
+    delayModDepth: 0,
     // Reverb
     reverbMix: 0.5,
     reverbDamp: 0.5,
@@ -280,7 +284,9 @@
       'reverbPreDelay',
       'delayTime',
       'delayFeedback',
-      'delayMix'
+      'delayMix',
+      'delayModRate',
+      'delayModDepth'
     )
   )
 </script>
