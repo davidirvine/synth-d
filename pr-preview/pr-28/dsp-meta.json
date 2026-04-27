@@ -24,8 +24,8 @@
         "/usr/share/faust",
         "."
     ],
-    "size": 1159884,
-    "code": "GLwzB1Q8Hw==",
+    "size": 1159888,
+    "code": "gM6ZB1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -73,6 +73,15 @@
         },
         {
             "filters.lib/allpass_comb:license": "MIT-style STK-4.3 license"
+        },
+        {
+            "filters.lib/allpassnnlt:author": "Julius O. Smith III"
+        },
+        {
+            "filters.lib/allpassnnlt:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+        },
+        {
+            "filters.lib/allpassnnlt:license": "MIT-style STK-4.3 license"
         },
         {
             "filters.lib/dcblocker:author": "Julius O. Smith III"
@@ -145,6 +154,15 @@
         },
         {
             "filters.lib/tf1s:license": "MIT-style STK-4.3 license"
+        },
+        {
+            "filters.lib/tf2np:author": "Julius O. Smith III"
+        },
+        {
+            "filters.lib/tf2np:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+        },
+        {
+            "filters.lib/tf2np:license": "MIT-style STK-4.3 license"
         },
         {
             "filters.lib/version": "1.7.1"
@@ -228,13 +246,13 @@
             "signals.lib/version": "1.6.0"
         },
         {
-            "vaeffects.lib/moog_vcf:author": "Julius O. Smith III"
+            "vaeffects.lib/moog_vcf_2bn:author": "Julius O. Smith III"
         },
         {
-            "vaeffects.lib/moog_vcf:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+            "vaeffects.lib/moog_vcf_2bn:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
         },
         {
-            "vaeffects.lib/moog_vcf:license": "MIT-style STK-4.3 license"
+            "vaeffects.lib/moog_vcf_2bn:license": "MIT-style STK-4.3 license"
         },
         {
             "vaeffects.lib/name": "Faust Virtual Analog Filter Effect Library"
@@ -254,7 +272,7 @@
                     "varname": "fHslider20",
                     "shortname": "ampAttack",
                     "address": "/synth/ampAttack",
-                    "index": 311696,
+                    "index": 311704,
                     "meta": [
                         {
                             "unit": "s"
@@ -271,7 +289,7 @@
                     "varname": "fHslider22",
                     "shortname": "ampDecay",
                     "address": "/synth/ampDecay",
-                    "index": 311704,
+                    "index": 311712,
                     "meta": [
                         {
                             "unit": "s"
@@ -288,7 +306,7 @@
                     "varname": "fHslider23",
                     "shortname": "ampRelease",
                     "address": "/synth/ampRelease",
-                    "index": 311712,
+                    "index": 311720,
                     "meta": [
                         {
                             "unit": "s"
@@ -305,7 +323,7 @@
                     "varname": "fHslider21",
                     "shortname": "ampSustain",
                     "address": "/synth/ampSustain",
-                    "index": 311700,
+                    "index": 311708,
                     "init": 0.7,
                     "min": 0,
                     "max": 1,
@@ -314,10 +332,10 @@
                 {
                     "type": "hslider",
                     "label": "cutoff",
-                    "varname": "fHslider1",
+                    "varname": "fHslider13",
                     "shortname": "cutoff",
                     "address": "/synth/cutoff",
-                    "index": 262168,
+                    "index": 311588,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -334,7 +352,7 @@
                     "varname": "fHslider25",
                     "shortname": "delayFeedback",
                     "address": "/synth/delayFeedback",
-                    "index": 311732,
+                    "index": 311740,
                     "init": 0.3,
                     "min": 0,
                     "max": 0.9,
@@ -346,7 +364,7 @@
                     "varname": "fHslider24",
                     "shortname": "delayMix",
                     "address": "/synth/delayMix",
-                    "index": 311716,
+                    "index": 311724,
                     "init": 0.3,
                     "min": 0,
                     "max": 1,
@@ -370,7 +388,7 @@
                     "varname": "fHslider26",
                     "shortname": "delayTime",
                     "address": "/synth/delayTime",
-                    "index": 311736,
+                    "index": 311744,
                     "meta": [
                         {
                             "unit": "s"
@@ -387,7 +405,7 @@
                     "varname": "fEntry14",
                     "shortname": "drLock",
                     "address": "/synth/drLock",
-                    "index": 311708,
+                    "index": 311716,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -396,10 +414,10 @@
                 {
                     "type": "hslider",
                     "label": "filterAttack",
-                    "varname": "fHslider3",
+                    "varname": "fHslider15",
                     "shortname": "filterAttack",
                     "address": "/synth/filterAttack",
-                    "index": 262176,
+                    "index": 311596,
                     "meta": [
                         {
                             "unit": "s"
@@ -413,10 +431,10 @@
                 {
                     "type": "hslider",
                     "label": "filterDecay",
-                    "varname": "fHslider5",
+                    "varname": "fHslider17",
                     "shortname": "filterDecay",
                     "address": "/synth/filterDecay",
-                    "index": 262212,
+                    "index": 311624,
                     "meta": [
                         {
                             "unit": "s"
@@ -430,10 +448,10 @@
                 {
                     "type": "hslider",
                     "label": "filterEnvAmt",
-                    "varname": "fHslider2",
+                    "varname": "fHslider14",
                     "shortname": "filterEnvAmt",
                     "address": "/synth/filterEnvAmt",
-                    "index": 262172,
+                    "index": 311592,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -447,10 +465,10 @@
                 {
                     "type": "hslider",
                     "label": "filterRelease",
-                    "varname": "fHslider6",
+                    "varname": "fHslider18",
                     "shortname": "filterRelease",
                     "address": "/synth/filterRelease",
-                    "index": 262216,
+                    "index": 311628,
                     "meta": [
                         {
                             "unit": "s"
@@ -464,10 +482,10 @@
                 {
                     "type": "hslider",
                     "label": "filterSustain",
-                    "varname": "fHslider4",
+                    "varname": "fHslider16",
                     "shortname": "filterSustain",
                     "address": "/synth/filterSustain",
-                    "index": 262208,
+                    "index": 311620,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -476,10 +494,10 @@
                 {
                     "type": "hslider",
                     "label": "freq",
-                    "varname": "fHslider10",
+                    "varname": "fHslider2",
                     "shortname": "freq",
                     "address": "/synth/freq",
-                    "index": 262276,
+                    "index": 262188,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -496,15 +514,15 @@
                     "varname": "fButton0",
                     "shortname": "gate",
                     "address": "/synth/gate",
-                    "index": 262180
+                    "index": 311600
                 },
                 {
                     "type": "nentry",
                     "label": "glideOn",
-                    "varname": "fEntry6",
+                    "varname": "fEntry4",
                     "shortname": "glideOn",
                     "address": "/synth/glideOn",
-                    "index": 262280,
+                    "index": 262192,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -513,10 +531,10 @@
                 {
                     "type": "hslider",
                     "label": "glideRate",
-                    "varname": "fHslider11",
+                    "varname": "fHslider3",
                     "shortname": "glideRate",
                     "address": "/synth/glideRate",
-                    "index": 262284,
+                    "index": 262196,
                     "meta": [
                         {
                             "unit": "s"
@@ -530,10 +548,10 @@
                 {
                     "type": "hslider",
                     "label": "keyTrack",
-                    "varname": "fHslider13",
+                    "varname": "fHslider19",
                     "shortname": "keyTrack",
                     "address": "/synth/keyTrack",
-                    "index": 278768,
+                    "index": 311660,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -557,7 +575,7 @@
                     "varname": "fVbargraph0",
                     "shortname": "mixerPeak",
                     "address": "/synth/mixerPeak",
-                    "index": 311648,
+                    "index": 311568,
                     "meta": [
                         {
                             "unit": "linear"
@@ -569,10 +587,10 @@
                 {
                     "type": "hslider",
                     "label": "modMix",
-                    "varname": "fHslider8",
+                    "varname": "fHslider5",
                     "shortname": "modMix",
                     "address": "/synth/modMix",
-                    "index": 262244,
+                    "index": 262224,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -581,10 +599,10 @@
                 {
                     "type": "nentry",
                     "label": "modToFilter",
-                    "varname": "fEntry2",
+                    "varname": "fEntry13",
                     "shortname": "modToFilter",
                     "address": "/synth/modToFilter",
-                    "index": 262240,
+                    "index": 311648,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -593,10 +611,10 @@
                 {
                     "type": "nentry",
                     "label": "modToOsc1",
-                    "varname": "fEntry10",
+                    "varname": "fEntry5",
                     "shortname": "modToOsc1",
                     "address": "/synth/modToOsc1",
-                    "index": 278784,
+                    "index": 262216,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -605,10 +623,10 @@
                 {
                     "type": "nentry",
                     "label": "modToOsc2",
-                    "varname": "fEntry13",
+                    "varname": "fEntry12",
                     "shortname": "modToOsc2",
                     "address": "/synth/modToOsc2",
-                    "index": 295220,
+                    "index": 295140,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -617,10 +635,10 @@
                 {
                     "type": "hslider",
                     "label": "modWheel",
-                    "varname": "fHslider7",
+                    "varname": "fHslider4",
                     "shortname": "modWheel",
                     "address": "/synth/modWheel",
-                    "index": 262236,
+                    "index": 262220,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -629,10 +647,10 @@
                 {
                     "type": "hslider",
                     "label": "noiseLevel",
-                    "varname": "fHslider18",
+                    "varname": "fHslider11",
                     "shortname": "noiseLevel",
                     "address": "/synth/noiseLevel",
-                    "index": 311644,
+                    "index": 311564,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -641,10 +659,10 @@
                 {
                     "type": "nentry",
                     "label": "noiseType",
-                    "varname": "fEntry7",
+                    "varname": "fEntry9",
                     "shortname": "noiseType",
                     "address": "/synth/noiseType",
-                    "index": 278732,
+                    "index": 278680,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -653,10 +671,10 @@
                 {
                     "type": "hslider",
                     "label": "osc1Level",
-                    "varname": "fHslider14",
+                    "varname": "fHslider1",
                     "shortname": "osc1Level",
                     "address": "/synth/osc1Level",
-                    "index": 278772,
+                    "index": 262156,
                     "init": 0.75,
                     "min": 0,
                     "max": 1,
@@ -665,10 +683,10 @@
                 {
                     "type": "nentry",
                     "label": "osc1Range",
-                    "varname": "fEntry9",
+                    "varname": "fEntry3",
                     "shortname": "osc1Range",
                     "address": "/synth/osc1Range",
-                    "index": 278780,
+                    "index": 262184,
                     "init": 0,
                     "min": -2,
                     "max": 2,
@@ -677,10 +695,10 @@
                 {
                     "type": "nentry",
                     "label": "osc1Wave",
-                    "varname": "fEntry8",
+                    "varname": "fEntry2",
                     "shortname": "osc1Wave",
                     "address": "/synth/osc1Wave",
-                    "index": 278776,
+                    "index": 262160,
                     "init": 0,
                     "min": 0,
                     "max": 5,
@@ -689,10 +707,10 @@
                 {
                     "type": "hslider",
                     "label": "osc2Detune",
-                    "varname": "fHslider16",
+                    "varname": "fHslider9",
                     "shortname": "osc2Detune",
                     "address": "/synth/osc2Detune",
-                    "index": 295216,
+                    "index": 295136,
                     "meta": [
                         {
                             "unit": "cents"
@@ -706,10 +724,10 @@
                 {
                     "type": "hslider",
                     "label": "osc2Level",
-                    "varname": "fHslider15",
+                    "varname": "fHslider8",
                     "shortname": "osc2Level",
                     "address": "/synth/osc2Level",
-                    "index": 295204,
+                    "index": 295124,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -718,10 +736,10 @@
                 {
                     "type": "nentry",
                     "label": "osc2Range",
-                    "varname": "fEntry12",
+                    "varname": "fEntry11",
                     "shortname": "osc2Range",
                     "address": "/synth/osc2Range",
-                    "index": 295212,
+                    "index": 295132,
                     "init": 0,
                     "min": -2,
                     "max": 2,
@@ -730,10 +748,10 @@
                 {
                     "type": "nentry",
                     "label": "osc2Wave",
-                    "varname": "fEntry11",
+                    "varname": "fEntry10",
                     "shortname": "osc2Wave",
                     "address": "/synth/osc2Wave",
-                    "index": 295208,
+                    "index": 295128,
                     "init": 0,
                     "min": 0,
                     "max": 5,
@@ -742,10 +760,10 @@
                 {
                     "type": "hslider",
                     "label": "osc3Detune",
-                    "varname": "fHslider9",
+                    "varname": "fHslider6",
                     "shortname": "osc3Detune",
                     "address": "/synth/osc3Detune",
-                    "index": 262272,
+                    "index": 262240,
                     "meta": [
                         {
                             "unit": "cents"
@@ -759,10 +777,10 @@
                 {
                     "type": "hslider",
                     "label": "osc3Level",
-                    "varname": "fHslider17",
+                    "varname": "fHslider10",
                     "shortname": "osc3Level",
                     "address": "/synth/osc3Level",
-                    "index": 311640,
+                    "index": 311560,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -771,10 +789,10 @@
                 {
                     "type": "nentry",
                     "label": "osc3LfoMode",
-                    "varname": "fEntry4",
+                    "varname": "fEntry7",
                     "shortname": "osc3LfoMode",
                     "address": "/synth/osc3LfoMode",
-                    "index": 262264,
+                    "index": 262232,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -783,10 +801,10 @@
                 {
                     "type": "hslider",
                     "label": "osc3LfoRate",
-                    "varname": "fHslider12",
+                    "varname": "fHslider7",
                     "shortname": "osc3LfoRate",
                     "address": "/synth/osc3LfoRate",
-                    "index": 262296,
+                    "index": 262244,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -800,10 +818,10 @@
                 {
                     "type": "nentry",
                     "label": "osc3Range",
-                    "varname": "fEntry5",
+                    "varname": "fEntry8",
                     "shortname": "osc3Range",
                     "address": "/synth/osc3Range",
-                    "index": 262268,
+                    "index": 262236,
                     "init": 0,
                     "min": -2,
                     "max": 2,
@@ -812,10 +830,10 @@
                 {
                     "type": "nentry",
                     "label": "osc3Wave",
-                    "varname": "fEntry3",
+                    "varname": "fEntry6",
                     "shortname": "osc3Wave",
                     "address": "/synth/osc3Wave",
-                    "index": 262248,
+                    "index": 262228,
                     "init": 0,
                     "min": 0,
                     "max": 5,
@@ -824,10 +842,10 @@
                 {
                     "type": "hslider",
                     "label": "resonance",
-                    "varname": "fHslider19",
+                    "varname": "fHslider12",
                     "shortname": "resonance",
                     "address": "/synth/resonance",
-                    "index": 311652,
+                    "index": 311572,
                     "init": 0.3,
                     "min": 0,
                     "max": 1,
@@ -839,7 +857,7 @@
                     "varname": "fHslider30",
                     "shortname": "reverbDecay",
                     "address": "/synth/reverbDecay",
-                    "index": 868872,
+                    "index": 868876,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -851,7 +869,7 @@
                     "varname": "fHslider27",
                     "shortname": "reverbMix",
                     "address": "/synth/reverbMix",
-                    "index": 868828,
+                    "index": 868836,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -875,7 +893,7 @@
                     "varname": "fHslider29",
                     "shortname": "reverbPreDelay",
                     "address": "/synth/reverbPreDelay",
-                    "index": 868860,
+                    "index": 868864,
                     "meta": [
                         {
                             "unit": "s"
@@ -892,7 +910,7 @@
                     "varname": "fHslider28",
                     "shortname": "reverbTone",
                     "address": "/synth/reverbTone",
-                    "index": 868848,
+                    "index": 868852,
                     "meta": [
                         {
                             "unit": "Hz"

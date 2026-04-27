@@ -5516,11 +5516,11 @@ export default ${(_a = jsCode.match(jsCodeHead)) == null ? void 0 : _a[1]};
 		wasmBinary = await (await fetch(wasmFile)).arrayBuffer();
 	} else {
 		const { promises: fs } = await __vitePreload(async () => {
-			const { promises: fs } = await import("./__vite-browser-external-Dz25k-cA.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { promises: fs } = await import("./__vite-browser-external-sStYeo9a.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { promises: fs };
 		}, [], import.meta.url);
 		const { pathToFileURL } = await __vitePreload(async () => {
-			const { pathToFileURL } = await import("./__vite-browser-external-Dz25k-cA.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { pathToFileURL } = await import("./__vite-browser-external-sStYeo9a.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { pathToFileURL };
 		}, [], import.meta.url);
 		let jsCode = await fs.readFile(jsFile, { encoding: "utf-8" });
@@ -10039,7 +10039,7 @@ var node = null;
 var analyserNode = null;
 var mixerPeakValue = 0;
 async function powerOn() {
-	ctx = new AudioContext();
+	ctx = new AudioContext({ sampleRate: 48e3 });
 	analyserNode = ctx.createAnalyser();
 	analyserNode.fftSize = 2048;
 	if (typeof window !== "undefined") window.__audioCtx = ctx;
@@ -10072,6 +10072,7 @@ async function powerOff() {
 }
 function setParam(name, value) {
 	if (!node) return;
+	if (!Number.isFinite(value)) return;
 	node.setParamValue(PARAM_PREFIX + name, value);
 }
 function getAnalyser() {
