@@ -4,6 +4,7 @@ import App from './App.svelte'
 
 vi.mock('./audio/engine.js', () => ({
   getAnalyser: vi.fn().mockReturnValue(null),
+  getMixerPeak: vi.fn().mockReturnValue(0),
   powerOn: vi.fn().mockResolvedValue(undefined),
   powerOff: vi.fn().mockResolvedValue(undefined),
   setParam: vi.fn(),
@@ -63,8 +64,9 @@ describe('App — all six panels render', () => {
   })
 
   it('renders mixer panel label', () => {
-    const { getByText } = render(App)
+    const { getByText, container } = render(App)
     expect(getByText('mixer')).toBeTruthy()
+    expect(container.querySelector('.meter')).not.toBeNull()
   })
 
   it('renders filter panel label', () => {

@@ -8,6 +8,11 @@ describe('Mixer — rendering', () => {
     expect(getByText('mixer')).toBeTruthy()
   })
 
+  it('renders LevelMeter inside the panel-header row', () => {
+    const { container } = render(Mixer)
+    expect(container.querySelector('.panel-header .meter')).not.toBeNull()
+  })
+
   it('renders four knobs (osc1, osc2, osc3, noise)', () => {
     const { container } = render(Mixer)
     const svgs = container.querySelectorAll('svg')

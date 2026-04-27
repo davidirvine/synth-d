@@ -7,6 +7,7 @@ let ctx = null
 let node = null
 let analyserNode = null
 let active = false
+let mixerPeakValue = 0
 
 export async function powerOn() {
   ctx = new AudioContext()
@@ -26,12 +27,17 @@ export async function powerOn() {
     json: JSON.stringify(dspMeta),
     soundfiles: {},
   })
+  if (!node) throw new Error('Faust node creation failed')
+  node.setOutputParamHandler((path, value) => {
+    if (path === PARAM_PREFIX + 'mixerPeak') mixerPeakValue = value
+  })
   node.connect(analyserNode)
   analyserNode.connect(ctx.destination)
 }
 
 export async function powerOff() {
   if (!ctx) return
+  mixerPeakValue = 0
   if (node) {
     node.disconnect()
     node = null
@@ -63,4 +69,8 @@ export function noteOff() {
 
 export function getAnalyser() {
   return analyserNode
+}
+
+export function getMixerPeak() {
+  return mixerPeakValue
 }

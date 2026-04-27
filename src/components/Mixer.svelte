@@ -1,16 +1,21 @@
 <script>
   import Knob from './Knob.svelte'
+  import LevelMeter from './LevelMeter.svelte'
 
   let {
     onchange,
     midiState = {},
     onknobcontextmenu,
     reset = 0,
+    getPeak = () => 0,
+    powered = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number
+    reset?: number,
+    getPeak?: () => number,
+    powered?: boolean
   }} */ ($props())
 
   let noiseType = $state(0)
@@ -29,7 +34,10 @@
 </script>
 
 <div class="panel">
-  <span class="panel-label">mixer</span>
+  <div class="panel-header">
+    <span class="panel-label">mixer</span>
+    <LevelMeter {getPeak} {powered} />
+  </div>
   <div class="mixer-col">
     <Knob
       label="osc 1"
@@ -108,6 +116,13 @@
     color: #e8dcc8;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+  }
+
+  .panel-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
   }
 
   .mixer-col {
