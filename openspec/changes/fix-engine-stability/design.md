@@ -32,13 +32,9 @@ The real Minimoog ladder's transistors soft-clip the input before it enters the 
 
 `ve.moog_vcf` at `resonance=1.0` is a mathematical singularity. Capping at 0.97 allows audible self-oscillation while keeping the digital ladder numerically stable. The UI knob still goes to 1.0 — the cap is internal to the DSP, invisible to the user. Alternative: remap the resonance knob range — rejected because it would shift the feel of the control at all values.
 
-**Output saturation: pre-effects, using a renamed `saturatedOut` signal**
+**Output saturation: `vcaOut * (masterVol / 0.6) : ma.tanh`**
 
-The saturation sits between the VCA and the effects loop (delay, reverb). The VCA output is scaled and soft-clipped before entering the delay/reverb: `saturatedOut = vcaOut * (masterVol / 0.6) : ma.tanh`. The delay and reverb stages consume `saturatedOut` rather than a raw `masterOut`. This matches the signal flow of an analog desk where the output stage drive affects the signal going into the effects send.
-
-Placing saturation pre-effects means delay feedback compounds with saturation character — heavy delay at high master volume produces progressively warmer repeats. This is intentional and musically desirable. Alternative: post-effects saturation (effects loop on clean signal, saturate only the final output) — considered but rejected because it would require duplicating the volume scaling step and complicates the effects send/return chain.
-
-At 60% master vol the drive into `tanh` is 1.0 (unity — `tanh(1.0) ≈ 0.76`, a gentle gain reduction audible only on full-scale signals). At 100% vol the drive is 1.67 (noticeable warm clipping). The `tanh` output plateaus as drive increases — matching pushed-hard analog output stage behaviour. `ma.tanh` is always active; below 60% it operates near its linear region and produces no perceptible distortion. Alternative: blend saturated with dry to keep output growing linearly — rejected because the plateau is the desired character.
+At 60% master vol the drive into `tanh` is 1.0 (unity, no saturation). At 100% vol the drive is 1.67 (noticeable warm clipping). The `tanh` output is in ±1 so output level plateaus as drive increases — matching pushed-hard analog output stage behaviour. Alternative: blend saturated with dry to keep output growing linearly — rejected because the plateau is the desired character.
 
 **Output saturation is post-effects (post-delay and post-reverb)**
 

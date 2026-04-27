@@ -6,7 +6,7 @@ The quadratic bipolar taper works as follows. Let `t = (pos − 0.5) × 2` so t 
 
 - **Forward** (pos → value): `value = center + sign(t) × t² × range`
   where `center = (max + min) / 2`, `range = (max − min) / 2`
-- **Inverse** (value → pos): `normT = sign(v − center) × sqrt(|v − center| / range)`, `pos = normT / 2 + 0.5`
+- **Inverse** (value → pos): `normT = sign(v) × sqrt(|v| / range)`, `pos = normT / 2 + 0.5`
 
 Key value checkpoints for min=−100, max=100:
 

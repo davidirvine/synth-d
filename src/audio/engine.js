@@ -7,14 +7,8 @@ let ctx = null
 let node = null
 let analyserNode = null
 let active = false
-let initialized = false
 
 export async function powerOn() {
-  if (initialized) {
-    await ctx.resume()
-    return
-  }
-
   ctx = new AudioContext()
   analyserNode = ctx.createAnalyser()
   analyserNode.fftSize = 2048
@@ -34,12 +28,17 @@ export async function powerOn() {
   })
   node.connect(analyserNode)
   analyserNode.connect(ctx.destination)
-  initialized = true
 }
 
 export async function powerOff() {
   if (!ctx) return
-  await ctx.suspend()
+  if (node) {
+    node.disconnect()
+    node = null
+  }
+  await ctx.close()
+  ctx = null
+  analyserNode = null
 }
 
 export function setParam(name, value) {

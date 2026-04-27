@@ -210,3 +210,44 @@ describe('Oscillator — LFO mode', () => {
     expect(detuneWrap.classList.contains('disabled')).toBe(false)
   })
 })
+
+describe('Oscillator — reset prop', () => {
+  it('incrementing reset fires onchange for all wave and range params with value 0', async () => {
+    const onchange = vi.fn()
+    const { rerender } = render(Oscillator, { props: { onchange, reset: 0 } })
+    await rerender({ onchange, reset: 1 })
+    const params = onchange.mock.calls.map((c) => c[0].param)
+    ;[
+      'osc1Wave',
+      'osc2Wave',
+      'osc3Wave',
+      'osc1Range',
+      'osc2Range',
+      'osc3Range',
+      'osc3LfoMode',
+    ].forEach((p) => expect(params).toContain(p))
+    onchange.mock.calls.forEach((c) => expect(c[0].value).toBe(0))
+  })
+
+  it('wave buttons return to first (tri) after reset', async () => {
+    const onchange = vi.fn()
+    const { container, rerender } = render(Oscillator, { props: { onchange, reset: 0 } })
+    const sections = container.querySelectorAll('.osc-section')
+    await fireEvent.click(sections[0].querySelectorAll('.wave-btn')[2])
+    await rerender({ onchange, reset: 1 })
+    const osc1Btns = sections[0].querySelectorAll('.wave-btn')
+    expect(osc1Btns[0].classList.contains('active')).toBe(true)
+    expect(osc1Btns[2].classList.contains('active')).toBe(false)
+  })
+
+  it('incrementing reset twice fires both resets', async () => {
+    const onchange = vi.fn()
+    const { rerender } = render(Oscillator, { props: { onchange, reset: 0 } })
+    await rerender({ onchange, reset: 1 })
+    await rerender({ onchange, reset: 2 })
+    const waveCalls = onchange.mock.calls.filter((c) =>
+      ['osc1Wave', 'osc2Wave', 'osc3Wave'].includes(c[0].param)
+    )
+    expect(waveCalls.length).toBe(6)
+  })
+})

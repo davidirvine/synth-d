@@ -5,10 +5,12 @@
     onchange,
     midiState = {},
     onknobcontextmenu,
+    reset = 0,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
-    onknobcontextmenu?: (param: string) => void
+    onknobcontextmenu?: (param: string) => void,
+    reset?: number
   }} */ ($props())
 
   let glideOn = $state(0)
@@ -17,6 +19,12 @@
     glideOn = glideOn === 0 ? 1 : 0
     onchange?.({ param: 'glideOn', value: glideOn })
   }
+
+  $effect(() => {
+    if (reset === 0) return
+    glideOn = 0
+    onchange?.({ param: 'glideOn', value: 0 })
+  })
 </script>
 
 <div class="panel">

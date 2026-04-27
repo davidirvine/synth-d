@@ -12,12 +12,6 @@ export function normalizedToValue(pos, min, max, scale) {
   if (scale === 'log-reverse') {
     return max + min - min * Math.pow(max / min, 1 - pos)
   }
-  if (scale === 'fine-center') {
-    const center = (max + min) / 2
-    const range = (max - min) / 2
-    const t = (pos - 0.5) * 2
-    return center + Math.sign(t) * t * t * range
-  }
   return min + (max - min) * pos
 }
 
@@ -27,13 +21,6 @@ export function valueToNormalized(val, min, max, scale) {
   }
   if (scale === 'log-reverse') {
     return 1 - Math.log((max + min - val) / min) / Math.log(max / min)
-  }
-  if (scale === 'fine-center') {
-    const center = (max + min) / 2
-    const range = (max - min) / 2
-    const v = val - center
-    const normT = Math.sign(v) * Math.sqrt(Math.abs(v) / range)
-    return normT / 2 + 0.5
   }
   return (val - min) / (max - min)
 }

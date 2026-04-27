@@ -63,9 +63,54 @@
     masterVol: { min: 0, max: 1 },
   }
 
+  // Covers every continuous param that flows through ccExternalValues → Knob externalValue.
+  // keyTrack is intentionally excluded: it is a toggle button, not a Knob, so it receives
+  // no externalValue. It is reset to 0 by Filter.svelte's reset $effect instead.
+  const DEFAULTS = {
+    // Oscillators
+    osc2Detune: 0,
+    osc3Detune: 0,
+    osc3LfoRate: 1,
+    // Mixer
+    osc1Level: 0.75,
+    osc2Level: 0,
+    osc3Level: 0,
+    noiseLevel: 0,
+    // Filter
+    cutoff: 2000,
+    resonance: 0.3,
+    filterAttack: 0.01,
+    filterDecay: 0.3,
+    filterSustain: 0.5,
+    filterRelease: 0.3,
+    filterEnvAmt: 0,
+    // Amp envelope
+    ampAttack: 0.01,
+    ampDecay: 0.5,
+    ampSustain: 0.7,
+    ampRelease: 0.3,
+    // Master
+    masterVol: 0.75,
+    // Modulation
+    modMix: 0,
+    modWheel: 0.5,
+    // Glide
+    glideRate: 0.2,
+    // Delay
+    delayTime: 0.3,
+    delayFeedback: 0.3,
+    delayMix: 0.3,
+    // Reverb
+    reverbMix: 0.5,
+    reverbTone: 4000,
+    reverbDecay: 0.5,
+    reverbPreDelay: 0,
+  }
+
   let powered = $state(false)
   let loading = $state(false)
   let analyser = $state(null)
+  let resetCounter = $state(0)
 
   // MIDI state
   let midiStatus = $state(/** @type {'unavailable'|'connected'|'active'} */ ('unavailable'))
@@ -143,6 +188,8 @@
         await powerOn()
         analyser = getAnalyser()
         powered = true
+        ccExternalValues = { ...DEFAULTS }
+        resetCounter++
         await midiManager.connect()
       } catch (err) {
         console.error('Power on failed:', err)
@@ -263,38 +310,45 @@
           onchange={onParamChange}
           midiState={oscMidiState}
           onknobcontextmenu={onKnobContextMenu}
+          reset={resetCounter}
         />
         <Mixer
           onchange={onParamChange}
           midiState={mixerMidiState}
           onknobcontextmenu={onKnobContextMenu}
+          reset={resetCounter}
         />
         <div class="filter-output-grid">
           <Filter
             onchange={onParamChange}
             midiState={filterMidiState}
             onknobcontextmenu={onKnobContextMenu}
+            reset={resetCounter}
           />
           <AmpEnv
             onchange={onParamChange}
             midiState={ampEnvMidiState}
             onknobcontextmenu={onKnobContextMenu}
+            reset={resetCounter}
           />
           <Effects
             onchange={onParamChange}
             midiState={effectsMidiState}
             onknobcontextmenu={onKnobContextMenu}
+            reset={resetCounter}
           />
           <div class="panel-row">
             <Modulation
               onchange={onParamChange}
               midiState={modMidiState}
               onknobcontextmenu={onKnobContextMenu}
+              reset={resetCounter}
             />
             <Glide
               onchange={onParamChange}
               midiState={glideMidiState}
               onknobcontextmenu={onKnobContextMenu}
+              reset={resetCounter}
             />
           </div>
           <Scope {analyser} {powered} />
