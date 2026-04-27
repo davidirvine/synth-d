@@ -127,6 +127,8 @@ mixerOut = osc1ModSig * osc1Level
          + osc3Mix
          + noiseSrc * noiseLevel;
 
+mixerPeak = abs(mixerOut) : vbargraph("mixerPeak [unit:linear]", 0, 4);
+
 // ─── Envelopes ───────────────────────────────────────────────────────────────
 
 filterEnvOut       = en.adsr(filterAttack, filterDecay, filterSustain, filterRelease, gate);
@@ -144,7 +146,7 @@ cutoffMod   = max(20, min(20000,
                 + filterModHz));
 
 resonanceSafe = min(0.97, resonance);
-filteredSig = mixerOut : ma.tanh : ve.moog_vcf(resonanceSafe, cutoffMod);
+filteredSig = attach(mixerOut, mixerPeak) : ma.tanh : ve.moog_vcf(resonanceSafe, cutoffMod);
 
 // ─── Tape Delay ───────────────────────────────────────────────────────────────
 

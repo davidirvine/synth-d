@@ -22,9 +22,13 @@ The existing `AnalyserNode` taps the post-VCA, post-master output — it cannot 
 
 ## Decisions
 
-**FAUST `vbargraph` for pre-filter level — primary approach, with bargraph spike fallback**
+**FAUST `vbargraph` for pre-filter level — primary approach, confirmed during spike**
 
-`vbargraph("mixerPeak [unit:linear]", 0, 4, abs(mixerOut))` exposes the instantaneous absolute value of the pre-tanh mixer output. The ceiling of 4 matches the theoretical maximum (all four sources at unity). `node.getParamValue('/synth/mixerPeak')` reads it from JavaScript. If the `@grame/faustwasm` binding does not surface bargraph values via `getParamValue`, fall back to `hgroup`/`vgroup` parameter exposure or spike an alternative approach before committing to implementation.
+`abs(mixerOut) : vbargraph("mixerPeak [unit:linear]", 0, 4)` exposes the instantaneous absolute value of the pre-tanh mixer output. The ceiling of 4 matches the theoretical maximum (all four sources at unity). `node.getParamValue('/synth/mixerPeak')` reads it from JavaScript.
+
+Two spike findings:
+1. FAUST `vbargraph` takes the input signal via `:` piping, not as a 4th argument — `vbargraph(label, min, max, expr)` is not valid FAUST syntax.
+2. A standalone `mixerPeak = abs(mixerOut) : vbargraph(...)` definition is dead-code-eliminated by the FAUST compiler if `mixerPeak` is not connected to `process`. The `attach` primitive forces computation: `filteredSig = attach(mixerOut, mixerPeak) : ve.moog_vcf(...)`. The bargraph appears at address `/synth/mixerPeak` in `dsp-meta.json` and is readable via `node.getParamValue('/synth/mixerPeak')`.
 
 **Clip threshold at 1.0 (linear)**
 
@@ -48,7 +52,9 @@ The component calls the provided `getPeak` function on every animation frame whi
 
 **`getMixerPeak()` in engine.js**
 
-A thin wrapper: `return node ? node.getParamValue(PARAM_PREFIX + 'mixerPeak') : 0`. Returns 0 when the engine is off so the meter shows silence rather than an error.
+`node.getParamValue` reads `AudioParam` values (sliders/buttons only) and returns 0 for bargraph output parameters — confirmed during spike. Bargraph values are delivered from the AudioWorklet thread to the main thread via `node.setOutputParamHandler(handler)`, fired as `'out-param'` messages after each DSP `compute()` call.
+
+Implementation: add a module-level `let mixerPeakValue = 0`. In `powerOn()`, after creating the node, call `node.setOutputParamHandler((path, value) => { if (path === PARAM_PREFIX + 'mixerPeak') mixerPeakValue = value })`. `getMixerPeak()` returns `mixerPeakValue`. On `powerOff()`, reset `mixerPeakValue` to 0.
 
 **LevelMeter rendered as a vertical column of `<div>` elements**
 

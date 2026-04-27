@@ -36,10 +36,6 @@ The real Minimoog ladder's transistors soft-clip the input before it enters the 
 
 At 60% master vol the drive into `tanh` is 1.0 (unity, no saturation). At 100% vol the drive is 1.67 (noticeable warm clipping). The `tanh` output is in ±1 so output level plateaus as drive increases — matching pushed-hard analog output stage behaviour. Alternative: blend saturated with dry to keep output growing linearly — rejected because the plateau is the desired character.
 
-**Output saturation is post-effects (post-delay and post-reverb)**
-
-The `masterOut` signal, which is consumed by the delay and reverb stages in the existing DSP, is the unsaturated VCA output (`vcaOut * masterVol`). The saturation stage (`vcaOut * (masterVol / 0.6) : ma.tanh`) produces a separate output signal that does NOT feed the effects loop. Delay and reverb inputs MUST use the pre-saturation signal. Task 1.3 MUST rename the intermediate signal to make this explicit — the saturated output is a final output tap, not the signal passed to effects. This matches the real Minimoog, whose output transformer saturation is post-effects loop.
-
 **Full teardown on power-off, full init on power-on**
 
 `ctx.close()` permanently closes the `AudioContext`. The next power-on creates a fresh context, compiles the WASM, and builds the AudioWorklet node from scratch. This is the only path that guarantees recovery after a NaN crash. Startup latency (1–3 seconds) is acceptable per user confirmation.

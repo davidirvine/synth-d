@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const mockNode = { connect: vi.fn(), disconnect: vi.fn(), setParamValue: vi.fn() }
+const mockNode = {
+  connect: vi.fn(),
+  disconnect: vi.fn(),
+  setParamValue: vi.fn(),
+  setOutputParamHandler: vi.fn(),
+}
 
 vi.mock('@grame/faustwasm', () => {
   function FaustMonoDspGenerator() {
@@ -32,6 +37,7 @@ describe('powerOn / powerOff', () => {
     mockNode.connect.mockClear()
     mockNode.disconnect.mockClear()
     mockNode.setParamValue.mockClear()
+    mockNode.setOutputParamHandler.mockClear()
     mockCtx = makeMockCtx()
     vi.stubGlobal(
       'AudioContext',

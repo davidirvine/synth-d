@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
-  import { getAnalyser, powerOn, powerOff, setParam } from './audio/engine.js'
+  import { getAnalyser, getMixerPeak, powerOn, powerOff, setParam } from './audio/engine.js'
   import { MidiManager } from './audio/midi.js'
   import { MidiCcMap } from './audio/midiCcMap.js'
   import Oscillator from './components/Oscillator.svelte'
@@ -317,6 +317,8 @@
           midiState={mixerMidiState}
           onknobcontextmenu={onKnobContextMenu}
           reset={resetCounter}
+          getPeak={getMixerPeak}
+          {powered}
         />
         <div class="filter-output-grid">
           <Filter
