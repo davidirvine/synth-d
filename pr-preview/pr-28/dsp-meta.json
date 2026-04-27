@@ -25,7 +25,7 @@
         "."
     ],
     "size": 1159880,
-    "code": "SFIjB1Q8Hw==",
+    "code": "gOYhB1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -314,10 +314,10 @@
                 {
                     "type": "hslider",
                     "label": "cutoff",
-                    "varname": "fHslider11",
+                    "varname": "fHslider1",
                     "shortname": "cutoff",
                     "address": "/synth/cutoff",
-                    "index": 295140,
+                    "index": 262168,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -396,10 +396,10 @@
                 {
                     "type": "hslider",
                     "label": "filterAttack",
-                    "varname": "fHslider13",
+                    "varname": "fHslider3",
                     "shortname": "filterAttack",
                     "address": "/synth/filterAttack",
-                    "index": 295148,
+                    "index": 262176,
                     "meta": [
                         {
                             "unit": "s"
@@ -413,10 +413,10 @@
                 {
                     "type": "hslider",
                     "label": "filterDecay",
-                    "varname": "fHslider15",
+                    "varname": "fHslider5",
                     "shortname": "filterDecay",
                     "address": "/synth/filterDecay",
-                    "index": 295176,
+                    "index": 262212,
                     "meta": [
                         {
                             "unit": "s"
@@ -430,10 +430,10 @@
                 {
                     "type": "hslider",
                     "label": "filterEnvAmt",
-                    "varname": "fHslider12",
+                    "varname": "fHslider2",
                     "shortname": "filterEnvAmt",
                     "address": "/synth/filterEnvAmt",
-                    "index": 295144,
+                    "index": 262172,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -447,10 +447,10 @@
                 {
                     "type": "hslider",
                     "label": "filterRelease",
-                    "varname": "fHslider16",
+                    "varname": "fHslider6",
                     "shortname": "filterRelease",
                     "address": "/synth/filterRelease",
-                    "index": 295180,
+                    "index": 262216,
                     "meta": [
                         {
                             "unit": "s"
@@ -464,10 +464,10 @@
                 {
                     "type": "hslider",
                     "label": "filterSustain",
-                    "varname": "fHslider14",
+                    "varname": "fHslider4",
                     "shortname": "filterSustain",
                     "address": "/synth/filterSustain",
-                    "index": 295172,
+                    "index": 262208,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -476,10 +476,10 @@
                 {
                     "type": "hslider",
                     "label": "freq",
-                    "varname": "fHslider4",
+                    "varname": "fHslider10",
                     "shortname": "freq",
                     "address": "/synth/freq",
-                    "index": 262236,
+                    "index": 262276,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -496,7 +496,7 @@
                     "varname": "fButton0",
                     "shortname": "gate",
                     "address": "/synth/gate",
-                    "index": 295152
+                    "index": 262180
                 },
                 {
                     "type": "nentry",
@@ -504,7 +504,7 @@
                     "varname": "fEntry6",
                     "shortname": "glideOn",
                     "address": "/synth/glideOn",
-                    "index": 262240,
+                    "index": 262280,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -513,10 +513,10 @@
                 {
                     "type": "hslider",
                     "label": "glideRate",
-                    "varname": "fHslider5",
+                    "varname": "fHslider11",
                     "shortname": "glideRate",
                     "address": "/synth/glideRate",
-                    "index": 262244,
+                    "index": 262284,
                     "meta": [
                         {
                             "unit": "s"
@@ -530,10 +530,10 @@
                 {
                     "type": "hslider",
                     "label": "keyTrack",
-                    "varname": "fHslider17",
+                    "varname": "fHslider13",
                     "shortname": "keyTrack",
                     "address": "/synth/keyTrack",
-                    "index": 295212,
+                    "index": 278768,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -554,10 +554,10 @@
                 {
                     "type": "hslider",
                     "label": "modMix",
-                    "varname": "fHslider10",
+                    "varname": "fHslider8",
                     "shortname": "modMix",
                     "address": "/synth/modMix",
-                    "index": 278716,
+                    "index": 262244,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -566,10 +566,10 @@
                 {
                     "type": "nentry",
                     "label": "modToFilter",
-                    "varname": "fEntry10",
+                    "varname": "fEntry2",
                     "shortname": "modToFilter",
                     "address": "/synth/modToFilter",
-                    "index": 295200,
+                    "index": 262240,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -578,10 +578,10 @@
                 {
                     "type": "nentry",
                     "label": "modToOsc1",
-                    "varname": "fEntry13",
+                    "varname": "fEntry10",
                     "shortname": "modToOsc1",
                     "address": "/synth/modToOsc1",
-                    "index": 295228,
+                    "index": 278784,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -590,10 +590,10 @@
                 {
                     "type": "nentry",
                     "label": "modToOsc2",
-                    "varname": "fEntry9",
+                    "varname": "fEntry13",
                     "shortname": "modToOsc2",
                     "address": "/synth/modToOsc2",
-                    "index": 278708,
+                    "index": 295220,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -602,10 +602,10 @@
                 {
                     "type": "hslider",
                     "label": "modWheel",
-                    "varname": "fHslider9",
+                    "varname": "fHslider7",
                     "shortname": "modWheel",
                     "address": "/synth/modWheel",
-                    "index": 278712,
+                    "index": 262236,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -614,10 +614,10 @@
                 {
                     "type": "hslider",
                     "label": "noiseLevel",
-                    "varname": "fHslider1",
+                    "varname": "fHslider18",
                     "shortname": "noiseLevel",
                     "address": "/synth/noiseLevel",
-                    "index": 262156,
+                    "index": 311644,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -626,10 +626,10 @@
                 {
                     "type": "nentry",
                     "label": "noiseType",
-                    "varname": "fEntry2",
+                    "varname": "fEntry7",
                     "shortname": "noiseType",
                     "address": "/synth/noiseType",
-                    "index": 262160,
+                    "index": 278732,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -638,10 +638,10 @@
                 {
                     "type": "hslider",
                     "label": "osc1Level",
-                    "varname": "fHslider18",
+                    "varname": "fHslider14",
                     "shortname": "osc1Level",
                     "address": "/synth/osc1Level",
-                    "index": 295216,
+                    "index": 278772,
                     "init": 0.75,
                     "min": 0,
                     "max": 1,
@@ -650,10 +650,10 @@
                 {
                     "type": "nentry",
                     "label": "osc1Range",
-                    "varname": "fEntry12",
+                    "varname": "fEntry9",
                     "shortname": "osc1Range",
                     "address": "/synth/osc1Range",
-                    "index": 295224,
+                    "index": 278780,
                     "init": 0,
                     "min": -2,
                     "max": 2,
@@ -662,10 +662,10 @@
                 {
                     "type": "nentry",
                     "label": "osc1Wave",
-                    "varname": "fEntry11",
+                    "varname": "fEntry8",
                     "shortname": "osc1Wave",
                     "address": "/synth/osc1Wave",
-                    "index": 295220,
+                    "index": 278776,
                     "init": 0,
                     "min": 0,
                     "max": 5,
@@ -674,10 +674,10 @@
                 {
                     "type": "hslider",
                     "label": "osc2Detune",
-                    "varname": "fHslider8",
+                    "varname": "fHslider16",
                     "shortname": "osc2Detune",
                     "address": "/synth/osc2Detune",
-                    "index": 278704,
+                    "index": 295216,
                     "meta": [
                         {
                             "unit": "cents"
@@ -691,10 +691,10 @@
                 {
                     "type": "hslider",
                     "label": "osc2Level",
-                    "varname": "fHslider7",
+                    "varname": "fHslider15",
                     "shortname": "osc2Level",
                     "address": "/synth/osc2Level",
-                    "index": 278692,
+                    "index": 295204,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -703,10 +703,10 @@
                 {
                     "type": "nentry",
                     "label": "osc2Range",
-                    "varname": "fEntry8",
+                    "varname": "fEntry12",
                     "shortname": "osc2Range",
                     "address": "/synth/osc2Range",
-                    "index": 278700,
+                    "index": 295212,
                     "init": 0,
                     "min": -2,
                     "max": 2,
@@ -715,10 +715,10 @@
                 {
                     "type": "nentry",
                     "label": "osc2Wave",
-                    "varname": "fEntry7",
+                    "varname": "fEntry11",
                     "shortname": "osc2Wave",
                     "address": "/synth/osc2Wave",
-                    "index": 278696,
+                    "index": 295208,
                     "init": 0,
                     "min": 0,
                     "max": 5,
@@ -727,10 +727,10 @@
                 {
                     "type": "hslider",
                     "label": "osc3Detune",
-                    "varname": "fHslider3",
+                    "varname": "fHslider9",
                     "shortname": "osc3Detune",
                     "address": "/synth/osc3Detune",
-                    "index": 262232,
+                    "index": 262272,
                     "meta": [
                         {
                             "unit": "cents"
@@ -744,10 +744,10 @@
                 {
                     "type": "hslider",
                     "label": "osc3Level",
-                    "varname": "fHslider2",
+                    "varname": "fHslider17",
                     "shortname": "osc3Level",
                     "address": "/synth/osc3Level",
-                    "index": 262196,
+                    "index": 311640,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -756,10 +756,10 @@
                 {
                     "type": "nentry",
                     "label": "osc3LfoMode",
-                    "varname": "fEntry3",
+                    "varname": "fEntry4",
                     "shortname": "osc3LfoMode",
                     "address": "/synth/osc3LfoMode",
-                    "index": 262200,
+                    "index": 262264,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -768,10 +768,10 @@
                 {
                     "type": "hslider",
                     "label": "osc3LfoRate",
-                    "varname": "fHslider6",
+                    "varname": "fHslider12",
                     "shortname": "osc3LfoRate",
                     "address": "/synth/osc3LfoRate",
-                    "index": 262256,
+                    "index": 262296,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -788,7 +788,7 @@
                     "varname": "fEntry5",
                     "shortname": "osc3Range",
                     "address": "/synth/osc3Range",
-                    "index": 262228,
+                    "index": 262268,
                     "init": 0,
                     "min": -2,
                     "max": 2,
@@ -797,10 +797,10 @@
                 {
                     "type": "nentry",
                     "label": "osc3Wave",
-                    "varname": "fEntry4",
+                    "varname": "fEntry3",
                     "shortname": "osc3Wave",
                     "address": "/synth/osc3Wave",
-                    "index": 262204,
+                    "index": 262248,
                     "init": 0,
                     "min": 0,
                     "max": 5,
