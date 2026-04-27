@@ -28,5 +28,6 @@
 - [ ] 5.2 Update the `LPF knob defaults to 4000 Hz` test: rename to `damp knob defaults to 0.5` and assert the default value is `0.5` (not `4000`)
 - [ ] 5.3 Update any midiState fixture objects that reference `reverbTone` to use `reverbDamp` with an appropriate numeric value in range 0–1
 - [ ] 5.4 Add a test asserting the damp knob has `showValue={false}` (i.e. the knob value element is not visible / not rendered)
+- [ ] 5.4b Add a test asserting `midiCcMap` does not contain a `reverbTone` key (covering the spec scenario "reverbTone is absent from the CC map")
 - [ ] 5.5 Run `npx eslint --fix src/components/Effects.test.js && npx prettier --write src/components/Effects.test.js`
 - [ ] 5.6 Run `npx vitest run` and confirm all tests pass

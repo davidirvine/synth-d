@@ -36,7 +36,7 @@
 
 ## 5. Global Knob Value Label Fixed Width
 
-- [ ] 5.1 In `src/components/Knob.svelte`, add `min-width`, `display: inline-block`, and `text-align: center` to the `.knob-value` CSS rule; choose a `min-width` value (in `em`) wide enough to accommodate the widest expected formatted string across all knobs
+- [ ] 5.1 In `src/components/Knob.svelte`, add `min-width: 5.5em`, `display: inline-block`, and `text-align: center` to the `.knob-value` CSS rule (5.5em matches the existing scoped override in `Effects.svelte` that this global rule replaces)
 - [ ] 5.2 In `src/components/Effects.svelte`, remove the scoped `.reverb-row :global(:nth-child(2) .knob-value)` rule (and its comment) since it is now covered by the global fix — **note:** `reverb-damp-control` task 2.2 also deletes this rule; if that change has already landed, this step is a no-op
 - [ ] 5.3 Run `npx eslint --fix` and `npx prettier --write` on both modified files
 - [ ] 5.4 Run `npx vitest run` and confirm tests pass

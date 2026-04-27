@@ -51,8 +51,12 @@
 - [ ] 7.4 Add test: `clipLit` becomes true when `getPeak` returns a value above 1.0
 - [ ] 7.5 Add test: `clipLit` remains false when `getPeak` returns 1.0 or below
 - [ ] 7.6 Add test: latch expires — use `vi.useFakeTimers`, trigger a clip frame, advance timers by 1500 ms with no further clip frames, and assert `clipLit` returns to false
-- [ ] 7.7 Add test: `onDestroy` teardown — mount then destroy the component and assert `cancelAnimationFrame` and `clearTimeout` were each called at least once
+- [ ] 7.7 Add test: `onDestroy` teardown — mount with `powered=true`, allow at least one animation frame to fire (via `vi.runAllTimers()` or advancing fake timers), then destroy the component and assert both `cancelAnimationFrame` and `clearTimeout` were each called at least once
 - [ ] 7.8 In `src/components/Mixer.svelte` tests, update any `LevelMeter` references to `ClipLed`
+- [ ] 7.10 In `src/audio/engine.test.js`, add a test that `getOutputPeak()` returns `0` before `powerOn()` is called
+- [ ] 7.11 In `src/audio/engine.test.js`, add a test that `getOutputPeak()` returns the updated value when the output param handler fires with the path `/synth/outputPeak`
+- [ ] 7.12 In `src/audio/engine.test.js`, add a test that `getOutputPeak()` resets to `0` after `powerOff()` is called
+- [ ] 7.13 In `src/audio/engine.test.js`, add a test confirming the single `setOutputParamHandler` callback captures both the `mixerPeak` and `outputPeak` paths (i.e., one handler, two path branches)
 - [ ] 7.9 Run `npx vitest run` and confirm all tests pass
 
 ## 8. Verification
