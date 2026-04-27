@@ -25,7 +25,7 @@
         "."
     ],
     "size": 1159888,
-    "code": "gM6ZB1Q8Hw==",
+    "code": "qNKZB1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -396,7 +396,7 @@
                     ],
                     "init": 0.3,
                     "min": 0.01,
-                    "max": 1,
+                    "max": 2,
                     "step": 0.001
                 },
                 {
