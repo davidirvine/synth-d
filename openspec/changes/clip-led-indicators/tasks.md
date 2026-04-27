@@ -50,8 +50,10 @@
 - [ ] 7.3 Add test: `getPeak` is not called when `powered` is false
 - [ ] 7.4 Add test: `clipLit` becomes true when `getPeak` returns a value above 1.0
 - [ ] 7.5 Add test: `clipLit` remains false when `getPeak` returns 1.0 or below
-- [ ] 7.6 In `src/components/Mixer.svelte` tests, update any `LevelMeter` references to `ClipLed`
-- [ ] 7.7 Run `npx vitest run` and confirm all tests pass
+- [ ] 7.6 Add test: latch expires — use `vi.useFakeTimers`, trigger a clip frame, advance timers by 1500 ms with no further clip frames, and assert `clipLit` returns to false
+- [ ] 7.7 Add test: `onDestroy` teardown — mount then destroy the component and assert `cancelAnimationFrame` and `clearTimeout` were each called at least once
+- [ ] 7.8 In `src/components/Mixer.svelte` tests, update any `LevelMeter` references to `ClipLed`
+- [ ] 7.9 Run `npx vitest run` and confirm all tests pass
 
 ## 8. Verification
 

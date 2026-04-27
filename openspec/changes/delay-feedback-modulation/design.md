@@ -74,6 +74,8 @@ delayModDepthS = delayModDepth : si.smoo;
 modLfo = os.osc(delayModRateS) * (delayModDepthS * ma.SR);
 ```
 
+**Note**: This formula does not yet include the `delayModOnS` gate — that is added in Decision 5, which extends `modLfo` to `os.osc(delayModRateS) * delayModDepthS * ma.SR * delayModOnS`.
+
 **Note**: Smoothing the rate fed to `os.osc` introduces a momentary frequency glide when rate is changed. This is sonically acceptable — it mirrors the organic pitch glide heard when the Memory Man rate knob is turned.
 
 ### Decision 4: Modulation controls live on a dedicated second row below the existing delay knobs

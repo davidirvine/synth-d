@@ -3,6 +3,7 @@
 - [ ] 1.1 In `faust/synth.dsp`, replace `reverbTone = hslider(...)` with `reverbDamp = hslider("reverbDamp", 0.5, 0, 1, 0.001)` and replace `reverbToneS = reverbTone : si.smoo` with `reverbDampS = reverbDamp : si.smoo`
 - [ ] 1.2 In `faust/synth.dsp`, update `re.mono_freeverb(reverbDecayS, 0.5, 0, 0)` to `re.mono_freeverb(reverbDecayS, 0.5, reverbDampS, 0)` and remove the `fi.lowpass(1, reverbToneS)` line from the `reverbWet` chain
 - [ ] 1.3 Validate the updated DSP file compiles with `faust faust/synth.dsp -o /dev/null`
+- [ ] 1.4 Rebuild WASM artefacts: `npm run faust:build`
 
 ## 2. UI — Update the DAMP knob in Effects.svelte
 

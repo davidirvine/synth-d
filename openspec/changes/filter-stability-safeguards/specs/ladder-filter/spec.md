@@ -17,7 +17,7 @@ The fully-summed, clamped `cutoffMod` value — which includes base cutoff, key 
 #### Scenario: 2 ms smoother does not audibly degrade normal envelope sweeps
 
 - **WHEN** `filterEnvAmt` is set to 2000 Hz and `filterAttack` is 10 ms or longer
-- **THEN** the filter opens with no perceptible delay or rounding compared to the unsmoother case
+- **THEN** the filter opens with no perceptible delay or rounding compared to the unsmoothed case
 
 ### Requirement: Filter output is tanh-saturated
 
