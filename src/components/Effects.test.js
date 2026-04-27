@@ -90,7 +90,7 @@ describe('Effects — MOD toggle', () => {
     const { container } = render(Effects)
     const btn = container.querySelectorAll('.toggle-btn')[1]
     expect(btn.classList.contains('active')).toBe(false)
-    expect(btn.textContent.trim()).toBe('off')
+    expect(btn.textContent.trim()).toBe('MOD')
   })
 
   it('clicking MOD toggle dispatches delayModOn = 1', async () => {

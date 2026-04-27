@@ -103,7 +103,7 @@
       onclick={toggleDelayMod}
       aria-pressed={delayModOn === 1}
     >
-      {delayModOn === 1 ? 'on' : 'off'}
+      MOD
     </button>
     <Knob
       label="rate"

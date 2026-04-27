@@ -21,7 +21,6 @@
   import PowerButton from './components/PowerButton.svelte'
   import MidiStatus from './components/MidiStatus.svelte'
   import Scope from './components/Scope.svelte'
-  import EmptyPanel from './components/EmptyPanel.svelte'
 
   const branch = __GIT_BRANCH__
   const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
@@ -348,12 +347,14 @@
             {getOutputPeak}
             {powered}
           />
-          <Effects
-            onchange={onParamChange}
-            midiState={effectsMidiState}
-            onknobcontextmenu={onKnobContextMenu}
-            reset={resetCounter}
-          />
+          <div class="effects-col">
+            <Effects
+              onchange={onParamChange}
+              midiState={effectsMidiState}
+              onknobcontextmenu={onKnobContextMenu}
+              reset={resetCounter}
+            />
+          </div>
           <div class="panel-row">
             <Modulation
               onchange={onParamChange}
@@ -369,7 +370,6 @@
             />
           </div>
           <Scope {analyser} {powered} />
-          <EmptyPanel />
         </div>
       </div>
       <Keyboard
@@ -455,6 +455,12 @@
     grid-template-columns: auto auto auto;
     gap: 8px;
     justify-content: start;
+  }
+
+  .effects-col {
+    grid-row: span 2;
+    display: flex;
+    flex-direction: column;
   }
 
   .panel-row {
