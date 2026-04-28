@@ -15,7 +15,7 @@
     onknobcontextmenu?: (param: string) => void,
     reset?: number,
     getPeak?: () => number,
-    powered?: boolean
+    powered?: boolean,
   }} */ ($props())
 
   let noiseType = $state(0)

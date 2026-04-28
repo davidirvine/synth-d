@@ -10,7 +10,7 @@
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number
+    reset?: number,
   }} */ ($props())
 
   let delayOn = $state(0)

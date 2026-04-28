@@ -15,7 +15,7 @@
     onknobcontextmenu?: (param: string) => void,
     reset?: number,
     getOutputPeak?: () => number,
-    powered?: boolean
+    powered?: boolean,
   }} */ ($props())
 
   let drLock = $state(1)

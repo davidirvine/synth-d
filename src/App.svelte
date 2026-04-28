@@ -129,8 +129,18 @@
   let learningParam = $state(/** @type {string|null} */ (null))
   let midiActiveNotes = $state(0)
 
-  // Per-param external values driven by incoming CC messages
-  let ccExternalValues = $state(/** @type {Record<string,number|undefined>} */ ({}))
+  // Per-param external values driven by incoming CC messages.
+  // Initialised with random values so the power-on reset animation is visible on first load.
+  let ccExternalValues = $state(
+    /** @type {Record<string,number|undefined>} */ (
+      Object.fromEntries(
+        Object.keys(DEFAULTS).map((p) => {
+          const { min, max } = KNOB_PARAMS[p]
+          return [p, min + Math.random() * (max - min)]
+        })
+      )
+    )
+  )
 
   const midiCcMap = new MidiCcMap()
 
@@ -192,6 +202,7 @@
       await powerOff()
       powered = false
       midiStatus = 'unavailable'
+      ccExternalValues = {}
     } else {
       loading = true
       try {
