@@ -12,6 +12,7 @@
 - [x] 2.5 Add `springEnabled` prop to `Modulation.svelte` and pass it to every `Knob` it renders
 - [x] 2.6 Add `springEnabled` prop to `Glide.svelte` and pass it to every `Knob` it renders
 - [x] 2.7 Add `springEnabled` prop to `Effects.svelte` and pass it to every `Knob` it renders
+- [x] 2.8 Pass `springEnabled` to the `delayModRate` and `delayModDepth` knobs added to `Effects.svelte` by the delay-mod rebase commit
 
 ## 3. App.svelte Orchestration
 

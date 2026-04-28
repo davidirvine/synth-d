@@ -122,6 +122,7 @@
       scale="log"
       unit="Hz"
       disabled={delayOn === 0 || delayModOn === 0}
+      {springEnabled}
       externalValue={midiState?.delayModRate?.externalValue}
       learningMidi={midiState?.delayModRate?.learningMidi ?? false}
       assignedCc={midiState?.delayModRate?.assignedCc ?? null}
@@ -136,6 +137,7 @@
       scale="linear"
       unit="s"
       disabled={delayOn === 0 || delayModOn === 0}
+      {springEnabled}
       externalValue={midiState?.delayModDepth?.externalValue}
       learningMidi={midiState?.delayModDepth?.learningMidi ?? false}
       assignedCc={midiState?.delayModDepth?.assignedCc ?? null}
