@@ -5513,11 +5513,11 @@ export default ${(_a = jsCode.match(jsCodeHead)) == null ? void 0 : _a[1]};
 		wasmBinary = await (await fetch(wasmFile)).arrayBuffer();
 	} else {
 		const { promises: fs } = await __vitePreload(async () => {
-			const { promises: fs } = await import("./__vite-browser-external-CNokJHiW.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { promises: fs } = await import("./__vite-browser-external-DToeq-OY.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { promises: fs };
 		}, [], import.meta.url);
 		const { pathToFileURL } = await __vitePreload(async () => {
-			const { pathToFileURL } = await import("./__vite-browser-external-CNokJHiW.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { pathToFileURL } = await import("./__vite-browser-external-DToeq-OY.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { pathToFileURL };
 		}, [], import.meta.url);
 		let jsCode = await fs.readFile(jsFile, { encoding: "utf-8" });
@@ -10456,118 +10456,142 @@ function is_date(obj) {
 	return Object.prototype.toString.call(obj) === "[object Date]";
 }
 //#endregion
-//#region node_modules/svelte/src/motion/spring.js
-/** @import { Task } from '#client' */
-/** @import { TickContext } from './private.js' */
-/** @import { Spring as SpringStore, SpringOptions, SpringUpdateOptions } from './public.js' */
+//#region node_modules/svelte/src/easing/index.js
 /**
-* @template T
-* @param {TickContext} ctx
-* @param {T} last_value
-* @param {T} current_value
-* @param {T} target_value
-* @returns {T}
+* @param {number} t
+* @returns {number}
 */
-function tick_spring(ctx, last_value, current_value, target_value) {
-	if (typeof current_value === "number" || is_date(current_value)) {
-		const delta = target_value - current_value;
-		const velocity = (current_value - last_value) / (ctx.dt || 1 / 60);
-		const d = (velocity + (ctx.opts.stiffness * delta - ctx.opts.damping * velocity) * ctx.inv_mass) * ctx.dt;
-		if (Math.abs(d) < ctx.opts.precision && Math.abs(delta) < ctx.opts.precision) return target_value;
-		else {
-			ctx.settled = false;
-			return is_date(current_value) ? new Date(current_value.getTime() + d) : current_value + d;
-		}
-	} else if (Array.isArray(current_value)) return current_value.map((_, i) => tick_spring(ctx, last_value[i], current_value[i], target_value[i]));
-	else if (typeof current_value === "object") {
-		const next_value = {};
-		for (const k in current_value) next_value[k] = tick_spring(ctx, last_value[k], current_value[k], target_value[k]);
-		return next_value;
-	} else throw new Error(`Cannot spring ${typeof current_value} values`);
+function linear(t) {
+	return t;
 }
 /**
-* The spring function in Svelte creates a store whose value is animated, with a motion that simulates the behavior of a spring. This means when the value changes, instead of transitioning at a steady rate, it "bounces" like a spring would, depending on the physics parameters provided. This adds a level of realism to the transitions and can enhance the user experience.
-*
-* @deprecated Use [`Spring`](https://svelte.dev/docs/svelte/svelte-motion#Spring) instead
-* @template [T=any]
-* @param {T} [value]
-* @param {SpringOptions} [opts]
-* @returns {SpringStore<T>}
+* @param {number} t
+* @returns {number}
 */
-function spring(value, opts = {}) {
+function cubicOut(t) {
+	const f = t - 1;
+	return f * f * f + 1;
+}
+//#endregion
+//#region node_modules/svelte/src/motion/tweened.js
+/** @import { Task } from '../internal/client/types' */
+/** @import { Tweened, TweenOptions } from './public' */
+/**
+* @template T
+* @param {T} a
+* @param {T} b
+* @returns {(t: number) => T}
+*/
+function get_interpolator(a, b) {
+	if (a === b || a !== a) return () => a;
+	const type = typeof a;
+	if (type !== typeof b || Array.isArray(a) !== Array.isArray(b)) throw new Error("Cannot interpolate values of different type");
+	if (Array.isArray(a)) {
+		const arr = b.map((bi, i) => {
+			return get_interpolator(
+				/** @type {Array<any>} */
+				a[i],
+				bi
+			);
+		});
+		return (t) => arr.map((fn) => fn(t));
+	}
+	if (type === "object") {
+		if (!a || !b) throw new Error("Object cannot be null");
+		if (is_date(a) && is_date(b)) {
+			const an = a.getTime();
+			const delta = b.getTime() - an;
+			return (t) => new Date(an + t * delta);
+		}
+		const keys = Object.keys(b);
+		/** @type {Record<string, (t: number) => T>} */
+		const interpolators = {};
+		keys.forEach((key) => {
+			interpolators[key] = get_interpolator(a[key], b[key]);
+		});
+		return (t) => {
+			/** @type {Record<string, any>} */
+			const result = {};
+			keys.forEach((key) => {
+				result[key] = interpolators[key](t);
+			});
+			return result;
+		};
+	}
+	if (type === "number") {
+		const delta = b - a;
+		return (t) => a + t * delta;
+	}
+	return () => b;
+}
+/**
+* A tweened store in Svelte is a special type of store that provides smooth transitions between state values over time.
+*
+* @deprecated Use [`Tween`](https://svelte.dev/docs/svelte/svelte-motion#Tween) instead
+* @template T
+* @param {T} [value]
+* @param {TweenOptions<T>} [defaults]
+* @returns {Tweened<T>}
+*/
+function tweened(value, defaults = {}) {
 	const store = writable(value);
-	const { stiffness = .15, damping = .8, precision = .01 } = opts;
-	/** @type {number} */
-	let last_time;
-	/** @type {Task | null} */
+	/** @type {Task} */
 	let task;
-	/** @type {object} */
-	let current_token;
-	let last_value = value;
 	let target_value = value;
-	let inv_mass = 1;
-	let inv_mass_recovery_rate = 0;
-	let cancel_task = false;
 	/**
 	* @param {T} new_value
-	* @param {SpringUpdateOptions} opts
-	* @returns {Promise<void>}
+	* @param {TweenOptions<T>} [opts]
 	*/
-	function set(new_value, opts = {}) {
+	function set(new_value, opts) {
 		target_value = new_value;
-		const token = current_token = {};
-		if (value == null || opts.hard || spring.stiffness >= 1 && spring.damping >= 1) {
-			cancel_task = true;
-			last_time = raf.now();
-			last_value = new_value;
+		if (value == null) {
+			store.set(value = new_value);
+			return Promise.resolve();
+		}
+		/** @type {Task | null} */
+		let previous_task = task;
+		let started = false;
+		let { delay = 0, duration = 400, easing = linear, interpolate = get_interpolator } = {
+			...defaults,
+			...opts
+		};
+		if (duration === 0) {
+			if (previous_task) {
+				previous_task.abort();
+				previous_task = null;
+			}
 			store.set(value = target_value);
 			return Promise.resolve();
-		} else if (opts.soft) {
-			inv_mass_recovery_rate = 1 / ((opts.soft === true ? .5 : +opts.soft) * 60);
-			inv_mass = 0;
 		}
-		if (!task) {
-			last_time = raf.now();
-			cancel_task = false;
-			task = loop((now) => {
-				if (cancel_task) {
-					cancel_task = false;
-					task = null;
-					return false;
-				}
-				inv_mass = Math.min(inv_mass + inv_mass_recovery_rate, 1);
-				const elapsed = Math.min(now - last_time, 1e3 / 30);
-				/** @type {TickContext} */
-				const ctx = {
-					inv_mass,
-					opts: spring,
-					settled: true,
-					dt: elapsed * 60 / 1e3
-				};
-				const next_value = tick_spring(ctx, last_value, value, target_value);
-				last_time = now;
-				last_value = value;
-				store.set(value = next_value);
-				if (ctx.settled) task = null;
-				return !ctx.settled;
-			});
-		}
-		return new Promise((fulfil) => {
-			/** @type {Task} */ task.promise.then(() => {
-				if (token === current_token) fulfil();
-			});
+		const start = raf.now() + delay;
+		/** @type {(t: number) => T} */
+		let fn;
+		task = loop((now) => {
+			if (now < start) return true;
+			if (!started) {
+				fn = interpolate(value, new_value);
+				if (typeof duration === "function") duration = duration(value, new_value);
+				started = true;
+			}
+			if (previous_task) {
+				previous_task.abort();
+				previous_task = null;
+			}
+			const elapsed = now - start;
+			if (elapsed > duration) {
+				store.set(value = new_value);
+				return false;
+			}
+			store.set(value = fn(easing(elapsed / duration)));
+			return true;
 		});
+		return task.promise;
 	}
-	/** @type {SpringStore<T>} */
-	const spring = {
+	return {
 		set,
 		update: (fn, opts) => set(fn(target_value, value), opts),
-		subscribe: store.subscribe,
-		stiffness,
-		damping,
-		precision
+		subscribe: store.subscribe
 	};
-	return spring;
 }
 //#endregion
 //#region src/components/Knob.svelte
@@ -10578,7 +10602,7 @@ var root_4 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> <
 var root$13 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <span> </span> <!></div>`);
 function Knob($$anchor, $$props) {
 	push($$props, true);
-	const $springPos = () => store_get(springPos, "$springPos", $$stores);
+	const $animPos = () => store_get(animPos, "$animPos", $$stores);
 	const [$$stores, $$cleanup] = setup_stores();
 	let label = prop($$props, "label", 3, ""), min = prop($$props, "min", 3, 0), max = prop($$props, "max", 3, 1), defaultValue = prop($$props, "default", 3, .5), initialValue = prop($$props, "value", 3, void 0), scale = prop($$props, "scale", 3, "linear"), unit = prop($$props, "unit", 3, ""), ticks = prop($$props, "ticks", 19, () => []), showLabel = prop($$props, "showLabel", 3, true), showValue = prop($$props, "showValue", 3, true), showArc = prop($$props, "showArc", 3, true), bipolar = prop($$props, "bipolar", 3, false), externalValue = prop($$props, "externalValue", 3, void 0), learningMidi = prop($$props, "learningMidi", 3, false), assignedCc = prop($$props, "assignedCc", 3, null), disabled = prop($$props, "disabled", 3, false);
 	/** @type {{
@@ -10638,11 +10662,11 @@ function Knob($$anchor, $$props) {
 		else return `M ${ex} ${ey} A ${R} ${R} 0 ${(.5 - pos) * SWEEP > 180 ? 1 : 0} 1 ${cx2} ${cy2}`;
 	}
 	let pos = /* @__PURE__ */ user_derived(() => valueToNormalized(get(value), min(), max(), scale()));
-	const springPos = spring(valueToNormalized(initialValue() !== void 0 ? initialValue() : defaultValue(), min(), max(), scale()), {
-		stiffness: .1,
-		damping: .85
+	const animPos = tweened(valueToNormalized(initialValue() !== void 0 ? initialValue() : defaultValue(), min(), max(), scale()), {
+		duration: 0,
+		easing: cubicOut
 	});
-	let indicatorEnd = /* @__PURE__ */ user_derived(() => polarToXY(START_ANGLE + $springPos() * SWEEP, R - 3));
+	let indicatorEnd = /* @__PURE__ */ user_derived(() => polarToXY(START_ANGLE + $animPos() * SWEEP, R - 3));
 	let activePath = /* @__PURE__ */ user_derived(() => showArc() ? bipolar() ? bipolarArcPath(get(pos)) : arcPath(get(pos)) : null);
 	let dragging = false;
 	let lastY = 0;
@@ -10653,7 +10677,7 @@ function Knob($$anchor, $$props) {
 			if (clamped !== get(value)) {
 				set(value, clamped, true);
 				$$props.onchange?.({ value: clamped });
-				springPos.set(valueToNormalized(clamped, min(), max(), scale()));
+				animPos.set(valueToNormalized(clamped, min(), max(), scale()), { duration: 100 });
 			}
 		}
 	});
@@ -10672,7 +10696,7 @@ function Knob($$anchor, $$props) {
 		const newPos = Math.max(0, Math.min(1, get(pos) + delta * sensitivity));
 		const newValue = normalizedToValue(newPos, min(), max(), scale());
 		set(value, newValue, true);
-		springPos.set(newPos, { instant: true });
+		animPos.set(newPos, { duration: 0 });
 		$$props.onchange?.({ value: newValue });
 	}
 	function onPointerUp() {
@@ -10680,7 +10704,7 @@ function Knob($$anchor, $$props) {
 	}
 	function onDblClick() {
 		set(value, defaultValue());
-		springPos.set(valueToNormalized(defaultValue(), min(), max(), scale()), { instant: true });
+		animPos.set(valueToNormalized(defaultValue(), min(), max(), scale()), { duration: 0 });
 		$$props.onchange?.({ value: defaultValue() });
 	}
 	function handleContextMenu(e) {
@@ -10791,7 +10815,7 @@ function Oscillator($$anchor, $$props) {
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number
+	reset?: number,
 	}} */
 	const WAVEFORMS = [
 		"tri",
@@ -11122,7 +11146,7 @@ function Mixer($$anchor, $$props) {
 	onknobcontextmenu?: (param: string) => void,
 	reset?: number,
 	getPeak?: () => number,
-	powered?: boolean
+	powered?: boolean,
 	}} */
 	let noiseType = /* @__PURE__ */ state(0);
 	function selectNoiseType(t) {
@@ -11291,7 +11315,7 @@ function Filter($$anchor, $$props) {
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number
+	reset?: number,
 	}} */
 	let keyTrackOn = /* @__PURE__ */ state(0);
 	function toggleKeyTrack() {
@@ -11534,7 +11558,7 @@ function Effects($$anchor, $$props) {
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number
+	reset?: number,
 	}} */
 	let delayOn = /* @__PURE__ */ state(0);
 	let delayModOn = /* @__PURE__ */ state(0);
@@ -11914,7 +11938,7 @@ function AmpEnv($$anchor, $$props) {
 	onknobcontextmenu?: (param: string) => void,
 	reset?: number,
 	getOutputPeak?: () => number,
-	powered?: boolean
+	powered?: boolean,
 	}} */
 	let drLock = /* @__PURE__ */ state(1);
 	let decayValue = /* @__PURE__ */ state(.5);
@@ -12117,7 +12141,7 @@ function Modulation($$anchor, $$props) {
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number
+	reset?: number,
 	}} */
 	let modToOsc1 = /* @__PURE__ */ state(0);
 	let modToOsc2 = /* @__PURE__ */ state(0);
@@ -12281,7 +12305,7 @@ function Glide($$anchor, $$props) {
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number
+	reset?: number,
 	}} */
 	let glideOn = /* @__PURE__ */ state(0);
 	function toggleGlide() {
@@ -12836,7 +12860,10 @@ function App($$anchor, $$props) {
 	let midiActiveNotes = /* @__PURE__ */ state(0);
 	let ccExternalValues = /* @__PURE__ */ state(proxy(
 		/** @type {Record<string,number|undefined>} */
-		{}
+		Object.fromEntries(Object.keys(DEFAULTS).map((p) => {
+			const { min, max } = KNOB_PARAMS[p];
+			return [p, min + Math.random() * (max - min)];
+		}))
 	));
 	const midiCcMap = new MidiCcMap();
 	const midiManager = new MidiManager({
@@ -12903,6 +12930,7 @@ function App($$anchor, $$props) {
 			await powerOff();
 			set(powered, false);
 			set(midiStatus, "unavailable");
+			set(ccExternalValues, {}, true);
 		} else {
 			set(loading, true);
 			try {
