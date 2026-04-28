@@ -204,9 +204,14 @@ body {
   }
 
   .lfo-btn.active.svelte-19bkkl2 {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
+  }
+
+  .lfo-btn.svelte-19bkkl2:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   .clip-led.svelte-17o0bm7 {
@@ -507,9 +512,14 @@ body {
   }
 
   .drlock-btn.active.svelte-7n4nfz {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
+  }
+
+  .drlock-btn.svelte-7n4nfz:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   .panel.svelte-1ddpss2 {
@@ -552,9 +562,14 @@ body {
   }
 
   .route-btn.active.svelte-1ddpss2 {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
+  }
+
+  .route-btn.svelte-1ddpss2:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   .wheel-container.svelte-1ddpss2 {

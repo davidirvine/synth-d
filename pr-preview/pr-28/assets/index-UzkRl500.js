@@ -5513,11 +5513,11 @@ export default ${(_a = jsCode.match(jsCodeHead)) == null ? void 0 : _a[1]};
 		wasmBinary = await (await fetch(wasmFile)).arrayBuffer();
 	} else {
 		const { promises: fs } = await __vitePreload(async () => {
-			const { promises: fs } = await import("./__vite-browser-external-DToeq-OY.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { promises: fs } = await import("./__vite-browser-external-BIZMt-M6.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { promises: fs };
 		}, [], import.meta.url);
 		const { pathToFileURL } = await __vitePreload(async () => {
-			const { pathToFileURL } = await import("./__vite-browser-external-DToeq-OY.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { pathToFileURL } = await import("./__vite-browser-external-BIZMt-M6.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { pathToFileURL };
 		}, [], import.meta.url);
 		let jsCode = await fs.readFile(jsFile, { encoding: "utf-8" });
@@ -10625,7 +10625,7 @@ function Knob($$anchor, $$props) {
 	onchange?: (e: { value: number }) => void,
 	oncontextmenu?: () => void
 	}} */
-	let value = /* @__PURE__ */ state(proxy(initialValue() !== void 0 ? initialValue() : defaultValue()));
+	let value = /* @__PURE__ */ state(proxy(untrack(() => initialValue() !== void 0 ? initialValue() : defaultValue())));
 	const SWEEP = 270;
 	const START_ANGLE = 225;
 	const CX = 24;
@@ -10662,7 +10662,7 @@ function Knob($$anchor, $$props) {
 		else return `M ${ex} ${ey} A ${R} ${R} 0 ${(.5 - pos) * SWEEP > 180 ? 1 : 0} 1 ${cx2} ${cy2}`;
 	}
 	let pos = /* @__PURE__ */ user_derived(() => valueToNormalized(get(value), min(), max(), scale()));
-	const animPos = tweened(valueToNormalized(initialValue() !== void 0 ? initialValue() : defaultValue(), min(), max(), scale()), {
+	const animPos = tweened(untrack(() => valueToNormalized(initialValue() !== void 0 ? initialValue() : defaultValue(), min(), max(), scale())), {
 		duration: 0,
 		easing: cubicOut
 	});
