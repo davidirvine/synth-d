@@ -9,13 +9,15 @@
     reset = 0,
     getPeak = () => 0,
     powered = false,
+    springEnabled = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
     reset?: number,
     getPeak?: () => number,
-    powered?: boolean
+    powered?: boolean,
+    springEnabled?: boolean
   }} */ ($props())
 
   let noiseType = $state(0)
@@ -45,6 +47,7 @@
       max={1}
       default={0.75}
       scale="linear"
+      {springEnabled}
       externalValue={midiState?.osc1Level?.externalValue}
       learningMidi={midiState?.osc1Level?.learningMidi ?? false}
       assignedCc={midiState?.osc1Level?.assignedCc ?? null}
@@ -57,6 +60,7 @@
       max={1}
       default={0}
       scale="linear"
+      {springEnabled}
       externalValue={midiState?.osc2Level?.externalValue}
       learningMidi={midiState?.osc2Level?.learningMidi ?? false}
       assignedCc={midiState?.osc2Level?.assignedCc ?? null}
@@ -69,6 +73,7 @@
       max={1}
       default={0}
       scale="linear"
+      {springEnabled}
       externalValue={midiState?.osc3Level?.externalValue}
       learningMidi={midiState?.osc3Level?.learningMidi ?? false}
       assignedCc={midiState?.osc3Level?.assignedCc ?? null}
@@ -83,6 +88,7 @@
         max={1}
         default={0}
         scale="linear"
+        {springEnabled}
         externalValue={midiState?.noiseLevel?.externalValue}
         learningMidi={midiState?.noiseLevel?.learningMidi ?? false}
         assignedCc={midiState?.noiseLevel?.assignedCc ?? null}
