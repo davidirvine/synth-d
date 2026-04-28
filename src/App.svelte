@@ -406,6 +406,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 20px;
+    margin: 0 8px;
     background: #1c1c1c;
     border-bottom: 1px solid #333;
   }

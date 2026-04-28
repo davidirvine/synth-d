@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { execSync } from 'child_process'
 import { readFileSync } from 'fs'
+import { resolve } from 'path'
 
 const { version } = JSON.parse(readFileSync('./package.json', 'utf-8'))
 
@@ -23,6 +24,12 @@ export default defineConfig({
   plugins: [svelte()],
   resolve: {
     conditions: ['browser'],
+    alias: process.env.VITEST
+      ? {}
+      : {
+          fs: resolve('./src/lib/stubs/fs.js'),
+          url: resolve('./src/lib/stubs/url.js'),
+        },
   },
   test: {
     environment: 'jsdom',

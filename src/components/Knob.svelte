@@ -230,6 +230,8 @@
   .knob-value {
     font-size: 10px;
     color: #888;
+    min-width: 56px;
+    text-align: center;
   }
 
   .cc-label {

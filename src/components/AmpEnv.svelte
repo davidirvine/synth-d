@@ -192,9 +192,4 @@
     color: #20b040;
     border-color: #20b040;
   }
-
-  .drlock-btn:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
 </style>

@@ -288,9 +288,4 @@
     color: #20b040;
     border-color: #20b040;
   }
-
-  .lfo-btn:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
 </style>

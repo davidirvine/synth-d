@@ -189,11 +189,6 @@
     border-color: #20b040;
   }
 
-  .route-btn:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
-
   .wheel-container {
     display: flex;
     flex-direction: column;
