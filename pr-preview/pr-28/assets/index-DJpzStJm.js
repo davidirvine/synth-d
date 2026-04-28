@@ -5513,11 +5513,11 @@ export default ${(_a = jsCode.match(jsCodeHead)) == null ? void 0 : _a[1]};
 		wasmBinary = await (await fetch(wasmFile)).arrayBuffer();
 	} else {
 		const { promises: fs } = await __vitePreload(async () => {
-			const { promises: fs } = await import("./__vite-browser-external-BVWIzvdb.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { promises: fs } = await import("./__vite-browser-external-CNokJHiW.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { promises: fs };
 		}, [], import.meta.url);
 		const { pathToFileURL } = await __vitePreload(async () => {
-			const { pathToFileURL } = await import("./__vite-browser-external-BVWIzvdb.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { pathToFileURL } = await import("./__vite-browser-external-CNokJHiW.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { pathToFileURL };
 		}, [], import.meta.url);
 		let jsCode = await fs.readFile(jsFile, { encoding: "utf-8" });
@@ -11588,9 +11588,10 @@ function Effects($$anchor, $$props) {
 	var div_2 = sibling(div_1, 2);
 	var node = child(div_2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.assignedCc ?? null);
 		Knob(node, {
 			label: "time",
 			min: .01,
@@ -11598,14 +11599,17 @@ function Effects($$anchor, $$props) {
 			default: .3,
 			scale: "linear",
 			unit: "s",
-			get externalValue() {
+			get disabled() {
 				return get($0);
 			},
-			get learningMidi() {
+			get externalValue() {
 				return get($1);
 			},
-			get assignedCc() {
+			get learningMidi() {
 				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
 				param: "delayTime",
@@ -11616,23 +11620,27 @@ function Effects($$anchor, $$props) {
 	}
 	var node_1 = sibling(node, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.assignedCc ?? null);
 		Knob(node_1, {
 			label: "feedback",
 			min: 0,
 			max: .9,
 			default: .3,
 			scale: "linear",
-			get externalValue() {
+			get disabled() {
 				return get($0);
 			},
-			get learningMidi() {
+			get externalValue() {
 				return get($1);
 			},
-			get assignedCc() {
+			get learningMidi() {
 				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
 				param: "delayFeedback",
@@ -11643,23 +11651,27 @@ function Effects($$anchor, $$props) {
 	}
 	var node_2 = sibling(node_1, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.assignedCc ?? null);
 		Knob(node_2, {
 			label: "mix",
 			min: 0,
 			max: 1,
 			default: .3,
 			scale: "linear",
-			get externalValue() {
+			get disabled() {
 				return get($0);
 			},
-			get learningMidi() {
+			get externalValue() {
 				return get($1);
 			},
-			get assignedCc() {
+			get learningMidi() {
 				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
 				param: "delayMix",
@@ -11674,9 +11686,10 @@ function Effects($$anchor, $$props) {
 	let classes_1;
 	var node_3 = sibling(button_1, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.delayModRate?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayModRate?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayModRate?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0 || get(delayModOn) === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayModRate?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayModRate?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayModRate?.assignedCc ?? null);
 		Knob(node_3, {
 			label: "rate",
 			min: .1,
@@ -11684,14 +11697,17 @@ function Effects($$anchor, $$props) {
 			default: .5,
 			scale: "log",
 			unit: "Hz",
-			get externalValue() {
+			get disabled() {
 				return get($0);
 			},
-			get learningMidi() {
+			get externalValue() {
 				return get($1);
 			},
-			get assignedCc() {
+			get learningMidi() {
 				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
 				param: "delayModRate",
@@ -11702,9 +11718,10 @@ function Effects($$anchor, $$props) {
 	}
 	var node_4 = sibling(node_3, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.delayModDepth?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayModDepth?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayModDepth?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0 || get(delayModOn) === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayModDepth?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayModDepth?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayModDepth?.assignedCc ?? null);
 		Knob(node_4, {
 			label: "depth",
 			min: 0,
@@ -11712,14 +11729,17 @@ function Effects($$anchor, $$props) {
 			default: 0,
 			scale: "linear",
 			unit: "s",
-			get externalValue() {
+			get disabled() {
 				return get($0);
 			},
-			get learningMidi() {
+			get externalValue() {
 				return get($1);
 			},
-			get assignedCc() {
+			get learningMidi() {
 				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
 				param: "delayModDepth",
@@ -11738,23 +11758,27 @@ function Effects($$anchor, $$props) {
 	var div_5 = sibling(div_4, 2);
 	var node_5 = child(div_5);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.reverbMix?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbMix?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbMix?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => get(reverbOn) === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbMix?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbMix?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbMix?.assignedCc ?? null);
 		Knob(node_5, {
 			label: "mix",
 			min: 0,
 			max: 1,
 			default: .5,
 			scale: "linear",
-			get externalValue() {
+			get disabled() {
 				return get($0);
 			},
-			get learningMidi() {
+			get externalValue() {
 				return get($1);
 			},
-			get assignedCc() {
+			get learningMidi() {
 				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
 				param: "reverbMix",
@@ -11765,9 +11789,10 @@ function Effects($$anchor, $$props) {
 	}
 	var node_6 = sibling(node_5, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => get(reverbOn) === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.assignedCc ?? null);
 		Knob(node_6, {
 			label: "damp",
 			min: 0,
@@ -11775,14 +11800,17 @@ function Effects($$anchor, $$props) {
 			default: .5,
 			scale: "linear",
 			showValue: false,
-			get externalValue() {
+			get disabled() {
 				return get($0);
 			},
-			get learningMidi() {
+			get externalValue() {
 				return get($1);
 			},
-			get assignedCc() {
+			get learningMidi() {
 				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
 				param: "reverbDamp",
@@ -11793,23 +11821,27 @@ function Effects($$anchor, $$props) {
 	}
 	var node_7 = sibling(node_6, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDecay?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDecay?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDecay?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => get(reverbOn) === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDecay?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDecay?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDecay?.assignedCc ?? null);
 		Knob(node_7, {
 			label: "decay",
 			min: .01,
 			max: 1,
 			default: .5,
 			scale: "log-reverse",
-			get externalValue() {
+			get disabled() {
 				return get($0);
 			},
-			get learningMidi() {
+			get externalValue() {
 				return get($1);
 			},
-			get assignedCc() {
+			get learningMidi() {
 				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
 				param: "reverbDecay",
@@ -11820,9 +11852,10 @@ function Effects($$anchor, $$props) {
 	}
 	var node_8 = sibling(node_7, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.reverbPreDelay?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbPreDelay?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbPreDelay?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => get(reverbOn) === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbPreDelay?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbPreDelay?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbPreDelay?.assignedCc ?? null);
 		Knob(node_8, {
 			label: "pre-delay",
 			min: 0,
@@ -11830,14 +11863,17 @@ function Effects($$anchor, $$props) {
 			default: 0,
 			scale: "linear",
 			unit: "s",
-			get externalValue() {
+			get disabled() {
 				return get($0);
 			},
-			get learningMidi() {
+			get externalValue() {
 				return get($1);
 			},
-			get assignedCc() {
+			get learningMidi() {
 				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
 				param: "reverbPreDelay",
@@ -11854,6 +11890,7 @@ function Effects($$anchor, $$props) {
 		set_text(text, get(delayOn) === 1 ? "on" : "off");
 		classes_1 = set_class(button_1, 1, "toggle-btn svelte-123klp2", null, classes_1, { active: get(delayModOn) === 1 });
 		set_attribute(button_1, "aria-pressed", get(delayModOn) === 1);
+		button_1.disabled = get(delayOn) === 0;
 		classes_2 = set_class(button_2, 1, "toggle-btn svelte-123klp2", null, classes_2, { active: get(reverbOn) === 1 });
 		set_attribute(button_2, "aria-pressed", get(reverbOn) === 1);
 		set_text(text_1, get(reverbOn) === 1 ? "on" : "off");
@@ -12072,7 +12109,7 @@ function AmpEnv($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Modulation.svelte
-var root$6 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><!> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div> <div class="wheel-container svelte-1ddpss2"><span class="param-label svelte-1ddpss2">wheel</span> <div class="wheel-track svelte-1ddpss2" role="slider" aria-label="mod wheel"><div class="wheel-fill svelte-1ddpss2"></div></div></div></div></div>`);
+var root$6 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div> <div class="wheel-container svelte-1ddpss2"><span class="param-label svelte-1ddpss2">wheel</span> <div class="wheel-track svelte-1ddpss2" role="slider" aria-label="mod wheel"><div class="wheel-fill svelte-1ddpss2"></div></div></div></div></div>`);
 function Modulation($$anchor, $$props) {
 	push($$props, true);
 	let midiState = prop($$props, "midiState", 19, () => ({})), reset$2 = prop($$props, "reset", 3, 0);
@@ -12152,7 +12189,8 @@ function Modulation($$anchor, $$props) {
 	}
 	var div = root$6();
 	var div_1 = sibling(child(div), 2);
-	var node = child(div_1);
+	var div_2 = child(div_1);
+	var node = child(div_2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.modMix?.externalValue);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.modMix?.learningMidi ?? false);
@@ -12163,6 +12201,15 @@ function Modulation($$anchor, $$props) {
 			max: 1,
 			default: 0,
 			scale: "linear",
+			showValue: false,
+			bipolar: true,
+			ticks: [{
+				pos: 0,
+				label: "LFO"
+			}, {
+				pos: 1,
+				label: "NOISE"
+			}],
 			get externalValue() {
 				return get($0);
 			},
@@ -12179,22 +12226,23 @@ function Modulation($$anchor, $$props) {
 			oncontextmenu: () => $$props.onknobcontextmenu?.("modMix")
 		});
 	}
-	var div_2 = sibling(node, 2);
-	var button = child(div_2);
+	reset(div_2);
+	var div_3 = sibling(div_2, 2);
+	var button = child(div_3);
 	let classes;
 	var button_1 = sibling(button, 2);
 	let classes_1;
 	var button_2 = sibling(button_1, 2);
 	let classes_2;
-	reset(div_2);
-	var div_3 = sibling(div_2, 2);
-	var div_4 = sibling(child(div_3), 2);
-	set_attribute(div_4, "tabindex", 0);
-	set_attribute(div_4, "aria-valuemin", 0);
-	set_attribute(div_4, "aria-valuemax", 1);
-	var div_5 = child(div_4);
-	reset(div_4);
 	reset(div_3);
+	var div_4 = sibling(div_3, 2);
+	var div_5 = sibling(child(div_4), 2);
+	set_attribute(div_5, "tabindex", 0);
+	set_attribute(div_5, "aria-valuemin", 0);
+	set_attribute(div_5, "aria-valuemax", 1);
+	var div_6 = child(div_5);
+	reset(div_5);
+	reset(div_4);
 	reset(div_1);
 	reset(div);
 	template_effect(() => {
@@ -12204,16 +12252,16 @@ function Modulation($$anchor, $$props) {
 		set_attribute(button_1, "aria-pressed", get(modToOsc2) === 1);
 		classes_2 = set_class(button_2, 1, "route-btn svelte-1ddpss2", null, classes_2, { active: get(modToFilter) === 1 });
 		set_attribute(button_2, "aria-pressed", get(modToFilter) === 1);
-		set_attribute(div_4, "aria-valuenow", get(modWheel));
-		set_style(div_5, `height: ${get(modWheel) * 100}%`);
+		set_attribute(div_5, "aria-valuenow", get(modWheel));
+		set_style(div_6, `height: ${get(modWheel) * 100}%`);
 	});
 	delegated("click", button, () => toggleRoute("modToOsc1"));
 	delegated("click", button_1, () => toggleRoute("modToOsc2"));
 	delegated("click", button_2, () => toggleRoute("modToFilter"));
-	delegated("pointerdown", div_4, onWheelPointerDown);
-	delegated("pointermove", div_4, onWheelPointerMove);
-	delegated("pointerup", div_4, onWheelPointerUp);
-	event("pointercancel", div_4, onWheelPointerUp);
+	delegated("pointerdown", div_5, onWheelPointerDown);
+	delegated("pointermove", div_5, onWheelPointerMove);
+	delegated("pointerup", div_5, onWheelPointerUp);
+	event("pointercancel", div_5, onWheelPointerUp);
 	append($$anchor, div);
 	pop();
 }

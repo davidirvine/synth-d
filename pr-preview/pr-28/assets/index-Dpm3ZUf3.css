@@ -217,8 +217,8 @@ body {
     box-shadow: none;
     /* fade-out: decay back to dark */
     transition:
-      background 200ms ease-out,
-      box-shadow 200ms ease-out;
+      background 80ms ease-out,
+      box-shadow 80ms ease-out;
   }
 
   .clip-led.clip.svelte-17o0bm7 {
@@ -437,6 +437,11 @@ body {
     background: #1a2a1a;
     color: #20b040;
     border-color: #20b040;
+  }
+
+  .toggle-btn.svelte-123klp2:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   .panel.svelte-7n4nfz {
