@@ -5516,11 +5516,11 @@ export default ${(_a = jsCode.match(jsCodeHead)) == null ? void 0 : _a[1]};
 		wasmBinary = await (await fetch(wasmFile)).arrayBuffer();
 	} else {
 		const { promises: fs } = await __vitePreload(async () => {
-			const { promises: fs } = await import("./__vite-browser-external-DxFgN229.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { promises: fs } = await import("./__vite-browser-external-Bt3YQKJb.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { promises: fs };
 		}, [], import.meta.url);
 		const { pathToFileURL } = await __vitePreload(async () => {
-			const { pathToFileURL } = await import("./__vite-browser-external-DxFgN229.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { pathToFileURL } = await import("./__vite-browser-external-Bt3YQKJb.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { pathToFileURL };
 		}, [], import.meta.url);
 		let jsCode = await fs.readFile(jsFile, { encoding: "utf-8" });
@@ -10038,6 +10038,7 @@ var ctx = null;
 var node = null;
 var analyserNode = null;
 var mixerPeakValue = 0;
+var outputPeakValue = 0;
 async function powerOn() {
 	ctx = new AudioContext({ sampleRate: 48e3 });
 	analyserNode = ctx.createAnalyser();
@@ -10055,6 +10056,7 @@ async function powerOn() {
 	if (!node) throw new Error("Faust node creation failed");
 	node.setOutputParamHandler((path, value) => {
 		if (path === PARAM_PREFIX + "mixerPeak") mixerPeakValue = value;
+		if (path === PARAM_PREFIX + "outputPeak") outputPeakValue = value;
 	});
 	node.connect(analyserNode);
 	analyserNode.connect(ctx.destination);
@@ -10062,6 +10064,7 @@ async function powerOn() {
 async function powerOff() {
 	if (!ctx) return;
 	mixerPeakValue = 0;
+	outputPeakValue = 0;
 	if (node) {
 		node.disconnect();
 		node = null;
@@ -10080,6 +10083,9 @@ function getAnalyser() {
 }
 function getMixerPeak() {
 	return mixerPeakValue;
+}
+function getOutputPeak() {
+	return outputPeakValue;
 }
 //#endregion
 //#region src/audio/midi.js
@@ -11061,97 +11067,49 @@ function Oscillator($$anchor, $$props) {
 }
 delegate(["click"]);
 //#endregion
-//#region src/components/LevelMeter.svelte
-var root$12 = /* @__PURE__ */ from_html(`<div class="meter svelte-1ij6znl"><div></div> <div></div> <div></div> <div></div> <div></div> <div></div> <div></div> <div></div></div>`);
-function LevelMeter($$anchor, $$props) {
+//#region src/components/ClipLed.svelte
+var root$12 = /* @__PURE__ */ from_html(`<div></div>`);
+function ClipLed($$anchor, $$props) {
 	push($$props, true);
-	/** @type {{ getPeak?: () => number, powered: boolean }} */
-	let getPeak = prop($$props, "getPeak", 3, () => 0);
-	const THRESHOLDS = [
-		.001,
-		.125,
-		.25,
-		.375,
-		.5,
-		.675,
-		.85
-	];
-	let litCount = /* @__PURE__ */ state(0);
+	let getPeak = prop($$props, "getPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
 	let clipLit = /* @__PURE__ */ state(false);
 	let rafHandle = 0;
-	let clipHandle = 0;
-	function computeLitCount(peak) {
-		let count = 0;
-		for (const t of THRESHOLDS) if (peak >= t) count++;
-		else break;
-		return count;
-	}
+	let latchHandle = 0;
 	function tick() {
-		if (!$$props.powered) {
-			set(litCount, 0);
+		if (!powered()) {
 			set(clipLit, false);
-			clearTimeout(clipHandle);
-			clipHandle = 0;
 			rafHandle = 0;
 			return;
 		}
-		const peak = getPeak()();
-		set(litCount, computeLitCount(peak), true);
-		if (peak > 1) {
+		if (getPeak()() > 1) {
 			set(clipLit, true);
-			clearTimeout(clipHandle);
-			clipHandle = setTimeout(() => {
+			clearTimeout(latchHandle);
+			latchHandle = setTimeout(() => {
 				set(clipLit, false);
 			}, 1500);
 		}
 		rafHandle = requestAnimationFrame(tick);
 	}
 	user_effect(() => {
-		if ($$props.powered) {
+		if (powered()) {
 			if (!rafHandle) rafHandle = requestAnimationFrame(tick);
 		} else {
 			if (rafHandle) {
 				cancelAnimationFrame(rafHandle);
 				rafHandle = 0;
 			}
-			set(litCount, 0);
 			set(clipLit, false);
-			clearTimeout(clipHandle);
-			clipHandle = 0;
+			clearTimeout(latchHandle);
+			latchHandle = 0;
 		}
 	});
 	onDestroy(() => {
 		cancelAnimationFrame(rafHandle);
-		clearTimeout(clipHandle);
+		clearTimeout(latchHandle);
 	});
 	var div = root$12();
-	var div_1 = child(div);
 	let classes;
-	var div_2 = sibling(div_1, 2);
-	let classes_1;
-	var div_3 = sibling(div_2, 2);
-	let classes_2;
-	var div_4 = sibling(div_3, 2);
-	let classes_3;
-	var div_5 = sibling(div_4, 2);
-	let classes_4;
-	var div_6 = sibling(div_5, 2);
-	let classes_5;
-	var div_7 = sibling(div_6, 2);
-	let classes_6;
-	var div_8 = sibling(div_7, 2);
-	let classes_7;
-	reset(div);
-	template_effect(() => {
-		classes = set_class(div_1, 1, "seg seg-green svelte-1ij6znl", null, classes, { lit: get(litCount) >= 1 });
-		classes_1 = set_class(div_2, 1, "seg seg-green svelte-1ij6znl", null, classes_1, { lit: get(litCount) >= 2 });
-		classes_2 = set_class(div_3, 1, "seg seg-green svelte-1ij6znl", null, classes_2, { lit: get(litCount) >= 3 });
-		classes_3 = set_class(div_4, 1, "seg seg-green svelte-1ij6znl", null, classes_3, { lit: get(litCount) >= 4 });
-		classes_4 = set_class(div_5, 1, "seg seg-yellow svelte-1ij6znl", null, classes_4, { lit: get(litCount) >= 5 });
-		classes_5 = set_class(div_6, 1, "seg seg-yellow svelte-1ij6znl", null, classes_5, { lit: get(litCount) >= 6 });
-		classes_6 = set_class(div_7, 1, "seg seg-orange svelte-1ij6znl", null, classes_6, { lit: get(litCount) >= 7 });
-		classes_7 = set_class(div_8, 1, "seg seg-clip svelte-1ij6znl", null, classes_7, { lit: get(clipLit) });
-	});
+	template_effect(() => classes = set_class(div, 1, "clip-led svelte-17o0bm7", null, classes, { clip: get(clipLit) }));
 	append($$anchor, div);
 	pop();
 }
@@ -11188,7 +11146,7 @@ function Mixer($$anchor, $$props) {
 	});
 	var div = root$11();
 	var div_1 = child(div);
-	LevelMeter(sibling(child(div_1), 2), {
+	ClipLed(sibling(child(div_1), 2), {
 		get getPeak() {
 			return getPeak();
 		},
@@ -11836,15 +11794,17 @@ function Effects($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/AmpEnv.svelte
-var root$8 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
+var root$8 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
 function AmpEnv($$anchor, $$props) {
 	push($$props, true);
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$3 = prop($$props, "reset", 3, 0);
+	let midiState = prop($$props, "midiState", 19, () => ({})), reset$3 = prop($$props, "reset", 3, 0), getOutputPeak = prop($$props, "getOutputPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number
+	reset?: number,
+	getOutputPeak?: () => number,
+	powered?: boolean
 	}} */
 	let drLock = /* @__PURE__ */ state(1);
 	let decayValue = /* @__PURE__ */ state(.5);
@@ -11864,13 +11824,23 @@ function AmpEnv($$anchor, $$props) {
 		});
 	});
 	var div = root$8();
-	var div_1 = sibling(child(div), 2);
-	var node = child(div_1);
+	var div_1 = child(div);
+	ClipLed(sibling(child(div_1), 2), {
+		get getPeak() {
+			return getOutputPeak();
+		},
+		get powered() {
+			return powered();
+		}
+	});
+	reset(div_1);
+	var div_2 = sibling(div_1, 2);
+	var node_1 = child(div_2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.masterVol?.externalValue);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.masterVol?.learningMidi ?? false);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.masterVol?.assignedCc ?? null);
-		Knob(node, {
+		Knob(node_1, {
 			label: "volume",
 			min: 0,
 			max: 1,
@@ -11892,18 +11862,18 @@ function AmpEnv($$anchor, $$props) {
 			oncontextmenu: () => $$props.onknobcontextmenu?.("masterVol")
 		});
 	}
-	reset(div_1);
-	var div_2 = sibling(div_1, 4);
-	var button = sibling(child(div_2), 2);
-	let classes;
 	reset(div_2);
-	var div_3 = sibling(div_2, 2);
-	var node_1 = child(div_3);
+	var div_3 = sibling(div_2, 4);
+	var button = sibling(child(div_3), 2);
+	let classes;
+	reset(div_3);
+	var div_4 = sibling(div_3, 2);
+	var node_2 = child(div_4);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.ampAttack?.externalValue);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.ampAttack?.learningMidi ?? false);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.ampAttack?.assignedCc ?? null);
-		Knob(node_1, {
+		Knob(node_2, {
 			label: "attack",
 			min: .001,
 			max: 4,
@@ -11926,12 +11896,12 @@ function AmpEnv($$anchor, $$props) {
 			oncontextmenu: () => $$props.onknobcontextmenu?.("ampAttack")
 		});
 	}
-	var node_2 = sibling(node_1, 2);
+	var node_3 = sibling(node_2, 2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.ampDecay?.externalValue);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.ampDecay?.learningMidi ?? false);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.ampDecay?.assignedCc ?? null);
-		Knob(node_2, {
+		Knob(node_3, {
 			label: "decay",
 			min: .001,
 			max: 4,
@@ -11957,12 +11927,12 @@ function AmpEnv($$anchor, $$props) {
 			oncontextmenu: () => $$props.onknobcontextmenu?.("ampDecay")
 		});
 	}
-	var node_3 = sibling(node_2, 2);
+	var node_4 = sibling(node_3, 2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.ampSustain?.externalValue);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.ampSustain?.learningMidi ?? false);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.ampSustain?.assignedCc ?? null);
-		Knob(node_3, {
+		Knob(node_4, {
 			label: "sustain",
 			min: 0,
 			max: 1,
@@ -11984,13 +11954,13 @@ function AmpEnv($$anchor, $$props) {
 			oncontextmenu: () => $$props.onknobcontextmenu?.("ampSustain")
 		});
 	}
-	var node_4 = sibling(node_3, 2);
+	var node_5 = sibling(node_4, 2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => get(drLock) === 1);
 		let $1 = /* @__PURE__ */ user_derived(() => get(drLock) === 1 ? get(decayValue) : midiState()?.ampRelease?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.ampRelease?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.ampRelease?.assignedCc ?? null);
-		Knob(node_4, {
+		Knob(node_5, {
 			label: "release",
 			min: .001,
 			max: 8,
@@ -12016,7 +11986,7 @@ function AmpEnv($$anchor, $$props) {
 			oncontextmenu: () => $$props.onknobcontextmenu?.("ampRelease")
 		});
 	}
-	reset(div_3);
+	reset(div_4);
 	reset(div);
 	template_effect(() => {
 		classes = set_class(button, 1, "drlock-btn svelte-7n4nfz", null, classes, { active: get(drLock) === 1 });
@@ -12948,6 +12918,12 @@ function App($$anchor, $$props) {
 		onknobcontextmenu: onKnobContextMenu,
 		get reset() {
 			return get(resetCounter);
+		},
+		get getOutputPeak() {
+			return getOutputPeak;
+		},
+		get powered() {
+			return get(powered);
 		}
 	});
 	var node_6 = sibling(node_5, 2);

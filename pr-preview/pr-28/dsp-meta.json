@@ -24,8 +24,8 @@
         "/usr/share/faust",
         "."
     ],
-    "size": 1159944,
-    "code": "OPaRB1Q8Hw==",
+    "size": 1159948,
+    "code": "mPKkB1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -352,7 +352,7 @@
                     "varname": "fHslider25",
                     "shortname": "delayFeedback",
                     "address": "/synth/delayFeedback",
-                    "index": 311740,
+                    "index": 311744,
                     "init": 0.3,
                     "min": 0,
                     "max": 0.9,
@@ -364,7 +364,7 @@
                     "varname": "fHslider24",
                     "shortname": "delayMix",
                     "address": "/synth/delayMix",
-                    "index": 311724,
+                    "index": 311728,
                     "init": 0.3,
                     "min": 0,
                     "max": 1,
@@ -388,7 +388,7 @@
                     "varname": "fHslider26",
                     "shortname": "delayTime",
                     "address": "/synth/delayTime",
-                    "index": 311744,
+                    "index": 311748,
                     "meta": [
                         {
                             "unit": "s"
@@ -840,6 +840,21 @@
                     "step": 1
                 },
                 {
+                    "type": "vbargraph",
+                    "label": "outputPeak",
+                    "varname": "fVbargraph1",
+                    "shortname": "outputPeak",
+                    "address": "/synth/outputPeak",
+                    "index": 311724,
+                    "meta": [
+                        {
+                            "unit": "linear"
+                        }
+                    ],
+                    "min": 0,
+                    "max": 2
+                },
+                {
                     "type": "hslider",
                     "label": "resonance",
                     "varname": "fHslider12",
@@ -857,7 +872,7 @@
                     "varname": "fHslider30",
                     "shortname": "reverbDamp",
                     "address": "/synth/reverbDamp",
-                    "index": 868876,
+                    "index": 868880,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -869,7 +884,7 @@
                     "varname": "fHslider29",
                     "shortname": "reverbDecay",
                     "address": "/synth/reverbDecay",
-                    "index": 868864,
+                    "index": 868868,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -881,7 +896,7 @@
                     "varname": "fHslider27",
                     "shortname": "reverbMix",
                     "address": "/synth/reverbMix",
-                    "index": 868836,
+                    "index": 868840,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -905,7 +920,7 @@
                     "varname": "fHslider28",
                     "shortname": "reverbPreDelay",
                     "address": "/synth/reverbPreDelay",
-                    "index": 868852,
+                    "index": 868856,
                     "meta": [
                         {
                             "unit": "s"
