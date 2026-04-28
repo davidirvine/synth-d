@@ -6,11 +6,13 @@
     midiState = {},
     onknobcontextmenu,
     reset = 0,
+    springEnabled = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number
+    reset?: number,
+    springEnabled?: boolean
   }} */ ($props())
 
   let glideOn = $state(0)
@@ -46,6 +48,7 @@
       scale="log"
       unit="s"
       disabled={glideOn === 0}
+      {springEnabled}
       externalValue={midiState?.glideRate?.externalValue}
       learningMidi={midiState?.glideRate?.learningMidi ?? false}
       assignedCc={midiState?.glideRate?.assignedCc ?? null}
