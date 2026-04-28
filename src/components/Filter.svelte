@@ -6,13 +6,11 @@
     midiState = {},
     onknobcontextmenu,
     reset = 0,
-    springEnabled = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
     reset?: number,
-    springEnabled?: boolean
   }} */ ($props())
 
   let keyTrackOn = $state(0)
@@ -40,7 +38,6 @@
       default={2000}
       scale="log"
       unit="Hz"
-      {springEnabled}
       externalValue={midiState?.cutoff?.externalValue}
       learningMidi={midiState?.cutoff?.learningMidi ?? false}
       assignedCc={midiState?.cutoff?.assignedCc ?? null}
@@ -53,7 +50,6 @@
       max={1}
       default={0.3}
       scale="linear"
-      {springEnabled}
       externalValue={midiState?.resonance?.externalValue}
       learningMidi={midiState?.resonance?.learningMidi ?? false}
       assignedCc={midiState?.resonance?.assignedCc ?? null}
@@ -87,7 +83,6 @@
       default={0.01}
       scale="log"
       unit="s"
-      {springEnabled}
       externalValue={midiState?.filterAttack?.externalValue}
       learningMidi={midiState?.filterAttack?.learningMidi ?? false}
       assignedCc={midiState?.filterAttack?.assignedCc ?? null}
@@ -101,7 +96,6 @@
       default={0.3}
       scale="log"
       unit="s"
-      {springEnabled}
       externalValue={midiState?.filterDecay?.externalValue}
       learningMidi={midiState?.filterDecay?.learningMidi ?? false}
       assignedCc={midiState?.filterDecay?.assignedCc ?? null}
@@ -114,7 +108,6 @@
       max={1}
       default={0.5}
       scale="linear"
-      {springEnabled}
       externalValue={midiState?.filterSustain?.externalValue}
       learningMidi={midiState?.filterSustain?.learningMidi ?? false}
       assignedCc={midiState?.filterSustain?.assignedCc ?? null}
@@ -128,7 +121,6 @@
       default={0.3}
       scale="log"
       unit="s"
-      {springEnabled}
       externalValue={midiState?.filterRelease?.externalValue}
       learningMidi={midiState?.filterRelease?.learningMidi ?? false}
       assignedCc={midiState?.filterRelease?.assignedCc ?? null}
@@ -142,7 +134,6 @@
       default={0}
       scale="linear"
       unit="Hz"
-      {springEnabled}
       externalValue={midiState?.filterEnvAmt?.externalValue}
       learningMidi={midiState?.filterEnvAmt?.learningMidi ?? false}
       assignedCc={midiState?.filterEnvAmt?.assignedCc ?? null}

@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, fireEvent } from '@testing-library/svelte'
 import Knob from './Knob.svelte'
 
-// Shared spy for all springPos.set calls — used in springEnabled tests below.
+// Shared spy for all animPos.set calls — used in animation duration tests below.
 // vi.hoisted ensures this is available inside the vi.mock factory (both are hoisted).
 const mockSet = vi.hoisted(() => vi.fn(() => Promise.resolve()))
 
 vi.mock('svelte/motion', () => ({
-  spring: vi.fn((initialValue) => {
+  tweened: vi.fn((initialValue) => {
     let _val = initialValue ?? 0
     const _subs = new Set()
     return {
@@ -207,37 +207,29 @@ describe('Knob — showArc prop', () => {
   })
 })
 
-describe('Knob — springEnabled', () => {
+describe('Knob — animation duration', () => {
   beforeEach(() => {
     mockSet.mockClear()
   })
 
-  it('when springEnabled is false (default), externalValue change calls springPos.set with { instant: true }', async () => {
+  it('externalValue change calls animPos.set with { duration: 100 }', async () => {
     const { rerender } = render(Knob, {
       props: { label: 'vol', min: 0, max: 1, default: 0.5 },
     })
     await rerender({ externalValue: 0.8 })
-    expect(mockSet).toHaveBeenCalledWith(expect.any(Number), { instant: true })
+    expect(mockSet).toHaveBeenCalledWith(expect.any(Number), { duration: 100 })
   })
 
-  it('when springEnabled is true, externalValue change calls springPos.set with { instant: false }', async () => {
-    const { rerender } = render(Knob, {
-      props: { label: 'vol', min: 0, max: 1, default: 0.5, springEnabled: true },
-    })
-    await rerender({ externalValue: 0.8 })
-    expect(mockSet).toHaveBeenCalledWith(expect.any(Number), { instant: false })
-  })
-
-  it('drag calls springPos.set with { instant: true } regardless of springEnabled', async () => {
+  it('drag calls animPos.set with { duration: 0 }', async () => {
     const { container } = render(Knob, {
-      props: { label: 'vol', min: 0, max: 1, default: 0.5, springEnabled: true },
+      props: { label: 'vol', min: 0, max: 1, default: 0.5 },
     })
     mockSet.mockClear()
     const hit = container.querySelector('.knob-hit')
     await fireEvent.pointerDown(hit, { clientY: 100 })
     await fireEvent.pointerMove(hit, { clientY: 50 })
     await fireEvent.pointerUp(hit)
-    expect(mockSet).toHaveBeenCalledWith(expect.any(Number), { instant: true })
+    expect(mockSet).toHaveBeenCalledWith(expect.any(Number), { duration: 0 })
   })
 })
 

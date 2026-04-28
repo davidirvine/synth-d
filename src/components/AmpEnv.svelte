@@ -9,7 +9,6 @@
     reset = 0,
     getOutputPeak = () => 0,
     powered = false,
-    springEnabled = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
@@ -17,7 +16,6 @@
     reset?: number,
     getOutputPeak?: () => number,
     powered?: boolean,
-    springEnabled?: boolean
   }} */ ($props())
 
   let drLock = $state(1)
@@ -47,7 +45,6 @@
       max={1}
       default={0.75}
       scale="linear"
-      {springEnabled}
       externalValue={midiState?.masterVol?.externalValue}
       learningMidi={midiState?.masterVol?.learningMidi ?? false}
       assignedCc={midiState?.masterVol?.assignedCc ?? null}
@@ -76,7 +73,6 @@
       default={0.01}
       scale="log"
       unit="s"
-      {springEnabled}
       externalValue={midiState?.ampAttack?.externalValue}
       learningMidi={midiState?.ampAttack?.learningMidi ?? false}
       assignedCc={midiState?.ampAttack?.assignedCc ?? null}
@@ -90,7 +86,6 @@
       default={0.5}
       scale="log"
       unit="s"
-      {springEnabled}
       externalValue={midiState?.ampDecay?.externalValue}
       learningMidi={midiState?.ampDecay?.learningMidi ?? false}
       assignedCc={midiState?.ampDecay?.assignedCc ?? null}
@@ -106,7 +101,6 @@
       max={1}
       default={0.7}
       scale="linear"
-      {springEnabled}
       externalValue={midiState?.ampSustain?.externalValue}
       learningMidi={midiState?.ampSustain?.learningMidi ?? false}
       assignedCc={midiState?.ampSustain?.assignedCc ?? null}
@@ -121,7 +115,6 @@
       scale="log"
       unit="s"
       disabled={drLock === 1}
-      {springEnabled}
       externalValue={drLock === 1 ? decayValue : midiState?.ampRelease?.externalValue}
       learningMidi={midiState?.ampRelease?.learningMidi ?? false}
       assignedCc={midiState?.ampRelease?.assignedCc ?? null}

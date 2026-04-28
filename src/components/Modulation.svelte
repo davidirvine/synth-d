@@ -6,13 +6,11 @@
     midiState = {},
     onknobcontextmenu,
     reset = 0,
-    springEnabled = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
     reset?: number,
-    springEnabled?: boolean
   }} */ ($props())
 
   let modToOsc1 = $state(0)
@@ -91,7 +89,6 @@
           { pos: 0, label: 'LFO' },
           { pos: 1, label: 'NOISE' },
         ]}
-        {springEnabled}
         externalValue={midiState?.modMix?.externalValue}
         learningMidi={midiState?.modMix?.learningMidi ?? false}
         assignedCc={midiState?.modMix?.assignedCc ?? null}
