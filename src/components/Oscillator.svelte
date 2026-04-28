@@ -6,11 +6,13 @@
     midiState = {},
     onknobcontextmenu,
     reset = 0,
+    springEnabled = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number
+    reset?: number,
+    springEnabled?: boolean
   }} */ ($props())
 
   const WAVEFORMS = ['tri', 'rev-saw', 'saw', 'sq', 'wide', 'narrow']
@@ -108,6 +110,7 @@
         scale="linear"
         unit="c"
         bipolar={true}
+        {springEnabled}
         externalValue={midiState?.osc2Detune?.externalValue}
         learningMidi={midiState?.osc2Detune?.learningMidi ?? false}
         assignedCc={midiState?.osc2Detune?.assignedCc ?? null}
@@ -144,6 +147,7 @@
         unit="c"
         bipolar={true}
         disabled={osc3LfoMode === 1}
+        {springEnabled}
         externalValue={midiState?.osc3Detune?.externalValue}
         learningMidi={midiState?.osc3Detune?.learningMidi ?? false}
         assignedCc={midiState?.osc3Detune?.assignedCc ?? null}
@@ -166,6 +170,7 @@
         scale="log"
         unit="Hz"
         disabled={osc3LfoMode === 0}
+        {springEnabled}
         externalValue={midiState?.osc3LfoRate?.externalValue}
         learningMidi={midiState?.osc3LfoRate?.learningMidi ?? false}
         assignedCc={midiState?.osc3LfoRate?.assignedCc ?? null}

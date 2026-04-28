@@ -5,7 +5,7 @@
 
 ## 2. Panel Components
 
-- [ ] 2.1 Add `springEnabled` prop to `Oscillator.svelte` and pass it to every `Knob` it renders
+- [x] 2.1 Add `springEnabled` prop to `Oscillator.svelte` and pass it to every `Knob` it renders
 - [ ] 2.2 Add `springEnabled` prop to `Mixer.svelte` and pass it to every `Knob` it renders
 - [ ] 2.3 Add `springEnabled` prop to `Filter.svelte` and pass it to every `Knob` it renders
 - [ ] 2.4 Add `springEnabled` prop to `AmpEnv.svelte` and pass it to every `Knob` it renders
