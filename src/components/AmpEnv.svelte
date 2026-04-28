@@ -1,16 +1,21 @@
 <script>
   import Knob from './Knob.svelte'
+  import ClipLed from './ClipLed.svelte'
 
   let {
     onchange,
     midiState = {},
     onknobcontextmenu,
     reset = 0,
+    getOutputPeak = () => 0,
+    powered = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number
+    reset?: number,
+    getOutputPeak?: () => number,
+    powered?: boolean
   }} */ ($props())
 
   let drLock = $state(1)
@@ -29,7 +34,10 @@
 </script>
 
 <div class="panel">
-  <span class="panel-label">output</span>
+  <div class="panel-header">
+    <span class="panel-label">output</span>
+    <ClipLed getPeak={getOutputPeak} {powered} />
+  </div>
   <div class="knob-row centered">
     <Knob
       label="volume"
@@ -124,6 +132,12 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .panel-label {

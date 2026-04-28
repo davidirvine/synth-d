@@ -1,6 +1,13 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
-  import { getAnalyser, getMixerPeak, powerOn, powerOff, setParam } from './audio/engine.js'
+  import {
+    getAnalyser,
+    getMixerPeak,
+    getOutputPeak,
+    powerOn,
+    powerOff,
+    setParam,
+  } from './audio/engine.js'
   import { MidiManager } from './audio/midi.js'
   import { MidiCcMap } from './audio/midiCcMap.js'
   import Oscillator from './components/Oscillator.svelte'
@@ -332,6 +339,8 @@
             midiState={ampEnvMidiState}
             onknobcontextmenu={onKnobContextMenu}
             reset={resetCounter}
+            {getOutputPeak}
+            {powered}
           />
           <Effects
             onchange={onParamChange}

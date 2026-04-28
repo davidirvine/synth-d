@@ -158,3 +158,56 @@ describe('setParam', () => {
     expect(mockNode.setParamValue).toHaveBeenCalledWith('/synth/cutoff', 440)
   })
 })
+
+describe('getOutputPeak', () => {
+  let mockCtx
+
+  beforeEach(async () => {
+    vi.resetModules()
+    mockNode.connect.mockClear()
+    mockNode.disconnect.mockClear()
+    mockNode.setOutputParamHandler.mockClear()
+    mockCtx = makeMockCtx()
+    vi.stubGlobal(
+      'AudioContext',
+      vi.fn(function () {
+        return mockCtx
+      })
+    )
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ json: vi.fn().mockResolvedValue({}) }))
+    vi.stubGlobal('WebAssembly', { compileStreaming: vi.fn().mockResolvedValue({}) })
+  })
+
+  it('returns 0 before powerOn is called', async () => {
+    const { getOutputPeak } = await import('./engine.js')
+    expect(getOutputPeak()).toBe(0)
+  })
+
+  it('returns the updated value when the output param handler fires with /synth/outputPeak', async () => {
+    const { powerOn, getOutputPeak } = await import('./engine.js')
+    await powerOn()
+    const handler = mockNode.setOutputParamHandler.mock.calls[0][0]
+    handler('/synth/outputPeak', 1.42)
+    expect(getOutputPeak()).toBe(1.42)
+  })
+
+  it('resets to 0 after powerOff is called', async () => {
+    const { powerOn, powerOff, getOutputPeak } = await import('./engine.js')
+    await powerOn()
+    const handler = mockNode.setOutputParamHandler.mock.calls[0][0]
+    handler('/synth/outputPeak', 1.42)
+    await powerOff()
+    expect(getOutputPeak()).toBe(0)
+  })
+
+  it('single handler captures both mixerPeak and outputPeak paths', async () => {
+    const { powerOn, getMixerPeak, getOutputPeak } = await import('./engine.js')
+    await powerOn()
+    expect(mockNode.setOutputParamHandler).toHaveBeenCalledOnce()
+    const handler = mockNode.setOutputParamHandler.mock.calls[0][0]
+    handler('/synth/mixerPeak', 0.8)
+    handler('/synth/outputPeak', 1.1)
+    expect(getMixerPeak()).toBe(0.8)
+    expect(getOutputPeak()).toBe(1.1)
+  })
+})
