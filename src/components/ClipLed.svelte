@@ -56,8 +56,8 @@
     box-shadow: none;
     /* fade-out: decay back to dark */
     transition:
-      background 200ms ease-out,
-      box-shadow 200ms ease-out;
+      background 80ms ease-out,
+      box-shadow 80ms ease-out;
   }
 
   .clip-led.clip {
