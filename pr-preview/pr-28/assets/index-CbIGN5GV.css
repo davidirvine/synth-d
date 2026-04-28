@@ -413,6 +413,13 @@ body {
     gap: 12px;
   }
 
+  .mod-row.svelte-123klp2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
   .toggle-btn.svelte-123klp2 {
     font-family: inherit;
     font-size: 9px;
@@ -765,12 +772,6 @@ body {
     align-items: center;
   }
 
-  .panel.svelte-1phgu47 {
-    background: #1c1c1c;
-    border: 1px solid #333;
-    padding: 10px 12px;
-  }
-
   .app.svelte-1n46o8q {
     --knob-body-size: 48px;
     display: flex;
@@ -844,6 +845,12 @@ body {
     grid-template-columns: auto auto auto;
     gap: 8px;
     justify-content: start;
+  }
+
+  .effects-col.svelte-1n46o8q {
+    grid-row: span 2;
+    display: flex;
+    flex-direction: column;
   }
 
   .panel-row.svelte-1n46o8q {
