@@ -8,7 +8,7 @@
 - [x] 2.1 Add `springEnabled` prop to `Oscillator.svelte` and pass it to every `Knob` it renders
 - [x] 2.2 Add `springEnabled` prop to `Mixer.svelte` and pass it to every `Knob` it renders
 - [x] 2.3 Add `springEnabled` prop to `Filter.svelte` and pass it to every `Knob` it renders
-- [ ] 2.4 Add `springEnabled` prop to `AmpEnv.svelte` and pass it to every `Knob` it renders
+- [x] 2.4 Add `springEnabled` prop to `AmpEnv.svelte` and pass it to every `Knob` it renders
 - [ ] 2.5 Add `springEnabled` prop to `Modulation.svelte` and pass it to every `Knob` it renders
 - [ ] 2.6 Add `springEnabled` prop to `Glide.svelte` and pass it to every `Knob` it renders
 - [ ] 2.7 Add `springEnabled` prop to `Effects.svelte` and pass it to every `Knob` it renders
