@@ -38,9 +38,9 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Power on the synth, enable delay, toggle MOD on, set depth to ~10 ms and rate to 1 Hz — confirm audible chorus/vibrato on repeats
-- [ ] 5.2 Toggle MOD off while repeats are playing — confirm modulation disappears without a click
-- [ ] 5.3 Toggle MOD on again — confirm modulation returns without a click
-- [ ] 5.4 With MOD off, confirm the delay sounds identical to the pre-change baseline regardless of rate and depth knob positions
-- [ ] 5.5 Adjust rate and depth knobs while MOD is on and delay is active — confirm no clicks or discontinuities
-- [ ] 5.6 Set delayTime to minimum (0.01 s), MOD on, depth to maximum (0.025 s) — confirm no crash or silence
+- [x] 5.1 Power on the synth, enable delay, toggle MOD on, set depth to ~10 ms and rate to 1 Hz — confirm audible chorus/vibrato on repeats
+- [x] 5.2 Toggle MOD off while repeats are playing — confirm modulation disappears without a click
+- [x] 5.3 Toggle MOD on again — confirm modulation returns without a click
+- [x] 5.4 With MOD off, confirm the delay sounds identical to the pre-change baseline regardless of rate and depth knob positions
+- [x] 5.5 Adjust rate and depth knobs while MOD is on and delay is active — confirm no clicks or discontinuities
+- [x] 5.6 Set delayTime to minimum (0.01 s), MOD on, depth to maximum (0.025 s) — confirm no crash or silence
