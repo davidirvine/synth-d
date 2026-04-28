@@ -1,6 +1,30 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, fireEvent } from '@testing-library/svelte'
 import Knob from './Knob.svelte'
+
+// Shared spy for all springPos.set calls — used in springEnabled tests below.
+// vi.hoisted ensures this is available inside the vi.mock factory (both are hoisted).
+const mockSet = vi.hoisted(() => vi.fn(() => Promise.resolve()))
+
+vi.mock('svelte/motion', () => ({
+  spring: vi.fn((initialValue) => {
+    let _val = initialValue ?? 0
+    const _subs = new Set()
+    return {
+      set: (v, opts) => {
+        _val = v
+        for (const sub of _subs) sub(_val)
+        mockSet(v, opts)
+        return Promise.resolve()
+      },
+      subscribe: (fn) => {
+        _subs.add(fn)
+        fn(_val)
+        return () => _subs.delete(fn)
+      },
+    }
+  }),
+}))
 
 describe('Knob — rendering', () => {
   it('renders an SVG', () => {
@@ -180,6 +204,40 @@ describe('Knob — showArc prop', () => {
     })
     expect(container.querySelector('.arc')).toBeNull()
     expect(container.querySelector('.track')).not.toBeNull()
+  })
+})
+
+describe('Knob — springEnabled', () => {
+  beforeEach(() => {
+    mockSet.mockClear()
+  })
+
+  it('when springEnabled is false (default), externalValue change calls springPos.set with { instant: true }', async () => {
+    const { rerender } = render(Knob, {
+      props: { label: 'vol', min: 0, max: 1, default: 0.5 },
+    })
+    await rerender({ externalValue: 0.8 })
+    expect(mockSet).toHaveBeenCalledWith(expect.any(Number), { instant: true })
+  })
+
+  it('when springEnabled is true, externalValue change calls springPos.set with { instant: false }', async () => {
+    const { rerender } = render(Knob, {
+      props: { label: 'vol', min: 0, max: 1, default: 0.5, springEnabled: true },
+    })
+    await rerender({ externalValue: 0.8 })
+    expect(mockSet).toHaveBeenCalledWith(expect.any(Number), { instant: false })
+  })
+
+  it('drag calls springPos.set with { instant: true } regardless of springEnabled', async () => {
+    const { container } = render(Knob, {
+      props: { label: 'vol', min: 0, max: 1, default: 0.5, springEnabled: true },
+    })
+    mockSet.mockClear()
+    const hit = container.querySelector('.knob-hit')
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    await fireEvent.pointerMove(hit, { clientY: 50 })
+    await fireEvent.pointerUp(hit)
+    expect(mockSet).toHaveBeenCalledWith(expect.any(Number), { instant: true })
   })
 })
 

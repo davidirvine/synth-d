@@ -21,6 +21,6 @@
 
 ## 4. Tests
 
-- [ ] 4.1 Add `Knob` unit test: when `springEnabled={false}` (default), an `externalValue` change calls `springPos.set` with `{ instant: true }`
-- [ ] 4.2 Add `Knob` unit test: when `springEnabled={true}`, an `externalValue` change calls `springPos.set` without `{ instant: true }` (spring animates)
-- [ ] 4.3 Add `Knob` unit test: drag calls `springPos.set` with `{ instant: true }` regardless of `springEnabled` value
+- [x] 4.1 Add `Knob` unit test: when `springEnabled={false}` (default), an `externalValue` change calls `springPos.set` with `{ instant: true }`
+- [x] 4.2 Add `Knob` unit test: when `springEnabled={true}`, an `externalValue` change calls `springPos.set` without `{ instant: true }` (spring animates)
+- [x] 4.3 Add `Knob` unit test: drag calls `springPos.set` with `{ instant: true }` regardless of `springEnabled` value
