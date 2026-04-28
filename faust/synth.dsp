@@ -68,7 +68,7 @@ delayMix      = hslider("delayMix", 0.3, 0, 1, 0.001);
 reverbOn       = nentry("reverbOn", 0, 0, 1, 1);
 reverbMix      = hslider("reverbMix", 0.5, 0, 1, 0.001);
 reverbDecay    = hslider("reverbDecay", 0.5, 0, 1, 0.001);
-reverbTone     = hslider("reverbTone [unit:Hz]", 4000, 1000, 16000, 1);
+reverbDamp     = hslider("reverbDamp", 0.5, 0, 1, 0.001);
 reverbPreDelay = hslider("reverbPreDelay [unit:s]", 0, 0, 0.1, 0.0001);
 
 // Master
@@ -168,15 +168,14 @@ delayStage        = select2(int(delayOn), masterOut, delayOut);
 
 // Smooth all reverb params to prevent zipper noise when knobs are adjusted.
 reverbDecayS    = reverbDecay    : si.smoo;
-reverbToneS     = reverbTone     : si.smoo;
+reverbDampS     = reverbDamp     : si.smoo;
 reverbPreDelayS = reverbPreDelay : si.smoo;
 reverbMixS      = reverbMix      : si.smoo;
 
 // Buffer covers 100 ms at 48 kHz (4800 samples + 1 headroom); max pre-delay halves to ~50 ms at 96 kHz.
-// mono_freeverb(fb1=decay, fb2=0.5 room-size fixed, damp=0 internal damping off, spread=0 mono).
+// mono_freeverb(fb1=decay, fb2=0.5 room-size fixed, damp=reverbDampS, spread=0 mono).
 reverbWet = de.fdelay(4801, reverbPreDelayS * ma.SR)
-          : re.mono_freeverb(reverbDecayS, 0.5, 0, 0)
-          : fi.lowpass(1, reverbToneS)
+          : re.mono_freeverb(reverbDecayS, 0.5, reverbDampS, 0)
           : fi.dcblocker;
 
 // ─── Signal Chain ─────────────────────────────────────────────────────────────
