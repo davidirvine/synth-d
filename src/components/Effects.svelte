@@ -6,11 +6,13 @@
     midiState = {},
     onknobcontextmenu,
     reset = 0,
+    springEnabled = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number
+    reset?: number,
+    springEnabled?: boolean
   }} */ ($props())
 
   let delayOn = $state(0)
@@ -66,6 +68,7 @@
       scale="linear"
       unit="s"
       disabled={delayOn === 0}
+      {springEnabled}
       externalValue={midiState?.delayTime?.externalValue}
       learningMidi={midiState?.delayTime?.learningMidi ?? false}
       assignedCc={midiState?.delayTime?.assignedCc ?? null}
@@ -79,6 +82,7 @@
       default={0.3}
       scale="linear"
       disabled={delayOn === 0}
+      {springEnabled}
       externalValue={midiState?.delayFeedback?.externalValue}
       learningMidi={midiState?.delayFeedback?.learningMidi ?? false}
       assignedCc={midiState?.delayFeedback?.assignedCc ?? null}
@@ -92,6 +96,7 @@
       default={0.3}
       scale="linear"
       disabled={delayOn === 0}
+      {springEnabled}
       externalValue={midiState?.delayMix?.externalValue}
       learningMidi={midiState?.delayMix?.learningMidi ?? false}
       assignedCc={midiState?.delayMix?.assignedCc ?? null}
@@ -160,6 +165,7 @@
       default={0.5}
       scale="linear"
       disabled={reverbOn === 0}
+      {springEnabled}
       externalValue={midiState?.reverbMix?.externalValue}
       learningMidi={midiState?.reverbMix?.learningMidi ?? false}
       assignedCc={midiState?.reverbMix?.assignedCc ?? null}
@@ -174,6 +180,7 @@
       scale="linear"
       showValue={false}
       disabled={reverbOn === 0}
+      {springEnabled}
       externalValue={midiState?.reverbDamp?.externalValue}
       learningMidi={midiState?.reverbDamp?.learningMidi ?? false}
       assignedCc={midiState?.reverbDamp?.assignedCc ?? null}
@@ -187,6 +194,7 @@
       default={0.5}
       scale="log-reverse"
       disabled={reverbOn === 0}
+      {springEnabled}
       externalValue={midiState?.reverbDecay?.externalValue}
       learningMidi={midiState?.reverbDecay?.learningMidi ?? false}
       assignedCc={midiState?.reverbDecay?.assignedCc ?? null}
@@ -201,6 +209,7 @@
       scale="linear"
       unit="s"
       disabled={reverbOn === 0}
+      {springEnabled}
       externalValue={midiState?.reverbPreDelay?.externalValue}
       learningMidi={midiState?.reverbPreDelay?.learningMidi ?? false}
       assignedCc={midiState?.reverbPreDelay?.assignedCc ?? null}
