@@ -119,6 +119,7 @@
 
   let powered = $state(false)
   let loading = $state(false)
+  let springEnabled = $state(false)
   let analyser = $state(null)
   let resetCounter = $state(0)
 
@@ -198,8 +199,13 @@
         await powerOn()
         analyser = getAnalyser()
         powered = true
+        springEnabled = true
         ccExternalValues = { ...DEFAULTS }
         resetCounter++
+        // 800 ms covers the spring settle time (~600 ms); linked to stiffness:0.1 damping:0.85
+        setTimeout(() => {
+          springEnabled = false
+        }, 800)
         await midiManager.connect()
       } catch (err) {
         console.error('Power on failed:', err)
@@ -323,6 +329,7 @@
           midiState={oscMidiState}
           onknobcontextmenu={onKnobContextMenu}
           reset={resetCounter}
+          {springEnabled}
         />
         <Mixer
           onchange={onParamChange}
@@ -331,6 +338,7 @@
           reset={resetCounter}
           getPeak={getMixerPeak}
           {powered}
+          {springEnabled}
         />
         <div class="filter-output-grid">
           <Filter
@@ -338,6 +346,7 @@
             midiState={filterMidiState}
             onknobcontextmenu={onKnobContextMenu}
             reset={resetCounter}
+            {springEnabled}
           />
           <AmpEnv
             onchange={onParamChange}
@@ -346,6 +355,7 @@
             reset={resetCounter}
             {getOutputPeak}
             {powered}
+            {springEnabled}
           />
           <div class="effects-col">
             <Effects
@@ -353,6 +363,7 @@
               midiState={effectsMidiState}
               onknobcontextmenu={onKnobContextMenu}
               reset={resetCounter}
+              {springEnabled}
             />
           </div>
           <div class="panel-row">
@@ -361,12 +372,14 @@
               midiState={modMidiState}
               onknobcontextmenu={onKnobContextMenu}
               reset={resetCounter}
+              {springEnabled}
             />
             <Glide
               onchange={onParamChange}
               midiState={glideMidiState}
               onknobcontextmenu={onKnobContextMenu}
               reset={resetCounter}
+              {springEnabled}
             />
           </div>
           <Scope {analyser} {powered} />

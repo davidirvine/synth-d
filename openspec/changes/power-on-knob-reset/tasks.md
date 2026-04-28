@@ -15,9 +15,9 @@
 
 ## 3. App.svelte Orchestration
 
-- [ ] 3.1 Add `let springEnabled = $state(false)` to `App.svelte`
-- [ ] 3.2 In `handleToggle` (power-on branch), set `springEnabled = true` immediately before `ccExternalValues = { ...DEFAULTS }`, then schedule `setTimeout(() => { springEnabled = false }, 800)` after the reset
-- [ ] 3.3 Pass `springEnabled` to all seven panel components in the `App.svelte` template
+- [x] 3.1 Add `let springEnabled = $state(false)` to `App.svelte`
+- [x] 3.2 In `handleToggle` (power-on branch), set `springEnabled = true` immediately before `ccExternalValues = { ...DEFAULTS }`, then schedule `setTimeout(() => { springEnabled = false }, 800)` after the reset
+- [x] 3.3 Pass `springEnabled` to all seven panel components in the `App.svelte` template
 
 ## 4. Tests
 
