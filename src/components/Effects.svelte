@@ -65,6 +65,7 @@
       default={0.3}
       scale="linear"
       unit="s"
+      disabled={delayOn === 0}
       externalValue={midiState?.delayTime?.externalValue}
       learningMidi={midiState?.delayTime?.learningMidi ?? false}
       assignedCc={midiState?.delayTime?.assignedCc ?? null}
@@ -77,6 +78,7 @@
       max={0.9}
       default={0.3}
       scale="linear"
+      disabled={delayOn === 0}
       externalValue={midiState?.delayFeedback?.externalValue}
       learningMidi={midiState?.delayFeedback?.learningMidi ?? false}
       assignedCc={midiState?.delayFeedback?.assignedCc ?? null}
@@ -89,6 +91,7 @@
       max={1}
       default={0.3}
       scale="linear"
+      disabled={delayOn === 0}
       externalValue={midiState?.delayMix?.externalValue}
       learningMidi={midiState?.delayMix?.learningMidi ?? false}
       assignedCc={midiState?.delayMix?.assignedCc ?? null}
@@ -102,6 +105,7 @@
       class:active={delayModOn === 1}
       onclick={toggleDelayMod}
       aria-pressed={delayModOn === 1}
+      disabled={delayOn === 0}
     >
       MOD
     </button>
@@ -112,6 +116,7 @@
       default={0.5}
       scale="log"
       unit="Hz"
+      disabled={delayOn === 0 || delayModOn === 0}
       externalValue={midiState?.delayModRate?.externalValue}
       learningMidi={midiState?.delayModRate?.learningMidi ?? false}
       assignedCc={midiState?.delayModRate?.assignedCc ?? null}
@@ -125,6 +130,7 @@
       default={0}
       scale="linear"
       unit="s"
+      disabled={delayOn === 0 || delayModOn === 0}
       externalValue={midiState?.delayModDepth?.externalValue}
       learningMidi={midiState?.delayModDepth?.learningMidi ?? false}
       assignedCc={midiState?.delayModDepth?.assignedCc ?? null}
@@ -153,6 +159,7 @@
       max={1}
       default={0.5}
       scale="linear"
+      disabled={reverbOn === 0}
       externalValue={midiState?.reverbMix?.externalValue}
       learningMidi={midiState?.reverbMix?.learningMidi ?? false}
       assignedCc={midiState?.reverbMix?.assignedCc ?? null}
@@ -166,6 +173,7 @@
       default={0.5}
       scale="linear"
       showValue={false}
+      disabled={reverbOn === 0}
       externalValue={midiState?.reverbDamp?.externalValue}
       learningMidi={midiState?.reverbDamp?.learningMidi ?? false}
       assignedCc={midiState?.reverbDamp?.assignedCc ?? null}
@@ -178,6 +186,7 @@
       max={1}
       default={0.5}
       scale="log-reverse"
+      disabled={reverbOn === 0}
       externalValue={midiState?.reverbDecay?.externalValue}
       learningMidi={midiState?.reverbDecay?.learningMidi ?? false}
       assignedCc={midiState?.reverbDecay?.assignedCc ?? null}
@@ -191,6 +200,7 @@
       default={0}
       scale="linear"
       unit="s"
+      disabled={reverbOn === 0}
       externalValue={midiState?.reverbPreDelay?.externalValue}
       learningMidi={midiState?.reverbPreDelay?.learningMidi ?? false}
       assignedCc={midiState?.reverbPreDelay?.assignedCc ?? null}
@@ -267,5 +277,10 @@
     background: #1a2a1a;
     color: #20b040;
     border-color: #20b040;
+  }
+
+  .toggle-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 </style>
