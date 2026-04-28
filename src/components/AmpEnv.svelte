@@ -188,8 +188,13 @@
   }
 
   .drlock-btn.active {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
+  }
+
+  .drlock-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 </style>

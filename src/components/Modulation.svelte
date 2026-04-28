@@ -184,9 +184,14 @@
   }
 
   .route-btn.active {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
+  }
+
+  .route-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   .wheel-container {

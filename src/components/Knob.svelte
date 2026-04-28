@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import { tweened } from 'svelte/motion'
   import { cubicOut } from 'svelte/easing'
   import { normalizedToValue, valueToNormalized, formatValue } from '../audio/math.js'
@@ -43,9 +44,7 @@
     oncontextmenu?: () => void
   }} */ ($props())
 
-  // Intentional one-time init — knob owns its state after mount, external prop changes are ignored.
-  // Svelte 5 warns "only captures the initial value" here; that is the intended design.
-  let value = $state(initialValue !== undefined ? initialValue : defaultValue)
+  let value = $state(untrack(() => (initialValue !== undefined ? initialValue : defaultValue)))
 
   const SWEEP = 270
   const START_ANGLE = 225
@@ -98,9 +97,10 @@
 
   let pos = $derived(valueToNormalized(value, min, max, scale))
 
-  // Tweened store for visual position only — logical value and onchange update immediately.
   const animPos = tweened(
-    valueToNormalized(initialValue !== undefined ? initialValue : defaultValue, min, max, scale),
+    untrack(() =>
+      valueToNormalized(initialValue !== undefined ? initialValue : defaultValue, min, max, scale)
+    ),
     { duration: 0, easing: cubicOut }
   )
 
