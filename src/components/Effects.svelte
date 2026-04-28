@@ -14,11 +14,17 @@
   }} */ ($props())
 
   let delayOn = $state(0)
+  let delayModOn = $state(0)
   let reverbOn = $state(0)
 
   function toggleDelay() {
     delayOn = delayOn === 0 ? 1 : 0
     onchange?.({ param: 'delayOn', value: delayOn })
+  }
+
+  function toggleDelayMod() {
+    delayModOn = delayModOn === 0 ? 1 : 0
+    onchange?.({ param: 'delayModOn', value: delayModOn })
   }
 
   function toggleReverb() {
@@ -29,8 +35,10 @@
   $effect(() => {
     if (reset === 0) return
     delayOn = 0
+    delayModOn = 0
     reverbOn = 0
     onchange?.({ param: 'delayOn', value: 0 })
+    onchange?.({ param: 'delayModOn', value: 0 })
     onchange?.({ param: 'reverbOn', value: 0 })
   })
 </script>
@@ -86,6 +94,42 @@
       assignedCc={midiState?.delayMix?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'delayMix', value: e.value })}
       oncontextmenu={() => onknobcontextmenu?.('delayMix')}
+    />
+  </div>
+  <div class="mod-row">
+    <button
+      class="toggle-btn"
+      class:active={delayModOn === 1}
+      onclick={toggleDelayMod}
+      aria-pressed={delayModOn === 1}
+    >
+      MOD
+    </button>
+    <Knob
+      label="rate"
+      min={0.1}
+      max={10}
+      default={0.5}
+      scale="log"
+      unit="Hz"
+      externalValue={midiState?.delayModRate?.externalValue}
+      learningMidi={midiState?.delayModRate?.learningMidi ?? false}
+      assignedCc={midiState?.delayModRate?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'delayModRate', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('delayModRate')}
+    />
+    <Knob
+      label="depth"
+      min={0}
+      max={0.025}
+      default={0}
+      scale="linear"
+      unit="s"
+      externalValue={midiState?.delayModDepth?.externalValue}
+      learningMidi={midiState?.delayModDepth?.learningMidi ?? false}
+      assignedCc={midiState?.delayModDepth?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'delayModDepth', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('delayModDepth')}
     />
   </div>
 
@@ -193,6 +237,13 @@
   }
 
   .effects-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .mod-row {
     display: flex;
     align-items: center;
     justify-content: center;

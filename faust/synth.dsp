@@ -63,6 +63,9 @@ delayOn       = nentry("delayOn", 0, 0, 1, 1);
 delayTime     = hslider("delayTime [unit:s]", 0.3, 0.01, 2.0, 0.001);
 delayFeedback = hslider("delayFeedback", 0.3, 0, 0.9, 0.001);
 delayMix      = hslider("delayMix", 0.3, 0, 1, 0.001);
+delayModOn    = nentry("delayModOn", 0, 0, 1, 1);
+delayModRate  = hslider("delayModRate [unit:Hz]", 0.5, 0.1, 10, 0.01);
+delayModDepth = hslider("delayModDepth [unit:s]", 0, 0, 0.025, 0.0001);
 
 // Reverb
 reverbOn       = nentry("reverbOn", 0, 0, 1, 1);
@@ -156,7 +159,11 @@ filteredSig = attach(mixerOut, mixerPeak) : ma.tanh : ve.moog_vcf_2bn(resonanceS
 
 maxDelayLen       = 96000;
 wowLfo            = os.osc(0.5) * 0.003;
-tapeTime          = min(maxDelayLen - 1, max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR));
+delayModOnS       = delayModOn    : si.smoo;
+delayModRateS     = delayModRate  : si.smoo;
+delayModDepthS    = delayModDepth : si.smoo;
+modLfo            = os.osc(delayModRateS) * delayModDepthS * ma.SR * delayModOnS;
+tapeTime          = min(maxDelayLen - 1, max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR + modLfo));
 delayFeedbackSafe = delayFeedback : max(0) : min(0.9);
 feedbackPath      = _ * delayFeedbackSafe : fi.lowpass(1, 6000) : ma.tanh;
 delayInput        = masterOut * int(delayOn);
