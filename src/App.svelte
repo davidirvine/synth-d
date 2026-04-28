@@ -119,7 +119,6 @@
 
   let powered = $state(false)
   let loading = $state(false)
-  let springEnabled = $state(false)
   let analyser = $state(null)
   let resetCounter = $state(0)
 
@@ -130,8 +129,18 @@
   let learningParam = $state(/** @type {string|null} */ (null))
   let midiActiveNotes = $state(0)
 
-  // Per-param external values driven by incoming CC messages
-  let ccExternalValues = $state(/** @type {Record<string,number|undefined>} */ ({}))
+  // Per-param external values driven by incoming CC messages.
+  // Initialised with random values so the power-on reset animation is visible on first load.
+  let ccExternalValues = $state(
+    /** @type {Record<string,number|undefined>} */ (
+      Object.fromEntries(
+        Object.keys(DEFAULTS).map((p) => {
+          const { min, max } = KNOB_PARAMS[p]
+          return [p, min + Math.random() * (max - min)]
+        })
+      )
+    )
+  )
 
   const midiCcMap = new MidiCcMap()
 
@@ -193,19 +202,15 @@
       await powerOff()
       powered = false
       midiStatus = 'unavailable'
+      ccExternalValues = {}
     } else {
       loading = true
       try {
         await powerOn()
         analyser = getAnalyser()
         powered = true
-        springEnabled = true
         ccExternalValues = { ...DEFAULTS }
         resetCounter++
-        // 800 ms covers the spring settle time (~600 ms); linked to stiffness:0.1 damping:0.85
-        setTimeout(() => {
-          springEnabled = false
-        }, 800)
         await midiManager.connect()
       } catch (err) {
         console.error('Power on failed:', err)
@@ -329,7 +334,6 @@
           midiState={oscMidiState}
           onknobcontextmenu={onKnobContextMenu}
           reset={resetCounter}
-          {springEnabled}
         />
         <Mixer
           onchange={onParamChange}
@@ -338,7 +342,6 @@
           reset={resetCounter}
           getPeak={getMixerPeak}
           {powered}
-          {springEnabled}
         />
         <div class="filter-output-grid">
           <Filter
@@ -346,7 +349,6 @@
             midiState={filterMidiState}
             onknobcontextmenu={onKnobContextMenu}
             reset={resetCounter}
-            {springEnabled}
           />
           <AmpEnv
             onchange={onParamChange}
@@ -355,7 +357,6 @@
             reset={resetCounter}
             {getOutputPeak}
             {powered}
-            {springEnabled}
           />
           <div class="effects-col">
             <Effects
@@ -363,7 +364,6 @@
               midiState={effectsMidiState}
               onknobcontextmenu={onKnobContextMenu}
               reset={resetCounter}
-              {springEnabled}
             />
           </div>
           <div class="panel-row">
@@ -372,14 +372,12 @@
               midiState={modMidiState}
               onknobcontextmenu={onKnobContextMenu}
               reset={resetCounter}
-              {springEnabled}
             />
             <Glide
               onchange={onParamChange}
               midiState={glideMidiState}
               onknobcontextmenu={onKnobContextMenu}
               reset={resetCounter}
-              {springEnabled}
             />
           </div>
           <Scope {analyser} {powered} />
