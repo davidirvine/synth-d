@@ -38,6 +38,8 @@ body {
   .knob-value.svelte-1wmwmfc {
     font-size: 10px;
     color: #888;
+    min-width: 56px;
+    text-align: center;
   }
 
   .cc-label.svelte-1wmwmfc {
@@ -207,11 +209,6 @@ body {
     background: #1a2a1a;
     color: #20b040;
     border-color: #20b040;
-  }
-
-  .lfo-btn.svelte-19bkkl2:disabled {
-    opacity: 0.35;
-    cursor: default;
   }
 
   .clip-led.svelte-17o0bm7 {
@@ -517,11 +514,6 @@ body {
     border-color: #20b040;
   }
 
-  .drlock-btn.svelte-7n4nfz:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
-
   .panel.svelte-1ddpss2 {
     background: #1c1c1c;
     border: 1px solid #333;
@@ -565,11 +557,6 @@ body {
     background: #1a2a1a;
     color: #20b040;
     border-color: #20b040;
-  }
-
-  .route-btn.svelte-1ddpss2:disabled {
-    opacity: 0.35;
-    cursor: default;
   }
 
   .wheel-container.svelte-1ddpss2 {
@@ -805,6 +792,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 12px 20px;
+    margin: 0 8px;
     background: #1c1c1c;
     border-bottom: 1px solid #333;
   }
