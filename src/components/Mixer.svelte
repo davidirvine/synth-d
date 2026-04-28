@@ -1,6 +1,6 @@
 <script>
   import Knob from './Knob.svelte'
-  import LevelMeter from './LevelMeter.svelte'
+  import ClipLed from './ClipLed.svelte'
 
   let {
     onchange,
@@ -36,7 +36,7 @@
 <div class="panel">
   <div class="panel-header">
     <span class="panel-label">mixer</span>
-    <LevelMeter {getPeak} {powered} />
+    <ClipLed {getPeak} {powered} />
   </div>
   <div class="mixer-col">
     <Knob
@@ -122,7 +122,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
   }
 
   .mixer-col {

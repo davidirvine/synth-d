@@ -181,7 +181,8 @@ reverbWet = de.fdelay(4801, reverbPreDelayS * ma.SR)
 // ─── Signal Chain ─────────────────────────────────────────────────────────────
 // oscillators → mixer → ladder filter → VCA → master volume → tape delay → reverb → stereo split
 
-vcaOut    = filteredSig * ampEnvOut;
-masterOut = vcaOut * (masterVol / 0.6) : ma.tanh;
+vcaOut     = filteredSig * ampEnvOut;
+outputPeak = abs(vcaOut * (masterVol / 0.6)) : vbargraph("outputPeak [unit:linear]", 0, 2);
+masterOut  = attach(vcaOut * (masterVol / 0.6), outputPeak) : ma.tanh;
 reverbOut = delayStage <: (_ * (1 - reverbMixS), reverbWet * reverbMixS) :> _;
 process   = select2(int(reverbOn), delayStage, reverbOut) <: _, _;
