@@ -1,7 +1,7 @@
 ## 1. Knob Component
 
-- [ ] 1.1 Add `springEnabled: boolean` prop (default `false`) to `Knob.svelte` props destructuring and JSDoc type
-- [ ] 1.2 In the `externalValue $effect`, change `springPos.set(...)` to pass `{ instant: !springEnabled }` so spring only animates when `springEnabled` is `true`
+- [x] 1.1 Add `springEnabled: boolean` prop (default `false`) to `Knob.svelte` props destructuring and JSDoc type
+- [x] 1.2 In the `externalValue $effect`, change `springPos.set(...)` to pass `{ instant: !springEnabled }` so spring only animates when `springEnabled` is `true`
 
 ## 2. Panel Components
 

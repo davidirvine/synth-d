@@ -19,6 +19,7 @@
     learningMidi = false,
     assignedCc = null,
     disabled = false,
+    springEnabled = false,
     onchange,
     oncontextmenu,
   } = /** @type {{
@@ -38,6 +39,7 @@
     learningMidi?: boolean,
     assignedCc?: number | null,
     disabled?: boolean,
+    springEnabled?: boolean,
     onchange?: (e: { value: number }) => void,
     oncontextmenu?: () => void
   }} */ ($props())
@@ -118,7 +120,7 @@
       if (clamped !== value) {
         value = clamped
         onchange?.({ value: clamped })
-        springPos.set(valueToNormalized(clamped, min, max, scale))
+        springPos.set(valueToNormalized(clamped, min, max, scale), { instant: !springEnabled })
       }
     }
   })
