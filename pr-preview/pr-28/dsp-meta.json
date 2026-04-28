@@ -24,8 +24,8 @@
         "/usr/share/faust",
         "."
     ],
-    "size": 1159888,
-    "code": "qNKZB1Q8Hw==",
+    "size": 1159944,
+    "code": "OPaRB1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -853,11 +853,23 @@
                 },
                 {
                     "type": "hslider",
-                    "label": "reverbDecay",
+                    "label": "reverbDamp",
                     "varname": "fHslider30",
+                    "shortname": "reverbDamp",
+                    "address": "/synth/reverbDamp",
+                    "index": 868876,
+                    "init": 0.5,
+                    "min": 0,
+                    "max": 1,
+                    "step": 0.001
+                },
+                {
+                    "type": "hslider",
+                    "label": "reverbDecay",
+                    "varname": "fHslider29",
                     "shortname": "reverbDecay",
                     "address": "/synth/reverbDecay",
-                    "index": 868876,
+                    "index": 868864,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -890,10 +902,10 @@
                 {
                     "type": "hslider",
                     "label": "reverbPreDelay",
-                    "varname": "fHslider29",
+                    "varname": "fHslider28",
                     "shortname": "reverbPreDelay",
                     "address": "/synth/reverbPreDelay",
-                    "index": 868864,
+                    "index": 868852,
                     "meta": [
                         {
                             "unit": "s"
@@ -903,23 +915,6 @@
                     "min": 0,
                     "max": 0.1,
                     "step": 0.0001
-                },
-                {
-                    "type": "hslider",
-                    "label": "reverbTone",
-                    "varname": "fHslider28",
-                    "shortname": "reverbTone",
-                    "address": "/synth/reverbTone",
-                    "index": 868852,
-                    "meta": [
-                        {
-                            "unit": "Hz"
-                        }
-                    ],
-                    "init": 4000,
-                    "min": 1000,
-                    "max": 16000,
-                    "step": 1
                 }
             ]
         }

@@ -5516,11 +5516,11 @@ export default ${(_a = jsCode.match(jsCodeHead)) == null ? void 0 : _a[1]};
 		wasmBinary = await (await fetch(wasmFile)).arrayBuffer();
 	} else {
 		const { promises: fs } = await __vitePreload(async () => {
-			const { promises: fs } = await import("./__vite-browser-external-XP0u5k3L.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { promises: fs } = await import("./__vite-browser-external-DxFgN229.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { promises: fs };
 		}, [], import.meta.url);
 		const { pathToFileURL } = await __vitePreload(async () => {
-			const { pathToFileURL } = await import("./__vite-browser-external-XP0u5k3L.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
+			const { pathToFileURL } = await import("./__vite-browser-external-DxFgN229.js").then((m) => /* @__PURE__ */ __toESM(m.default, 1));
 			return { pathToFileURL };
 		}, [], import.meta.url);
 		let jsCode = await fs.readFile(jsFile, { encoding: "utf-8" });
@@ -11737,16 +11737,16 @@ function Effects($$anchor, $$props) {
 	}
 	var node_4 = sibling(node_3, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.reverbTone?.externalValue);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbTone?.learningMidi ?? false);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbTone?.assignedCc ?? null);
+		let $0 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.externalValue);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.learningMidi ?? false);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.assignedCc ?? null);
 		Knob(node_4, {
-			label: "LPF",
-			min: 1e3,
-			max: 16e3,
-			default: 4e3,
-			scale: "log",
-			unit: "Hz",
+			label: "damp",
+			min: 0,
+			max: 1,
+			default: .5,
+			scale: "linear",
+			showValue: false,
 			get externalValue() {
 				return get($0);
 			},
@@ -11757,10 +11757,10 @@ function Effects($$anchor, $$props) {
 				return get($2);
 			},
 			onchange: (e) => $$props.onchange?.({
-				param: "reverbTone",
+				param: "reverbDamp",
 				value: e.value
 			}),
-			oncontextmenu: () => $$props.onknobcontextmenu?.("reverbTone")
+			oncontextmenu: () => $$props.onknobcontextmenu?.("reverbDamp")
 		});
 	}
 	var node_5 = sibling(node_4, 2);
@@ -12677,9 +12677,9 @@ function App($$anchor, $$props) {
 			min: .01,
 			max: 1
 		},
-		reverbTone: {
-			min: 1e3,
-			max: 16e3
+		reverbDamp: {
+			min: 0,
+			max: 1
 		},
 		reverbPreDelay: {
 			min: 0,
@@ -12717,7 +12717,7 @@ function App($$anchor, $$props) {
 		delayFeedback: .3,
 		delayMix: .3,
 		reverbMix: .5,
-		reverbTone: 4e3,
+		reverbDamp: .5,
 		reverbDecay: .5,
 		reverbPreDelay: 0
 	};
@@ -12859,7 +12859,7 @@ function App($$anchor, $$props) {
 	let ampEnvMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("ampAttack", "ampDecay", "ampSustain", "ampRelease", "masterVol"));
 	let modMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("modMix", "modWheel"));
 	let glideMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("glideRate"));
-	let effectsMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("reverbMix", "reverbTone", "reverbDecay", "reverbPreDelay", "delayTime", "delayFeedback", "delayMix"));
+	let effectsMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("reverbMix", "reverbDamp", "reverbDecay", "reverbPreDelay", "delayTime", "delayFeedback", "delayMix"));
 	var div = root();
 	var header = child(div);
 	var div_1 = child(header);
