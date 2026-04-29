@@ -204,9 +204,17 @@ body {
   }
 
   .lfo-btn.active.svelte-19bkkl2 {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
+  }
+
+  .level-led.svelte-1hlnysh {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--led-color, #111111);
+    transition: background 80ms ease-out;
   }
 
   .panel.svelte-gq0xe5 {
@@ -223,6 +231,13 @@ body {
     color: #e8dcc8;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+  }
+
+  .panel-header.svelte-gq0xe5 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .mixer-col.svelte-gq0xe5 {
@@ -343,6 +358,14 @@ body {
     border-color: #20b040;
   }
 
+  /* Reserve fixed width for the filter env amount knob value.
+     Prevents layout shift when the displayed string changes between e.g. "0.00 Hz" and "10.0 kHz". */
+  .knob-row.svelte-xeds7y :last-child .knob-value {
+    min-width: 5.5em;
+    display: inline-block;
+    text-align: center;
+  }
+
   .panel.svelte-123klp2 {
     background: #1c1c1c;
     border: 1px solid #333;
@@ -385,6 +408,13 @@ body {
     gap: 12px;
   }
 
+  .mod-row.svelte-123klp2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
   .toggle-btn.svelte-123klp2 {
     font-family: inherit;
     font-size: 9px;
@@ -404,12 +434,9 @@ body {
     border-color: #20b040;
   }
 
-  /* Reserve fixed width for the LPF knob value (2nd child: mix + LPF).
-     Prevents layout shift when the displayed string changes between e.g. "1.0 kHz" and "16.0 kHz". */
-  .reverb-row.svelte-123klp2 :nth-child(2) .knob-value {
-    min-width: 5.5em;
-    display: inline-block;
-    text-align: center;
+  .toggle-btn.svelte-123klp2:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   .panel.svelte-7n4nfz {
@@ -419,6 +446,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
+
+  .panel-header.svelte-7n4nfz {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .panel-label.svelte-7n4nfz {
@@ -469,9 +502,9 @@ body {
   }
 
   .drlock-btn.active.svelte-7n4nfz {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
   }
 
   .panel.svelte-1ddpss2 {
@@ -481,6 +514,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    flex: 1;
   }
 
   .panel-label.svelte-1ddpss2 {
@@ -492,7 +526,7 @@ body {
 
   .mod-layout.svelte-1ddpss2 {
     display: flex;
-    gap: 12px;
+    gap: 28px;
     align-items: flex-start;
   }
 
@@ -514,40 +548,9 @@ body {
   }
 
   .route-btn.active.svelte-1ddpss2 {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
-  }
-
-  .wheel-container.svelte-1ddpss2 {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .param-label.svelte-1ddpss2 {
-    font-size: 9px;
-    color: #666;
-    text-transform: uppercase;
-  }
-
-  .wheel-track.svelte-1ddpss2 {
-    width: 18px;
-    height: 60px;
-    background: #2a2a2a;
-    border: 1px solid #444;
-    cursor: ns-resize;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    touch-action: none;
-  }
-
-  .wheel-fill.svelte-1ddpss2 {
-    background: #c87941;
-    width: 100%;
-    transition: height 0.05s;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
   }
 
   .panel.svelte-oqc131 {
@@ -596,7 +599,7 @@ body {
   .keyboard-wrap.svelte-1dlz8xf {
     display: flex;
     justify-content: center;
-    padding: 12px 0;
+    padding: 0;
   }
 
   .white-key.svelte-1dlz8xf {
@@ -621,6 +624,103 @@ body {
 
   .black-key.active.svelte-1dlz8xf {
     fill: #c87941;
+  }
+
+  .key-label.svelte-1dlz8xf {
+    font-size: 8px;
+    fill: #888;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .key-label-black.svelte-1dlz8xf {
+    font-size: 6px;
+    fill: #aaa;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .panel.svelte-pygl9d {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .panel-label.svelte-pygl9d {
+    font-size: 10px;
+    color: #e8dcc8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .btn-col.svelte-pygl9d {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .reg-btn.svelte-pygl9d {
+    font-family: inherit;
+    font-size: 9px;
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    padding: 3px 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    height: 22px;
+  }
+
+  .reg-btn.active.svelte-pygl9d {
+    background: #3a2a1a;
+    color: #c87941;
+    border-color: #c87941;
+  }
+
+  .panel.svelte-i6yfjl {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .panel-label.svelte-i6yfjl {
+    font-size: 10px;
+    color: #e8dcc8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .wheel-container.svelte-i6yfjl {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .wheel-track.svelte-i6yfjl {
+    width: 18px;
+    height: 60px;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    cursor: ns-resize;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    touch-action: none;
+  }
+
+  .wheel-fill.svelte-i6yfjl {
+    background: #c87941;
+    width: 100%;
+    transition: height 0.05s;
   }
 
   .power-wrap.svelte-z2dg21 {
@@ -739,12 +839,6 @@ body {
     align-items: center;
   }
 
-  .panel.svelte-1phgu47 {
-    background: #1c1c1c;
-    border: 1px solid #333;
-    padding: 10px 12px;
-  }
-
   .app.svelte-1n46o8q {
     --knob-body-size: 48px;
     display: flex;
@@ -756,8 +850,9 @@ body {
   .header.svelte-1n46o8q {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 20px;
+    gap: 12px;
+    padding: 12px 20px 12px 8px;
+    margin: 0 8px;
     background: #1c1c1c;
     border-bottom: 1px solid #333;
   }
@@ -766,6 +861,22 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-left: auto;
+  }
+
+  .github-link.svelte-1n46o8q {
+    color: #555;
+    text-decoration: none;
+    line-height: 0;
+    transition: color 0.15s;
+  }
+
+  .github-link.svelte-1n46o8q:hover {
+    color: #888;
+  }
+
+  .github-link.svelte-1n46o8q:focus:not(:focus-visible) {
+    outline: none;
   }
 
   .title-block.svelte-1n46o8q {
@@ -781,7 +892,6 @@ body {
     font-weight: bold;
     color: #e8dcc8;
     letter-spacing: 0.2em;
-    text-decoration: none;
   }
 
   .version-label.svelte-1n46o8q {
@@ -806,6 +916,12 @@ body {
     opacity: 0.4;
   }
 
+  .keyboard-row.svelte-1n46o8q {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+
   .panels.svelte-1n46o8q {
     display: grid;
     grid-template-columns: auto auto auto;
@@ -818,6 +934,12 @@ body {
     grid-template-columns: auto auto auto;
     gap: 8px;
     justify-content: start;
+  }
+
+  .effects-col.svelte-1n46o8q {
+    grid-row: span 2;
+    display: flex;
+    flex-direction: column;
   }
 
   .panel-row.svelte-1n46o8q {
