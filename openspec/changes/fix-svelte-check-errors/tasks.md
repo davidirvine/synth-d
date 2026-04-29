@@ -36,8 +36,8 @@
 
 ## 5. Null safety — main.js and test-setup.js
 
-- [ ] 5.1 Add non-null assertion to `document.getElementById('app')` in `src/main.js`
-- [ ] 5.2 Complete the MediaQueryList stub in `src/test-setup.js` with missing properties
+- [x] 5.1 Add non-null assertion to `document.getElementById('app')` in `src/main.js`
+- [x] 5.2 Complete the MediaQueryList stub in `src/test-setup.js` with missing properties
 
 ## 6. Null safety — test files
 
