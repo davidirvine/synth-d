@@ -46,5 +46,5 @@ When the synth powers off, all knob `externalValue` props SHALL be set to their 
 #### Scenario: Power-off sweep is symmetric with power-on sweep
 
 - **WHEN** the synth is powered off after a power-on reset has completed
-- **THEN** the power-off sweep behaves identically to the power-on sweep but in reverse, sweeping from current (default) to minimum
+- **THEN** the power-off sweep behaves identically to the power-on sweep but in reverse, sweeping from current position to minimum
 
