@@ -7,6 +7,7 @@
 
 <div class="power-wrap">
   <button
+    data-testid="power-btn"
     class="power-btn"
     class:on={powered}
     disabled={loading}
