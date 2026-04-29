@@ -67,7 +67,7 @@ describe('App — all six panels render', () => {
   it('renders mixer panel label', () => {
     const { getByText, container } = render(App)
     expect(getByText('mixer')).toBeTruthy()
-    expect(container.querySelector('.clip-led')).not.toBeNull()
+    expect(container.querySelector('.level-led')).not.toBeNull()
   })
 
   it('renders filter panel label', () => {
