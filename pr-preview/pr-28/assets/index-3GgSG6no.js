@@ -11065,27 +11065,36 @@ function Oscillator($$anchor, $$props) {
 }
 delegate(["click"]);
 //#endregion
-//#region src/components/ClipLed.svelte
-var root$11 = /* @__PURE__ */ from_html(`<div></div>`);
-function ClipLed($$anchor, $$props) {
+//#region src/components/LevelLed.svelte
+var root$11 = /* @__PURE__ */ from_html(`<div class="level-led svelte-1hlnysh"></div>`);
+function LevelLed($$anchor, $$props) {
 	push($$props, true);
 	let getPeak = prop($$props, "getPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
-	let clipLit = /* @__PURE__ */ state(false);
+	let color = /* @__PURE__ */ state("#111111");
 	let rafHandle = 0;
 	let latchHandle = 0;
+	function computeColor(peak) {
+		if (peak <= 0) return "#111111";
+		let hue;
+		if (peak < .5) hue = 120 - peak / .5 * 60;
+		else if (peak < .85) hue = 60 - (peak - .5) / .35 * 30;
+		else hue = Math.max(0, 30 - (peak - .85) / .15 * 30);
+		return `hsl(${Math.round(hue)}, 100%, 50%)`;
+	}
 	function tick() {
 		if (!powered()) {
-			set(clipLit, false);
+			set(color, "#111111");
 			rafHandle = 0;
 			return;
 		}
-		if (getPeak()() > 1) {
-			set(clipLit, true);
+		const peak = getPeak()();
+		if (peak > 1) {
+			set(color, "hsl(0, 100%, 50%)");
 			clearTimeout(latchHandle);
 			latchHandle = setTimeout(() => {
-				set(clipLit, false);
+				latchHandle = 0;
 			}, 1500);
-		}
+		} else if (latchHandle === 0) set(color, computeColor(peak), true);
 		rafHandle = requestAnimationFrame(tick);
 	}
 	user_effect(() => {
@@ -11096,18 +11105,22 @@ function ClipLed($$anchor, $$props) {
 				cancelAnimationFrame(rafHandle);
 				rafHandle = 0;
 			}
-			set(clipLit, false);
 			clearTimeout(latchHandle);
 			latchHandle = 0;
+			set(color, "#111111");
 		}
+		return () => {
+			cancelAnimationFrame(rafHandle);
+			clearTimeout(latchHandle);
+		};
 	});
 	onDestroy(() => {
 		cancelAnimationFrame(rafHandle);
 		clearTimeout(latchHandle);
 	});
 	var div = root$11();
-	let classes;
-	template_effect(() => classes = set_class(div, 1, "clip-led svelte-17o0bm7", null, classes, { clip: get(clipLit) }));
+	let styles;
+	template_effect(() => styles = set_style(div, "", styles, { "--led-color": get(color) }));
 	append($$anchor, div);
 	pop();
 }
@@ -11144,7 +11157,7 @@ function Mixer($$anchor, $$props) {
 	});
 	var div = root$10();
 	var div_1 = child(div);
-	ClipLed(sibling(child(div_1), 2), {
+	LevelLed(sibling(child(div_1), 2), {
 		get getPeak() {
 			return getPeak();
 		},
@@ -11936,7 +11949,7 @@ function AmpEnv($$anchor, $$props) {
 	});
 	var div = root$7();
 	var div_1 = child(div);
-	ClipLed(sibling(child(div_1), 2), {
+	LevelLed(sibling(child(div_1), 2), {
 		get getPeak() {
 			return getOutputPeak();
 		},
