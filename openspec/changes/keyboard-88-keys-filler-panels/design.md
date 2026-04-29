@@ -73,7 +73,7 @@ Both register positions (base 21 and base 48) include MIDI 60, so the indicator 
 
 **Alternative considered:** A dot or small circle above the key. Rejected — a line is more subtle and does not add visual bulk. A triangle below the key was also considered; rejected for the same reason.
 
-### D7 — Layout: panel row filled by RegisterPanel + EmptyPanel
+### D6 — Layout: panel row filled by RegisterPanel + EmptyPanel
 
 The keyboard SVG is 1 008 px. The panels grid is ~1 269 px — wider than the keyboard. `App.svelte` adds:
 - `RegisterPanel` to the left of `.panels` (width ≈ 130 px).
