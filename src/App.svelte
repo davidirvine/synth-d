@@ -1,4 +1,30 @@
-<script module>
+<script>
+  import { onMount, onDestroy } from 'svelte'
+  import {
+    getAnalyser,
+    getMixerPeak,
+    getOutputPeak,
+    powerOn,
+    powerOff,
+    setParam,
+  } from './audio/engine.js'
+  import { MidiManager } from './audio/midi.js'
+  import { MidiCcMap } from './audio/midiCcMap.js'
+  import Oscillator from './components/Oscillator.svelte'
+  import Mixer from './components/Mixer.svelte'
+  import Filter from './components/Filter.svelte'
+  import Effects from './components/Effects.svelte'
+  import AmpEnv from './components/AmpEnv.svelte'
+  import Modulation from './components/Modulation.svelte'
+  import Glide from './components/Glide.svelte'
+  import Keyboard from './components/Keyboard.svelte'
+  import PowerButton from './components/PowerButton.svelte'
+  import MidiStatus from './components/MidiStatus.svelte'
+  import Scope from './components/Scope.svelte'
+
+  const branch = __GIT_BRANCH__
+  const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
+
   // Knob param registry: param name → { min, max } for CC scaling
   const KNOB_PARAMS = {
     // Oscillators
@@ -44,43 +70,6 @@
     // Master
     masterVol: { min: 0, max: 1 },
   }
-
-  // Must stay in sync with the `bipolar` prop on each Knob in the UI.
-  export const BIPOLAR_PARAMS = new Set(['osc2Detune', 'osc3Detune', 'modMix'])
-
-  export function powerOffValue(p) {
-    return BIPOLAR_PARAMS.has(p)
-      ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2
-      : KNOB_PARAMS[p].min
-  }
-</script>
-
-<script>
-  import { onMount, onDestroy } from 'svelte'
-  import {
-    getAnalyser,
-    getMixerPeak,
-    getOutputPeak,
-    powerOn,
-    powerOff,
-    setParam,
-  } from './audio/engine.js'
-  import { MidiManager } from './audio/midi.js'
-  import { MidiCcMap } from './audio/midiCcMap.js'
-  import Oscillator from './components/Oscillator.svelte'
-  import Mixer from './components/Mixer.svelte'
-  import Filter from './components/Filter.svelte'
-  import Effects from './components/Effects.svelte'
-  import AmpEnv from './components/AmpEnv.svelte'
-  import Modulation from './components/Modulation.svelte'
-  import Glide from './components/Glide.svelte'
-  import Keyboard from './components/Keyboard.svelte'
-  import PowerButton from './components/PowerButton.svelte'
-  import MidiStatus from './components/MidiStatus.svelte'
-  import Scope from './components/Scope.svelte'
-
-  const branch = __GIT_BRANCH__
-  const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
 
   // Covers every continuous param that flows through ccExternalValues → Knob externalValue.
   // keyTrack is intentionally excluded: it is a toggle button, not a Knob, so it receives
@@ -141,10 +130,10 @@
   let midiActiveNotes = $state(0)
 
   // Per-param external values driven by incoming CC messages.
-  // Initialised at power-off targets: min for non-bipolar, midpoint for bipolar.
+  // Initialised at per-param min so power-on always animates from the floor.
   let ccExternalValues = $state(
     /** @type {Record<string,number|undefined>} */ (
-      Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)]))
+      Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min]))
     )
   )
 
@@ -208,15 +197,15 @@
       await powerOff()
       powered = false
       midiStatus = 'unavailable'
-      ccExternalValues = Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)]))
+      ccExternalValues = Object.fromEntries(
+        Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min])
+      )
     } else {
       loading = true
       try {
         await powerOn()
         analyser = getAnalyser()
         powered = true
-        // ccExternalValues is already at powerOffValue targets from the preceding power-off;
-        // jumping straight to DEFAULTS starts the spring animation from those rest positions.
         ccExternalValues = { ...DEFAULTS }
         resetCounter++
         await midiManager.connect()
@@ -231,9 +220,6 @@
   /** @param {{ param: string, value: number }} e */
   function onParamChange(e) {
     setParam(e.param, e.value)
-    if (e.param in ccExternalValues && ccExternalValues[e.param] !== e.value) {
-      ccExternalValues = { ...ccExternalValues, [e.param]: e.value }
-    }
   }
 
   /** @param {Array<{ param: string, value: number }>} messages */
@@ -399,6 +385,27 @@
         bind:triggerNote={keyboardTriggerNote}
         bind:releaseNote={keyboardReleaseNote}
       />
+      <div class="footer">
+        <a
+          href="https://github.com/davidirvine/synth-d"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub repository"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+            />
+          </svg>
+        </a>
+      </div>
     </div>
   </main>
 </div>
@@ -489,5 +496,25 @@
   .panel-row {
     display: flex;
     gap: 8px;
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+  }
+
+  .footer a {
+    color: #555;
+    text-decoration: none;
+    line-height: 0;
+    transition: color 0.15s;
+  }
+
+  .footer a:hover {
+    color: #888;
+  }
+
+  .footer a:focus:not(:focus-visible) {
+    outline: none;
   }
 </style>

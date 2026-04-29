@@ -74,13 +74,6 @@ describe('AmpEnv — D/R lock switch', () => {
   })
 })
 
-describe('AmpEnv — LevelLed presence', () => {
-  it('renders LevelLed inside the panel-header row', () => {
-    const { container } = render(AmpEnv)
-    expect(container.querySelector('.panel-header .level-led')).not.toBeNull()
-  })
-})
-
 describe('AmpEnv — onchange events', () => {
   it('sustain knob emits ampSustain', async () => {
     const onchange = vi.fn()

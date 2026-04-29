@@ -8,9 +8,9 @@ describe('Mixer — rendering', () => {
     expect(getByText('mixer')).toBeTruthy()
   })
 
-  it('renders LevelLed inside the panel-header row', () => {
+  it('renders ClipLed inside the panel-header row', () => {
     const { container } = render(Mixer)
-    expect(container.querySelector('.panel-header .level-led')).not.toBeNull()
+    expect(container.querySelector('.panel-header .clip-led')).not.toBeNull()
   })
 
   it('renders four knobs (osc1, osc2, osc3, noise)', () => {
