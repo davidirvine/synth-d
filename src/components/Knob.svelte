@@ -53,16 +53,22 @@
   const CY = 24
   const R = 18
 
+  /**
+   * @param {number} angleDeg
+   * @param {number} r
+   */
   function polarToXY(angleDeg, r) {
     const rad = ((angleDeg - 90) * Math.PI) / 180
     return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) }
   }
 
+  /** @param {{ pos: number, label: string, r?: number }} tick */
   function tickXY(tick) {
     const angle = START_ANGLE + tick.pos * SWEEP
     return polarToXY(angle, tick.r ?? R + 10)
   }
 
+  /** @param {number} pos */
   function arcPath(pos) {
     const startRad = ((START_ANGLE - 90) * Math.PI) / 180
     const endAngle = START_ANGLE + pos * SWEEP
@@ -75,6 +81,7 @@
     return `M ${sx} ${sy} A ${R} ${R} 0 ${large} 1 ${ex} ${ey}`
   }
 
+  /** @param {number} pos */
   function bipolarArcPath(pos) {
     if (Math.abs(pos - 0.5) < 0.001) return ''
     const centerAngle = START_ANGLE + 0.5 * SWEEP
@@ -124,6 +131,7 @@
     }
   })
 
+  /** @param {PointerEvent & { currentTarget: Element }} e */
   function onPointerDown(e) {
     dragging = true
     lastY = e.clientY
@@ -131,6 +139,7 @@
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
+  /** @param {PointerEvent} e */
   function onPointerMove(e) {
     if (!dragging) return
     shiftHeld = e.shiftKey
@@ -154,7 +163,8 @@
     onchange?.({ value: defaultValue })
   }
 
-  function handleContextMenu(/** @type {MouseEvent} */ e) {
+  /** @param {MouseEvent} e */
+  function handleContextMenu(e) {
     e.preventDefault()
     oncontextmenu?.()
   }

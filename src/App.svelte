@@ -248,11 +248,13 @@
     }
   }
 
-  function onKnobContextMenu(/** @type {string} */ param) {
+  /** @param {string} param */
+  function onKnobContextMenu(param) {
     learningParam = learningParam === param ? null : param
   }
 
-  function onKeyDown(/** @type {KeyboardEvent} */ e) {
+  /** @param {KeyboardEvent} e */
+  function onKeyDown(e) {
     if (e.key === 'Escape' && learningParam !== null) {
       learningParam = null
     }
@@ -264,6 +266,7 @@
     midiManager.destroy()
   })
 
+  /** @param {...string} params */
   function midiStateFor(...params) {
     return Object.fromEntries(
       params.map((p) => [

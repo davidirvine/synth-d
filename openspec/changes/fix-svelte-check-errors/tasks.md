@@ -30,9 +30,9 @@
 
 ## 4. JSDoc parameter types — App and components
 
-- [ ] 4.1 Add `@param` annotations to untyped callbacks in `src/App.svelte`
-- [ ] 4.2 Add `@param` annotations to untyped functions in `src/components/Knob.svelte`
-- [ ] 4.3 Add `@param` annotations to untyped functions in `src/components/WheelPanel.svelte`
+- [x] 4.1 Add `@param` annotations to untyped callbacks in `src/App.svelte`
+- [x] 4.2 Add `@param` annotations to untyped functions in `src/components/Knob.svelte`
+- [x] 4.3 Add `@param` annotations to untyped functions in `src/components/WheelPanel.svelte`
 
 ## 5. Null safety — main.js and test-setup.js
 
