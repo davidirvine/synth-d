@@ -1,6 +1,6 @@
 <script>
   import Knob from './Knob.svelte'
-  import LevelLed from './LevelLed.svelte'
+  import ClipLed from './ClipLed.svelte'
 
   let {
     onchange,
@@ -36,7 +36,7 @@
 <div class="panel">
   <div class="panel-header">
     <span class="panel-label">mixer</span>
-    <LevelLed {getPeak} {powered} />
+    <ClipLed {getPeak} {powered} />
   </div>
   <div class="mixer-col">
     <Knob

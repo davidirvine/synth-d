@@ -1,6 +1,6 @@
 <script>
   import Knob from './Knob.svelte'
-  import LevelLed from './LevelLed.svelte'
+  import ClipLed from './ClipLed.svelte'
 
   let {
     onchange,
@@ -36,7 +36,7 @@
 <div class="panel">
   <div class="panel-header">
     <span class="panel-label">output</span>
-    <LevelLed getPeak={getOutputPeak} {powered} />
+    <ClipLed getPeak={getOutputPeak} {powered} />
   </div>
   <div class="knob-row centered">
     <Knob
