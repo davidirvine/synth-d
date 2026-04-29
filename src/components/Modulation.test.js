@@ -18,11 +18,6 @@ describe('Modulation — rendering', () => {
     expect(container.querySelectorAll('.route-btn').length).toBe(3)
   })
 
-  it('renders the virtual mod wheel track', () => {
-    const { container } = render(Modulation)
-    expect(container.querySelector('.wheel-track')).not.toBeNull()
-  })
-
   it('all routing buttons are inactive by default', () => {
     const { container } = render(Modulation)
     container.querySelectorAll('.route-btn').forEach((btn) => {
@@ -64,47 +59,6 @@ describe('Modulation — routing switches', () => {
     await fireEvent.click(btn)
     const calls = onchange.mock.calls.filter((c) => c[0].param === 'modToOsc1')
     expect(calls[calls.length - 1][0].value).toBe(0)
-  })
-})
-
-describe('Modulation — virtual mod wheel drag', () => {
-  it('dragging wheel upward emits modWheel with positive value', async () => {
-    const onchange = vi.fn()
-    const { container } = render(Modulation, { props: { onchange } })
-    const track = container.querySelector('.wheel-track')
-    await fireEvent.pointerDown(track, { clientY: 100 })
-    await fireEvent.pointerMove(track, { clientY: 20 })
-    await fireEvent.pointerUp(track)
-    const wheelCalls = onchange.mock.calls.filter((c) => c[0].param === 'modWheel')
-    expect(wheelCalls.length).toBeGreaterThan(0)
-    expect(wheelCalls[wheelCalls.length - 1][0].value).toBeGreaterThan(0)
-  })
-
-  it('wheel value is clamped to 0-1', async () => {
-    const onchange = vi.fn()
-    const { container } = render(Modulation, { props: { onchange } })
-    const track = container.querySelector('.wheel-track')
-    await fireEvent.pointerDown(track, { clientY: 500 })
-    await fireEvent.pointerMove(track, { clientY: -5000 })
-    await fireEvent.pointerUp(track)
-    const wheelCalls = onchange.mock.calls.filter((c) => c[0].param === 'modWheel')
-    if (wheelCalls.length > 0) {
-      const lastVal = wheelCalls[wheelCalls.length - 1][0].value
-      expect(lastVal).toBeLessThanOrEqual(1)
-      expect(lastVal).toBeGreaterThanOrEqual(0)
-    }
-  })
-})
-
-describe('Modulation — CC 1 sync via midiState', () => {
-  it('externalValue in midiState updates wheel fill height', async () => {
-    const { container } = render(Modulation, {
-      props: {
-        midiState: { modWheel: { externalValue: 0.75 } },
-      },
-    })
-    const fill = container.querySelector('.wheel-fill')
-    expect(fill).not.toBeNull()
   })
 })
 

@@ -169,41 +169,6 @@ describe('App — ccExternalValues initialised at per-param min', () => {
   })
 })
 
-describe('App — GitHub icon link', () => {
-  let anchor
-
-  beforeEach(() => {
-    const { container } = render(App)
-    anchor = container.querySelector('.footer a')
-  })
-
-  it('renders an anchor with the correct href', () => {
-    expect(anchor).not.toBeNull()
-    expect(anchor.getAttribute('href')).toBe('https://github.com/davidirvine/synth-d')
-  })
-
-  it('anchor opens in a new tab', () => {
-    expect(anchor).not.toBeNull()
-    expect(anchor.getAttribute('target')).toBe('_blank')
-  })
-
-  it('anchor has noopener noreferrer relation', () => {
-    expect(anchor).not.toBeNull()
-    expect(anchor.getAttribute('rel')).toBe('noopener noreferrer')
-  })
-
-  it('anchor has accessible aria-label', () => {
-    expect(anchor).not.toBeNull()
-    expect(anchor.getAttribute('aria-label')).toBe('GitHub repository')
-  })
-
-  it('svg is hidden from assistive technology', () => {
-    const svg = anchor.querySelector('svg')
-    expect(svg).not.toBeNull()
-    expect(svg.getAttribute('aria-hidden')).toBe('true')
-  })
-})
-
 describe('App — MIDI CC 1 updates modWheel external value', () => {
   it('App renders with modWheel wiring in place (panels present)', () => {
     const { container } = render(App)

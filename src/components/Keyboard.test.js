@@ -3,33 +3,62 @@ import { render, fireEvent } from '@testing-library/svelte'
 import Keyboard from './Keyboard.svelte'
 
 describe('Keyboard — rendering', () => {
-  it('renders exactly 25 key elements', () => {
+  it('renders exactly 61 key elements', () => {
     const { container } = render(Keyboard)
     const keys = container.querySelectorAll('[data-midi]')
-    expect(keys.length).toBe(25)
+    expect(keys.length).toBe(61)
   })
 
-  it('renders white and black keys', () => {
+  it('renders 36 white keys and 25 black keys', () => {
     const { container } = render(Keyboard)
     const white = container.querySelectorAll('.white-key')
     const black = container.querySelectorAll('.black-key')
-    expect(white.length).toBeGreaterThan(0)
-    expect(black.length).toBeGreaterThan(0)
-    expect(white.length + black.length).toBe(25)
+    expect(white.length).toBe(36)
+    expect(black.length).toBe(25)
+    expect(white.length + black.length).toBe(61)
   })
 
-  it('lowest key is MIDI 48 (C3)', () => {
+  it('lowest key is MIDI 36 (C2)', () => {
     const { container } = render(Keyboard)
     const keys = container.querySelectorAll('[data-midi]')
     const midis = Array.from(keys).map((k) => Number(k.getAttribute('data-midi')))
-    expect(Math.min(...midis)).toBe(48)
+    expect(Math.min(...midis)).toBe(36)
   })
 
-  it('highest key is MIDI 72 (C5)', () => {
+  it('highest key is MIDI 96 (C7)', () => {
     const { container } = render(Keyboard)
     const keys = container.querySelectorAll('[data-midi]')
     const midis = Array.from(keys).map((k) => Number(k.getAttribute('data-midi')))
-    expect(Math.max(...midis)).toBe(72)
+    expect(Math.max(...midis)).toBe(96)
+  })
+})
+
+describe('Keyboard — SVG structure', () => {
+  it('renders a top rail rect at y=0 with fill #333', () => {
+    const { container } = render(Keyboard)
+    const rail = container.querySelector('rect[fill="#333"]')
+    expect(rail).not.toBeNull()
+    expect(rail.getAttribute('y')).toBe('0')
+  })
+
+  it('does not render a middle C indicator line', () => {
+    const { container } = render(Keyboard, { props: { baseMidi: 36 } })
+    expect(container.querySelector('line')).toBeNull()
+  })
+
+  it('totalWidth is 1008 px for baseMidi 21', () => {
+    const { container } = render(Keyboard, { props: { baseMidi: 21 } })
+    expect(Number(container.querySelector('svg').getAttribute('width'))).toBe(1008)
+  })
+
+  it('totalWidth is 1008 px for baseMidi 36', () => {
+    const { container } = render(Keyboard)
+    expect(Number(container.querySelector('svg').getAttribute('width'))).toBe(1008)
+  })
+
+  it('totalWidth is 1008 px for baseMidi 48', () => {
+    const { container } = render(Keyboard, { props: { baseMidi: 48 } })
+    expect(Number(container.querySelector('svg').getAttribute('width'))).toBe(1008)
   })
 })
 
