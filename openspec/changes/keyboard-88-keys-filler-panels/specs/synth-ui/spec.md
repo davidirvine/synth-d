@@ -28,3 +28,8 @@ The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer,
 
 - **WHEN** the browser window is resized to any width
 - **THEN** the three top-level panel columns remain in a single row and do not wrap or reorder
+
+#### Scenario: Minimum layout width is 1 008 px
+
+- **WHEN** the UI is rendered
+- **THEN** the keyboard row width is at least 1 008 px (36 white keys × 28 px) and the layout does not reflow or wrap below this width

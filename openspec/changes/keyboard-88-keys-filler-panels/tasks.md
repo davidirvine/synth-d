@@ -52,3 +52,9 @@
 - [ ] 6.8 Create `RegisterPanel.test.js` — assert `onup` called when Oct ▲ clicked
 - [ ] 6.9 Create `RegisterPanel.test.js` — assert amber active style on the correct button for each `activeRegister` value
 - [ ] 6.10 Run `npx vitest run` and confirm all tests pass
+
+## 7. Spec Sync
+
+- [ ] 7.1 Apply the delta spec from `openspec/changes/keyboard-88-keys-filler-panels/specs/keyboard/spec.md` to `openspec/specs/keyboard/spec.md` (run `/opsx:sync` or manually merge the MODIFIED requirements)
+- [ ] 7.2 Apply the delta spec from `openspec/changes/keyboard-88-keys-filler-panels/specs/synth-ui/spec.md` to `openspec/specs/synth-ui/spec.md`
+- [ ] 7.3 Run `npx prettier --write openspec/specs/keyboard/spec.md openspec/specs/synth-ui/spec.md`

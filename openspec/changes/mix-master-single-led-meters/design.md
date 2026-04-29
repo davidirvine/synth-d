@@ -35,7 +35,16 @@ Color zones (linear peak scale):
 > 1.0      : red    (hsl 0, latches 1.5 s)
 ```
 
-Implementation: compute `hue = clamp(120 - peak * 120, 0, 120)` for the 0–1 range; saturate to red on clip. A single `style` binding updates the CSS custom property each rAF frame. The latch logic is identical to the existing `ClipLed`.
+Implementation: use a piecewise linear hue mapping so each zone boundary lands exactly on the target hue:
+
+| Peak range  | Mapping                                                   | Result            |
+|-------------|-----------------------------------------------------------|-------------------|
+| 0.0 – 0.5   | `hue = 120 − (peak / 0.5) × 60`                          | 120 → 60 (green → yellow) |
+| 0.5 – 0.85  | `hue = 60 − ((peak − 0.5) / 0.35) × 30`                 | 60 → 30 (yellow → orange) |
+| 0.85 – 1.0  | `hue = 30 − ((peak − 0.85) / 0.15) × 30`                | 30 → 0 (orange → red)     |
+| > 1.0       | saturate to `hsl(0, 100%, 50%)` and latch for 1.5 s      | red (clipped)     |
+
+This ensures hue = 30 at peak = 0.85 (zone boundary), matching the zone table exactly. A single `style` binding updates the CSS custom property each rAF frame. The latch logic is identical to the existing `ClipLed`.
 
 **Reuse existing `getPeak` / `powered` prop contract — no API changes**
 

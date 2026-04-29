@@ -42,7 +42,17 @@ The icon SHALL be 16 × 16 px. The icon fill color SHALL be a muted gray (`#555`
 - **WHEN** the user moves the pointer over the GitHub icon
 - **THEN** the icon fill transitions to `#888`
 
-#### Scenario: No underline or outline
+#### Scenario: No underline or pointer-focus outline
 
-- **WHEN** the page loads
-- **THEN** the anchor wrapping the icon has no text underline and no visible focus outline in its default state
+- **WHEN** the page loads and focus is not on the icon via keyboard navigation
+- **THEN** the anchor wrapping the icon has no text underline and no visible focus outline (suppressed via `:focus:not(:focus-visible)` so pointer users see no flash)
+
+#### Scenario: Keyboard focus ring is visible
+
+- **WHEN** the user navigates to the icon via keyboard (Tab key)
+- **THEN** the anchor displays the browser's default `:focus-visible` ring so keyboard and switch-access users can identify focus
+
+#### Scenario: Anchor has noopener noreferrer relation
+
+- **WHEN** the UI is rendered
+- **THEN** the anchor element has `rel="noopener noreferrer"`
