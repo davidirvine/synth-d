@@ -1,7 +1,18 @@
+/**
+ * @param {number} midiNote
+ * @returns {number}
+ */
 export function mtof(midiNote) {
   return 440 * Math.pow(2, (midiNote - 69) / 12)
 }
 
+/**
+ * @param {number} pos
+ * @param {number} min
+ * @param {number} max
+ * @param {string} scale
+ * @returns {number}
+ */
 export function normalizedToValue(pos, min, max, scale) {
   if (scale === 'log') {
     return min * Math.pow(max / min, pos)
@@ -15,6 +26,13 @@ export function normalizedToValue(pos, min, max, scale) {
   return min + (max - min) * pos
 }
 
+/**
+ * @param {number} val
+ * @param {number} min
+ * @param {number} max
+ * @param {string} scale
+ * @returns {number}
+ */
 export function valueToNormalized(val, min, max, scale) {
   if (scale === 'log') {
     return Math.log(val / min) / Math.log(max / min)
@@ -25,6 +43,11 @@ export function valueToNormalized(val, min, max, scale) {
   return (val - min) / (max - min)
 }
 
+/**
+ * @param {number} val
+ * @param {string} unit
+ * @returns {string}
+ */
 export function formatValue(val, unit) {
   if (unit === 'Hz') {
     if (Math.abs(val) >= 1000) return `${(val / 1000).toFixed(1)} kHz`

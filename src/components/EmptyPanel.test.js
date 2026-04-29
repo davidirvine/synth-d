@@ -10,6 +10,6 @@ describe('EmptyPanel — rendering', () => {
 
   it('renders no child elements inside the panel', () => {
     const { container } = render(EmptyPanel)
-    expect(container.querySelector('.panel').children).toHaveLength(0)
+    expect(/** @type {Element} */ (container.querySelector('.panel')).children).toHaveLength(0)
   })
 })

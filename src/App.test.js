@@ -14,15 +14,17 @@ vi.mock('./audio/engine.js', () => ({
 describe('App power state', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      clearRect: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0,
-    })
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
   })
 
   it('renders the power button', () => {
@@ -32,28 +34,32 @@ describe('App power state', () => {
 
   it('main panel inert property is true when powered off on load', () => {
     const { container } = render(App)
-    expect(container.querySelector('main').inert).toBe(true)
+    expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBe(true)
   })
 
   it('main panel inert property is falsy after power on', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
     await waitFor(() => {
-      expect(container.querySelector('main').inert).toBeFalsy()
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
     })
   })
 
   it('panels are dimmed when powered off', () => {
     const { container } = render(App)
-    expect(container.querySelector('.synth').classList.contains('dimmed')).toBe(true)
+    expect(
+      /** @type {Element} */ (container.querySelector('.synth')).classList.contains('dimmed')
+    ).toBe(true)
   })
 
   it('panels are not dimmed after power on', async () => {
     const { container } = render(App)
-    await fireEvent.click(container.querySelector('button'))
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('button')))
     await waitFor(() => {
-      expect(container.querySelector('.synth').classList.contains('dimmed')).toBe(false)
+      expect(
+        /** @type {Element} */ (container.querySelector('.synth')).classList.contains('dimmed')
+      ).toBe(false)
     })
   })
 })
@@ -107,7 +113,7 @@ describe('App — all six panels render', () => {
 
   it('renders oscilloscope in the output placeholder slot', () => {
     const { container } = render(App)
-    const grid = container.querySelector('.filter-output-grid')
+    const grid = /** @type {Element} */ (container.querySelector('.filter-output-grid'))
     expect(grid).not.toBeNull()
 
     const gridChildren = Array.from(grid.children)
@@ -119,6 +125,7 @@ describe('App — all six panels render', () => {
 })
 
 describe('App — ccExternalValues initialised at per-param min', () => {
+  /** @param {any} container @param {string} label */
   function findKnobValue(container, label) {
     const labelEl = Array.from(container.querySelectorAll('.knob-label')).find(
       (el) => el.textContent === label
@@ -135,7 +142,7 @@ describe('App — ccExternalValues initialised at per-param min', () => {
 
   it('osc1Level knob returns to min (0.00) after power-off, not frozen at default (0.75)', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -150,7 +157,7 @@ describe('App — ccExternalValues initialised at per-param min', () => {
 
   it('osc1Level knob returns to default (0.75) after power-off → power-on cycle', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -210,20 +217,22 @@ describe('powerOffValue', () => {
 describe('App — power-off sets bipolar knob externalValue to midpoint', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      clearRect: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0,
-    })
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
   })
 
   it('modMix externalValue is midpoint (0.50) after power-off, not min (0.00)', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -240,7 +249,7 @@ describe('App — power-off sets bipolar knob externalValue to midpoint', () => 
 
   it('osc2Detune externalValue is midpoint (0.00) after power-off, not min (-100.00)', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
 
     await fireEvent.click(btn)
     await fireEvent.click(btn)
@@ -254,7 +263,7 @@ describe('App — power-off sets bipolar knob externalValue to midpoint', () => 
 
   it('osc1Level externalValue is min (0.00) after power-off (non-bipolar unchanged)', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -275,6 +284,7 @@ describe('App — power-off sets bipolar knob externalValue to midpoint', () => 
 })
 
 describe('App — zero-default knobs respond to power-off after manual change', () => {
+  /** @param {any} container @param {string} label */
   function findKnobHits(container, label) {
     return Array.from(container.querySelectorAll('.knob-label'))
       .filter((el) => el.textContent === label)
@@ -282,6 +292,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
       .filter(Boolean)
   }
 
+  /** @param {any} container @param {string} label */
   function findKnobValues(container, label) {
     return Array.from(container.querySelectorAll('.knob-label'))
       .filter((el) => el.textContent === label)
@@ -289,6 +300,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
       .filter(Boolean)
   }
 
+  /** @param {Element} hit */
   async function dragKnobUp(hit) {
     await fireEvent.pointerDown(hit, { clientY: 100 })
     await fireEvent.pointerMove(hit, { clientY: 50 })
@@ -297,20 +309,22 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      clearRect: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0,
-    })
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
   })
 
   it('osc2Detune returns to midpoint (0.00) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'detune')[0])
@@ -326,7 +340,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('osc3Detune returns to midpoint (0.00) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'detune')[1])
@@ -342,7 +356,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('osc2Level returns to min (0.00) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'osc 2')[0])
@@ -358,7 +372,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('osc3Level returns to min (0.00) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'osc 3')[0])
@@ -374,7 +388,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('noiseLevel returns to min (0.00) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'noise')[0])
@@ -390,7 +404,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('delayModDepth returns to min (0 ms) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'depth')[0])
@@ -406,7 +420,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('reverbPreDelay returns to min (0 ms) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = container.querySelector('button')
+    const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'pre-delay')[0])
@@ -424,15 +438,17 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 describe('App — bipolar knob externalValue initialises to midpoint on page load', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      clearRect: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0,
-    })
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
   })
 
   it('modMix externalValue is midpoint (0.50) on page load, not min (0.00)', async () => {

@@ -3,6 +3,12 @@
   import { SvelteSet } from 'svelte/reactivity'
   import { QWERTY_MAP, buildNoteOnMessages, midiToFreq } from '../audio/keyboard.js'
 
+  /** @type {{
+    onnote?: (msgs: Array<{ param: string, value: number }>) => void,
+    triggerNote?: ((midi: number) => void) | null,
+    releaseNote?: ((midi: number) => void) | null,
+    baseMidi?: number,
+  }} */
   let {
     onnote,
     triggerNote = $bindable(null), // eslint-disable-line no-useless-assignment
@@ -18,6 +24,10 @@
   const BLACK_W = 18
   const BLACK_H = 60
 
+  /**
+   * @param {number} base
+   * @param {number} count
+   */
   function buildKeys(base, count) {
     let whiteIdx = 0
     return Array.from({ length: count }, (_, i) => {
@@ -39,6 +49,7 @@
   const whiteKeys = $derived(keys.filter((k) => !k.black))
   const totalWidth = $derived(whiteKeys.length * WHITE_W)
 
+  /** @param {number} midi */
   function midiToNoteName(midi) {
     const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
     return `${names[midi % 12]}${Math.floor(midi / 12) - 1}`

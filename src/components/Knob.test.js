@@ -11,13 +11,13 @@ vi.mock('svelte/motion', () => ({
     let _val = initialValue ?? 0
     const _subs = new Set()
     return {
-      set: (v, opts) => {
+      set: (/** @type {any} */ v, /** @type {any} */ opts) => {
         _val = v
         for (const sub of _subs) sub(_val)
-        mockSet(v, opts)
+        ;/** @type {any} */ (mockSet)(v, opts)
         return Promise.resolve()
       },
-      subscribe: (fn) => {
+      subscribe: (/** @type {(val: any) => void} */ fn) => {
         _subs.add(fn)
         fn(_val)
         return () => _subs.delete(fn)
@@ -46,7 +46,7 @@ describe('Knob — interaction', () => {
     const { container } = render(Knob, {
       props: { label: 'vol', min: 0, max: 1, default: 0.75, onchange },
     })
-    const hit = container.querySelector('.knob-hit')
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
     await fireEvent.dblClick(hit)
     expect(onchange).toHaveBeenCalledWith({ value: 0.75 })
   })
@@ -56,18 +56,18 @@ describe('Knob — interaction', () => {
     const { container } = render(Knob, {
       props: { label: 'res', min: 0, max: 1, default: 0.3, value: 0.9, onchange },
     })
-    const hit = container.querySelector('.knob-hit')
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
     await fireEvent.dblClick(hit)
     expect(onchange).toHaveBeenCalledWith({ value: 0.3 })
   })
 
   it('upward pointer drag increases value', async () => {
-    const values = []
-    const onchange = (e) => values.push(e.value)
+    const values = /** @type {number[]} */ ([])
+    const onchange = (/** @type {{value: number}} */ e) => values.push(e.value)
     const { container } = render(Knob, {
       props: { label: 'freq', min: 20, max: 20000, default: 2000, scale: 'log', onchange },
     })
-    const hit = container.querySelector('.knob-hit')
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
     await fireEvent.pointerDown(hit, { clientY: 100 })
     await fireEvent.pointerMove(hit, { clientY: 50 })
     await fireEvent.pointerUp(hit)
@@ -76,12 +76,12 @@ describe('Knob — interaction', () => {
   })
 
   it('downward pointer drag decreases value', async () => {
-    const values = []
-    const onchange = (e) => values.push(e.value)
+    const values = /** @type {number[]} */ ([])
+    const onchange = (/** @type {{value: number}} */ e) => values.push(e.value)
     const { container } = render(Knob, {
       props: { label: 'freq', min: 20, max: 20000, default: 2000, scale: 'log', onchange },
     })
-    const hit = container.querySelector('.knob-hit')
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
     await fireEvent.pointerDown(hit, { clientY: 50 })
     await fireEvent.pointerMove(hit, { clientY: 100 })
     await fireEvent.pointerUp(hit)
@@ -90,8 +90,8 @@ describe('Knob — interaction', () => {
   })
 
   it('shift+drag produces finer movement than normal drag', async () => {
-    const normalValues = []
-    const fineValues = []
+    const normalValues = /** @type {number[]} */ ([])
+    const fineValues = /** @type {number[]} */ ([])
 
     const { container: c1 } = render(Knob, {
       props: {
@@ -99,7 +99,7 @@ describe('Knob — interaction', () => {
         min: 0,
         max: 1,
         default: 0.5,
-        onchange: (e) => normalValues.push(e.value),
+        onchange: (/** @type {{value: number}} */ e) => normalValues.push(e.value),
       },
     })
     const { container: c2 } = render(Knob, {
@@ -108,19 +108,25 @@ describe('Knob — interaction', () => {
         min: 0,
         max: 1,
         default: 0.5,
-        onchange: (e) => fineValues.push(e.value),
+        onchange: (/** @type {{value: number}} */ e) => fineValues.push(e.value),
       },
     })
 
     const normalDelta = 50
-    await fireEvent.pointerDown(c1.querySelector('.knob-hit'), { clientY: 100, shiftKey: false })
-    await fireEvent.pointerMove(c1.querySelector('.knob-hit'), {
+    await fireEvent.pointerDown(/** @type {Element} */ (c1.querySelector('.knob-hit')), {
+      clientY: 100,
+      shiftKey: false,
+    })
+    await fireEvent.pointerMove(/** @type {Element} */ (c1.querySelector('.knob-hit')), {
       clientY: 100 - normalDelta,
       shiftKey: false,
     })
 
-    await fireEvent.pointerDown(c2.querySelector('.knob-hit'), { clientY: 100, shiftKey: true })
-    await fireEvent.pointerMove(c2.querySelector('.knob-hit'), {
+    await fireEvent.pointerDown(/** @type {Element} */ (c2.querySelector('.knob-hit')), {
+      clientY: 100,
+      shiftKey: true,
+    })
+    await fireEvent.pointerMove(/** @type {Element} */ (c2.querySelector('.knob-hit')), {
       clientY: 100 - normalDelta,
       shiftKey: true,
     })
@@ -189,7 +195,7 @@ describe('Knob — context menu (MIDI learn trigger)', () => {
     const { container } = render(Knob, {
       props: { label: 'cut', min: 0, max: 1, default: 0.5, oncontextmenu },
     })
-    const hit = container.querySelector('.knob-hit')
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
     const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
     hit.dispatchEvent(event)
     expect(oncontextmenu).toHaveBeenCalled()
@@ -225,7 +231,7 @@ describe('Knob — animation duration', () => {
       props: { label: 'vol', min: 0, max: 1, default: 0.5 },
     })
     mockSet.mockClear()
-    const hit = container.querySelector('.knob-hit')
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
     await fireEvent.pointerDown(hit, { clientY: 100 })
     await fireEvent.pointerMove(hit, { clientY: 50 })
     await fireEvent.pointerUp(hit)
@@ -238,7 +244,7 @@ describe('Knob — bipolar prop', () => {
     const { container } = render(Knob, {
       props: { label: 'amt', min: -10000, max: 10000, default: 5000, bipolar: true },
     })
-    const arc = container.querySelector('.arc')
+    const arc = /** @type {Element} */ (container.querySelector('.arc'))
     expect(arc).not.toBeNull()
     const d = arc.getAttribute('d')
     // Path starts at center (y=6 exactly at 12 o'clock) then arcs clockwise
@@ -249,7 +255,7 @@ describe('Knob — bipolar prop', () => {
     const { container } = render(Knob, {
       props: { label: 'amt', min: -10000, max: 10000, default: -5000, bipolar: true },
     })
-    const arc = container.querySelector('.arc')
+    const arc = /** @type {Element} */ (container.querySelector('.arc'))
     expect(arc).not.toBeNull()
     const d = arc.getAttribute('d')
     // Path ends at center (y=6 exactly at 12 o'clock)
@@ -267,7 +273,7 @@ describe('Knob — bipolar prop', () => {
     const { container } = render(Knob, {
       props: { label: 'cut', min: 0, max: 1, default: 0.5 },
     })
-    const arc = container.querySelector('.arc')
+    const arc = /** @type {Element} */ (container.querySelector('.arc'))
     expect(arc).not.toBeNull()
     const d = arc.getAttribute('d')
     // Arc must start at START_ANGLE 225° → x≈11.27, y≈36.73

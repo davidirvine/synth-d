@@ -3,8 +3,11 @@ import { buildNoteOnMessages } from './keyboard.js'
 
 const PARAM_PREFIX = '/synth/'
 
+/** @type {AudioContext | null} */
 let ctx = null
+/** @type {any} */
 let node = null
+/** @type {AnalyserNode | null} */
 let analyserNode = null
 let active = false
 let mixerPeakValue = 0
@@ -29,7 +32,7 @@ export async function powerOn() {
     soundfiles: {},
   })
   if (!node) throw new Error('Faust node creation failed')
-  node.setOutputParamHandler((path, value) => {
+  node.setOutputParamHandler((/** @type {string} */ path, /** @type {number} */ value) => {
     if (path === PARAM_PREFIX + 'mixerPeak') mixerPeakValue = value
     if (path === PARAM_PREFIX + 'outputPeak') outputPeakValue = value
   })
@@ -50,12 +53,19 @@ export async function powerOff() {
   analyserNode = null
 }
 
+/**
+ * @param {string} name
+ * @param {number} value
+ */
 export function setParam(name, value) {
   if (!node) return
   if (!Number.isFinite(value)) return
   node.setParamValue(PARAM_PREFIX + name, value)
 }
 
+/**
+ * @param {number} freq
+ */
 export function noteOn(freq) {
   if (!node) return
   const messages = buildNoteOnMessages(freq, active)

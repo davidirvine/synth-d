@@ -1,3 +1,4 @@
+// @ts-nocheck — uses Node.js built-ins (fs, path, url) not covered without @types/node
 import { describe, it, expect } from 'vitest'
 import { readFileSync, existsSync } from 'fs'
 import { resolve, dirname } from 'path'

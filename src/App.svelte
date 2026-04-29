@@ -1,5 +1,6 @@
 <script module>
   // Knob param registry: param name → { min, max } for CC scaling
+  /** @type {Record<string, {min: number, max: number}>} */
   const KNOB_PARAMS = {
     // Oscillators
     osc2Detune: { min: -100, max: 100 },
@@ -48,6 +49,7 @@
   // Must stay in sync with the `bipolar` prop on each Knob in the UI.
   export const BIPOLAR_PARAMS = new Set(['osc2Detune', 'osc3Detune', 'modMix'])
 
+  /** @param {string} p */
   export function powerOffValue(p) {
     return BIPOLAR_PARAMS.has(p)
       ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2
@@ -137,7 +139,7 @@
 
   let powered = $state(false)
   let loading = $state(false)
-  let analyser = $state(null)
+  let analyser = $state(/** @type {AnalyserNode | null} */ (null))
   let resetCounter = $state(0)
 
   // MIDI state
@@ -158,21 +160,21 @@
   const midiCcMap = new MidiCcMap()
 
   const midiManager = new MidiManager({
-    onNoteOn: (note, freq) => {
+    onNoteOn: (/** @type {number} */ note, /** @type {number} */ freq) => {
       midiActiveNotes++
       if (midiStatus === 'connected') midiStatus = 'active'
       keyboardTriggerNote?.(note)
       setParam('freq', freq)
     },
-    onNoteOff: (note) => {
+    onNoteOff: (/** @type {number} */ note) => {
       midiActiveNotes = Math.max(0, midiActiveNotes - 1)
       if (midiActiveNotes === 0 && midiStatus === 'active') midiStatus = 'connected'
       keyboardReleaseNote?.(note)
     },
-    onPitchBend: (freq) => {
+    onPitchBend: (/** @type {number} */ freq) => {
       setParam('freq', freq)
     },
-    onCc: ({ cc, value }) => {
+    onCc: (/** @type {{cc: number, value: number}} */ { cc, value }) => {
       if (learningParam !== null) {
         const knob = KNOB_PARAMS[learningParam]
         if (knob) {
@@ -194,10 +196,10 @@
       if (scaled === null) return
       ccExternalValues = { ...ccExternalValues, [mapping.param]: scaled }
     },
-    onStatusChange: (status) => {
+    onStatusChange: (/** @type {'unavailable'|'connected'|'active'} */ status) => {
       midiStatus = status
     },
-    onDevicesChange: (devices) => {
+    onDevicesChange: (/** @type {Array<{id: string, name: string}>} */ devices) => {
       midiDevices = devices
       if (devices.length > 0 && selectedDeviceId === null) {
         selectedDeviceId = devices[0].id
@@ -206,8 +208,8 @@
   })
 
   // Bindable functions exposed by Keyboard
-  let keyboardTriggerNote = $state(/** @type {Function|null} */ (null))
-  let keyboardReleaseNote = $state(/** @type {Function|null} */ (null))
+  let keyboardTriggerNote = $state(/** @type {((midi: number) => void) | null} */ (null))
+  let keyboardReleaseNote = $state(/** @type {((midi: number) => void) | null} */ (null))
 
   async function handleToggle() {
     if (powered) {
@@ -248,11 +250,13 @@
     }
   }
 
-  function onKnobContextMenu(/** @type {string} */ param) {
+  /** @param {string} param */
+  function onKnobContextMenu(param) {
     learningParam = learningParam === param ? null : param
   }
 
-  function onKeyDown(/** @type {KeyboardEvent} */ e) {
+  /** @param {KeyboardEvent} e */
+  function onKeyDown(e) {
     if (e.key === 'Escape' && learningParam !== null) {
       learningParam = null
     }
@@ -264,6 +268,7 @@
     midiManager.destroy()
   })
 
+  /** @param {...string} params */
   function midiStateFor(...params) {
     return Object.fromEntries(
       params.map((p) => [

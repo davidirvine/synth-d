@@ -1,13 +1,14 @@
 <script>
   import { onDestroy } from 'svelte'
 
-  let { getPeak = () => 0, powered = false } =
-    /** @type {{ getPeak?: () => number, powered?: boolean }} */ ($props())
+  /** @type {{ getPeak?: () => number, powered?: boolean }} */
+  let { getPeak = () => 0, powered = false } = $props()
 
   let color = $state('#111111')
   let rafHandle = 0
   let latchHandle = 0
 
+  /** @param {number} peak */
   function computeColor(peak) {
     if (peak <= 0) return '#111111'
     let hue

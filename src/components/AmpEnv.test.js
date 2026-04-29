@@ -27,26 +27,26 @@ describe('AmpEnv — D/R lock switch', () => {
 
   it('D/R lock button defaults to on', () => {
     const { container } = render(AmpEnv)
-    expect(container.querySelector('.drlock-btn').classList.contains('active')).toBe(true)
+    expect(/** @type {Element} */ (container.querySelector('.drlock-btn')).classList.contains('active')).toBe(true)
   })
 
   it('clicking D/R lock emits drLock 0', async () => {
     const onchange = vi.fn()
     const { container } = render(AmpEnv, { props: { onchange } })
-    await fireEvent.click(container.querySelector('.drlock-btn'))
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('.drlock-btn')))
     expect(onchange).toHaveBeenCalledWith({ param: 'drLock', value: 0 })
   })
 
   it('D/R lock button becomes inactive after click', async () => {
     const { container } = render(AmpEnv)
-    await fireEvent.click(container.querySelector('.drlock-btn'))
-    expect(container.querySelector('.drlock-btn').classList.contains('active')).toBe(false)
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('.drlock-btn')))
+    expect(/** @type {Element} */ (container.querySelector('.drlock-btn')).classList.contains('active')).toBe(false)
   })
 
   it('second click emits drLock 1', async () => {
     const onchange = vi.fn()
     const { container } = render(AmpEnv, { props: { onchange } })
-    const btn = container.querySelector('.drlock-btn')
+    const btn = /** @type {Element} */ (container.querySelector('.drlock-btn'))
     await fireEvent.click(btn)
     await fireEvent.click(btn)
     const calls = onchange.mock.calls.filter((c) => c[0].param === 'drLock')
@@ -61,7 +61,7 @@ describe('AmpEnv — D/R lock switch', () => {
 
   it('release knob is enabled when D/R lock is off', async () => {
     const { container } = render(AmpEnv)
-    await fireEvent.click(container.querySelector('.drlock-btn'))
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('.drlock-btn')))
     const releaseWrap = container.querySelectorAll('.knob-wrap')[4]
     expect(releaseWrap.classList.contains('disabled')).toBe(false)
   })
@@ -94,7 +94,7 @@ describe('AmpEnv — onchange events', () => {
   it('release knob emits ampRelease', async () => {
     const onchange = vi.fn()
     const { container } = render(AmpEnv, { props: { onchange } })
-    const lockBtn = container.querySelector('.drlock-btn')
+    const lockBtn = /** @type {Element} */ (container.querySelector('.drlock-btn'))
     expect(lockBtn).not.toBeNull()
     await fireEvent.click(lockBtn)
     const hits = container.querySelectorAll('.knob-hit')
