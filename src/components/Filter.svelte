@@ -221,4 +221,12 @@
     color: #20b040;
     border-color: #20b040;
   }
+
+  /* Reserve fixed width for the filter env amount knob value.
+     Prevents layout shift when the displayed string changes between e.g. "0.00 Hz" and "10.0 kHz". */
+  .knob-row :global(:last-child .knob-value) {
+    min-width: 5.5em;
+    display: inline-block;
+    text-align: center;
+  }
 </style>

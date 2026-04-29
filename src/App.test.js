@@ -118,6 +118,57 @@ describe('App — all six panels render', () => {
   })
 })
 
+describe('App — ccExternalValues initialised at per-param min', () => {
+  function findKnobValue(container, label) {
+    const labelEl = Array.from(container.querySelectorAll('.knob-label')).find(
+      (el) => el.textContent === label
+    )
+    return labelEl?.closest('.knob-wrap')?.querySelector('.knob-value') ?? null
+  }
+
+  it('osc1Level knob starts at min (0.00) on mount/reload, not default (0.75) or a random value', async () => {
+    const { container } = render(App)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.00')
+    })
+  })
+
+  it('osc1Level knob returns to min (0.00) after power-off, not frozen at default (0.75)', async () => {
+    const { container } = render(App)
+    const btn = container.querySelector('button')
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.75')
+    })
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.00')
+    })
+  })
+
+  it('osc1Level knob returns to default (0.75) after power-off → power-on cycle', async () => {
+    const { container } = render(App)
+    const btn = container.querySelector('button')
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.75')
+    })
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.00')
+    })
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.75')
+    })
+  })
+})
+
 describe('App — MIDI CC 1 updates modWheel external value', () => {
   it('App renders with modWheel wiring in place (panels present)', () => {
     const { container } = render(App)

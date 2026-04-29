@@ -34,7 +34,7 @@ When the synth powers on, the knob `externalValue` props SHALL be updated from t
 
 ### Requirement: Power-off animates knobs back to minimum
 
-When the synth powers off, all knob `externalValue` props SHALL be set to their parameter's minimum value, triggering the spring animation (if `springEnabled` is true) or an instant snap (if false). After power-off completes, all knob indicators SHALL be at the minimum position.
+When the synth powers off, all knob `externalValue` props SHALL be set to their parameter's minimum value, triggering the knob's built-in tweened animation (100 ms duration). After power-off completes, all knob indicators SHALL be at the minimum position.
 
 #### Scenario: Knobs sweep to min on power-off
 
@@ -46,7 +46,7 @@ When the synth powers off, all knob `externalValue` props SHALL be set to their 
 - **WHEN** the power-off animation has finished
 - **THEN** every knob indicator rests at the minimum (fully counter-clockwise) position
 
-#### Scenario: Powering off with springEnabled false snaps knobs to min instantly
+#### Scenario: Power-off always animates knobs to min via tweened animation
 
-- **WHEN** the synth powers off and springEnabled is false
-- **THEN** all knob indicators snap immediately to the minimum position without animation
+- **WHEN** the synth powers off
+- **THEN** all knob indicators animate to the minimum position over 100 ms via the knob's built-in tweened animation
