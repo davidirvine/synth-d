@@ -12837,10 +12837,7 @@ function App($$anchor, $$props) {
 	let midiActiveNotes = /* @__PURE__ */ state(0);
 	let ccExternalValues = /* @__PURE__ */ state(proxy(
 		/** @type {Record<string,number|undefined>} */
-		Object.fromEntries(Object.keys(DEFAULTS).map((p) => {
-			const { min, max } = KNOB_PARAMS[p];
-			return [p, min + Math.random() * (max - min)];
-		}))
+		Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min]))
 	));
 	const midiCcMap = new MidiCcMap();
 	const midiManager = new MidiManager({
@@ -12907,7 +12904,7 @@ function App($$anchor, $$props) {
 			await powerOff();
 			set(powered, false);
 			set(midiStatus, "unavailable");
-			set(ccExternalValues, {}, true);
+			set(ccExternalValues, Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min])), true);
 		} else {
 			set(loading, true);
 			try {
