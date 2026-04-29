@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
   let {
@@ -23,7 +24,7 @@
   $effect(() => {
     if (reset === 0) return
     glideOn = 0
-    onchange?.({ param: 'glideOn', value: 0 })
+    untrack(() => onchange?.({ param: 'glideOn', value: 0 }))
   })
 </script>
 

@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
   let {
@@ -22,9 +23,11 @@
     modToOsc1 = 0
     modToOsc2 = 0
     modToFilter = 0
-    onchange?.({ param: 'modToOsc1', value: 0 })
-    onchange?.({ param: 'modToOsc2', value: 0 })
-    onchange?.({ param: 'modToFilter', value: 0 })
+    untrack(() => {
+      onchange?.({ param: 'modToOsc1', value: 0 })
+      onchange?.({ param: 'modToOsc2', value: 0 })
+      onchange?.({ param: 'modToFilter', value: 0 })
+    })
   })
 
   function toggleRoute(/** @type {string} */ param) {

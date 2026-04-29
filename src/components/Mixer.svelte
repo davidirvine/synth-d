@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
   import LevelLed from './LevelLed.svelte'
 
@@ -29,7 +30,7 @@
   $effect(() => {
     if (reset === 0) return
     noiseType = 0
-    onchange?.({ param: 'noiseType', value: 0 })
+    untrack(() => onchange?.({ param: 'noiseType', value: 0 }))
   })
 </script>
 

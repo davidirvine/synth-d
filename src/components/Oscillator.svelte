@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
   let {
@@ -56,13 +57,15 @@
     osc2Range = 0
     osc3Range = 0
     osc3LfoMode = 0
-    onchange?.({ param: 'osc1Wave', value: 0 })
-    onchange?.({ param: 'osc2Wave', value: 0 })
-    onchange?.({ param: 'osc3Wave', value: 0 })
-    onchange?.({ param: 'osc1Range', value: 0 })
-    onchange?.({ param: 'osc2Range', value: 0 })
-    onchange?.({ param: 'osc3Range', value: 0 })
-    onchange?.({ param: 'osc3LfoMode', value: 0 })
+    untrack(() => {
+      onchange?.({ param: 'osc1Wave', value: 0 })
+      onchange?.({ param: 'osc2Wave', value: 0 })
+      onchange?.({ param: 'osc3Wave', value: 0 })
+      onchange?.({ param: 'osc1Range', value: 0 })
+      onchange?.({ param: 'osc2Range', value: 0 })
+      onchange?.({ param: 'osc3Range', value: 0 })
+      onchange?.({ param: 'osc3LfoMode', value: 0 })
+    })
   })
 </script>
 
