@@ -3,9 +3,7 @@
 ## Purpose
 
 Provides a 61-key interactive piano keyboard UI supporting both mouse/click and QWERTY computer keyboard input. The keyboard enforces monophonic legato behavior and maps input to oscillator frequency and gate parameters sent to the DSP engine. The visible range is configurable via a `baseMidi` prop, enabling coverage of the full 88-key range through two fixed register positions.
-
 ## Requirements
-
 ### Requirement: 61-key visual piano keyboard with configurable base
 
 The system SHALL render a 61-key piano keyboard as interactive SVG elements. The visible range is determined by a `baseMidi` prop (default 36, C2–C7). The keyboard SHALL always show exactly 61 consecutive keys starting from `baseMidi`. White and black keys SHALL be visually distinct and styled to the Moog dark aesthetic. A 1 px top rail in `#333` SHALL span the full keyboard width at the top of the SVG, providing a subtle visual boundary between the black keys and the panel background.
@@ -29,7 +27,7 @@ The system SHALL render a 61-key piano keyboard as interactive SVG elements. The
 
 ### Requirement: Base MIDI note is reactive
 
-The system SHALL re-render the key array immediately whenever the `baseMidi` prop changes. The total SVG width SHALL remain constant (36 white keys × 28 px = 1 008 px) regardless of `baseMidi`, because any 61-key span starting on a white note contains exactly 36 white keys.
+The system SHALL re-render the key array immediately whenever the `baseMidi` prop changes. The total SVG width SHALL remain constant (36 white keys × 28 px = 1 008 px) regardless of `baseMidi`, because any 61-key span contains exactly 36 white keys.
 
 #### Scenario: Register shift re-renders keys
 
@@ -131,8 +129,6 @@ The system SHALL highlight a visual keyboard key when a MIDI note-on is received
 - **WHEN** a MIDI note-off is received for a highlighted key
 - **THEN** the highlight is removed from that key
 
----
-
 ### Requirement: Shared active-key state across input sources
 
 The system SHALL maintain a single `activeKeys` set that tracks active notes regardless of whether they originate from QWERTY, pointer, or MIDI input. The gate parameter SHALL only be set to 0 when the `activeKeys` set becomes empty, regardless of which input source triggers the release.
@@ -146,3 +142,4 @@ The system SHALL maintain a single `activeKeys` set that tracks active notes reg
 
 - **WHEN** all active notes from all input sources are released
 - **THEN** gate is set to 0
+
