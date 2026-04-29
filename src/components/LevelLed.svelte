@@ -4,23 +4,38 @@
   let { getPeak = () => 0, powered = false } =
     /** @type {{ getPeak?: () => number, powered?: boolean }} */ ($props())
 
-  let clipLit = $state(false)
+  let color = $state('#111111')
   let rafHandle = 0
   let latchHandle = 0
 
+  function computeColor(peak) {
+    if (peak <= 0) return '#111111'
+    let hue
+    if (peak < 0.5) {
+      hue = 120 - (peak / 0.5) * 60
+    } else if (peak < 0.85) {
+      hue = 60 - ((peak - 0.5) / 0.35) * 30
+    } else {
+      hue = Math.max(0, 30 - ((peak - 0.85) / 0.15) * 30)
+    }
+    return `hsl(${Math.round(hue)}, 100%, 50%)`
+  }
+
   function tick() {
     if (!powered) {
-      clipLit = false
+      color = '#111111'
       rafHandle = 0
       return
     }
     const peak = getPeak()
     if (peak > 1.0) {
-      clipLit = true
+      color = 'hsl(0, 100%, 50%)'
       clearTimeout(latchHandle)
       latchHandle = setTimeout(() => {
-        clipLit = false
+        latchHandle = 0
       }, 1500)
+    } else if (latchHandle === 0) {
+      color = computeColor(peak)
     }
     rafHandle = requestAnimationFrame(tick)
   }
@@ -33,9 +48,14 @@
         cancelAnimationFrame(rafHandle)
         rafHandle = 0
       }
-      clipLit = false
       clearTimeout(latchHandle)
       latchHandle = 0
+      color = '#111111'
+    }
+
+    return () => {
+      cancelAnimationFrame(rafHandle)
+      clearTimeout(latchHandle)
     }
   })
 
@@ -45,27 +65,14 @@
   })
 </script>
 
-<div class="clip-led" class:clip={clipLit}></div>
+<div class="level-led" style:--led-color={color}></div>
 
 <style>
-  .clip-led {
+  .level-led {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #4a1010;
-    box-shadow: none;
-    /* fade-out: decay back to dark */
-    transition:
-      background 80ms ease-out,
-      box-shadow 80ms ease-out;
-  }
-
-  .clip-led.clip {
-    background: #ff3333;
-    box-shadow: 0 0 4px #ff3333;
-    /* fade-in: snap up quickly when clipping starts */
-    transition:
-      background 80ms ease-in,
-      box-shadow 80ms ease-in;
+    background: var(--led-color, #111111);
+    transition: background 80ms ease-out;
   }
 </style>
