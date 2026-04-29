@@ -5,6 +5,7 @@ const PARAM_PREFIX = '/synth/'
 
 /** @type {AudioContext | null} */
 let ctx = null
+/** @type {any} */
 let node = null
 /** @type {AnalyserNode | null} */
 let analyserNode = null
@@ -31,7 +32,7 @@ export async function powerOn() {
     soundfiles: {},
   })
   if (!node) throw new Error('Faust node creation failed')
-  node.setOutputParamHandler((path, value) => {
+  node.setOutputParamHandler((/** @type {string} */ path, /** @type {number} */ value) => {
     if (path === PARAM_PREFIX + 'mixerPeak') mixerPeakValue = value
     if (path === PARAM_PREFIX + 'outputPeak') outputPeakValue = value
   })

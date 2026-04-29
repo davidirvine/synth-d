@@ -24,6 +24,10 @@
   const BLACK_W = 18
   const BLACK_H = 60
 
+  /**
+   * @param {number} base
+   * @param {number} count
+   */
   function buildKeys(base, count) {
     let whiteIdx = 0
     return Array.from({ length: count }, (_, i) => {
@@ -45,6 +49,7 @@
   const whiteKeys = $derived(keys.filter((k) => !k.black))
   const totalWidth = $derived(whiteKeys.length * WHITE_W)
 
+  /** @param {number} midi */
   function midiToNoteName(midi) {
     const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
     return `${names[midi % 12]}${Math.floor(midi / 12) - 1}`

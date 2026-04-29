@@ -23,7 +23,7 @@ describe('LevelLed', () => {
 
   it('LED is dim when powered is false', () => {
     const { container } = render(LevelLed, { props: { getPeak: () => 0.5, powered: false } })
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('#111111')
   })
 
@@ -38,10 +38,10 @@ describe('LevelLed', () => {
     const getPeak = vi.fn().mockReturnValue(0.25)
     const { container } = render(LevelLed, { props: { getPeak, powered: true } })
 
-    const tick = requestAnimationFrame.mock.calls[0][0]
+    const tick = /** @type {any} */ (requestAnimationFrame).mock.calls[0][0]
     flushSync(() => tick())
 
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     // peak = 0.25: hue = 120 - (0.25/0.5)*60 = 90
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('hsl(90, 100%, 50%)')
   })
@@ -50,10 +50,10 @@ describe('LevelLed', () => {
     const getPeak = vi.fn().mockReturnValue(1.5)
     const { container } = render(LevelLed, { props: { getPeak, powered: true } })
 
-    const tick = requestAnimationFrame.mock.calls[0][0]
+    const tick = /** @type {any} */ (requestAnimationFrame).mock.calls[0][0]
     flushSync(() => tick())
 
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('hsl(0, 100%, 50%)')
   })
 
@@ -73,7 +73,7 @@ describe('LevelLed', () => {
     vi.advanceTimersByTime(16)
     flushSync()
 
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('hsl(0, 100%, 50%)')
 
     getPeak.mockReturnValue(0.25)
@@ -92,10 +92,10 @@ describe('LevelLed', () => {
     const getPeak = vi.fn().mockReturnValue(0.65)
     const { container } = render(LevelLed, { props: { getPeak, powered: true } })
 
-    const tick = requestAnimationFrame.mock.calls[0][0]
+    const tick = /** @type {any} */ (requestAnimationFrame).mock.calls[0][0]
     flushSync(() => tick())
 
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     // Zone 2: hue = 60 - ((0.65 - 0.5) / 0.35) * 30 = 47
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('hsl(47, 100%, 50%)')
   })
@@ -104,10 +104,10 @@ describe('LevelLed', () => {
     const getPeak = vi.fn().mockReturnValue(0.9)
     const { container } = render(LevelLed, { props: { getPeak, powered: true } })
 
-    const tick = requestAnimationFrame.mock.calls[0][0]
+    const tick = /** @type {any} */ (requestAnimationFrame).mock.calls[0][0]
     flushSync(() => tick())
 
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     // Zone 3: hue = 30 - ((0.9 - 0.85) / 0.15) * 30 = 20
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('hsl(20, 100%, 50%)')
   })
@@ -128,7 +128,7 @@ describe('LevelLed', () => {
     vi.advanceTimersByTime(2000)
     flushSync()
 
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('hsl(0, 100%, 50%)')
 
     vi.useRealTimers()
@@ -161,7 +161,7 @@ describe('LevelLed', () => {
     vi.advanceTimersByTime(16)
     flushSync()
 
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('hsl(0, 100%, 50%)')
 
     getPeak.mockReturnValue(0)
@@ -177,10 +177,10 @@ describe('LevelLed', () => {
     const getPeak = vi.fn().mockReturnValue(-0.1)
     const { container } = render(LevelLed, { props: { getPeak, powered: true } })
 
-    const tick = requestAnimationFrame.mock.calls[0][0]
+    const tick = /** @type {any} */ (requestAnimationFrame).mock.calls[0][0]
     flushSync(() => tick())
 
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('#111111')
   })
 
@@ -200,7 +200,7 @@ describe('LevelLed', () => {
     vi.advanceTimersByTime(16)
     flushSync()
 
-    const led = container.querySelector('.level-led')
+    const led = /** @type {HTMLElement} */ (container.querySelector('.level-led'))
     // Zone 3 formula at 1.0: hue = 30 - ((1.0 - 0.85) / 0.15) * 30 = 0 → hsl(0,100%,50%)
     expect(led.style.getPropertyValue('--led-color').trim()).toBe('hsl(0, 100%, 50%)')
 
@@ -218,7 +218,7 @@ describe('LevelLed', () => {
     const getPeak = vi.fn().mockReturnValue(1.5)
     const { unmount } = render(LevelLed, { props: { getPeak, powered: true } })
 
-    const tick = requestAnimationFrame.mock.calls[0][0]
+    const tick = /** @type {any} */ (requestAnimationFrame).mock.calls[0][0]
     flushSync(() => tick())
 
     unmount()

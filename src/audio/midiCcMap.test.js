@@ -3,19 +3,19 @@ import { MidiCcMap } from './midiCcMap.js'
 
 // Minimal localStorage mock
 function makeStorage() {
-  const store = {}
+  const store = /** @type {Record<string, string>} */ ({})
   return {
-    getItem: (k) => store[k] ?? null,
-    setItem: (k, v) => {
+    getItem: (/** @type {string} */ k) => store[k] ?? null,
+    setItem: (/** @type {string} */ k, /** @type {string} */ v) => {
       store[k] = String(v)
     },
-    removeItem: (k) => {
+    removeItem: (/** @type {string} */ k) => {
       delete store[k]
     },
     get length() {
       return Object.keys(store).length
     },
-    key: (i) => Object.keys(store)[i] ?? null,
+    key: (/** @type {number} */ i) => Object.keys(store)[i] ?? null,
     _store: store,
   }
 }

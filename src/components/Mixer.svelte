@@ -22,6 +22,7 @@
 
   let noiseType = $state(0)
 
+  /** @param {number} t */
   function selectNoiseType(t) {
     if (t === noiseType) return
     noiseType = t

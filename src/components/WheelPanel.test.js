@@ -23,7 +23,7 @@ describe('WheelPanel — drag interaction', () => {
   it('dragging wheel upward emits modWheel with positive value', async () => {
     const onchange = vi.fn()
     const { container } = render(WheelPanel, { props: { onchange } })
-    const track = container.querySelector('.wheel-track')
+    const track = /** @type {Element} */ (container.querySelector('.wheel-track'))
     await fireEvent.pointerDown(track, { clientY: 100 })
     await fireEvent.pointerMove(track, { clientY: 20 })
     await fireEvent.pointerUp(track)
@@ -35,7 +35,7 @@ describe('WheelPanel — drag interaction', () => {
   it('wheel value is clamped to 0-1', async () => {
     const onchange = vi.fn()
     const { container } = render(WheelPanel, { props: { onchange } })
-    const track = container.querySelector('.wheel-track')
+    const track = /** @type {Element} */ (container.querySelector('.wheel-track'))
     await fireEvent.pointerDown(track, { clientY: 500 })
     await fireEvent.pointerMove(track, { clientY: -5000 })
     await fireEvent.pointerUp(track)
@@ -50,7 +50,7 @@ describe('WheelPanel — drag interaction', () => {
 describe('WheelPanel — externalValue prop', () => {
   it('externalValue updates wheel fill height', () => {
     const { container } = render(WheelPanel, { props: { externalValue: 0.75 } })
-    const fill = container.querySelector('.wheel-fill')
+    const fill = /** @type {HTMLElement} */ (container.querySelector('.wheel-fill'))
     expect(fill).not.toBeNull()
     expect(fill.style.height).toBe('75%')
   })

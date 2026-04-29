@@ -52,5 +52,5 @@
 
 ## 7. Verify zero errors
 
-- [ ] 7.1 Run `npx svelte-check` and confirm 0 errors
-- [ ] 7.2 Run `npx vitest run` and confirm all 402 tests still pass
+- [x] 7.1 Run `npx svelte-check` and confirm 0 errors
+- [x] 7.2 Run `npx vitest run` and confirm all 402 tests still pass

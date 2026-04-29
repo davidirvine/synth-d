@@ -5,7 +5,7 @@ import MidiStatus from './MidiStatus.svelte'
 describe('MidiStatus — status dot', () => {
   it('shows grey dot when status is unavailable', () => {
     const { container } = render(MidiStatus, { props: { status: 'unavailable' } })
-    const dot = container.querySelector('.dot')
+    const dot = /** @type {Element} */ (container.querySelector('.dot'))
     expect(dot.classList.contains('unavailable')).toBe(true)
     expect(dot.classList.contains('connected')).toBe(false)
     expect(dot.classList.contains('active')).toBe(false)
@@ -13,14 +13,14 @@ describe('MidiStatus — status dot', () => {
 
   it('shows amber dot when status is connected', () => {
     const { container } = render(MidiStatus, { props: { status: 'connected' } })
-    const dot = container.querySelector('.dot')
+    const dot = /** @type {Element} */ (container.querySelector('.dot'))
     expect(dot.classList.contains('connected')).toBe(true)
     expect(dot.classList.contains('active')).toBe(false)
   })
 
   it('shows green dot when status is active', () => {
     const { container } = render(MidiStatus, { props: { status: 'active' } })
-    const dot = container.querySelector('.dot')
+    const dot = /** @type {Element} */ (container.querySelector('.dot'))
     expect(dot.classList.contains('active')).toBe(true)
     expect(dot.classList.contains('connected')).toBe(false)
   })
@@ -68,7 +68,7 @@ describe('MidiStatus — device selector', () => {
         ondevicechange,
       },
     })
-    const select = container.querySelector('.device-select')
+    const select = /** @type {Element} */ (container.querySelector('.device-select'))
     await fireEvent.change(select, { target: { value: 'b' } })
     expect(ondevicechange).toHaveBeenCalledWith('b')
   })

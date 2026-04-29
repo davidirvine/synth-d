@@ -477,7 +477,7 @@ describe('Effects — delay time knob props', () => {
     const { container } = render(Effects, { props: { onchange } })
     const hit = container.querySelectorAll('.knob-hit')[0]
     await fireEvent.dblClick(hit)
-    const call = onchange.mock.calls.find((c) => c[0].param === 'delayTime')
+    const call = /** @type {any[]} */ (onchange.mock.calls.find((c) => c[0].param === 'delayTime'))
     expect(call[0].value).toBeCloseTo(0.3, 5)
   })
 })
@@ -485,14 +485,16 @@ describe('Effects — delay time knob props', () => {
 describe('Effects — section-header restructure', () => {
   it('delay knob row contains exactly 3 knobs and no toggle button', () => {
     const { container } = render(Effects)
-    const delayRow = container.querySelector('.effects-row:not(.reverb-row)')
+    const delayRow = /** @type {Element} */ (
+      container.querySelector('.effects-row:not(.reverb-row)')
+    )
     expect(delayRow.querySelectorAll('.knob-hit')).toHaveLength(3)
     expect(delayRow.querySelector('.toggle-btn')).toBeNull()
   })
 
   it('reverb knob row contains exactly 4 knobs and no toggle button', () => {
     const { container } = render(Effects)
-    const reverbRow = container.querySelector('.reverb-row')
+    const reverbRow = /** @type {Element} */ (container.querySelector('.reverb-row'))
     expect(reverbRow.querySelectorAll('.knob-hit')).toHaveLength(4)
     expect(reverbRow.querySelector('.toggle-btn')).toBeNull()
   })

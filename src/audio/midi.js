@@ -11,6 +11,7 @@ export class MidiManager {
   /** @type {Set<number>} */
   #activeNotes = new Set()
   #bendValue = 0
+  /** @type {number | null} */
   #lastNote = null
 
   /** @param {{ onNoteOn?: Function, onNoteOff?: Function, onPitchBend?: Function, onCc?: Function, onStatusChange?: Function, onDevicesChange?: Function }} callbacks */
@@ -91,18 +92,19 @@ export class MidiManager {
   /** @param {MIDIConnectionEvent} event */
   _handleStateChange(event) {
     const port = event.port
-    if (port.type !== 'input') return
+    if (!port || port.type !== 'input') return
+    const inputPort = /** @type {MIDIInput} */ (port)
 
-    if (port.state === 'disconnected') {
-      port.onmidimessage = null
-      if (port.id === this.#selectedId) {
+    if (inputPort.state === 'disconnected') {
+      inputPort.onmidimessage = null
+      if (inputPort.id === this.#selectedId) {
         this.#selectedId = null
         this._releaseAllNotes()
       }
-    } else if (port.state === 'connected') {
-      if (this.#selectedId === null || port.id === this.#selectedId) {
-        port.onmidimessage = this._handleMessage
-        if (this.#selectedId === null) this.#selectedId = port.id
+    } else if (inputPort.state === 'connected') {
+      if (this.#selectedId === null || inputPort.id === this.#selectedId) {
+        inputPort.onmidimessage = this._handleMessage
+        if (this.#selectedId === null) this.#selectedId = inputPort.id
       }
     }
 
@@ -118,6 +120,7 @@ export class MidiManager {
 
   /** @param {MIDIMessageEvent} event */
   _handleMessage(event) {
+    if (!event.data) return
     const data = Array.from(event.data)
     const status = data[0]
     const data1 = data[1]

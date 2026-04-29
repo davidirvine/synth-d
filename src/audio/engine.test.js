@@ -30,6 +30,7 @@ function makeMockCtx() {
 }
 
 describe('powerOn / powerOff', () => {
+  /** @type {any} */
   let mockCtx
 
   beforeEach(async () => {
@@ -126,6 +127,7 @@ describe('powerOn / powerOff', () => {
 })
 
 describe('setParam', () => {
+  /** @type {any} */
   let mockCtx
 
   beforeEach(async () => {
@@ -160,6 +162,7 @@ describe('setParam', () => {
 })
 
 describe('getOutputPeak', () => {
+  /** @type {any} */
   let mockCtx
 
   beforeEach(async () => {

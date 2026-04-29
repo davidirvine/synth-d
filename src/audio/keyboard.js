@@ -5,6 +5,7 @@ const BASE_MIDI = 48
 
 // Lower octave: z–m row (white keys) and s/d/g/h/j row (black keys).
 // Upper octave: q–i row (white keys) and 2/3/5/6/7 row (black keys).
+/** @type {Record<string, number>} */
 export const QWERTY_MAP = {
   // Lower octave (C3–B3)
   z: BASE_MIDI + 0, // C3

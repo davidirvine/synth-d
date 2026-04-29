@@ -8,7 +8,7 @@
   let context = /** @type {CanvasRenderingContext2D | null} */ (null)
   let frameId = 0
   let mounted = false
-  let dataArray = /** @type {Uint8Array | null} */ (null)
+  let dataArray = /** @type {Uint8Array<ArrayBuffer> | null} */ (null)
 
   function syncCanvasSize() {
     if (!canvas) return

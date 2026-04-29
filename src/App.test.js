@@ -14,15 +14,17 @@ vi.mock('./audio/engine.js', () => ({
 describe('App power state', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      clearRect: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0,
-    })
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
   })
 
   it('renders the power button', () => {
@@ -123,6 +125,7 @@ describe('App — all six panels render', () => {
 })
 
 describe('App — ccExternalValues initialised at per-param min', () => {
+  /** @param {any} container @param {string} label */
   function findKnobValue(container, label) {
     const labelEl = Array.from(container.querySelectorAll('.knob-label')).find(
       (el) => el.textContent === label
@@ -214,15 +217,17 @@ describe('powerOffValue', () => {
 describe('App — power-off sets bipolar knob externalValue to midpoint', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      clearRect: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0,
-    })
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
   })
 
   it('modMix externalValue is midpoint (0.50) after power-off, not min (0.00)', async () => {
@@ -279,6 +284,7 @@ describe('App — power-off sets bipolar knob externalValue to midpoint', () => 
 })
 
 describe('App — zero-default knobs respond to power-off after manual change', () => {
+  /** @param {any} container @param {string} label */
   function findKnobHits(container, label) {
     return Array.from(container.querySelectorAll('.knob-label'))
       .filter((el) => el.textContent === label)
@@ -286,6 +292,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
       .filter(Boolean)
   }
 
+  /** @param {any} container @param {string} label */
   function findKnobValues(container, label) {
     return Array.from(container.querySelectorAll('.knob-label'))
       .filter((el) => el.textContent === label)
@@ -293,6 +300,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
       .filter(Boolean)
   }
 
+  /** @param {Element} hit */
   async function dragKnobUp(hit) {
     await fireEvent.pointerDown(hit, { clientY: 100 })
     await fireEvent.pointerMove(hit, { clientY: 50 })
@@ -301,15 +309,17 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      clearRect: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0,
-    })
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
   })
 
   it('osc2Detune returns to midpoint (0.00) after manual change and power-off', async () => {
@@ -428,15 +438,17 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 describe('App — bipolar knob externalValue initialises to midpoint on page load', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      clearRect: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0,
-    })
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
   })
 
   it('modMix externalValue is midpoint (0.50) on page load, not min (0.00)', async () => {

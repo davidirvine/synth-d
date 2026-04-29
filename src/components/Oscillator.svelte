@@ -20,6 +20,10 @@
   let osc3Range = $state(0)
   let osc3LfoMode = $state(0)
 
+  /**
+   * @param {number} osc
+   * @param {number} i
+   */
   function selectWave(osc, i) {
     const param = `osc${osc}Wave`
     if (osc === 1) osc1Wave = i
@@ -28,6 +32,10 @@
     onchange?.({ param, value: i })
   }
 
+  /**
+   * @param {number} osc
+   * @param {number} delta
+   */
   function stepRange(osc, delta) {
     const current = osc === 1 ? osc1Range : osc === 2 ? osc2Range : osc3Range
     const next = Math.max(-2, Math.min(2, current + delta))

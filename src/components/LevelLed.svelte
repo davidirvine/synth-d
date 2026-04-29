@@ -8,6 +8,7 @@
   let rafHandle = 0
   let latchHandle = 0
 
+  /** @param {number} peak */
   function computeColor(peak) {
     if (peak <= 0) return '#111111'
     let hue

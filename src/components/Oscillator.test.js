@@ -113,7 +113,7 @@ describe('Oscillator — LFO mode', () => {
   it('LFO button is inactive by default', () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
-    const lfoBtn = sections[2].querySelector('.lfo-btn')
+    const lfoBtn = /** @type {Element} */ (sections[2].querySelector('.lfo-btn'))
     expect(lfoBtn.classList.contains('active')).toBe(false)
   })
 
@@ -121,7 +121,7 @@ describe('Oscillator — LFO mode', () => {
     const onchange = vi.fn()
     const { container } = render(Oscillator, { props: { onchange } })
     const sections = container.querySelectorAll('.osc-section')
-    const lfoBtn = sections[2].querySelector('.lfo-btn')
+    const lfoBtn = /** @type {Element} */ (sections[2].querySelector('.lfo-btn'))
     await fireEvent.click(lfoBtn)
     expect(onchange).toHaveBeenCalledWith({ param: 'osc3LfoMode', value: 1 })
   })
@@ -130,7 +130,7 @@ describe('Oscillator — LFO mode', () => {
     const onchange = vi.fn()
     const { container } = render(Oscillator, { props: { onchange } })
     const sections = container.querySelectorAll('.osc-section')
-    const lfoBtn = sections[2].querySelector('.lfo-btn')
+    const lfoBtn = /** @type {Element} */ (sections[2].querySelector('.lfo-btn'))
     await fireEvent.click(lfoBtn)
     await fireEvent.click(lfoBtn)
     const calls = onchange.mock.calls.filter((c) => c[0].param === 'osc3LfoMode')
@@ -140,65 +140,65 @@ describe('Oscillator — LFO mode', () => {
   it('renders LFO rate knob in OSC 3 section', () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
-    const rangeRow = sections[2].querySelector('.range-row')
+    const rangeRow = /** @type {Element} */ (sections[2].querySelector('.range-row'))
     expect(rangeRow.querySelector('svg')).not.toBeNull()
   })
 
   it('LFO rate knob is disabled when LFO mode is off', () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
-    const rateWrap = sections[2].querySelector('.range-row').querySelectorAll('.knob-wrap')[1]
+    const rateWrap = /** @type {Element} */ (sections[2].querySelector('.range-row')).querySelectorAll('.knob-wrap')[1]
     expect(rateWrap.classList.contains('disabled')).toBe(true)
   })
 
   it('LFO rate knob is enabled when LFO mode is on', async () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
-    await fireEvent.click(sections[2].querySelector('.lfo-btn'))
-    const rateWrap = sections[2].querySelector('.range-row').querySelectorAll('.knob-wrap')[1]
+    await fireEvent.click(/** @type {Element} */ (sections[2].querySelector('.lfo-btn')))
+    const rateWrap = /** @type {Element} */ (sections[2].querySelector('.range-row')).querySelectorAll('.knob-wrap')[1]
     expect(rateWrap.classList.contains('disabled')).toBe(false)
   })
 
   it('OSC 3 range − button is disabled when LFO mode is on', async () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
-    await fireEvent.click(sections[2].querySelector('.lfo-btn'))
+    await fireEvent.click(/** @type {Element} */ (sections[2].querySelector('.lfo-btn')))
     // buttons[0] = '−', buttons[1] = '+'
-    const buttons = sections[2].querySelector('.range-row').querySelectorAll('.step-btn')
-    expect(buttons[0].disabled).toBe(true)
+    const buttons = /** @type {Element} */ (sections[2].querySelector('.range-row')).querySelectorAll('.step-btn')
+    expect(/** @type {HTMLButtonElement} */ (buttons[0]).disabled).toBe(true)
   })
 
   it('OSC 3 range − button is enabled when LFO mode is off', () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
     // buttons[0] = '−', buttons[1] = '+'
-    const buttons = sections[2].querySelector('.range-row').querySelectorAll('.step-btn')
-    expect(buttons[0].disabled).toBe(false)
+    const buttons = /** @type {Element} */ (sections[2].querySelector('.range-row')).querySelectorAll('.step-btn')
+    expect(/** @type {HTMLButtonElement} */ (buttons[0]).disabled).toBe(false)
   })
 
   it('OSC 3 range + button is disabled when LFO mode is on', async () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
-    await fireEvent.click(sections[2].querySelector('.lfo-btn'))
+    await fireEvent.click(/** @type {Element} */ (sections[2].querySelector('.lfo-btn')))
     // buttons[0] = '−', buttons[1] = '+'
-    const buttons = sections[2].querySelector('.range-row').querySelectorAll('.step-btn')
-    expect(buttons[1].disabled).toBe(true)
+    const buttons = /** @type {Element} */ (sections[2].querySelector('.range-row')).querySelectorAll('.step-btn')
+    expect(/** @type {HTMLButtonElement} */ (buttons[1]).disabled).toBe(true)
   })
 
   it('OSC 3 range + button is enabled when LFO mode is off', () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
     // buttons[0] = '−', buttons[1] = '+'
-    const buttons = sections[2].querySelector('.range-row').querySelectorAll('.step-btn')
-    expect(buttons[1].disabled).toBe(false)
+    const buttons = /** @type {Element} */ (sections[2].querySelector('.range-row')).querySelectorAll('.step-btn')
+    expect(/** @type {HTMLButtonElement} */ (buttons[1]).disabled).toBe(false)
   })
 
   it('OSC 3 detune knob-wrap has disabled class when LFO mode is on', async () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
-    await fireEvent.click(sections[2].querySelector('.lfo-btn'))
+    await fireEvent.click(/** @type {Element} */ (sections[2].querySelector('.lfo-btn')))
     // knob-wrap[0] = detune, knob-wrap[1] = LFO rate
-    const detuneWrap = sections[2].querySelector('.range-row').querySelectorAll('.knob-wrap')[0]
+    const detuneWrap = /** @type {Element} */ (sections[2].querySelector('.range-row')).querySelectorAll('.knob-wrap')[0]
     expect(detuneWrap.classList.contains('disabled')).toBe(true)
   })
 
@@ -206,7 +206,7 @@ describe('Oscillator — LFO mode', () => {
     const { container } = render(Oscillator)
     const sections = container.querySelectorAll('.osc-section')
     // knob-wrap[0] = detune, knob-wrap[1] = LFO rate
-    const detuneWrap = sections[2].querySelector('.range-row').querySelectorAll('.knob-wrap')[0]
+    const detuneWrap = /** @type {Element} */ (sections[2].querySelector('.range-row')).querySelectorAll('.knob-wrap')[0]
     expect(detuneWrap.classList.contains('disabled')).toBe(false)
   })
 })

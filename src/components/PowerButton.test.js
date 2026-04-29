@@ -7,7 +7,7 @@ describe('PowerButton', () => {
     const { container } = render(PowerButton, {
       props: { powered: false, loading: false, ontoggle: vi.fn() },
     })
-    const icon = container.querySelector('.power-icon')
+    const icon = /** @type {Element} */ (container.querySelector('.power-icon'))
     expect(icon).not.toBeNull()
     expect(icon.classList.contains('on')).toBe(false)
   })
@@ -23,7 +23,7 @@ describe('PowerButton', () => {
     const { container } = render(PowerButton, {
       props: { powered: false, loading: false, ontoggle: vi.fn() },
     })
-    const icon = container.querySelector('.power-icon')
+    const icon = /** @type {Element} */ (container.querySelector('.power-icon'))
     expect(icon.classList.contains('off')).toBe(true)
     expect(icon.classList.contains('loading')).toBe(false)
     expect(icon.classList.contains('on')).toBe(false)
@@ -33,7 +33,7 @@ describe('PowerButton', () => {
     const { container } = render(PowerButton, {
       props: { powered: true, loading: false, ontoggle: vi.fn() },
     })
-    const icon = container.querySelector('.power-icon')
+    const icon = /** @type {Element} */ (container.querySelector('.power-icon'))
     expect(icon.classList.contains('on')).toBe(true)
     expect(icon.classList.contains('off')).toBe(false)
     expect(icon.classList.contains('loading')).toBe(false)
@@ -43,7 +43,7 @@ describe('PowerButton', () => {
     const { container } = render(PowerButton, {
       props: { powered: false, loading: true, ontoggle: vi.fn() },
     })
-    const icon = container.querySelector('.power-icon')
+    const icon = /** @type {Element} */ (container.querySelector('.power-icon'))
     expect(icon.classList.contains('loading')).toBe(true)
     expect(icon.classList.contains('off')).toBe(false)
     expect(icon.classList.contains('on')).toBe(false)
@@ -53,7 +53,7 @@ describe('PowerButton', () => {
     const { container } = render(PowerButton, {
       props: { powered: true, loading: true, ontoggle: vi.fn() },
     })
-    const icon = container.querySelector('.power-icon')
+    const icon = /** @type {Element} */ (container.querySelector('.power-icon'))
     expect(icon.classList.contains('loading')).toBe(true)
     expect(icon.classList.contains('on')).toBe(false)
   })
@@ -65,7 +65,7 @@ describe('PowerButton', () => {
     const { container } = render(PowerButton, {
       props: { powered: false, loading: false, ontoggle },
     })
-    await fireEvent.click(container.querySelector('button'))
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('button')))
     expect(ontoggle).toHaveBeenCalledOnce()
   })
 
@@ -73,13 +73,13 @@ describe('PowerButton', () => {
     const { container } = render(PowerButton, {
       props: { powered: false, loading: true, ontoggle: vi.fn() },
     })
-    expect(container.querySelector('button').disabled).toBe(true)
+    expect(/** @type {HTMLButtonElement} */ (container.querySelector('button')).disabled).toBe(true)
   })
 
   it('button is not disabled when not loading', () => {
     const { container } = render(PowerButton, {
       props: { powered: false, loading: false, ontoggle: vi.fn() },
     })
-    expect(container.querySelector('button').disabled).toBe(false)
+    expect(/** @type {HTMLButtonElement} */ (container.querySelector('button')).disabled).toBe(false)
   })
 })
