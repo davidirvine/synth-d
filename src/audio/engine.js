@@ -3,8 +3,10 @@ import { buildNoteOnMessages } from './keyboard.js'
 
 const PARAM_PREFIX = '/synth/'
 
+/** @type {AudioContext | null} */
 let ctx = null
 let node = null
+/** @type {AnalyserNode | null} */
 let analyserNode = null
 let active = false
 let mixerPeakValue = 0
@@ -50,12 +52,19 @@ export async function powerOff() {
   analyserNode = null
 }
 
+/**
+ * @param {string} name
+ * @param {number} value
+ */
 export function setParam(name, value) {
   if (!node) return
   if (!Number.isFinite(value)) return
   node.setParamValue(PARAM_PREFIX + name, value)
 }
 
+/**
+ * @param {number} freq
+ */
 export function noteOn(freq) {
   if (!node) return
   const messages = buildNoteOnMessages(freq, active)

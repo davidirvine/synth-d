@@ -42,6 +42,7 @@ export class MidiManager {
     this._notifyDevices()
   }
 
+  /** @param {string} id */
   selectDevice(id) {
     this._detachListeners()
     this.#selectedId = id
@@ -87,6 +88,7 @@ export class MidiManager {
     }
   }
 
+  /** @param {MIDIConnectionEvent} event */
   _handleStateChange(event) {
     const port = event.port
     if (port.type !== 'input') return
@@ -116,7 +118,10 @@ export class MidiManager {
 
   /** @param {MIDIMessageEvent} event */
   _handleMessage(event) {
-    const [status, data1, data2] = event.data
+    const data = Array.from(event.data)
+    const status = data[0]
+    const data1 = data[1]
+    const data2 = data[2]
     const type = status & 0xf0
 
     if (type === 0x90) {
@@ -139,6 +144,7 @@ export class MidiManager {
     }
   }
 
+  /** @param {number} note */
   _noteOn(note) {
     this.#activeNotes.add(note)
     this.#lastNote = note
@@ -146,12 +152,14 @@ export class MidiManager {
     this._onNoteOn(note, freq)
   }
 
+  /** @param {number} note */
   _noteOff(note) {
     if (!this.#activeNotes.has(note)) return
     this.#activeNotes.delete(note)
     this._onNoteOff(note)
   }
 
+  /** @param {number} raw */
   _pitchBend(raw) {
     const normalized = (raw - BEND_CENTER) / BEND_CENTER
     this.#bendValue = normalized * BEND_SEMITONES
@@ -160,6 +168,7 @@ export class MidiManager {
     }
   }
 
+  /** @param {number} note */
   _bentFreq(note) {
     return midiToFreq(note) * Math.pow(2, this.#bendValue / 12)
   }

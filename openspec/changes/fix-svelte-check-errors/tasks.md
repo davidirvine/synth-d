@@ -23,10 +23,10 @@
 
 ## 3. JSDoc parameter types — audio modules
 
-- [ ] 3.1 Add `@param` annotations to all functions in `src/audio/math.js`
-- [ ] 3.2 Add `@param` and variable type annotations to `src/audio/engine.js`
-- [ ] 3.3 Add `@param` annotations to `src/audio/midi.js`; fix Uint8Array iterator typing
-- [ ] 3.4 Add `@param` annotations to `src/audio/keyboard.js`
+- [x] 3.1 Add `@param` annotations to all functions in `src/audio/math.js`
+- [x] 3.2 Add `@param` and variable type annotations to `src/audio/engine.js`
+- [x] 3.3 Add `@param` annotations to `src/audio/midi.js`; fix Uint8Array iterator typing
+- [x] 3.4 Add `@param` annotations to `src/audio/keyboard.js`
 
 ## 4. JSDoc parameter types — App and components
 
