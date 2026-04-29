@@ -1,8 +1,9 @@
 <script>
-  let { externalValue, onchange } = /** @type {{
+  /** @type {{
     externalValue?: number,
     onchange?: (e: { param: string, value: number }) => void,
-  }} */ ($props())
+  }} */
+  let { externalValue, onchange } = $props()
 
   let modWheel = $state(0.5)
 

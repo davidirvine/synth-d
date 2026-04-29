@@ -1,8 +1,8 @@
 <script>
   import { onDestroy } from 'svelte'
 
-  let { getPeak = () => 0, powered = false } =
-    /** @type {{ getPeak?: () => number, powered?: boolean }} */ ($props())
+  /** @type {{ getPeak?: () => number, powered?: boolean }} */
+  let { getPeak = () => 0, powered = false } = $props()
 
   let color = $state('#111111')
   let rafHandle = 0

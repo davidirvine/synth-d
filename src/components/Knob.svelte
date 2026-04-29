@@ -4,6 +4,26 @@
   import { cubicOut } from 'svelte/easing'
   import { normalizedToValue, valueToNormalized, formatValue } from '../audio/math.js'
 
+  /** @type {{
+    label?: string,
+    min?: number,
+    max?: number,
+    default?: number,
+    value?: number,
+    scale?: string,
+    unit?: string,
+    ticks?: Array<{ pos: number, label: string, r?: number }>,
+    showLabel?: boolean,
+    showValue?: boolean,
+    showArc?: boolean,
+    bipolar?: boolean,
+    externalValue?: number,
+    learningMidi?: boolean,
+    assignedCc?: number | null,
+    disabled?: boolean,
+    onchange?: (e: { value: number }) => void,
+    oncontextmenu?: () => void
+  }} */
   let {
     label = '',
     min = 0,
@@ -23,26 +43,7 @@
     disabled = false,
     onchange,
     oncontextmenu,
-  } = /** @type {{
-    label?: string,
-    min?: number,
-    max?: number,
-    default?: number,
-    value?: number,
-    scale?: string,
-    unit?: string,
-    ticks?: Array<{ pos: number, label: string, r?: number }>,
-    showLabel?: boolean,
-    showValue?: boolean,
-    showArc?: boolean,
-    bipolar?: boolean,
-    externalValue?: number,
-    learningMidi?: boolean,
-    assignedCc?: number | null,
-    disabled?: boolean,
-    onchange?: (e: { value: number }) => void,
-    oncontextmenu?: () => void
-  }} */ ($props())
+  } = $props()
 
   let value = $state(untrack(() => (initialValue !== undefined ? initialValue : defaultValue)))
 

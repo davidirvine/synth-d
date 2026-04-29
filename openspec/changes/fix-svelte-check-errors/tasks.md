@@ -4,22 +4,22 @@
 
 ## 2. Fix `$props()` annotation in Svelte components
 
-- [ ] 2.1 Fix `src/components/Knob.svelte` — move `@type` from cast to variable declaration
-- [ ] 2.2 Fix `src/components/LevelLed.svelte`
-- [ ] 2.3 Fix `src/components/PowerButton.svelte`
-- [ ] 2.4 Fix `src/components/Volume.svelte`
-- [ ] 2.5 Fix `src/components/Oscillator.svelte`
-- [ ] 2.6 Fix `src/components/Filter.svelte`
-- [ ] 2.7 Fix `src/components/Effects.svelte`
-- [ ] 2.8 Fix `src/components/AmpEnv.svelte`
-- [ ] 2.9 Fix `src/components/Modulation.svelte`
-- [ ] 2.10 Fix `src/components/Glide.svelte`
-- [ ] 2.11 Fix `src/components/Mixer.svelte`
-- [ ] 2.12 Fix `src/components/Keyboard.svelte`
-- [ ] 2.13 Fix `src/components/MidiStatus.svelte`
-- [ ] 2.14 Fix `src/components/RegisterPanel.svelte`
-- [ ] 2.15 Fix `src/components/Scope.svelte`
-- [ ] 2.16 Fix `src/components/WheelPanel.svelte`
+- [x] 2.1 Fix `src/components/Knob.svelte` — move `@type` from cast to variable declaration
+- [x] 2.2 Fix `src/components/LevelLed.svelte`
+- [x] 2.3 Fix `src/components/PowerButton.svelte`
+- [x] 2.4 Fix `src/components/Volume.svelte`
+- [x] 2.5 Fix `src/components/Oscillator.svelte`
+- [x] 2.6 Fix `src/components/Filter.svelte`
+- [x] 2.7 Fix `src/components/Effects.svelte`
+- [x] 2.8 Fix `src/components/AmpEnv.svelte`
+- [x] 2.9 Fix `src/components/Modulation.svelte`
+- [x] 2.10 Fix `src/components/Glide.svelte`
+- [x] 2.11 Fix `src/components/Mixer.svelte`
+- [x] 2.12 Fix `src/components/Keyboard.svelte`
+- [x] 2.13 Fix `src/components/MidiStatus.svelte`
+- [x] 2.14 Fix `src/components/RegisterPanel.svelte`
+- [x] 2.15 Fix `src/components/Scope.svelte`
+- [x] 2.16 Fix `src/components/WheelPanel.svelte`
 
 ## 3. JSDoc parameter types — audio modules
 

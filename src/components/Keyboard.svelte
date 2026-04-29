@@ -3,6 +3,12 @@
   import { SvelteSet } from 'svelte/reactivity'
   import { QWERTY_MAP, buildNoteOnMessages, midiToFreq } from '../audio/keyboard.js'
 
+  /** @type {{
+    onnote?: (msgs: Array<{ param: string, value: number }>) => void,
+    triggerNote?: ((midi: number) => void) | null,
+    releaseNote?: ((midi: number) => void) | null,
+    baseMidi?: number,
+  }} */
   let {
     onnote,
     triggerNote = $bindable(null), // eslint-disable-line no-useless-assignment

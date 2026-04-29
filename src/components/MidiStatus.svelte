@@ -1,4 +1,10 @@
 <script>
+  /** @type {{
+    status?: string,
+    devices?: Array<{ id: string, name: string }>,
+    selectedDeviceId?: string | null,
+    ondevicechange?: (id: string) => void,
+  }} */
   let { status = 'unavailable', devices = [], selectedDeviceId = null, ondevicechange } = $props()
 </script>
 

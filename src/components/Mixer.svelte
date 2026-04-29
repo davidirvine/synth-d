@@ -3,6 +3,14 @@
   import Knob from './Knob.svelte'
   import LevelLed from './LevelLed.svelte'
 
+  /** @type {{
+    onchange?: (e: { param: string, value: number }) => void,
+    midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
+    onknobcontextmenu?: (param: string) => void,
+    reset?: number,
+    getPeak?: () => number,
+    powered?: boolean,
+  }} */
   let {
     onchange,
     midiState = {},
@@ -10,14 +18,7 @@
     reset = 0,
     getPeak = () => 0,
     powered = false,
-  } = /** @type {{
-    onchange?: (e: { param: string, value: number }) => void,
-    midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
-    onknobcontextmenu?: (param: string) => void,
-    reset?: number,
-    getPeak?: () => number,
-    powered?: boolean,
-  }} */ ($props())
+  } = $props()
 
   let noiseType = $state(0)
 
