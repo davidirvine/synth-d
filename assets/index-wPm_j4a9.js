@@ -10848,33 +10848,35 @@ function Oscillator($$anchor, $$props) {
 		set(osc2Range, 0);
 		set(osc3Range, 0);
 		set(osc3LfoMode, 0);
-		$$props.onchange?.({
-			param: "osc1Wave",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "osc2Wave",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "osc3Wave",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "osc1Range",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "osc2Range",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "osc3Range",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "osc3LfoMode",
-			value: 0
+		untrack(() => {
+			$$props.onchange?.({
+				param: "osc1Wave",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "osc2Wave",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "osc3Wave",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "osc1Range",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "osc2Range",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "osc3Range",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "osc3LfoMode",
+				value: 0
+			});
 		});
 	});
 	var div = root$14();
@@ -11150,10 +11152,10 @@ function Mixer($$anchor, $$props) {
 	user_effect(() => {
 		if (reset$6() === 0) return;
 		set(noiseType, 0);
-		$$props.onchange?.({
+		untrack(() => $$props.onchange?.({
 			param: "noiseType",
 			value: 0
-		});
+		}));
 	});
 	var div = root$12();
 	var div_1 = child(div);
@@ -11318,10 +11320,10 @@ function Filter($$anchor, $$props) {
 	user_effect(() => {
 		if (reset$5() === 0) return;
 		set(keyTrackOn, 0);
-		$$props.onchange?.({
+		untrack(() => $$props.onchange?.({
 			param: "keyTrack",
 			value: 0
-		});
+		}));
 	});
 	var div = root$11();
 	var div_1 = sibling(child(div), 2);
@@ -11579,17 +11581,19 @@ function Effects($$anchor, $$props) {
 		set(delayOn, 0);
 		set(delayModOn, 0);
 		set(reverbOn, 0);
-		$$props.onchange?.({
-			param: "delayOn",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "delayModOn",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "reverbOn",
-			value: 0
+		untrack(() => {
+			$$props.onchange?.({
+				param: "delayOn",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "delayModOn",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "reverbOn",
+				value: 0
+			});
 		});
 	});
 	var div = root$10();
@@ -11942,10 +11946,10 @@ function AmpEnv($$anchor, $$props) {
 	user_effect(() => {
 		if (reset$3() === 0) return;
 		set(drLock, 1);
-		$$props.onchange?.({
+		untrack(() => $$props.onchange?.({
 			param: "drLock",
 			value: 1
-		});
+		}));
 	});
 	var div = root$9();
 	var div_1 = child(div);
@@ -12141,17 +12145,19 @@ function Modulation($$anchor, $$props) {
 		set(modToOsc1, 0);
 		set(modToOsc2, 0);
 		set(modToFilter, 0);
-		$$props.onchange?.({
-			param: "modToOsc1",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "modToOsc2",
-			value: 0
-		});
-		$$props.onchange?.({
-			param: "modToFilter",
-			value: 0
+		untrack(() => {
+			$$props.onchange?.({
+				param: "modToOsc1",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "modToOsc2",
+				value: 0
+			});
+			$$props.onchange?.({
+				param: "modToFilter",
+				value: 0
+			});
 		});
 	});
 	function toggleRoute(param) {
@@ -12263,10 +12269,10 @@ function Glide($$anchor, $$props) {
 	user_effect(() => {
 		if (reset$1() === 0) return;
 		set(glideOn, 0);
-		$$props.onchange?.({
+		untrack(() => $$props.onchange?.({
 			param: "glideOn",
 			value: 0
-		});
+		}));
 	});
 	var div = root$7();
 	var div_1 = sibling(child(div), 2);
