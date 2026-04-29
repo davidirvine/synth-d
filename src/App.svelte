@@ -130,15 +130,10 @@
   let midiActiveNotes = $state(0)
 
   // Per-param external values driven by incoming CC messages.
-  // Initialised with random values so the power-on reset animation is visible on first load.
+  // Initialised at per-param min so power-on always animates from the floor.
   let ccExternalValues = $state(
     /** @type {Record<string,number|undefined>} */ (
-      Object.fromEntries(
-        Object.keys(DEFAULTS).map((p) => {
-          const { min, max } = KNOB_PARAMS[p]
-          return [p, min + Math.random() * (max - min)]
-        })
-      )
+      Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min]))
     )
   )
 
@@ -202,7 +197,9 @@
       await powerOff()
       powered = false
       midiStatus = 'unavailable'
-      ccExternalValues = {}
+      ccExternalValues = Object.fromEntries(
+        Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min])
+      )
     } else {
       loading = true
       try {
