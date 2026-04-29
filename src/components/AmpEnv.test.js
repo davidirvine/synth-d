@@ -27,7 +27,9 @@ describe('AmpEnv — D/R lock switch', () => {
 
   it('D/R lock button defaults to on', () => {
     const { container } = render(AmpEnv)
-    expect(/** @type {Element} */ (container.querySelector('.drlock-btn')).classList.contains('active')).toBe(true)
+    expect(
+      /** @type {Element} */ (container.querySelector('.drlock-btn')).classList.contains('active')
+    ).toBe(true)
   })
 
   it('clicking D/R lock emits drLock 0', async () => {
@@ -40,7 +42,9 @@ describe('AmpEnv — D/R lock switch', () => {
   it('D/R lock button becomes inactive after click', async () => {
     const { container } = render(AmpEnv)
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.drlock-btn')))
-    expect(/** @type {Element} */ (container.querySelector('.drlock-btn')).classList.contains('active')).toBe(false)
+    expect(
+      /** @type {Element} */ (container.querySelector('.drlock-btn')).classList.contains('active')
+    ).toBe(false)
   })
 
   it('second click emits drLock 1', async () => {

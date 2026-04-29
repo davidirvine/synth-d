@@ -1,6 +1,7 @@
 # SYNTH-D
 
 ![image](./assets/synth.png)
+
 <p align="center"><a href="https://davidirvine.github.io/synth-d/">try it out</a></p>
 
 A browser-based subtractive synthesizer inspired by the Moog Model D, built with Svelte 5 and a FAUST DSP engine compiled to WebAssembly.

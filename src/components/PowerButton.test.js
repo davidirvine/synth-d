@@ -80,6 +80,8 @@ describe('PowerButton', () => {
     const { container } = render(PowerButton, {
       props: { powered: false, loading: false, ontoggle: vi.fn() },
     })
-    expect(/** @type {HTMLButtonElement} */ (container.querySelector('button')).disabled).toBe(false)
+    expect(/** @type {HTMLButtonElement} */ (container.querySelector('button')).disabled).toBe(
+      false
+    )
   })
 })

@@ -15,15 +15,36 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Open promotion PR if absent
+      - name: Detect commit type and create or update promotion PR
         env:
           # PAT required so CI triggers on the created PR
           GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
         run: |
-          gh pr create \
+          # Detect the highest-priority conventional commit type in develop..main.
+          # feat > fix > chore (default). The PR title becomes the squash commit
+          # message on main that release-please parses for the version bump type.
+          TYPE="chore"
+          COMMITS=$(git log main..develop --format="%s")
+
+          if echo "$COMMITS" | grep -qE '^feat(\([^)]*\))?:'; then
+            TYPE="feat"
+          elif echo "$COMMITS" | grep -qE '^fix(\([^)]*\))?:'; then
+            TYPE="fix"
+          fi
+
+          TITLE="$TYPE: promote develop to main"
+
+          if gh pr create \
             --base main \
             --head develop \
-            --title "chore: promote develop to main" \
-            --body "Merge when ready to deploy to GitHub Pages." \
-          || echo "Promotion PR already exists"
+            --title "$TITLE" \
+            --body "Merge when ready to deploy to GitHub Pages."; then
+            echo "Promotion PR created with title: $TITLE"
+          else
+            echo "Promotion PR already exists — updating title to: $TITLE"
+            PR_NUMBER=$(gh pr list --base main --head develop --json number --jq '.[0].number')
+            gh pr edit "$PR_NUMBER" --title "$TITLE"
+          fi

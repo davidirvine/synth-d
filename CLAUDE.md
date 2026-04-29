@@ -67,6 +67,27 @@ ESLint MUST use `eslint-plugin-svelte` for `.svelte` files and Prettier MUST use
 
 EVERY individual task step (e.g., 1.1, 1.2, 2.1) MUST be committed immediately after it is complete. Do not batch multiple steps into a single commit. Do not begin the next step until the commit for the current step has been made.
 
+### Conventional Commits
+
+Every commit MUST follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+<type>[optional scope]: <description>
+```
+
+Required types and their version-bump effect:
+
+| Type       | When to use                                          | Version bump |
+| ---------- | ---------------------------------------------------- | ------------ |
+| `feat`     | New user-visible functionality                       | minor        |
+| `fix`      | Corrects incorrect behaviour without adding features | patch        |
+| `chore`    | Tooling, dependency, or pipeline changes             | none         |
+| `docs`     | Documentation only                                   | none         |
+| `refactor` | Code restructuring with no behaviour change          | none         |
+| `test`     | Adding or updating tests                             | none         |
+
+**This is a functional requirement, not a style preference.** The `promote.yml` workflow reads commit types from the `develop..main` diff to determine the promote PR title (e.g., `feat: promote develop to main`). GitHub squash-merges that PR, so the PR title becomes the single commit on `main` that `release-please` parses for the version bump type. Using the wrong type (or no type) silently breaks the release pipeline.
+
 ## Section Completion
 
 A section is NOT complete until ALL of the following are true:

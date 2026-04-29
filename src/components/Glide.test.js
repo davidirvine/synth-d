@@ -37,13 +37,17 @@ describe('Glide — toggle', () => {
   it('button becomes active after click', async () => {
     const { container } = render(Glide)
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.glide-btn')))
-    expect(/** @type {Element} */ (container.querySelector('.glide-btn')).classList.contains('active')).toBe(true)
+    expect(
+      /** @type {Element} */ (container.querySelector('.glide-btn')).classList.contains('active')
+    ).toBe(true)
   })
 
   it('button shows on after click', async () => {
     const { container } = render(Glide)
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.glide-btn')))
-    expect(/** @type {Element} */ (container.querySelector('.glide-btn')).textContent.trim()).toBe('on')
+    expect(/** @type {Element} */ (container.querySelector('.glide-btn')).textContent.trim()).toBe(
+      'on'
+    )
   })
 
   it('second click emits glideOn 0', async () => {
@@ -69,12 +73,16 @@ describe('Glide — rate knob', () => {
 
   it('rate knob is disabled when glide is off', () => {
     const { container } = render(Glide)
-    expect(/** @type {Element} */ (container.querySelector('.knob-wrap')).classList.contains('disabled')).toBe(true)
+    expect(
+      /** @type {Element} */ (container.querySelector('.knob-wrap')).classList.contains('disabled')
+    ).toBe(true)
   })
 
   it('rate knob is enabled after glide is toggled on', async () => {
     const { container } = render(Glide)
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.glide-btn')))
-    expect(/** @type {Element} */ (container.querySelector('.knob-wrap')).classList.contains('disabled')).toBe(false)
+    expect(
+      /** @type {Element} */ (container.querySelector('.knob-wrap')).classList.contains('disabled')
+    ).toBe(false)
   })
 })
