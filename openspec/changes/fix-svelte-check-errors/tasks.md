@@ -1,6 +1,6 @@
 ## 1. Global declaration file
 
-- [ ] 1.1 Create `src/global.d.ts` declaring `Window.__audioCtx` augmentation
+- [x] 1.1 Create `src/global.d.ts` declaring `Window.__audioCtx` augmentation
 
 ## 2. Fix `$props()` annotation in Svelte components
 
