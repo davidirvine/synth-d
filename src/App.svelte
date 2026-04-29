@@ -298,7 +298,7 @@
     midiStateFor('ampAttack', 'ampDecay', 'ampSustain', 'ampRelease', 'masterVol')
   )
 
-  let modMidiState = $derived(midiStateFor('modMix', 'modWheel'))
+  let modMidiState = $derived(midiStateFor('modMix'))
 
   let glideMidiState = $derived(midiStateFor('glideRate'))
 
