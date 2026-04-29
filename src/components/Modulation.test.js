@@ -18,11 +18,6 @@ describe('Modulation — rendering', () => {
     expect(container.querySelectorAll('.route-btn').length).toBe(3)
   })
 
-  it('renders the virtual mod wheel track', () => {
-    const { container } = render(Modulation)
-    expect(container.querySelector('.wheel-track')).not.toBeNull()
-  })
-
   it('all routing buttons are inactive by default', () => {
     const { container } = render(Modulation)
     container.querySelectorAll('.route-btn').forEach((btn) => {
@@ -67,43 +62,38 @@ describe('Modulation — routing switches', () => {
   })
 })
 
-describe('Modulation — virtual mod wheel drag', () => {
-  it('dragging wheel upward emits modWheel with positive value', async () => {
+describe('Modulation — reset prop', () => {
+  it('incrementing reset fires onchange for all routing params with value 0', async () => {
     const onchange = vi.fn()
-    const { container } = render(Modulation, { props: { onchange } })
-    const track = container.querySelector('.wheel-track')
-    await fireEvent.pointerDown(track, { clientY: 100 })
-    await fireEvent.pointerMove(track, { clientY: 20 })
-    await fireEvent.pointerUp(track)
-    const wheelCalls = onchange.mock.calls.filter((c) => c[0].param === 'modWheel')
-    expect(wheelCalls.length).toBeGreaterThan(0)
-    expect(wheelCalls[wheelCalls.length - 1][0].value).toBeGreaterThan(0)
+    const { rerender } = render(Modulation, { props: { onchange, reset: 0 } })
+    await rerender({ onchange, reset: 1 })
+    const params = onchange.mock.calls.map((c) => c[0].param)
+    expect(params).toContain('modToOsc1')
+    expect(params).toContain('modToOsc2')
+    expect(params).toContain('modToFilter')
+    onchange.mock.calls
+      .filter((c) => ['modToOsc1', 'modToOsc2', 'modToFilter'].includes(c[0].param))
+      .forEach((c) => expect(c[0].value).toBe(0))
   })
 
-  it('wheel value is clamped to 0-1', async () => {
+  it('incrementing reset twice fires both resets', async () => {
     const onchange = vi.fn()
-    const { container } = render(Modulation, { props: { onchange } })
-    const track = container.querySelector('.wheel-track')
-    await fireEvent.pointerDown(track, { clientY: 500 })
-    await fireEvent.pointerMove(track, { clientY: -5000 })
-    await fireEvent.pointerUp(track)
-    const wheelCalls = onchange.mock.calls.filter((c) => c[0].param === 'modWheel')
-    if (wheelCalls.length > 0) {
-      const lastVal = wheelCalls[wheelCalls.length - 1][0].value
-      expect(lastVal).toBeLessThanOrEqual(1)
-      expect(lastVal).toBeGreaterThanOrEqual(0)
-    }
+    const { rerender } = render(Modulation, { props: { onchange, reset: 0 } })
+    await rerender({ onchange, reset: 1 })
+    await rerender({ onchange, reset: 2 })
+    const routingCalls = onchange.mock.calls.filter((c) =>
+      ['modToOsc1', 'modToOsc2', 'modToFilter'].includes(c[0].param)
+    )
+    expect(routingCalls.length).toBe(6)
   })
-})
 
-describe('Modulation — CC 1 sync via midiState', () => {
-  it('externalValue in midiState updates wheel fill height', async () => {
-    const { container } = render(Modulation, {
-      props: {
-        midiState: { modWheel: { externalValue: 0.75 } },
-      },
-    })
-    const fill = container.querySelector('.wheel-fill')
-    expect(fill).not.toBeNull()
+  it('buttons reflect reset state (all inactive after reset)', async () => {
+    const onchange = vi.fn()
+    const { container, rerender } = render(Modulation, { props: { onchange, reset: 0 } })
+    const btns = container.querySelectorAll('.route-btn')
+    await fireEvent.click(btns[0])
+    await fireEvent.click(btns[1])
+    await rerender({ onchange, reset: 1 })
+    btns.forEach((btn) => expect(btn.classList.contains('active')).toBe(false))
   })
 })

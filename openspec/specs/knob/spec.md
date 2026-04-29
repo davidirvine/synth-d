@@ -3,9 +3,7 @@
 ## Purpose
 
 Provides a reusable SVG rotary knob Svelte component for all synthesizer parameter controls. The knob supports vertical drag interaction with logarithmic or linear value curves, shift-key fine mode, double-click reset, and a formatted value label display.
-
 ## Requirements
-
 ### Requirement: SVG rotary knob with drag control
 
 The system SHALL provide a reusable Svelte `Knob` component rendered as SVG. The knob SHALL display a circular track arc and a line indicator showing the current value. Dragging vertically SHALL change the knob value: upward drag increases value, downward drag decreases.
@@ -207,3 +205,43 @@ The `Knob` component SHALL accept a `bipolar` boolean prop (default `false`). Wh
 
 - **WHEN** a `Knob` is rendered without `bipolar` prop (or with `bipolar={false}`)
 - **THEN** the arc sweeps from the 7 o'clock start position to the indicator as before
+
+### Requirement: Spring animation on external value changes
+The Knob component SHALL animate its visual indicator and arc smoothly to a new position when the value changes via the `externalValue` prop (MIDI CC input or reset). The animation SHALL use a spring with tuned stiffness and damping so the sweep completes in approximately 400–600ms. During pointer drag the spring SHALL be bypassed entirely — the visual position SHALL track the pointer directly with no lag. The logical value (reported via `onchange`) SHALL update immediately on any value change, independent of the visual animation.
+
+#### Scenario: Knob springs to new external value
+- **WHEN** the externalValue prop changes (e.g., from a power-on reset)
+- **THEN** the knob indicator and arc animate smoothly to the new position over approximately 400–600ms
+
+#### Scenario: No spring lag during drag
+- **WHEN** the user drags the knob
+- **THEN** the visual indicator tracks the pointer position directly with no spring delay
+
+#### Scenario: onchange fires immediately regardless of animation
+- **WHEN** externalValue changes
+- **THEN** onchange is called with the new value immediately, before the spring animation completes
+
+### Requirement: springEnabled prop controls indicator animation on external value changes
+
+The `Knob` component SHALL accept a `springEnabled` boolean prop (default `false`). When `springEnabled` is `false`, all calls to `springPos.set()` triggered by `externalValue` changes SHALL use `{ instant: true }`, snapping the indicator to the new position immediately. When `springEnabled` is `true`, `springPos.set()` SHALL animate naturally via the configured spring parameters. The `springEnabled` prop SHALL NOT affect drag interaction — drag always snaps the indicator instantly regardless of `springEnabled`.
+
+#### Scenario: External value snaps instantly when springEnabled is false
+
+- **WHEN** a `Knob` receives an updated `externalValue` and `springEnabled` is `false`
+- **THEN** the visual indicator moves to the new position instantly without spring animation
+
+#### Scenario: External value animates when springEnabled is true
+
+- **WHEN** a `Knob` receives an updated `externalValue` and `springEnabled` is `true`
+- **THEN** the visual indicator animates to the new position via the Svelte spring store
+
+#### Scenario: Drag always instant regardless of springEnabled
+
+- **WHEN** the user drags a knob while `springEnabled` is `true`
+- **THEN** the visual indicator tracks the drag position instantly (no spring lag)
+
+#### Scenario: springEnabled defaults to false
+
+- **WHEN** a `Knob` is rendered without a `springEnabled` prop
+- **THEN** external value changes snap the indicator instantly (spring is inactive)
+

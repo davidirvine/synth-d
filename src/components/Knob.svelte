@@ -1,4 +1,7 @@
 <script>
+  import { untrack } from 'svelte'
+  import { tweened } from 'svelte/motion'
+  import { cubicOut } from 'svelte/easing'
   import { normalizedToValue, valueToNormalized, formatValue } from '../audio/math.js'
 
   let {
@@ -41,9 +44,7 @@
     oncontextmenu?: () => void
   }} */ ($props())
 
-  // Intentional one-time init — knob owns its state after mount, external prop changes are ignored.
-  // Svelte 5 warns "only captures the initial value" here; that is the intended design.
-  let value = $state(initialValue !== undefined ? initialValue : defaultValue)
+  let value = $state(untrack(() => (initialValue !== undefined ? initialValue : defaultValue)))
 
   const SWEEP = 270
   const START_ANGLE = 225
@@ -95,20 +96,29 @@
   }
 
   let pos = $derived(valueToNormalized(value, min, max, scale))
-  let indicatorEnd = $derived(polarToXY(START_ANGLE + pos * SWEEP, R - 3))
+
+  const animPos = tweened(
+    untrack(() =>
+      valueToNormalized(initialValue !== undefined ? initialValue : defaultValue, min, max, scale)
+    ),
+    { duration: 0, easing: cubicOut }
+  )
+
+  let indicatorEnd = $derived(polarToXY(START_ANGLE + $animPos * SWEEP, R - 3))
   let activePath = $derived(showArc ? (bipolar ? bipolarArcPath(pos) : arcPath(pos)) : null)
 
   let dragging = false
   let lastY = 0
   let shiftHeld = false
 
-  // Apply externalValue when not dragging
+  // Apply externalValue when not dragging — fires onchange immediately, then animates
   $effect(() => {
     if (externalValue !== undefined && !dragging) {
       const clamped = Math.max(min, Math.min(max, externalValue))
       if (clamped !== value) {
         value = clamped
         onchange?.({ value: clamped })
+        animPos.set(valueToNormalized(clamped, min, max, scale), { duration: 100 })
       }
     }
   })
@@ -129,6 +139,7 @@
     const newPos = Math.max(0, Math.min(1, pos + delta * sensitivity))
     const newValue = normalizedToValue(newPos, min, max, scale)
     value = newValue
+    animPos.set(newPos, { duration: 0 })
     onchange?.({ value: newValue })
   }
 
@@ -138,6 +149,7 @@
 
   function onDblClick() {
     value = defaultValue
+    animPos.set(valueToNormalized(defaultValue, min, max, scale), { duration: 0 })
     onchange?.({ value: defaultValue })
   }
 

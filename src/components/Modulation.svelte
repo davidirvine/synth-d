@@ -5,26 +5,29 @@
     onchange,
     midiState = {},
     onknobcontextmenu,
+    reset = 0,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
-    onknobcontextmenu?: (param: string) => void
+    onknobcontextmenu?: (param: string) => void,
+    reset?: number,
   }} */ ($props())
 
   let modToOsc1 = $state(0)
   let modToOsc2 = $state(0)
   let modToFilter = $state(0)
-  let modWheel = $state(0.5)
 
-  // Allow parent to push external modWheel updates (e.g. from MIDI CC 1)
   $effect(() => {
-    const ext = midiState?.modWheel?.externalValue
-    if (ext !== undefined) {
-      modWheel = ext
-    }
+    if (reset === 0) return
+    modToOsc1 = 0
+    modToOsc2 = 0
+    modToFilter = 0
+    onchange?.({ param: 'modToOsc1', value: 0 })
+    onchange?.({ param: 'modToOsc2', value: 0 })
+    onchange?.({ param: 'modToFilter', value: 0 })
   })
 
-  function toggleRoute(param) {
+  function toggleRoute(/** @type {string} */ param) {
     if (param === 'modToOsc1') {
       modToOsc1 = modToOsc1 === 0 ? 1 : 0
       onchange?.({ param, value: modToOsc1 })
@@ -36,46 +39,31 @@
       onchange?.({ param, value: modToFilter })
     }
   }
-
-  let wheelDragging = $state(false)
-  let wheelStartY = 0
-  let wheelStartVal = 0
-
-  function onWheelPointerDown(e) {
-    wheelDragging = true
-    wheelStartY = e.clientY
-    wheelStartVal = modWheel
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }
-
-  function onWheelPointerMove(e) {
-    if (!wheelDragging) return
-    const dy = wheelStartY - e.clientY
-    const delta = dy / 80
-    modWheel = Math.max(0, Math.min(1, wheelStartVal + delta))
-    onchange?.({ param: 'modWheel', value: modWheel })
-  }
-
-  function onWheelPointerUp() {
-    wheelDragging = false
-  }
 </script>
 
 <div class="panel">
   <span class="panel-label">modulation</span>
   <div class="mod-layout">
-    <Knob
-      label="mix"
-      min={0}
-      max={1}
-      default={0}
-      scale="linear"
-      externalValue={midiState?.modMix?.externalValue}
-      learningMidi={midiState?.modMix?.learningMidi ?? false}
-      assignedCc={midiState?.modMix?.assignedCc ?? null}
-      onchange={(e) => onchange?.({ param: 'modMix', value: e.value })}
-      oncontextmenu={() => onknobcontextmenu?.('modMix')}
-    />
+    <div data-testid="mod-mix-knob">
+      <Knob
+        label="mix"
+        min={0}
+        max={1}
+        default={0}
+        scale="linear"
+        showValue={false}
+        bipolar={true}
+        ticks={[
+          { pos: 0, label: 'LFO' },
+          { pos: 1, label: 'NOISE' },
+        ]}
+        externalValue={midiState?.modMix?.externalValue}
+        learningMidi={midiState?.modMix?.learningMidi ?? false}
+        assignedCc={midiState?.modMix?.assignedCc ?? null}
+        onchange={(e) => onchange?.({ param: 'modMix', value: e.value })}
+        oncontextmenu={() => onknobcontextmenu?.('modMix')}
+      />
+    </div>
     <div class="routes">
       <button
         class="route-btn"
@@ -102,24 +90,6 @@
         filter
       </button>
     </div>
-    <div class="wheel-container">
-      <span class="param-label">wheel</span>
-      <div
-        class="wheel-track"
-        role="slider"
-        tabindex={0}
-        aria-label="mod wheel"
-        aria-valuemin={0}
-        aria-valuemax={1}
-        aria-valuenow={modWheel}
-        onpointerdown={onWheelPointerDown}
-        onpointermove={onWheelPointerMove}
-        onpointerup={onWheelPointerUp}
-        onpointercancel={onWheelPointerUp}
-      >
-        <div class="wheel-fill" style="height: {modWheel * 100}%"></div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -131,6 +101,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    flex: 1;
   }
 
   .panel-label {
@@ -142,7 +113,7 @@
 
   .mod-layout {
     display: flex;
-    gap: 12px;
+    gap: 28px;
     align-items: flex-start;
   }
 
@@ -164,39 +135,8 @@
   }
 
   .route-btn.active {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
-  }
-
-  .wheel-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .param-label {
-    font-size: 9px;
-    color: #666;
-    text-transform: uppercase;
-  }
-
-  .wheel-track {
-    width: 18px;
-    height: 60px;
-    background: #2a2a2a;
-    border: 1px solid #444;
-    cursor: ns-resize;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    touch-action: none;
-  }
-
-  .wheel-fill {
-    background: #c87941;
-    width: 100%;
-    transition: height 0.05s;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
   }
 </style>

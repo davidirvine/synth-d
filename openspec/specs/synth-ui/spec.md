@@ -3,19 +3,25 @@
 ## Purpose
 
 Defines the overall layout, visual aesthetic, and panel-level controls for the subtractive synthesizer user interface. The UI is organized into six labeled control panels arranged above a full-width keyboard, applying a consistent Moog-inspired dark theme throughout.
-
 ## Requirements
-
 ### Requirement: Header strip with power button above the panels
 
-The system SHALL render a header strip above the control panels containing the synth name on the left, MIDI status in the middle, and the power button on the right.
+The system SHALL render a header strip above the control panels containing the synth name on the left, MIDI status in the middle, and the power button on the right. The header strip SHALL have a fixed, content-driven width that does not change when the browser window is resized. The header strip's left and right edges SHALL overhang the panel grid below it by equal amounts.
 
 #### Scenario: Header layout
 
 - **WHEN** the UI is rendered
 - **THEN** a header strip is visible above all panels with the synth title on the left and the power button on the right
 
----
+#### Scenario: Header does not resize with the window
+
+- **WHEN** the browser window is resized to any width
+- **THEN** the header strip width remains constant and does not stretch to fill the viewport
+
+#### Scenario: Header overhangs are symmetric
+
+- **WHEN** the UI is rendered
+- **THEN** the distance from the left edge of the header to the left edge of the panel grid equals the distance from the right edge of the panel grid to the right edge of the header
 
 ### Requirement: Product name is SYNTH-D
 
@@ -35,12 +41,17 @@ The header strip title SHALL read "SYNTH-D". The browser window `<title>` elemen
 
 ### Requirement: Panel layout with six sections
 
-The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer, Filter (combined with filter contour envelope), Output (combined volume and loudness contour), Modulation, and Glide. The three top-level panel columns (Oscillator Bank, Mixer, and the filter-output grid) SHALL be laid out as a fixed three-column CSS grid. All three columns SHALL share the same height. The keyboard SHALL appear below all panels spanning the full width. A header strip containing the synth title, MIDI status, and power button SHALL appear above the panels. The outer spacing around the synth module area SHALL be `8px` on all sides, matching the `8px` gap between individual panels. The layout SHALL NOT reflow or wrap when the browser window is resized.
+The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer, Filter (combined with filter contour envelope), Output (combined volume and loudness contour), Modulation, and Glide. The three top-level panel columns (Oscillator Bank, Mixer, and the filter-output grid) SHALL be laid out as a fixed three-column CSS grid. All three columns SHALL share the same height. The keyboard SHALL appear below the panels in a `.keyboard-row` flex row, flanked by `WheelPanel` on the left and `RegisterPanel` on the right. A header strip containing the synth title, MIDI status, and power button SHALL appear above the panels. The outer spacing around the synth module area SHALL be `8px` on all sides, matching the `8px` gap between individual panels. The layout SHALL NOT reflow or wrap when the browser window is resized.
 
 #### Scenario: Panel arrangement
 
 - **WHEN** the UI is rendered
-- **THEN** panels appear with header above, then three columns: Oscillator Bank | Mixer | filter-output-grid ([Filter/AmpEnv/Effects] over [Modulation+Glide/Scope]), keyboard below
+- **THEN** layout appears in order: header above, panels grid [Oscillator Bank | Mixer | filter-output-grid], then keyboard row [WheelPanel | Keyboard | RegisterPanel]
+
+#### Scenario: Keyboard row width matches keyboard SVG width
+
+- **WHEN** the UI is rendered
+- **THEN** the WheelPanel and RegisterPanel fill the space flanking the 1 008 px keyboard SVG within the keyboard row
 
 #### Scenario: All top-level columns the same height
 
@@ -56,6 +67,11 @@ The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer,
 
 - **WHEN** the browser window is resized to any width
 - **THEN** the three top-level panel columns remain in a single row and do not wrap or reorder
+
+#### Scenario: Minimum layout width is 1 008 px
+
+- **WHEN** the UI is rendered
+- **THEN** the keyboard row width is at least 1 008 px (36 white keys × 28 px) and the layout does not reflow or wrap below this width
 
 ---
 
@@ -238,3 +254,4 @@ The on/off toggle switches for Key Track, Glide, Delay, and Reverb SHALL each di
 
 - **WHEN** any on/off toggle switch is in the off state
 - **THEN** the switch does not display the green active color
+

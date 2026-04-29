@@ -1,27 +1,43 @@
 <script>
   import Knob from './Knob.svelte'
+  import LevelLed from './LevelLed.svelte'
 
   let {
     onchange,
     midiState = {},
     onknobcontextmenu,
+    reset = 0,
+    getOutputPeak = () => 0,
+    powered = false,
   } = /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
-    onknobcontextmenu?: (param: string) => void
+    onknobcontextmenu?: (param: string) => void,
+    reset?: number,
+    getOutputPeak?: () => number,
+    powered?: boolean,
   }} */ ($props())
 
-  let drLock = $state(0)
+  let drLock = $state(1)
   let decayValue = $state(0.5)
 
   function toggleDrLock() {
     drLock = drLock === 0 ? 1 : 0
     onchange?.({ param: 'drLock', value: drLock })
   }
+
+  $effect(() => {
+    if (reset === 0) return
+    drLock = 1
+    onchange?.({ param: 'drLock', value: 1 })
+  })
 </script>
 
 <div class="panel">
-  <span class="panel-label">output</span>
+  <div class="panel-header">
+    <span class="panel-label">output</span>
+    <LevelLed getPeak={getOutputPeak} {powered} />
+  </div>
   <div class="knob-row centered">
     <Knob
       label="volume"
@@ -118,6 +134,12 @@
     gap: 10px;
   }
 
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .panel-label {
     font-size: 10px;
     color: #e8dcc8;
@@ -166,8 +188,8 @@
   }
 
   .drlock-btn.active {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: #1a2a1a;
+    color: #20b040;
+    border-color: #20b040;
   }
 </style>

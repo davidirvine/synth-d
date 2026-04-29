@@ -3,9 +3,7 @@
 ## Purpose
 
 Defines the power button control that manages the AudioContext lifecycle and replaces the click-to-start overlay as the mechanism for browser autoplay policy compliance. The power button defaults to off on page load and gives the user explicit control over audio output at all times.
-
 ## Requirements
-
 ### Requirement: Power button defaults to off on page load
 
 The system SHALL render the power button in the OFF state when the page loads. No AudioContext SHALL be created and no audio SHALL be produced until the user activates the power button.
@@ -102,3 +100,28 @@ Note: off and loading use a zero-radius transparent drop-shadow rather than `fil
 
 - **WHEN** the power button changes state (off → loading, loading → on, on → off)
 - **THEN** the icon color fades smoothly to the new color over approximately 0.3 s rather than switching instantly
+
+### Requirement: Power-on orchestrates spring-animated knob reset
+
+When the power button transitions to ON, the system SHALL:
+1. Set `springEnabled` to `true` on all knobs before applying default values.
+2. Apply default values to all knobs via `ccExternalValues`.
+3. Set `springEnabled` back to `false` after 800 ms.
+
+This sequence SHALL be coordinated in `App.svelte`'s `handleToggle` function. The `springEnabled` state SHALL be propagated to all panel components and then to each `Knob` instance via props.
+
+#### Scenario: springEnabled set before defaults applied
+
+- **WHEN** the user activates the power button
+- **THEN** `springEnabled` is set to `true` before `ccExternalValues` is populated with default values, ensuring the spring is active when knob `externalValue` props first change
+
+#### Scenario: springEnabled cleared after animation window
+
+- **WHEN** 800 ms have elapsed since `springEnabled` was set to `true` on power-on
+- **THEN** `springEnabled` is set to `false` so all subsequent knob value changes are instant
+
+#### Scenario: springEnabled is false on power-off
+
+- **WHEN** the user deactivates the power button
+- **THEN** `springEnabled` is `false` (it is not modified during power-off)
+

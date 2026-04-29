@@ -7,15 +7,11 @@ let ctx = null
 let node = null
 let analyserNode = null
 let active = false
-let initialized = false
+let mixerPeakValue = 0
+let outputPeakValue = 0
 
 export async function powerOn() {
-  if (initialized) {
-    await ctx.resume()
-    return
-  }
-
-  ctx = new AudioContext()
+  ctx = new AudioContext({ sampleRate: 48000 })
   analyserNode = ctx.createAnalyser()
   analyserNode.fftSize = 2048
   // Expose for Playwright smoke tests
@@ -32,18 +28,31 @@ export async function powerOn() {
     json: JSON.stringify(dspMeta),
     soundfiles: {},
   })
+  if (!node) throw new Error('Faust node creation failed')
+  node.setOutputParamHandler((path, value) => {
+    if (path === PARAM_PREFIX + 'mixerPeak') mixerPeakValue = value
+    if (path === PARAM_PREFIX + 'outputPeak') outputPeakValue = value
+  })
   node.connect(analyserNode)
   analyserNode.connect(ctx.destination)
-  initialized = true
 }
 
 export async function powerOff() {
   if (!ctx) return
-  await ctx.suspend()
+  mixerPeakValue = 0
+  outputPeakValue = 0
+  if (node) {
+    node.disconnect()
+    node = null
+  }
+  await ctx.close()
+  ctx = null
+  analyserNode = null
 }
 
 export function setParam(name, value) {
   if (!node) return
+  if (!Number.isFinite(value)) return
   node.setParamValue(PARAM_PREFIX + name, value)
 }
 
@@ -64,4 +73,12 @@ export function noteOff() {
 
 export function getAnalyser() {
   return analyserNode
+}
+
+export function getMixerPeak() {
+  return mixerPeakValue
+}
+
+export function getOutputPeak() {
+  return outputPeakValue
 }

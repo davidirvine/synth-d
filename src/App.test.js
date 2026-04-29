@@ -4,6 +4,8 @@ import App from './App.svelte'
 
 vi.mock('./audio/engine.js', () => ({
   getAnalyser: vi.fn().mockReturnValue(null),
+  getMixerPeak: vi.fn().mockReturnValue(0),
+  getOutputPeak: vi.fn().mockReturnValue(0),
   powerOn: vi.fn().mockResolvedValue(undefined),
   powerOff: vi.fn().mockResolvedValue(undefined),
   setParam: vi.fn(),
@@ -63,8 +65,9 @@ describe('App — all six panels render', () => {
   })
 
   it('renders mixer panel label', () => {
-    const { getByText } = render(App)
+    const { getByText, container } = render(App)
     expect(getByText('mixer')).toBeTruthy()
+    expect(container.querySelector('.level-led')).not.toBeNull()
   })
 
   it('renders filter panel label', () => {
@@ -108,10 +111,61 @@ describe('App — all six panels render', () => {
     expect(grid).not.toBeNull()
 
     const gridChildren = Array.from(grid.children)
-    expect(gridChildren).toHaveLength(6)
+    expect(gridChildren).toHaveLength(5)
     expect(gridChildren[2].textContent).toContain('reverb')
     expect(gridChildren[3].classList.contains('panel-row')).toBe(true)
     expect(gridChildren[4].textContent).toContain('OSCILLOSCOPE')
+  })
+})
+
+describe('App — ccExternalValues initialised at per-param min', () => {
+  function findKnobValue(container, label) {
+    const labelEl = Array.from(container.querySelectorAll('.knob-label')).find(
+      (el) => el.textContent === label
+    )
+    return labelEl?.closest('.knob-wrap')?.querySelector('.knob-value') ?? null
+  }
+
+  it('osc1Level knob starts at min (0.00) on mount/reload, not default (0.75) or a random value', async () => {
+    const { container } = render(App)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.00')
+    })
+  })
+
+  it('osc1Level knob returns to min (0.00) after power-off, not frozen at default (0.75)', async () => {
+    const { container } = render(App)
+    const btn = container.querySelector('button')
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.75')
+    })
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.00')
+    })
+  })
+
+  it('osc1Level knob returns to default (0.75) after power-off → power-on cycle', async () => {
+    const { container } = render(App)
+    const btn = container.querySelector('button')
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.75')
+    })
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.00')
+    })
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(findKnobValue(container, 'osc 1')?.textContent).toBe('0.75')
+    })
   })
 })
 
