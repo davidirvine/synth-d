@@ -863,8 +863,8 @@ body {
   .header.svelte-1n46o8q {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 20px;
+    gap: 12px;
+    padding: 12px 20px 12px 8px;
     margin: 0 8px;
     background: #1c1c1c;
     border-bottom: 1px solid #333;
@@ -874,6 +874,22 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-left: auto;
+  }
+
+  .github-link.svelte-1n46o8q {
+    color: #555;
+    text-decoration: none;
+    line-height: 0;
+    transition: color 0.15s;
+  }
+
+  .github-link.svelte-1n46o8q:hover {
+    color: #888;
+  }
+
+  .github-link.svelte-1n46o8q:focus:not(:focus-visible) {
+    outline: none;
   }
 
   .title-block.svelte-1n46o8q {
@@ -889,7 +905,6 @@ body {
     font-weight: bold;
     color: #e8dcc8;
     letter-spacing: 0.2em;
-    text-decoration: none;
   }
 
   .version-label.svelte-1n46o8q {
