@@ -87,7 +87,11 @@ describe('MidiCcMap — localStorage persistence', () => {
     const map = new MidiCcMap()
     map.assign(74, 'cutoff', 20, 20000)
     const raw = localStorage.getItem('midiCc:74')
-    expect(JSON.parse(raw)).toEqual({ param: 'cutoff', min: 20, max: 20000 })
+    expect(JSON.parse(/** @type {string} */ (raw))).toEqual({
+      param: 'cutoff',
+      min: 20,
+      max: 20000,
+    })
   })
 
   it('loads mappings from localStorage on construction', () => {

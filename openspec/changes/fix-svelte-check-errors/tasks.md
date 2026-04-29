@@ -41,14 +41,14 @@
 
 ## 6. Null safety — test files
 
-- [ ] 6.1 Fix null/Element type errors in `src/components/Knob.test.js`
-- [ ] 6.2 Fix null/Element type errors in `src/components/LevelLed.test.js`
-- [ ] 6.3 Fix null/Element type errors in `src/components/WheelPanel.test.js`
-- [ ] 6.4 Fix null/Element type errors in `src/components/Effects.test.js`
-- [ ] 6.5 Fix null/Element type errors in `src/components/Oscillator.test.js`
-- [ ] 6.6 Fix null/Element type errors in `src/components/AmpEnv.test.js`
-- [ ] 6.7 Fix null/Element type errors in `src/components/Filter.test.js` (if any)
-- [ ] 6.8 Fix null/Element type errors in remaining test files (`App.test.js`, `Mixer.test.js`, `Modulation.test.js`, `Glide.test.js`, `Scope.test.js`, `Keyboard.test.js`, `MidiStatus.test.js`, `PowerButton.test.js`, `RegisterPanel.test.js`, `EmptyPanel.test.js`, `midiCcMap.test.js`, `engine.test.js`, `midi.test.js`, `filter-stability.integration.test.js`)
+- [x] 6.1 Fix null/Element type errors in `src/components/Knob.test.js`
+- [x] 6.2 Fix null/Element type errors in `src/components/LevelLed.test.js`
+- [x] 6.3 Fix null/Element type errors in `src/components/WheelPanel.test.js`
+- [x] 6.4 Fix null/Element type errors in `src/components/Effects.test.js`
+- [x] 6.5 Fix null/Element type errors in `src/components/Oscillator.test.js`
+- [x] 6.6 Fix null/Element type errors in `src/components/AmpEnv.test.js`
+- [x] 6.7 Fix null/Element type errors in `src/components/Filter.test.js` (if any)
+- [x] 6.8 Fix null/Element type errors in remaining test files (`App.test.js`, `Mixer.test.js`, `Modulation.test.js`, `Glide.test.js`, `Scope.test.js`, `Keyboard.test.js`, `MidiStatus.test.js`, `PowerButton.test.js`, `RegisterPanel.test.js`, `EmptyPanel.test.js`, `midiCcMap.test.js`, `engine.test.js`, `midi.test.js`, `filter-stability.integration.test.js`)
 
 ## 7. Verify zero errors
 
