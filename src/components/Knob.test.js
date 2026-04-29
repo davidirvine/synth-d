@@ -13,9 +13,8 @@ vi.mock('svelte/motion', () => ({
     return {
       set: (/** @type {any} */ v, /** @type {any} */ opts) => {
         _val = v
-        for (const sub of _subs)
-          sub(_val)
-          /** @type {any} */
+        for (const sub of _subs) sub(_val)
+        /** @type {any} */
         mockSet(v, opts)
         return Promise.resolve()
       },
