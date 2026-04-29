@@ -10574,9 +10574,9 @@ function tweened(value, defaults = {}) {
 //#region src/components/Knob.svelte
 var root_1$3 = /* @__PURE__ */ from_svg(`<circle class="learn-ring svelte-1wmwmfc" fill="none" stroke-width="2"></circle>`);
 var root_2$3 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
-var root_3$1 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
-var root_4 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> </span>`);
-var root$13 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <span> </span> <!></div>`);
+var root_3$2 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
+var root_4$1 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> </span>`);
+var root$15 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <span> </span> <!></div>`);
 function Knob($$anchor, $$props) {
 	push($$props, true);
 	const $animPos = () => store_get(animPos, "$animPos", $$stores);
@@ -10688,7 +10688,7 @@ function Knob($$anchor, $$props) {
 		e.preventDefault();
 		$$props.oncontextmenu?.();
 	}
-	var div = root$13();
+	var div = root$15();
 	let classes;
 	var span = child(div);
 	let classes_1;
@@ -10725,7 +10725,7 @@ function Knob($$anchor, $$props) {
 	set_attribute(line, "y1", CY);
 	each(sibling(line), 17, ticks, (tick) => tick.label, ($$anchor, tick) => {
 		const xy = /* @__PURE__ */ user_derived(() => tickXY(get(tick)));
-		var text_1 = root_3$1();
+		var text_1 = root_3$2();
 		var text_2 = child(text_1, true);
 		reset(text_1);
 		template_effect(() => {
@@ -10743,7 +10743,7 @@ function Knob($$anchor, $$props) {
 	reset(span_1);
 	var node_3 = sibling(span_1, 2);
 	var consequent_2 = ($$anchor) => {
-		var span_2 = root_4();
+		var span_2 = root_4$1();
 		var text_4 = child(span_2);
 		reset(span_2);
 		template_effect(() => set_text(text_4, `CC ${assignedCc() ?? ""}`));
@@ -10783,8 +10783,8 @@ delegate([
 //#region src/components/Oscillator.svelte
 var root_1$2 = /* @__PURE__ */ from_html(`<button> </button>`);
 var root_2$2 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root_3 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root$12 = /* @__PURE__ */ from_html(`<div class="panel svelte-19bkkl2"><span class="panel-label svelte-19bkkl2">oscillator bank</span> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 1</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 2</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 3</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!> <button>lfo</button> <!></div></div></div>`);
+var root_3$1 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root$14 = /* @__PURE__ */ from_html(`<div class="panel svelte-19bkkl2"><span class="panel-label svelte-19bkkl2">oscillator bank</span> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 1</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 2</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 3</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!> <button>lfo</button> <!></div></div></div>`);
 function Oscillator($$anchor, $$props) {
 	push($$props, true);
 	let midiState = prop($$props, "midiState", 19, () => ({})), reset$7 = prop($$props, "reset", 3, 0);
@@ -10877,7 +10877,7 @@ function Oscillator($$anchor, $$props) {
 			value: 0
 		});
 	});
-	var div = root$12();
+	var div = root$14();
 	var div_1 = sibling(child(div), 2);
 	var div_2 = sibling(child(div_1), 2);
 	each(div_2, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
@@ -10956,7 +10956,7 @@ function Oscillator($$anchor, $$props) {
 	var div_7 = sibling(div_4, 2);
 	var div_8 = sibling(child(div_7), 2);
 	each(div_8, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button_6 = root_3();
+		var button_6 = root_3$1();
 		let classes_2;
 		var text_4 = child(button_6, true);
 		reset(button_6);
@@ -11066,7 +11066,7 @@ function Oscillator($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/ClipLed.svelte
-var root$11 = /* @__PURE__ */ from_html(`<div></div>`);
+var root$13 = /* @__PURE__ */ from_html(`<div></div>`);
 function ClipLed($$anchor, $$props) {
 	push($$props, true);
 	let getPeak = prop($$props, "getPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
@@ -11105,7 +11105,7 @@ function ClipLed($$anchor, $$props) {
 		cancelAnimationFrame(rafHandle);
 		clearTimeout(latchHandle);
 	});
-	var div = root$11();
+	var div = root$13();
 	let classes;
 	template_effect(() => classes = set_class(div, 1, "clip-led svelte-17o0bm7", null, classes, { clip: get(clipLit) }));
 	append($$anchor, div);
@@ -11113,7 +11113,7 @@ function ClipLed($$anchor, $$props) {
 }
 //#endregion
 //#region src/components/Mixer.svelte
-var root$10 = /* @__PURE__ */ from_html(`<div class="panel svelte-gq0xe5"><div class="panel-header svelte-gq0xe5"><span class="panel-label svelte-gq0xe5">mixer</span> <!></div> <div class="mixer-col svelte-gq0xe5"><!> <!> <!> <div class="section-divider svelte-gq0xe5"></div> <div class="noise-row svelte-gq0xe5"><!> <div class="noise-type-row svelte-gq0xe5"><button>wht</button> <button>pink</button></div></div></div></div>`);
+var root$12 = /* @__PURE__ */ from_html(`<div class="panel svelte-gq0xe5"><div class="panel-header svelte-gq0xe5"><span class="panel-label svelte-gq0xe5">mixer</span> <!></div> <div class="mixer-col svelte-gq0xe5"><!> <!> <!> <div class="section-divider svelte-gq0xe5"></div> <div class="noise-row svelte-gq0xe5"><!> <div class="noise-type-row svelte-gq0xe5"><button>wht</button> <button>pink</button></div></div></div></div>`);
 function Mixer($$anchor, $$props) {
 	push($$props, true);
 	let midiState = prop($$props, "midiState", 19, () => ({})), reset$6 = prop($$props, "reset", 3, 0), getPeak = prop($$props, "getPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
@@ -11142,7 +11142,7 @@ function Mixer($$anchor, $$props) {
 			value: 0
 		});
 	});
-	var div = root$10();
+	var div = root$12();
 	var div_1 = child(div);
 	ClipLed(sibling(child(div_1), 2), {
 		get getPeak() {
@@ -11284,7 +11284,7 @@ function Mixer($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Filter.svelte
-var root$9 = /* @__PURE__ */ from_html(`<div class="panel svelte-xeds7y"><span class="panel-label svelte-xeds7y">filter</span> <div class="knob-row centered svelte-xeds7y"><!> <!> <div class="key-track-col svelte-xeds7y"><div class="key-track-btn-wrap svelte-xeds7y"><button>KEY TRACK</button></div></div></div> <div class="section-divider svelte-xeds7y"></div> <div class="contour-header svelte-xeds7y"><span class="sub-label svelte-xeds7y">filter contour</span></div> <div class="knob-row svelte-xeds7y"><!> <!> <!> <!> <!></div></div>`);
+var root$11 = /* @__PURE__ */ from_html(`<div class="panel svelte-xeds7y"><span class="panel-label svelte-xeds7y">filter</span> <div class="knob-row centered svelte-xeds7y"><!> <!> <div class="key-track-col svelte-xeds7y"><div class="key-track-btn-wrap svelte-xeds7y"><button>KEY TRACK</button></div></div></div> <div class="section-divider svelte-xeds7y"></div> <div class="contour-header svelte-xeds7y"><span class="sub-label svelte-xeds7y">filter contour</span></div> <div class="knob-row svelte-xeds7y"><!> <!> <!> <!> <!></div></div>`);
 function Filter($$anchor, $$props) {
 	push($$props, true);
 	let midiState = prop($$props, "midiState", 19, () => ({})), reset$5 = prop($$props, "reset", 3, 0);
@@ -11310,7 +11310,7 @@ function Filter($$anchor, $$props) {
 			value: 0
 		});
 	});
-	var div = root$9();
+	var div = root$11();
 	var div_1 = sibling(child(div), 2);
 	var node = child(div_1);
 	{
@@ -11527,7 +11527,7 @@ function Filter($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Effects.svelte
-var root$8 = /* @__PURE__ */ from_html(`<div class="panel svelte-123klp2"><span class="panel-label svelte-123klp2">effects</span> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">delay</span> <button> </button></div> <div class="effects-row svelte-123klp2"><!> <!> <!></div> <div class="mod-row svelte-123klp2"><button>MOD</button> <!> <!></div> <div class="section-divider svelte-123klp2"></div> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">reverb</span> <button> </button></div> <div class="effects-row reverb-row svelte-123klp2"><!> <!> <!> <!></div></div>`);
+var root$10 = /* @__PURE__ */ from_html(`<div class="panel svelte-123klp2"><span class="panel-label svelte-123klp2">effects</span> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">delay</span> <button> </button></div> <div class="effects-row svelte-123klp2"><!> <!> <!></div> <div class="mod-row svelte-123klp2"><button>MOD</button> <!> <!></div> <div class="section-divider svelte-123klp2"></div> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">reverb</span> <button> </button></div> <div class="effects-row reverb-row svelte-123klp2"><!> <!> <!> <!></div></div>`);
 function Effects($$anchor, $$props) {
 	push($$props, true);
 	let midiState = prop($$props, "midiState", 19, () => ({})), reset$4 = prop($$props, "reset", 3, 0);
@@ -11579,7 +11579,7 @@ function Effects($$anchor, $$props) {
 			value: 0
 		});
 	});
-	var div = root$8();
+	var div = root$10();
 	var div_1 = sibling(child(div), 2);
 	var button = sibling(child(div_1), 2);
 	let classes;
@@ -11905,7 +11905,7 @@ function Effects($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/AmpEnv.svelte
-var root$7 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
+var root$9 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
 function AmpEnv($$anchor, $$props) {
 	push($$props, true);
 	let midiState = prop($$props, "midiState", 19, () => ({})), reset$3 = prop($$props, "reset", 3, 0), getOutputPeak = prop($$props, "getOutputPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
@@ -11934,7 +11934,7 @@ function AmpEnv($$anchor, $$props) {
 			value: 1
 		});
 	});
-	var div = root$7();
+	var div = root$9();
 	var div_1 = child(div);
 	ClipLed(sibling(child(div_1), 2), {
 		get getPeak() {
@@ -12110,7 +12110,7 @@ function AmpEnv($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Modulation.svelte
-var root$6 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div> <div class="wheel-container svelte-1ddpss2"><span class="param-label svelte-1ddpss2">wheel</span> <div class="wheel-track svelte-1ddpss2" role="slider" aria-label="mod wheel"><div class="wheel-fill svelte-1ddpss2"></div></div></div></div></div>`);
+var root$8 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div></div></div>`);
 function Modulation($$anchor, $$props) {
 	push($$props, true);
 	let midiState = prop($$props, "midiState", 19, () => ({})), reset$2 = prop($$props, "reset", 3, 0);
@@ -12123,11 +12123,6 @@ function Modulation($$anchor, $$props) {
 	let modToOsc1 = /* @__PURE__ */ state(0);
 	let modToOsc2 = /* @__PURE__ */ state(0);
 	let modToFilter = /* @__PURE__ */ state(0);
-	let modWheel = /* @__PURE__ */ state(.5);
-	user_effect(() => {
-		const ext = midiState()?.modWheel?.externalValue;
-		if (ext !== void 0) set(modWheel, ext, true);
-	});
 	user_effect(() => {
 		if (reset$2() === 0) return;
 		set(modToOsc1, 0);
@@ -12167,28 +12162,7 @@ function Modulation($$anchor, $$props) {
 			});
 		}
 	}
-	let wheelDragging = /* @__PURE__ */ state(false);
-	let wheelStartY = 0;
-	let wheelStartVal = 0;
-	function onWheelPointerDown(e) {
-		set(wheelDragging, true);
-		wheelStartY = e.clientY;
-		wheelStartVal = get(modWheel);
-		e.currentTarget.setPointerCapture(e.pointerId);
-	}
-	function onWheelPointerMove(e) {
-		if (!get(wheelDragging)) return;
-		const delta = (wheelStartY - e.clientY) / 80;
-		set(modWheel, Math.max(0, Math.min(1, wheelStartVal + delta)), true);
-		$$props.onchange?.({
-			param: "modWheel",
-			value: get(modWheel)
-		});
-	}
-	function onWheelPointerUp() {
-		set(wheelDragging, false);
-	}
-	var div = root$6();
+	var div = root$8();
 	var div_1 = sibling(child(div), 2);
 	var div_2 = child(div_1);
 	var node = child(div_2);
@@ -12236,14 +12210,6 @@ function Modulation($$anchor, $$props) {
 	var button_2 = sibling(button_1, 2);
 	let classes_2;
 	reset(div_3);
-	var div_4 = sibling(div_3, 2);
-	var div_5 = sibling(child(div_4), 2);
-	set_attribute(div_5, "tabindex", 0);
-	set_attribute(div_5, "aria-valuemin", 0);
-	set_attribute(div_5, "aria-valuemax", 1);
-	var div_6 = child(div_5);
-	reset(div_5);
-	reset(div_4);
 	reset(div_1);
 	reset(div);
 	template_effect(() => {
@@ -12253,28 +12219,17 @@ function Modulation($$anchor, $$props) {
 		set_attribute(button_1, "aria-pressed", get(modToOsc2) === 1);
 		classes_2 = set_class(button_2, 1, "route-btn svelte-1ddpss2", null, classes_2, { active: get(modToFilter) === 1 });
 		set_attribute(button_2, "aria-pressed", get(modToFilter) === 1);
-		set_attribute(div_5, "aria-valuenow", get(modWheel));
-		set_style(div_6, `height: ${get(modWheel) * 100}%`);
 	});
 	delegated("click", button, () => toggleRoute("modToOsc1"));
 	delegated("click", button_1, () => toggleRoute("modToOsc2"));
 	delegated("click", button_2, () => toggleRoute("modToFilter"));
-	delegated("pointerdown", div_5, onWheelPointerDown);
-	delegated("pointermove", div_5, onWheelPointerMove);
-	delegated("pointerup", div_5, onWheelPointerUp);
-	event("pointercancel", div_5, onWheelPointerUp);
 	append($$anchor, div);
 	pop();
 }
-delegate([
-	"click",
-	"pointerdown",
-	"pointermove",
-	"pointerup"
-]);
+delegate(["click"]);
 //#endregion
 //#region src/components/Glide.svelte
-var root$5 = /* @__PURE__ */ from_html(`<div class="panel svelte-oqc131"><span class="panel-label svelte-oqc131">glide</span> <div class="glide-row svelte-oqc131"><button> </button> <!></div></div>`);
+var root$7 = /* @__PURE__ */ from_html(`<div class="panel svelte-oqc131"><span class="panel-label svelte-oqc131">glide</span> <div class="glide-row svelte-oqc131"><button> </button> <!></div></div>`);
 function Glide($$anchor, $$props) {
 	push($$props, true);
 	let midiState = prop($$props, "midiState", 19, () => ({})), reset$1 = prop($$props, "reset", 3, 0);
@@ -12300,7 +12255,7 @@ function Glide($$anchor, $$props) {
 			value: 0
 		});
 	});
-	var div = root$5();
+	var div = root$7();
 	var div_1 = sibling(child(div), 2);
 	var button = child(div_1);
 	let classes;
@@ -12354,11 +12309,12 @@ delegate(["click"]);
 //#region src/components/Keyboard.svelte
 var root_1$1 = /* @__PURE__ */ from_svg(`<rect></rect>`);
 var root_2$1 = /* @__PURE__ */ from_svg(`<rect></rect>`);
-var root$4 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><!><!></svg></div>`);
+var root_3 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label svelte-1dlz8xf"> </text>`);
+var root_4 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label-black svelte-1dlz8xf"> </text>`);
+var root$6 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><rect fill="#333"></rect><!><!><!><!></svg></div>`);
 function Keyboard($$anchor, $$props) {
 	push($$props, true);
-	let triggerNote = prop($$props, "triggerNote", 15, null), releaseNote = prop($$props, "releaseNote", 15, null);
-	const BASE_MIDI = 48;
+	let triggerNote = prop($$props, "triggerNote", 15, null), releaseNote = prop($$props, "releaseNote", 15, null), baseMidi = prop($$props, "baseMidi", 3, 36);
 	const BLACK_SEMITONES = new Set([
 		1,
 		3,
@@ -12366,14 +12322,15 @@ function Keyboard($$anchor, $$props) {
 		8,
 		10
 	]);
+	const RAIL_H = 1;
 	const WHITE_W = 28;
 	const WHITE_H = 100;
 	const BLACK_W = 18;
 	const BLACK_H = 60;
-	const keys = (() => {
+	function buildKeys(base, count) {
 		let whiteIdx = 0;
-		return Array.from({ length: 25 }, (_, i) => {
-			const midi = BASE_MIDI + i;
+		return Array.from({ length: count }, (_, i) => {
+			const midi = base + i;
 			const black = BLACK_SEMITONES.has(midi % 12);
 			let x;
 			if (!black) {
@@ -12386,9 +12343,26 @@ function Keyboard($$anchor, $$props) {
 				x
 			};
 		});
-	})();
-	const whiteKeys = keys.filter((k) => !k.black);
-	const totalWidth = whiteKeys.length * WHITE_W;
+	}
+	const keys = /* @__PURE__ */ user_derived(() => buildKeys(baseMidi(), 61));
+	const whiteKeys = /* @__PURE__ */ user_derived(() => get(keys).filter((k) => !k.black));
+	const totalWidth = /* @__PURE__ */ user_derived(() => get(whiteKeys).length * WHITE_W);
+	function midiToNoteName(midi) {
+		return `${[
+			"C",
+			"C#",
+			"D",
+			"D#",
+			"E",
+			"F",
+			"F#",
+			"G",
+			"G#",
+			"A",
+			"A#",
+			"B"
+		][midi % 12]}${Math.floor(midi / 12) - 1}`;
+	}
 	const activeKeys = new SvelteSet();
 	const pressedQwerty = new SvelteSet();
 	function _triggerNote(midi) {
@@ -12428,35 +12402,23 @@ function Keyboard($$anchor, $$props) {
 		window.removeEventListener("keydown", onKeyDown);
 		window.removeEventListener("keyup", onKeyUp);
 	});
-	var div = root$4();
+	var div = root$6();
 	var svg = child(div);
-	set_attribute(svg, "height", WHITE_H + 2);
-	var node = child(svg);
-	each(node, 17, () => whiteKeys, (key) => key.midi, ($$anchor, key) => {
-		var rect = root_1$1();
-		set_attribute(rect, "y", 0);
-		set_attribute(rect, "width", WHITE_W - 2);
-		set_attribute(rect, "height", WHITE_H);
+	set_attribute(svg, "height", WHITE_H + RAIL_H + 2);
+	var rect = child(svg);
+	set_attribute(rect, "x", 0);
+	set_attribute(rect, "y", 0);
+	set_attribute(rect, "height", RAIL_H);
+	var node = sibling(rect);
+	each(node, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
+		var rect_1 = root_1$1();
+		set_attribute(rect_1, "y", RAIL_H);
+		set_attribute(rect_1, "width", WHITE_W - 2);
+		set_attribute(rect_1, "height", WHITE_H);
 		let classes;
 		template_effect(($0) => {
-			set_attribute(rect, "x", get(key).x + 1);
-			classes = set_class(rect, 0, "white-key svelte-1dlz8xf", null, classes, $0);
-			set_attribute(rect, "data-midi", get(key).midi);
-		}, [() => ({ active: activeKeys.has(get(key).midi) })]);
-		delegated("pointerdown", rect, () => _triggerNote(get(key).midi));
-		delegated("pointerup", rect, () => _releaseNote(get(key).midi));
-		event("pointerleave", rect, () => _releaseNote(get(key).midi));
-		append($$anchor, rect);
-	});
-	each(sibling(node), 17, () => keys.filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
-		var rect_1 = root_2$1();
-		set_attribute(rect_1, "y", 0);
-		set_attribute(rect_1, "width", BLACK_W);
-		set_attribute(rect_1, "height", BLACK_H);
-		let classes_1;
-		template_effect(($0) => {
-			set_attribute(rect_1, "x", get(key).x);
-			classes_1 = set_class(rect_1, 0, "black-key svelte-1dlz8xf", null, classes_1, $0);
+			set_attribute(rect_1, "x", get(key).x + 1);
+			classes = set_class(rect_1, 0, "white-key svelte-1dlz8xf", null, classes, $0);
 			set_attribute(rect_1, "data-midi", get(key).midi);
 		}, [() => ({ active: activeKeys.has(get(key).midi) })]);
 		delegated("pointerdown", rect_1, () => _triggerNote(get(key).midi));
@@ -12464,13 +12426,178 @@ function Keyboard($$anchor, $$props) {
 		event("pointerleave", rect_1, () => _releaseNote(get(key).midi));
 		append($$anchor, rect_1);
 	});
+	var node_1 = sibling(node);
+	each(node_1, 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
+		var rect_2 = root_2$1();
+		set_attribute(rect_2, "y", RAIL_H);
+		set_attribute(rect_2, "width", BLACK_W);
+		set_attribute(rect_2, "height", BLACK_H);
+		let classes_1;
+		template_effect(($0) => {
+			set_attribute(rect_2, "x", get(key).x);
+			classes_1 = set_class(rect_2, 0, "black-key svelte-1dlz8xf", null, classes_1, $0);
+			set_attribute(rect_2, "data-midi", get(key).midi);
+		}, [() => ({ active: activeKeys.has(get(key).midi) })]);
+		delegated("pointerdown", rect_2, () => _triggerNote(get(key).midi));
+		delegated("pointerup", rect_2, () => _releaseNote(get(key).midi));
+		event("pointerleave", rect_2, () => _releaseNote(get(key).midi));
+		append($$anchor, rect_2);
+	});
+	var node_2 = sibling(node_1);
+	each(node_2, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
+		var text = root_3();
+		set_attribute(text, "y", RAIL_H + WHITE_H - 5);
+		var text_1 = child(text, true);
+		reset(text);
+		template_effect(($0) => {
+			set_attribute(text, "x", get(key).x + WHITE_W / 2);
+			set_text(text_1, $0);
+		}, [() => midiToNoteName(get(key).midi)]);
+		append($$anchor, text);
+	});
+	each(sibling(node_2), 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
+		var text_2 = root_4();
+		set_attribute(text_2, "y", RAIL_H + BLACK_H - 4);
+		var text_3 = child(text_2, true);
+		reset(text_2);
+		template_effect(($0) => {
+			set_attribute(text_2, "x", get(key).x + BLACK_W / 2);
+			set_text(text_3, $0);
+		}, [() => midiToNoteName(get(key).midi)]);
+		append($$anchor, text_2);
+	});
 	reset(svg);
 	reset(div);
-	template_effect(() => set_attribute(svg, "width", totalWidth));
+	template_effect(() => {
+		set_attribute(svg, "width", get(totalWidth));
+		set_attribute(rect, "width", get(totalWidth));
+	});
 	append($$anchor, div);
 	pop();
 }
 delegate(["pointerdown", "pointerup"]);
+//#endregion
+//#region src/components/RegisterPanel.svelte
+var root$5 = /* @__PURE__ */ from_html(`<div class="panel svelte-pygl9d"><span class="panel-label svelte-pygl9d">keyboard range</span> <div class="btn-col svelte-pygl9d"><button>Oct ▲</button> <button>Oct ▼</button></div></div>`);
+function RegisterPanel($$anchor, $$props) {
+	let activeRegister = prop($$props, "activeRegister", 3, "mid");
+	var div = root$5();
+	var div_1 = sibling(child(div), 2);
+	var button = child(div_1);
+	let classes;
+	var button_1 = sibling(button, 2);
+	let classes_1;
+	reset(div_1);
+	reset(div);
+	template_effect(() => {
+		classes = set_class(button, 1, "reg-btn svelte-pygl9d", null, classes, { active: activeRegister() === "top" });
+		set_attribute(button, "aria-pressed", activeRegister() === "top");
+		classes_1 = set_class(button_1, 1, "reg-btn svelte-pygl9d", null, classes_1, { active: activeRegister() === "bottom" });
+		set_attribute(button_1, "aria-pressed", activeRegister() === "bottom");
+	});
+	delegated("click", button, function(...$$args) {
+		$$props.onup?.apply(this, $$args);
+	});
+	delegated("click", button_1, function(...$$args) {
+		$$props.ondown?.apply(this, $$args);
+	});
+	append($$anchor, div);
+}
+delegate(["click"]);
+//#endregion
+//#region src/components/WheelPanel.svelte
+var root$4 = /* @__PURE__ */ from_html(`<div class="panel svelte-i6yfjl"><span class="panel-label svelte-i6yfjl">wheel</span> <div class="wheel-container svelte-i6yfjl"><div class="wheel-track svelte-i6yfjl" role="slider" aria-label="mod wheel"><div class="wheel-fill svelte-i6yfjl"></div></div></div></div>`);
+function WheelPanel($$anchor, $$props) {
+	push($$props, true);
+	/** @type {{
+	externalValue?: number,
+	onchange?: (e: { param: string, value: number }) => void,
+	}} */
+	let modWheel = /* @__PURE__ */ state(.5);
+	user_effect(() => {
+		if ($$props.externalValue !== void 0) set(modWheel, $$props.externalValue, true);
+	});
+	let wheelDragging = /* @__PURE__ */ state(false);
+	let wheelStartY = 0;
+	let wheelStartVal = 0;
+	function onWheelPointerDown(e) {
+		set(wheelDragging, true);
+		wheelStartY = e.clientY;
+		wheelStartVal = get(modWheel);
+		e.currentTarget.setPointerCapture(e.pointerId);
+	}
+	function onWheelPointerMove(e) {
+		if (!get(wheelDragging)) return;
+		const delta = (wheelStartY - e.clientY) / 80;
+		set(modWheel, Math.max(0, Math.min(1, wheelStartVal + delta)), true);
+		$$props.onchange?.({
+			param: "modWheel",
+			value: get(modWheel)
+		});
+	}
+	function onWheelPointerUp() {
+		set(wheelDragging, false);
+	}
+	function onWheelKeyDown(e) {
+		const step = .05;
+		if (e.key === "ArrowUp") {
+			e.preventDefault();
+			set(modWheel, Math.min(1, get(modWheel) + step), true);
+			$$props.onchange?.({
+				param: "modWheel",
+				value: get(modWheel)
+			});
+		} else if (e.key === "ArrowDown") {
+			e.preventDefault();
+			set(modWheel, Math.max(0, get(modWheel) - step), true);
+			$$props.onchange?.({
+				param: "modWheel",
+				value: get(modWheel)
+			});
+		} else if (e.key === "Home") {
+			e.preventDefault();
+			set(modWheel, 0);
+			$$props.onchange?.({
+				param: "modWheel",
+				value: get(modWheel)
+			});
+		} else if (e.key === "End") {
+			e.preventDefault();
+			set(modWheel, 1);
+			$$props.onchange?.({
+				param: "modWheel",
+				value: get(modWheel)
+			});
+		}
+	}
+	var div = root$4();
+	var div_1 = sibling(child(div), 2);
+	var div_2 = child(div_1);
+	set_attribute(div_2, "tabindex", 0);
+	set_attribute(div_2, "aria-valuemin", 0);
+	set_attribute(div_2, "aria-valuemax", 1);
+	var div_3 = child(div_2);
+	reset(div_2);
+	reset(div_1);
+	reset(div);
+	template_effect(() => {
+		set_attribute(div_2, "aria-valuenow", get(modWheel));
+		set_style(div_3, `height: ${get(modWheel) * 100}%`);
+	});
+	delegated("pointerdown", div_2, onWheelPointerDown);
+	delegated("pointermove", div_2, onWheelPointerMove);
+	delegated("pointerup", div_2, onWheelPointerUp);
+	event("pointercancel", div_2, onWheelPointerUp);
+	delegated("keydown", div_2, onWheelKeyDown);
+	append($$anchor, div);
+	pop();
+}
+delegate([
+	"pointerdown",
+	"pointermove",
+	"pointerup",
+	"keydown"
+]);
 //#endregion
 //#region src/components/PowerButton.svelte
 var root$3 = /* @__PURE__ */ from_html(`<div class="power-wrap svelte-z2dg21"><button type="button"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke-linecap="round" stroke-width="2" aria-hidden="true"><line x1="10" y1="2" x2="10" y2="8"></line><path d="M 14.5 4.6 A 7 7 0 1 1 5.5 4.6"></path></svg></button></div>`);
@@ -12646,7 +12773,7 @@ function Scope($$anchor, $$props) {
 }
 //#endregion
 //#region src/App.svelte
-var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header class="header svelte-1n46o8q"><div class="title-block svelte-1n46o8q"><a class="title svelte-1n46o8q" href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer">SYNTH-D</a> <span class="version-label svelte-1n46o8q"> </span></div> <div class="header-right svelte-1n46o8q"><!> <!></div></header> <main class="svelte-1n46o8q"><div><div class="panels svelte-1n46o8q"><!> <!> <div class="filter-output-grid svelte-1n46o8q"><!> <!> <div class="effects-col svelte-1n46o8q"><!></div> <div class="panel-row svelte-1n46o8q"><!> <!></div> <!></div></div> <!> <div class="footer svelte-1n46o8q"><a href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" class="svelte-1n46o8q"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></div></div></main></div>`);
+var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header class="header svelte-1n46o8q"><div class="title-block svelte-1n46o8q"><a class="title svelte-1n46o8q" href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer">SYNTH-D</a> <span class="version-label svelte-1n46o8q"> </span></div> <div class="header-right svelte-1n46o8q"><!> <!></div></header> <main class="svelte-1n46o8q"><div><div class="panels svelte-1n46o8q"><!> <!> <div class="filter-output-grid svelte-1n46o8q"><!> <!> <div class="effects-col svelte-1n46o8q"><!></div> <div class="panel-row svelte-1n46o8q"><!> <!></div> <!></div></div> <div class="keyboard-row svelte-1n46o8q"><!> <!> <!></div></div></main></div>`);
 function App($$anchor, $$props) {
 	push($$props, true);
 	const branch = "28/merge";
@@ -12814,6 +12941,8 @@ function App($$anchor, $$props) {
 		reverbDecay: .5,
 		reverbPreDelay: 0
 	};
+	let keyboardBase = /* @__PURE__ */ state(36);
+	const activeRegister = /* @__PURE__ */ user_derived(() => get(keyboardBase) === 21 ? "bottom" : get(keyboardBase) === 48 ? "top" : "mid");
 	let powered = /* @__PURE__ */ state(false);
 	let loading = /* @__PURE__ */ state(false);
 	let analyser = /* @__PURE__ */ state(null);
@@ -12951,7 +13080,7 @@ function App($$anchor, $$props) {
 	let mixerMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("osc1Level", "osc2Level", "osc3Level", "noiseLevel"));
 	let filterMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("cutoff", "resonance", "keyTrack", "filterAttack", "filterDecay", "filterSustain", "filterRelease", "filterEnvAmt"));
 	let ampEnvMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("ampAttack", "ampDecay", "ampSustain", "ampRelease", "masterVol"));
-	let modMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("modMix", "modWheel"));
+	let modMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("modMix"));
 	let glideMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("glideRate"));
 	let effectsMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("reverbMix", "reverbDamp", "reverbDecay", "reverbPreDelay", "delayTime", "delayFeedback", "delayMix", "delayModRate", "delayModDepth"));
 	var div = root();
@@ -13095,8 +13224,20 @@ function App($$anchor, $$props) {
 	});
 	reset(div_5);
 	reset(div_4);
-	Keyboard(sibling(div_4, 2), {
+	var div_8 = sibling(div_4, 2);
+	var node_10 = child(div_8);
+	WheelPanel(node_10, {
+		get externalValue() {
+			return get(ccExternalValues).modWheel;
+		},
+		onchange: onParamChange
+	});
+	var node_11 = sibling(node_10, 2);
+	Keyboard(node_11, {
 		onnote: onKeyboardNote,
+		get baseMidi() {
+			return get(keyboardBase);
+		},
 		get triggerNote() {
 			return get(keyboardTriggerNote);
 		},
@@ -13110,7 +13251,14 @@ function App($$anchor, $$props) {
 			set(keyboardReleaseNote, $$value, true);
 		}
 	});
-	next(2);
+	RegisterPanel(sibling(node_11, 2), {
+		ondown: () => set(keyboardBase, 21),
+		onup: () => set(keyboardBase, 48),
+		get activeRegister() {
+			return get(activeRegister);
+		}
+	});
+	reset(div_8);
 	reset(div_3);
 	reset(main);
 	reset(div);
