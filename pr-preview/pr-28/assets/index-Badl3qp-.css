@@ -209,25 +209,12 @@ body {
     border-color: #20b040;
   }
 
-  .clip-led.svelte-17o0bm7 {
+  .level-led.svelte-1hlnysh {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #4a1010;
-    box-shadow: none;
-    /* fade-out: decay back to dark */
-    transition:
-      background 80ms ease-out,
-      box-shadow 80ms ease-out;
-  }
-
-  .clip-led.clip.svelte-17o0bm7 {
-    background: #ff3333;
-    box-shadow: 0 0 4px #ff3333;
-    /* fade-in: snap up quickly when clipping starts */
-    transition:
-      background 80ms ease-in,
-      box-shadow 80ms ease-in;
+    background: var(--led-color, #111111);
+    transition: background 80ms ease-out;
   }
 
   .panel.svelte-gq0xe5 {
