@@ -12786,141 +12786,149 @@ function Scope($$anchor, $$props) {
 }
 //#endregion
 //#region src/App.svelte
+var KNOB_PARAMS = {
+	osc2Detune: {
+		min: -100,
+		max: 100
+	},
+	osc3Detune: {
+		min: -100,
+		max: 100
+	},
+	osc3LfoRate: {
+		min: .1,
+		max: 20
+	},
+	osc1Level: {
+		min: 0,
+		max: 1
+	},
+	osc2Level: {
+		min: 0,
+		max: 1
+	},
+	osc3Level: {
+		min: 0,
+		max: 1
+	},
+	noiseLevel: {
+		min: 0,
+		max: 1
+	},
+	cutoff: {
+		min: 20,
+		max: 2e4
+	},
+	resonance: {
+		min: 0,
+		max: 1
+	},
+	keyTrack: {
+		min: 0,
+		max: 1
+	},
+	filterAttack: {
+		min: .001,
+		max: 4
+	},
+	filterDecay: {
+		min: .001,
+		max: 4
+	},
+	filterSustain: {
+		min: 0,
+		max: 1
+	},
+	filterRelease: {
+		min: .001,
+		max: 8
+	},
+	filterEnvAmt: {
+		min: 0,
+		max: 1e4
+	},
+	ampAttack: {
+		min: .001,
+		max: 4
+	},
+	ampDecay: {
+		min: .001,
+		max: 4
+	},
+	ampSustain: {
+		min: 0,
+		max: 1
+	},
+	ampRelease: {
+		min: .001,
+		max: 8
+	},
+	modMix: {
+		min: 0,
+		max: 1
+	},
+	modWheel: {
+		min: 0,
+		max: 1
+	},
+	glideRate: {
+		min: .001,
+		max: 5
+	},
+	delayTime: {
+		min: .01,
+		max: 2
+	},
+	delayFeedback: {
+		min: 0,
+		max: .9
+	},
+	delayMix: {
+		min: 0,
+		max: 1
+	},
+	delayModRate: {
+		min: .1,
+		max: 10
+	},
+	delayModDepth: {
+		min: 0,
+		max: .025
+	},
+	reverbMix: {
+		min: 0,
+		max: 1
+	},
+	reverbDecay: {
+		min: .01,
+		max: 1
+	},
+	reverbDamp: {
+		min: 0,
+		max: 1
+	},
+	reverbPreDelay: {
+		min: 0,
+		max: .1
+	},
+	masterVol: {
+		min: 0,
+		max: 1
+	}
+};
+var BIPOLAR_PARAMS = new Set([
+	"osc2Detune",
+	"osc3Detune",
+	"modMix"
+]);
+function powerOffValue(p) {
+	return BIPOLAR_PARAMS.has(p) ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2 : KNOB_PARAMS[p].min;
+}
 var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header class="header svelte-1n46o8q"><a class="github-link svelte-1n46o8q" href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a> <div class="title-block svelte-1n46o8q"><span class="title svelte-1n46o8q">SYNTH-D</span> <span class="version-label svelte-1n46o8q"> </span></div> <div class="header-right svelte-1n46o8q"><!> <!></div></header> <main class="svelte-1n46o8q"><div><div class="panels svelte-1n46o8q"><!> <!> <div class="filter-output-grid svelte-1n46o8q"><!> <!> <div class="effects-col svelte-1n46o8q"><!></div> <div class="panel-row svelte-1n46o8q"><!> <!></div> <!></div></div> <div class="keyboard-row svelte-1n46o8q"><!> <!> <!></div></div></main></div>`);
 function App($$anchor, $$props) {
 	push($$props, true);
 	const branch = "main";
 	const versionLabel = branch === "main" ? `v1.1.0` : `v1.1.0 (${branch})`;
-	const KNOB_PARAMS = {
-		osc2Detune: {
-			min: -100,
-			max: 100
-		},
-		osc3Detune: {
-			min: -100,
-			max: 100
-		},
-		osc3LfoRate: {
-			min: .1,
-			max: 20
-		},
-		osc1Level: {
-			min: 0,
-			max: 1
-		},
-		osc2Level: {
-			min: 0,
-			max: 1
-		},
-		osc3Level: {
-			min: 0,
-			max: 1
-		},
-		noiseLevel: {
-			min: 0,
-			max: 1
-		},
-		cutoff: {
-			min: 20,
-			max: 2e4
-		},
-		resonance: {
-			min: 0,
-			max: 1
-		},
-		keyTrack: {
-			min: 0,
-			max: 1
-		},
-		filterAttack: {
-			min: .001,
-			max: 4
-		},
-		filterDecay: {
-			min: .001,
-			max: 4
-		},
-		filterSustain: {
-			min: 0,
-			max: 1
-		},
-		filterRelease: {
-			min: .001,
-			max: 8
-		},
-		filterEnvAmt: {
-			min: 0,
-			max: 1e4
-		},
-		ampAttack: {
-			min: .001,
-			max: 4
-		},
-		ampDecay: {
-			min: .001,
-			max: 4
-		},
-		ampSustain: {
-			min: 0,
-			max: 1
-		},
-		ampRelease: {
-			min: .001,
-			max: 8
-		},
-		modMix: {
-			min: 0,
-			max: 1
-		},
-		modWheel: {
-			min: 0,
-			max: 1
-		},
-		glideRate: {
-			min: .001,
-			max: 5
-		},
-		delayTime: {
-			min: .01,
-			max: 2
-		},
-		delayFeedback: {
-			min: 0,
-			max: .9
-		},
-		delayMix: {
-			min: 0,
-			max: 1
-		},
-		delayModRate: {
-			min: .1,
-			max: 10
-		},
-		delayModDepth: {
-			min: 0,
-			max: .025
-		},
-		reverbMix: {
-			min: 0,
-			max: 1
-		},
-		reverbDecay: {
-			min: .01,
-			max: 1
-		},
-		reverbDamp: {
-			min: 0,
-			max: 1
-		},
-		reverbPreDelay: {
-			min: 0,
-			max: .1
-		},
-		masterVol: {
-			min: 0,
-			max: 1
-		}
-	};
 	const DEFAULTS = {
 		osc2Detune: 0,
 		osc3Detune: 0,
@@ -12979,7 +12987,7 @@ function App($$anchor, $$props) {
 	let midiActiveNotes = /* @__PURE__ */ state(0);
 	let ccExternalValues = /* @__PURE__ */ state(proxy(
 		/** @type {Record<string,number|undefined>} */
-		Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min]))
+		Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)]))
 	));
 	const midiCcMap = new MidiCcMap();
 	const midiManager = new MidiManager({
@@ -13046,7 +13054,7 @@ function App($$anchor, $$props) {
 			await powerOff();
 			set(powered, false);
 			set(midiStatus, "unavailable");
-			set(ccExternalValues, Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min])), true);
+			set(ccExternalValues, Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)])), true);
 		} else {
 			set(loading, true);
 			try {
@@ -13066,6 +13074,10 @@ function App($$anchor, $$props) {
 	/** @param {{ param: string, value: number }} e */
 	function onParamChange(e) {
 		setParam(e.param, e.value);
+		if (e.param in get(ccExternalValues) && get(ccExternalValues)[e.param] !== e.value) set(ccExternalValues, {
+			...get(ccExternalValues),
+			[e.param]: e.value
+		}, true);
 	}
 	/** @param {Array<{ param: string, value: number }>} messages */
 	function onKeyboardNote(messages) {
