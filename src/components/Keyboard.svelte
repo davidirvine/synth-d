@@ -3,22 +3,25 @@
   import { SvelteSet } from 'svelte/reactivity'
   import { QWERTY_MAP, buildNoteOnMessages, midiToFreq } from '../audio/keyboard.js'
 
-  // eslint-disable-next-line no-useless-assignment
-  let { onnote, triggerNote = $bindable(null), releaseNote = $bindable(null) } = $props()
+  let {
+    onnote,
+    triggerNote = $bindable(null), // eslint-disable-line no-useless-assignment
+    releaseNote = $bindable(null), // eslint-disable-line no-useless-assignment
+    baseMidi = 36,
+  } = $props()
 
-  const BASE_MIDI = 48
   const BLACK_SEMITONES = new Set([1, 3, 6, 8, 10])
+  const RAIL_H = 1
 
   const WHITE_W = 28
   const WHITE_H = 100
   const BLACK_W = 18
   const BLACK_H = 60
 
-  // Build key layout with x positions pre-computed
-  const keys = (() => {
+  function buildKeys(base, count) {
     let whiteIdx = 0
-    return Array.from({ length: 25 }, (_, i) => {
-      const midi = BASE_MIDI + i
+    return Array.from({ length: count }, (_, i) => {
+      const midi = base + i
       const black = BLACK_SEMITONES.has(midi % 12)
       let x
       if (!black) {
@@ -29,10 +32,17 @@
       }
       return { midi, black, x }
     })
-  })()
+  }
 
-  const whiteKeys = keys.filter((k) => !k.black)
-  const totalWidth = whiteKeys.length * WHITE_W
+  const keys = $derived(buildKeys(baseMidi, 61))
+
+  const whiteKeys = $derived(keys.filter((k) => !k.black))
+  const totalWidth = $derived(whiteKeys.length * WHITE_W)
+
+  function midiToNoteName(midi) {
+    const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+    return `${names[midi % 12]}${Math.floor(midi / 12) - 1}`
+  }
 
   const activeKeys = new SvelteSet()
   const pressedQwerty = new SvelteSet()
@@ -85,13 +95,14 @@
 </script>
 
 <div class="keyboard-wrap">
-  <svg width={totalWidth} height={WHITE_H + 2}>
+  <svg width={totalWidth} height={WHITE_H + RAIL_H + 2}>
+    <rect x={0} y={0} width={totalWidth} height={RAIL_H} fill="#333" />
     <!-- White keys -->
     {#each whiteKeys as key (key.midi)}
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <rect
         x={key.x + 1}
-        y={0}
+        y={RAIL_H}
         width={WHITE_W - 2}
         height={WHITE_H}
         class="white-key"
@@ -107,7 +118,7 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <rect
         x={key.x}
-        y={0}
+        y={RAIL_H}
         width={BLACK_W}
         height={BLACK_H}
         class="black-key"
@@ -118,6 +129,21 @@
         onpointerleave={() => _releaseNote(key.midi)}
       />
     {/each}
+    <!-- White key labels -->
+    {#each whiteKeys as key (key.midi)}
+      <text x={key.x + WHITE_W / 2} y={RAIL_H + WHITE_H - 5} text-anchor="middle" class="key-label"
+        >{midiToNoteName(key.midi)}</text
+      >
+    {/each}
+    <!-- Black key labels -->
+    {#each keys.filter((k) => k.black) as key (key.midi)}
+      <text
+        x={key.x + BLACK_W / 2}
+        y={RAIL_H + BLACK_H - 4}
+        text-anchor="middle"
+        class="key-label-black">{midiToNoteName(key.midi)}</text
+      >
+    {/each}
   </svg>
 </div>
 
@@ -125,7 +151,7 @@
   .keyboard-wrap {
     display: flex;
     justify-content: center;
-    padding: 12px 0;
+    padding: 0;
   }
 
   .white-key {
@@ -150,5 +176,19 @@
 
   .black-key.active {
     fill: #c87941;
+  }
+
+  .key-label {
+    font-size: 8px;
+    fill: #888;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .key-label-black {
+    font-size: 6px;
+    fill: #aaa;
+    pointer-events: none;
+    user-select: none;
   }
 </style>

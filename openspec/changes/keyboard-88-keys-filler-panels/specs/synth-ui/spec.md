@@ -2,17 +2,17 @@
 
 ### Requirement: Panel layout with six sections
 
-The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer, Filter (combined with filter contour envelope), Output (combined volume and loudness contour), Modulation, and Glide. The three top-level panel columns (Oscillator Bank, Mixer, and the filter-output grid) SHALL be laid out as a fixed three-column CSS grid. All three columns SHALL share the same height. The keyboard SHALL appear below all panels spanning its full computed width (~1 008 px for 61 keys). A `RegisterPanel` ("KEYBOARD RANGE") SHALL be placed to the left of the three-column panel grid and a plain `EmptyPanel` to the right, so the panel row fills to the keyboard row width. A header strip containing the synth title, MIDI status, and power button SHALL appear above the panels. The outer spacing around the synth module area SHALL be `8px` on all sides, matching the `8px` gap between individual panels. The layout SHALL NOT reflow or wrap when the browser window is resized.
+The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer, Filter (combined with filter contour envelope), Output (combined volume and loudness contour), Modulation, and Glide. The three top-level panel columns (Oscillator Bank, Mixer, and the filter-output grid) SHALL be laid out as a fixed three-column CSS grid. All three columns SHALL share the same height. The keyboard SHALL appear below the panels in a `.keyboard-row` flex row, flanked by `WheelPanel` on the left and `RegisterPanel` on the right. A header strip containing the synth title, MIDI status, and power button SHALL appear above the panels. The outer spacing around the synth module area SHALL be `8px` on all sides, matching the `8px` gap between individual panels. The layout SHALL NOT reflow or wrap when the browser window is resized.
 
 #### Scenario: Panel arrangement
 
 - **WHEN** the UI is rendered
-- **THEN** panels appear in order: header above, then [RegisterPanel | Oscillator Bank | Mixer | filter-output-grid | EmptyPanel], keyboard below
+- **THEN** layout appears in order: header above, panels grid [Oscillator Bank | Mixer | filter-output-grid], then keyboard row [WheelPanel | Keyboard | RegisterPanel]
 
-#### Scenario: Panel row width matches keyboard row width
+#### Scenario: Keyboard row width matches keyboard SVG width
 
 - **WHEN** the UI is rendered
-- **THEN** the combined width of the RegisterPanel, panel grid, and EmptyPanel equals the keyboard row width
+- **THEN** the WheelPanel and RegisterPanel fill the space flanking the 1 008 px keyboard SVG within the keyboard row
 
 #### Scenario: All top-level columns the same height
 

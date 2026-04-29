@@ -22,11 +22,11 @@ The three-column `.panels` grid width is content-driven at approximately 1 269 p
 
 ## Decisions
 
-### D1 — Top rail: 6 px SVG rect
+### D1 — Top rail: 1 px SVG rect
 
-A filled rect `x=0`, `y=0`, `width={totalWidth}`, `height={RAIL_H}` (6 px), fill `#2a2a2a` is rendered as the first element inside the SVG, behind all keys. All key y-positions offset by `RAIL_H`. SVG height becomes `WHITE_H + RAIL_H + 2`.
+A filled rect `x=0`, `y=0`, `width={totalWidth}`, `height={RAIL_H}` (1 px), fill `#333` is rendered as the first element inside the SVG, behind all keys. All key y-positions offset by `RAIL_H`. SVG height becomes `WHITE_H + RAIL_H + 2`.
 
-`#2a2a2a` matches the knob-body color — lighter than black keys (`#1a1a1a`), darker than the amber active highlight, consistent with the palette.
+`#333` matches the panel border color — a subtle hairline separator that defines the top of the key area without adding visual weight. A 6 px bold rail was prototyped but found too prominent relative to the ambient panel styling.
 
 **Alternative considered:** CSS `border-top` on keyboard-wrap. Rejected — border appears above the 12 px top padding, divorcing it visually from the keys.
 
@@ -63,25 +63,23 @@ Panel width is set to fill the left gap (~130 px). Buttons use the same style as
 
 **Alternative considered:** Putting buttons directly in App.svelte without a dedicated component. Rejected — a component keeps panel styling encapsulated and consistent.
 
-### D5 — Middle C indicator: thin SVG line on MIDI 60
+### D5 — Middle C indicator: not implemented
 
-When MIDI 60 (C4, middle C) is within the current keyboard window, a thin vertical line is drawn down the center of that white key. The line spans from just below the top rail to just above the bottom of the key (`y = RAIL_H + 4`, height = `WHITE_H - 8`), width = 1 px, color `#555` — visible but subtle, darker than the key itself (`#dddddd`) and not confused with the amber active highlight.
+A middle C indicator (thin SVG `<line>` on MIDI 60) was considered but removed after visual review. Note labels (`C4`, etc.) already appear at the bottom of each white key, providing sufficient orientation. No line element is rendered.
 
-The indicator is a single SVG `<line>` element derived from the key array: find the white key with `midi === 60`, if present compute `x = key.x + WHITE_W / 2`. If MIDI 60 is not in the current window (e.g., top register starts at MIDI 48; C4 = MIDI 60 is in that window; bottom register MIDI 21–81 also includes MIDI 60), the indicator renders only when the key object exists in the current derived array.
+### D6 — Layout: keyboard row with WheelPanel and RegisterPanel
 
-Both register positions (base 21 and base 48) include MIDI 60, so the indicator is always visible. The default (base 36) also includes it. The indicator disappears automatically if `baseMidi` is ever set such that MIDI 60 falls outside the 61-key window (outside the scope of this change, but handled correctly by the derived lookup).
+The keyboard is presented in a `.keyboard-row` flex row: `WheelPanel` on the left, `Keyboard` in the center, and `RegisterPanel` on the right. Both flanking panels use `flex: 1` to fill the available space. The control panels remain in a separate `.panels` grid row above.
 
-**Alternative considered:** A dot or small circle above the key. Rejected — a line is more subtle and does not add visual bulk. A triangle below the key was also considered; rejected for the same reason.
+Placing both keyboard accessories in the keyboard row keeps playing controls spatially co-located with the keyboard, matching hardware synthesizer conventions (mod wheel to the left, register controls to the right).
 
-### D6 — Layout: panel row filled by RegisterPanel + EmptyPanel
+**Alternative considered:** `RegisterPanel` to the left of `.panels` with `EmptyPanel` to the right (as originally drafted). Rejected after visual review — the keyboard row arrangement is more intuitive for a player.
 
-The keyboard SVG is 1 008 px. The panels grid is ~1 269 px — wider than the keyboard. `App.svelte` adds:
-- `RegisterPanel` to the left of `.panels` (width ≈ 130 px).
-- `EmptyPanel` to the right of `.panels` (width ≈ 131 px).
+### D7 — WheelPanel component
 
-The three items (RegisterPanel | .panels | EmptyPanel) are arranged in a flex row to fill the panel row to the keyboard width. Because both widths are static at author time, flex-grow or fixed widths are acceptable.
+A new `WheelPanel.svelte` provides a vertical mod-wheel slider in the keyboard row. Props: `externalValue` (0–1, synced from incoming MIDI CC 1) and `onchange` (emits `{ param: 'modWheel', value }` on drag). The slider starts at 0.5. Styled to match panel aesthetics: `#1c1c1c` background, 1px `#333` border, amber fill `#c87941`.
 
-**Alternative considered:** ResizeObserver to compute filler widths dynamically. Rejected — introduces reactive complexity for a static layout.
+**Alternative considered:** Keeping the virtual mod wheel inside the Modulation panel. Rejected — physical mod wheels live beside the keys; co-locating them in the keyboard row reinforces that convention.
 
 ## Risks / Trade-offs
 
@@ -93,10 +91,12 @@ The three items (RegisterPanel | .panels | EmptyPanel) are arranged in a flex ro
 
 Purely visual/UI — no data migration:
 
-1. Update `Keyboard.svelte` — add rail, make key array reactive on `baseMidi`.
-2. Create `RegisterPanel.svelte` — label + two buttons.
-3. Update `App.svelte` — `keyboardBase` state; wire RegisterPanel and EmptyPanel.
-4. Update `Keyboard.test.js` — key count, range, rail assertions.
-5. Create `RegisterPanel.test.js` — button renders, callbacks fire.
+1. Update `Keyboard.svelte` — add rail (1 px, `#333`), make key array reactive on `baseMidi`.
+2. Create `RegisterPanel.svelte` — label + two buttons; placed in keyboard row to the right of keyboard.
+3. Create `WheelPanel.svelte` — vertical mod-wheel slider; placed in keyboard row to the left of keyboard.
+4. Update `App.svelte` — `keyboardBase` state (default 36); wire WheelPanel and RegisterPanel in keyboard row.
+5. Update `Keyboard.test.js` — key count, range, rail assertions.
+6. Create `RegisterPanel.test.js` — button renders, callbacks fire.
+7. Create `WheelPanel.test.js` — drag interaction, externalValue sync.
 
 Rollback: revert the changed/added component files; no state or data affected.

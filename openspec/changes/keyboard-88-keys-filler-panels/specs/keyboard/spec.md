@@ -2,7 +2,7 @@
 
 ### Requirement: 61-key visual piano keyboard with configurable base
 
-The system SHALL render a 61-key piano keyboard as interactive SVG elements. The visible range is determined by a `baseMidi` prop (default 36, C2–C7). The keyboard SHALL always show exactly 61 consecutive keys starting from `baseMidi`. White and black keys SHALL be visually distinct and styled to the Moog dark aesthetic. A 6 px top rail in `#2a2a2a` SHALL span the full keyboard width at the top of the SVG, providing a defined visual boundary between the black keys and the panel background.
+The system SHALL render a 61-key piano keyboard as interactive SVG elements. The visible range is determined by a `baseMidi` prop (default 36, C2–C7). The keyboard SHALL always show exactly 61 consecutive keys starting from `baseMidi`. White and black keys SHALL be visually distinct and styled to the Moog dark aesthetic. A 1 px top rail in `#333` SHALL span the full keyboard width at the top of the SVG, providing a subtle visual boundary between the black keys and the panel background.
 
 #### Scenario: Key count
 
@@ -12,22 +12,12 @@ The system SHALL render a 61-key piano keyboard as interactive SVG elements. The
 #### Scenario: Top rail visible
 
 - **WHEN** the keyboard is rendered
-- **THEN** a 6 px horizontal rail in `#2a2a2a` is visible at the top of the keyboard spanning its full width, and all keys are seated below it
+- **THEN** a 1 px horizontal rail in `#333` is visible at the top of the keyboard spanning its full width, and all keys are seated below it
 
 #### Scenario: Active key highlight
 
 - **WHEN** a key is pressed (mouse or QWERTY)
 - **THEN** the key is highlighted in amber (#c87941) for the duration of the press
-
-#### Scenario: Middle C indicator visible when in range
-
-- **WHEN** the keyboard is rendered with a `baseMidi` such that MIDI 60 (C4) is within the visible window
-- **THEN** a thin vertical line (1 px wide, color `#555`) is visible down the center of the C4 white key
-
-#### Scenario: Middle C indicator moves with register shift
-
-- **WHEN** the keyboard register shifts and MIDI 60 remains in the visible window
-- **THEN** the middle C indicator redraws on the correct key position in the new layout
 
 ---
 
