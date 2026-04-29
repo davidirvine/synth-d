@@ -1,32 +1,4 @@
-<script>
-  import { onMount, onDestroy } from 'svelte'
-  import {
-    getAnalyser,
-    getMixerPeak,
-    getOutputPeak,
-    powerOn,
-    powerOff,
-    setParam,
-  } from './audio/engine.js'
-  import { MidiManager } from './audio/midi.js'
-  import { MidiCcMap } from './audio/midiCcMap.js'
-  import Oscillator from './components/Oscillator.svelte'
-  import Mixer from './components/Mixer.svelte'
-  import Filter from './components/Filter.svelte'
-  import Effects from './components/Effects.svelte'
-  import AmpEnv from './components/AmpEnv.svelte'
-  import Modulation from './components/Modulation.svelte'
-  import Glide from './components/Glide.svelte'
-  import Keyboard from './components/Keyboard.svelte'
-  import RegisterPanel from './components/RegisterPanel.svelte'
-  import WheelPanel from './components/WheelPanel.svelte'
-  import PowerButton from './components/PowerButton.svelte'
-  import MidiStatus from './components/MidiStatus.svelte'
-  import Scope from './components/Scope.svelte'
-
-  const branch = __GIT_BRANCH__
-  const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
-
+<script module>
   // Knob param registry: param name → { min, max } for CC scaling
   const KNOB_PARAMS = {
     // Oscillators
@@ -72,6 +44,45 @@
     // Master
     masterVol: { min: 0, max: 1 },
   }
+
+  // Must stay in sync with the `bipolar` prop on each Knob in the UI.
+  export const BIPOLAR_PARAMS = new Set(['osc2Detune', 'osc3Detune', 'modMix'])
+
+  export function powerOffValue(p) {
+    return BIPOLAR_PARAMS.has(p)
+      ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2
+      : KNOB_PARAMS[p].min
+  }
+</script>
+
+<script>
+  import { onMount, onDestroy } from 'svelte'
+  import {
+    getAnalyser,
+    getMixerPeak,
+    getOutputPeak,
+    powerOn,
+    powerOff,
+    setParam,
+  } from './audio/engine.js'
+  import { MidiManager } from './audio/midi.js'
+  import { MidiCcMap } from './audio/midiCcMap.js'
+  import Oscillator from './components/Oscillator.svelte'
+  import Mixer from './components/Mixer.svelte'
+  import Filter from './components/Filter.svelte'
+  import Effects from './components/Effects.svelte'
+  import AmpEnv from './components/AmpEnv.svelte'
+  import Modulation from './components/Modulation.svelte'
+  import Glide from './components/Glide.svelte'
+  import Keyboard from './components/Keyboard.svelte'
+  import RegisterPanel from './components/RegisterPanel.svelte'
+  import WheelPanel from './components/WheelPanel.svelte'
+  import PowerButton from './components/PowerButton.svelte'
+  import MidiStatus from './components/MidiStatus.svelte'
+  import Scope from './components/Scope.svelte'
+
+  const branch = __GIT_BRANCH__
+  const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
 
   // Covers every continuous param that flows through ccExternalValues → Knob externalValue.
   // keyTrack is intentionally excluded: it is a toggle button, not a Knob, so it receives
@@ -137,10 +148,10 @@
   let midiActiveNotes = $state(0)
 
   // Per-param external values driven by incoming CC messages.
-  // Initialised at per-param min so power-on always animates from the floor.
+  // Initialised at power-off targets: min for non-bipolar, midpoint for bipolar.
   let ccExternalValues = $state(
     /** @type {Record<string,number|undefined>} */ (
-      Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min]))
+      Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)]))
     )
   )
 
@@ -204,9 +215,7 @@
       await powerOff()
       powered = false
       midiStatus = 'unavailable'
-      ccExternalValues = Object.fromEntries(
-        Object.keys(DEFAULTS).map((p) => [p, KNOB_PARAMS[p].min])
-      )
+      ccExternalValues = Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)]))
     } else {
       loading = true
       try {
@@ -227,6 +236,9 @@
   /** @param {{ param: string, value: number }} e */
   function onParamChange(e) {
     setParam(e.param, e.value)
+    if (e.param in ccExternalValues && ccExternalValues[e.param] !== e.value) {
+      ccExternalValues = { ...ccExternalValues, [e.param]: e.value }
+    }
   }
 
   /** @param {Array<{ param: string, value: number }>} messages */
@@ -286,7 +298,7 @@
     midiStateFor('ampAttack', 'ampDecay', 'ampSustain', 'ampRelease', 'masterVol')
   )
 
-  let modMidiState = $derived(midiStateFor('modMix'))
+  let modMidiState = $derived(midiStateFor('modMix', 'modWheel'))
 
   let glideMidiState = $derived(midiStateFor('glideRate'))
 
