@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
   import LevelLed from './LevelLed.svelte'
 
@@ -29,7 +30,7 @@
   $effect(() => {
     if (reset === 0) return
     drLock = 1
-    onchange?.({ param: 'drLock', value: 1 })
+    untrack(() => onchange?.({ param: 'drLock', value: 1 }))
   })
 </script>
 

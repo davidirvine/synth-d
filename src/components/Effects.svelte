@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
   let {
@@ -37,9 +38,11 @@
     delayOn = 0
     delayModOn = 0
     reverbOn = 0
-    onchange?.({ param: 'delayOn', value: 0 })
-    onchange?.({ param: 'delayModOn', value: 0 })
-    onchange?.({ param: 'reverbOn', value: 0 })
+    untrack(() => {
+      onchange?.({ param: 'delayOn', value: 0 })
+      onchange?.({ param: 'delayModOn', value: 0 })
+      onchange?.({ param: 'reverbOn', value: 0 })
+    })
   })
 </script>
 
