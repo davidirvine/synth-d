@@ -82,26 +82,24 @@ Add an `"st"` branch to `formatValue(value, unit)` in `src/audio/math.js` that r
 
 Note on existing state: `formatValue` does not currently have an explicit `"c"` branch — `unit="c"` falls through to the default `toFixed(2)` path, producing a bare number with no unit suffix. That happened to look acceptable for cents, but it was implicit, not designed. Switching the freq knobs to `unit="st"` (which has its own explicit branch) sidesteps the fallthrough. No change to other call sites is required as part of this work.
 
-### D7. Implement and wire up `'fine-center'` scale
+### D7. Implement `'fine-center'` scale, but use linear on the freq knobs
 
 The `fine-center-scale` capability spec already exists in main specs (`openspec/specs/fine-center-scale/spec.md`) and defines a quadratic taper symmetric around the midpoint:
 
 - Forward: `value = center + sign(t) × t² × range` where `t = (pos − 0.5) × 2`
 - Inverse: `normT = sign(v − center) × sqrt(|v − center| / range)`, then `pos = normT / 2 + 0.5`
 
-That spec was approved as part of an earlier change (`tweak-detune-taper`) but the implementation in `src/audio/math.js` was never landed — `normalizedToValue` and `valueToNormalized` only branch on `'log'` and `'log-reverse'`, and `'fine-center'` falls through to linear. The existing `oscillator` spec already calls for `scale="fine-center"`, so this is implementation drift, not a spec change.
+That spec was approved as part of an earlier change (`tweak-detune-taper`) but the implementation in `src/audio/math.js` was never landed — `normalizedToValue` and `valueToNormalized` only branched on `'log'` and `'log-reverse'`, and `'fine-center'` fell through to linear.
 
-This change resolves the drift by **adding the `'fine-center'` branch to `normalizedToValue` and `valueToNormalized` per the existing `fine-center-scale` spec**, then wiring `scale="fine-center"` into the freq knobs. Without the implementation work, passing `scale="fine-center"` would silently behave as linear.
+This change still resolves that drift by **adding the `'fine-center'` branch to `normalizedToValue` and `valueToNormalized` per the existing `fine-center-scale` spec**. The implementation now matches the spec; the `'fine-center'` scale is available to any caller.
 
-The benefit: the knob retains generous travel near unison (subtle chorus/beating effects in low-cent territory) while still reaching the new ±700¢ extremes; the trade-offs at the wider range are discussed below.
+**Decision (revised during visual verification): the freq knobs use linear scale, not fine-center.**
 
-Implications at the wider ±700¢ range:
-- The outer portion of the sweep (where m3, M3, and P5 land) is compressed compared to a linear sweep — small drag movements there produce larger value jumps.
-- This does NOT impair landing on intervals, because the discrete `step={5}` / `fineStep={1}` grid quantizes the *value* regardless of how visually compressed that region of the sweep is. Each 5¢ (or 1¢ with Shift) tick is a definite click forward.
-- The ±15¢ interval window absorbs any residual imprecision: even if a single drag motion overshoots by one or two steps in the compressed region, the indicator still latches.
-- The semitone-formatted value label gives an unambiguous numeric readout in that compressed region, complementing the visual feedback.
+The original plan was to wire `scale="fine-center"` into the freq knobs so the center region (subtle chorus/beating territory) occupied a larger proportion of the sweep. In hands-on testing at the wider ±700¢ range, the t² curve concentrated so much travel near zero that the knob felt sticky around unison — small drags barely moved the value out of the low-cent region. The risk noted in *Risks / Trade-offs* below ("compresses the outer portion of the sweep where m3 / M3 / P5 live") manifested in the *opposite* direction: not as twitchiness at the outside, but as stickiness near the inside.
 
-In short: fine-center gives precision where you want it (near unison) and the step grid + window + numeric label give precision where the scale doesn't (out at the intervals). They compose well.
+Switching to linear restores proportional travel across the full range. Precision near unison is still available — just from the discrete step grid (5¢ default, 1¢ with Shift) and the numeric semitone readout — rather than from scale curvature. Hitting the m3 / M3 / P5 windows is comfortable because each pixel of drag advances the value by a fixed cent amount.
+
+The fine-center implementation in `math.js` stays in place. Future callers (or a future revisit of this knob with a less aggressive curve) can opt in.
 
 ## Risks / Trade-offs
 

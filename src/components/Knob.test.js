@@ -240,6 +240,318 @@ describe('Knob — animation duration', () => {
   })
 })
 
+describe('Knob — step / fineStep quantization', () => {
+  it('preserves continuous behavior when neither prop is set', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: 0,
+        max: 1,
+        default: 0.5,
+        scale: 'linear',
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    await fireEvent.pointerMove(hit, { clientY: 93 })
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    // No quantization on a 0..1 linear scale → small Y deltas yield fractional values.
+    const last = values[values.length - 1]
+    expect(Number.isInteger(last)).toBe(false)
+  })
+
+  it('quantizes drag values to multiples of step={5}', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        scale: 'linear',
+        step: 5,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    await fireEvent.pointerMove(hit, { clientY: 95 })
+    await fireEvent.pointerMove(hit, { clientY: 88 })
+    await fireEvent.pointerMove(hit, { clientY: 80 })
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    for (const v of values) {
+      expect(v % 5).toBe(0)
+    }
+  })
+
+  it('quantizes drag values to multiples of fineStep={1} while Shift is held', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        scale: 'linear',
+        step: 5,
+        fineStep: 1,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.pointerDown(hit, { clientY: 100, shiftKey: true })
+    // With Shift held, sensitivity is 0.001 (10x reduction). One pixel of
+    // movement on a ±700 range advances by ~1.4¢ — small steps land on the
+    // 1¢ grid and naturally produce non-multiples-of-5.
+    for (let y = 99; y >= 90; y--) {
+      await fireEvent.pointerMove(hit, { clientY: y, shiftKey: true })
+    }
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    for (const v of values) {
+      expect(Number.isInteger(v)).toBe(true)
+    }
+    // At least one value should NOT be a multiple of 5 (otherwise Shift had no effect).
+    const offGrid = values.some((v) => v % 5 !== 0)
+    expect(offGrid).toBe(true)
+  })
+
+  it('returns to multiples of step={5} when Shift is released mid-drag', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        scale: 'linear',
+        step: 5,
+        fineStep: 1,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.pointerDown(hit, { clientY: 100, shiftKey: true })
+    await fireEvent.pointerMove(hit, { clientY: 50, shiftKey: true })
+    const fineCount = values.length
+    await fireEvent.pointerMove(hit, { clientY: 30, shiftKey: false })
+    await fireEvent.pointerMove(hit, { clientY: 10, shiftKey: false })
+    await fireEvent.pointerUp(hit)
+    const coarseValues = values.slice(fineCount)
+    expect(coarseValues.length).toBeGreaterThan(0)
+    for (const v of coarseValues) {
+      expect(v % 5).toBe(0)
+    }
+  })
+
+  it('uses continuous coarse mode when fineStep is set but step is null', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: 0,
+        max: 1,
+        default: 0.5,
+        scale: 'linear',
+        fineStep: 0.1,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    // Coarse drag (no Shift) — step is null so values are continuous
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    await fireEvent.pointerMove(hit, { clientY: 93 })
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    const last = values[values.length - 1]
+    expect(Number.isInteger(last * 10)).toBe(false)
+  })
+
+  it('clamps quantized values within min/max bounds', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: 0,
+        max: 100,
+        default: 50,
+        scale: 'linear',
+        step: 30,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    // Drag far upward to push value toward max
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    for (let y = 99; y >= 10; y -= 5) {
+      await fireEvent.pointerMove(hit, { clientY: y })
+    }
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    for (const v of values) {
+      expect(v).toBeGreaterThanOrEqual(0)
+      expect(v).toBeLessThanOrEqual(100)
+    }
+  })
+})
+
+describe('Knob — intervalIndicator prop', () => {
+  it('does not render the indicator slot when prop is omitted', () => {
+    const { container } = render(Knob, {
+      props: { label: 'freq', min: -700, max: 700, default: 0 },
+    })
+    expect(container.querySelector('.interval-indicator')).toBeNull()
+  })
+
+  it('does not render the indicator slot when prop is false', () => {
+    const { container } = render(Knob, {
+      props: { label: 'freq', min: -700, max: 700, default: 0, intervalIndicator: false },
+    })
+    expect(container.querySelector('.interval-indicator')).toBeNull()
+  })
+
+  it('renders the indicator slot blank at value 0 when prop is true', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        intervalIndicator: true,
+      },
+    })
+    const slot = container.querySelector('.interval-indicator')
+    expect(slot).not.toBeNull()
+    // Blank state uses U+00A0 (NBSP); strip whitespace before asserting empty.
+    expect(slot?.textContent?.trim() ?? '').toBe('')
+  })
+
+  it('reads m3 at +300 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 300,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('m3')
+  })
+
+  it('reads m3 at -300 cents (symmetric)', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: -300,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('m3')
+  })
+
+  it('reads m3 inside the +15¢ window at +313 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 313,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('m3')
+  })
+
+  it('reads M3 at +400 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 400,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('M3')
+  })
+
+  it('reads M3 inside the −15¢ window at −387 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: -387,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('M3')
+  })
+
+  it('reads P5 at +700 cents (travel limit)', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 700,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('P5')
+  })
+
+  it('reads P5 at −685 cents (window edge, negative)', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: -685,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('P5')
+  })
+
+  it('is blank just outside the +M3 window at +416 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 416,
+        intervalIndicator: true,
+      },
+    })
+    const slot = container.querySelector('.interval-indicator')
+    expect(slot).not.toBeNull()
+    expect(slot?.textContent?.trim() ?? '').toBe('')
+  })
+
+  it('is blank just outside the −P5 window at −684 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: -684,
+        intervalIndicator: true,
+      },
+    })
+    const slot = container.querySelector('.interval-indicator')
+    expect(slot).not.toBeNull()
+    expect(slot?.textContent?.trim() ?? '').toBe('')
+  })
+})
+
 describe('Knob — bipolar prop', () => {
   it('renders a clockwise arc from center when pos > 0.5', () => {
     const { container } = render(Knob, {
