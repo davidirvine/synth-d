@@ -86,5 +86,8 @@ export function formatValue(val, unit) {
   if (unit === 's') {
     return val < 1 ? `${Math.round(val * 1000)} ms` : `${val.toFixed(2)} s`
   }
+  if (unit === 'st') {
+    return `${(val / 100).toFixed(2)} st`
+  }
   return val.toFixed(2)
 }
