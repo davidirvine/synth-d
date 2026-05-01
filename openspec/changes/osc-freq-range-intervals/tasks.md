@@ -30,10 +30,10 @@
 
 ## 4. FAUST DSP — widen slider bounds
 
-- [ ] 4.1 In `faust/synth.dsp`, change the `osc2Detune` hslider from `(0, -100, 100, 0.1)` to `(0, -700, 700, 1)` (line 15)
-- [ ] 4.2 In `faust/synth.dsp`, change the `osc3Detune` hslider from `(0, -100, 100, 0.1)` to `(0, -700, 700, 1)` (line 20)
-- [ ] 4.3 Validate FAUST compiles: `faust faust/synth.dsp -o /dev/null`
-- [ ] 4.4 Lint and format the touched file (note: `.dsp` is not in the prettier table; skip prettier and rely on FAUST validator only)
+- [x] 4.1 In `faust/synth.dsp`, change the `osc2Detune` hslider from `(0, -100, 100, 0.1)` to `(0, -700, 700, 1)` (line 15)
+- [x] 4.2 In `faust/synth.dsp`, change the `osc3Detune` hslider from `(0, -100, 100, 0.1)` to `(0, -700, 700, 1)` (line 20)
+- [x] 4.3 Validate FAUST compiles: `faust faust/synth.dsp -o /dev/null`
+- [x] 4.4 Lint and format the touched file (note: `.dsp` is not in the prettier table; skip prettier and rely on FAUST validator only)
 
 ## 5. Oscillator wiring
 
