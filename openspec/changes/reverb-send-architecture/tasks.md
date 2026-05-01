@@ -10,7 +10,7 @@
 
 ## 2. Application layer rename
 
-- [ ] 2.1 Update `src/App.svelte` at all three sites: `KNOB_PARAMS` registry (line 41), `DEFAULTS` (line 129, change value from 0.5 to 0.3), and the `midiStateFor(...)` call list (line 312). Replace `reverbMix` with `reverbSend` in each. Run lint+format on the file. Commit: `feat(reverb): register reverbSend across App.svelte`
+- [ ] 2.1 Update `src/App.svelte` at all three `reverbMix` sites: `KNOB_PARAMS` registry (line 41), `DEFAULTS` (line 129, change value from 0.5 to 0.3), and the `midiStateFor(...)` call list (line 312); replace `reverbMix` with `reverbSend` in each. Also change `DEFAULTS.reverbPreDelay` (line 132) from `0` to `0.015` so the App-level default matches the DSP default and the new Knob default introduced in 3.2 (Decision 4). Run lint+format on the file. Commit: `feat(reverb): register reverbSend across App.svelte`
 - [ ] 2.2 Add a load-time translation in `src/audio/midiCcMap.js`: in `MidiCcMap#load()`, when a stored entry has `param === 'reverbMix'`, load it into the in-memory maps under `param: 'reverbSend'` without rewriting `localStorage`. Implement as a small lookup table so future renames can be added without restructuring. Run lint+format. Commit: `feat(reverb): translate stale reverbMix CC assignments on load`
 - [ ] 2.3 Search the codebase for any remaining `reverbMix` string references using project tooling (`rg "reverbMix" src/ e2e/` or equivalent) and audit each. Anything outside test files should be renamed; test references will be updated in section 4. Commit if non-test files were updated: `refactor(reverb): remove residual reverbMix references`
 
