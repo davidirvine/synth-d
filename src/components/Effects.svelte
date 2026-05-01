@@ -196,7 +196,7 @@
       label="pre-delay"
       min={0}
       max={0.1}
-      default={0}
+      default={0.015}
       scale="linear"
       unit="s"
       disabled={reverbOn === 0}
