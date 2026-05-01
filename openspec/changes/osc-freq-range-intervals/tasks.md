@@ -44,15 +44,15 @@
 
 ## 6. Visual + audio verification
 
-- [ ] 6.1 Start the dev server (`npm run dev` or repo equivalent) and load the synth in a browser
-- [ ] 6.2 Confirm the OSC 2 knob now reads `FREQ`, value label shows `0.00 st` at rest, and dragging steps in 5¢ increments
-- [ ] 6.3 Hold Shift and drag — confirm 1¢ step and that the indicator latches at `m3` / `M3` / `P5` when crossing each target ±15¢, and goes blank outside the windows
-- [ ] 6.4 Repeat for OSC 3, including verifying the knob disables in LFO mode and re-enables when LFO is off
-- [ ] 6.5 Audio check: play a held note and sweep OSC 2 freq through +400¢ and +700¢; confirm the audible interval matches a major third and a perfect fifth above the OSC 1 pitch
-- [ ] 6.6 Report visual + audio findings to the human and wait for explicit approval before proceeding to review gate
+- [x] 6.1 Start the dev server (`npm run dev` or repo equivalent) and load the synth in a browser
+- [x] 6.2 Confirm the OSC 2 knob now reads `FREQ`, value label shows `0.00 st` at rest, and dragging steps in 5¢ increments
+- [x] 6.3 Hold Shift and drag — confirm 1¢ step and that the indicator latches at `m3` / `M3` / `P5` when crossing each target ±15¢, and goes blank outside the windows
+- [x] 6.4 Repeat for OSC 3, including verifying the knob disables in LFO mode and re-enables when LFO is off
+- [x] 6.5 Audio check: play a held note and sweep OSC 2 freq through +400¢ and +700¢; confirm the audible interval matches a major third and a perfect fifth above the OSC 1 pitch
+- [x] 6.6 Report visual + audio findings to the human and wait for explicit approval before proceeding to review gate
 
 ## 7. Review gate
 
-- [ ] 7.1 Run `roborev status` to confirm the daemon is healthy
-- [ ] 7.2 Run `roborev refine --max-iterations 3` and address any open findings
-- [ ] 7.3 Present refine results to the human and wait for explicit approval before opening the PR
+- [x] 7.1 Run `roborev status` to confirm the daemon is healthy
+- [x] 7.2 Run `roborev refine --max-iterations 3` and address any open findings
+- [x] 7.3 Present refine results to the human and wait for explicit approval before opening the PR
