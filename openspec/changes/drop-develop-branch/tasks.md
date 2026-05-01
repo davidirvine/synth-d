@@ -7,10 +7,10 @@
 
 ## 2. Final develop → main promotion
 
-- [ ] 2.1 Open the final promote PR from develop → main using stax (or manually via the GitHub UI if stax does not support this one-time pattern)
-- [ ] 2.2 Verify CI passes on the promote PR
-- [ ] 2.3 Merge the PR using GitHub's "Create a merge commit" option (NOT "Squash and merge"); this preserves the unreleased commits' SHAs on main and avoids one last phantom-conflict opportunity
-- [ ] 2.4 Verify main now contains `0ead3e1` and `a9389cd` with their original SHAs (`git log --oneline main | grep -E '0ead3e1|a9389cd'`)
+- [x] 2.1 Open the final promote PR from develop → main using stax (or manually via the GitHub UI if stax does not support this one-time pattern)
+- [x] 2.2 Verify CI passes on the promote PR
+- [x] 2.3 Merge the PR using GitHub's "Create a merge commit" option (NOT "Squash and merge"); this preserves the unreleased commits' SHAs on main and avoids one last phantom-conflict opportunity
+- [x] 2.4 Verify main now contains `0ead3e1` and `a9389cd` with their original SHAs (`git log --oneline main | grep -E '0ead3e1|a9389cd'`)
 
 ## 3. Cutover PR — workflow files
 
