@@ -126,7 +126,7 @@
     delayModRate: 0.5,
     delayModDepth: 0,
     // Reverb
-    reverbSend: 0.5,
+    reverbSend: 0.3,
     reverbDamp: 0.5,
     reverbDecay: 0.5,
     reverbPreDelay: 0.015,

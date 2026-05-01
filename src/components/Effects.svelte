@@ -156,7 +156,7 @@
       label="send"
       min={0}
       max={1}
-      default={0.5}
+      default={0.3}
       scale="linear"
       disabled={reverbOn === 0}
       externalValue={midiState?.reverbSend?.externalValue}

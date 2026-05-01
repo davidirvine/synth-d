@@ -517,7 +517,7 @@ describe('App — reverbSend forwards from knob to engine', () => {
         (/** @type {any[]} */ c) => c[0] === 'reverbSend'
       )
       expect(sendCalls.length).toBeGreaterThan(0)
-      expect(sendCalls[sendCalls.length - 1][1]).toBeCloseTo(0.5, 5)
+      expect(sendCalls[sendCalls.length - 1][1]).toBeCloseTo(0.3, 5)
     })
   })
 })
