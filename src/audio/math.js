@@ -46,6 +46,13 @@ export function valueToNormalized(val, min, max, scale) {
   if (scale === 'log-reverse') {
     return 1 - Math.log((max + min - val) / min) / Math.log(max / min)
   }
+  if (scale === 'fine-center') {
+    const center = (max + min) / 2
+    const range = (max - min) / 2
+    const delta = val - center
+    const normT = Math.sign(delta) * Math.sqrt(Math.abs(delta) / range)
+    return normT / 2 + 0.5
+  }
   return (val - min) / (max - min)
 }
 
