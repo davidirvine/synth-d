@@ -192,5 +192,5 @@ reverbWet = de.fdelay(4801, reverbPreDelayS * ma.SR)
 vcaOut     = filteredSig * ampEnvOut;
 outputPeak = abs(vcaOut * (masterVol / 0.6)) : vbargraph("outputPeak [unit:linear]", 0, 2);
 masterOut  = attach(vcaOut * (masterVol / 0.6), outputPeak) : ma.tanh;
-reverbOut = delayStage <: (_ * (1 - reverbSendS), reverbWet * reverbSendS) :> _;
+reverbOut = delayStage + reverbWet * reverbSendS;
 process   = select2(int(reverbOn), delayStage, reverbOut) <: _, _;
