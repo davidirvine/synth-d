@@ -27,15 +27,15 @@ Before starting any implementation work the branch MUST exist. If the current br
 
 ## Worktree Workflow
 
-The `develop` branch is reserved exclusively for OpenSpec proposals and tooling work. All change implementation MUST happen in an isolated worktree. This is not optional.
+Implementation happens in worktrees branched from `main`. All change implementation MUST happen in an isolated worktree. This is not optional.
 
 **REQUIRED sequence:**
 
-1. From `develop`, run `/opsx-apply-wt <change-name>` to create a sibling worktree on the correct branch
+1. From `main`, run `/opsx-apply-wt <change-name>` to create a sibling worktree on the correct branch
 2. Open the new worktree in a separate VS Code window or terminal
 3. From inside that worktree, run `/opsx:apply <change-name>` to begin implementation
 
-Do not implement changes directly on `develop`. If you find yourself on `develop` with implementation work, halt and ask the human how to proceed.
+Do not implement changes directly on `main`. If you find yourself on `main` with implementation work, halt and ask the human how to proceed.
 
 ## Code review with roborev
 
