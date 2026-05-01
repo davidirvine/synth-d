@@ -27,7 +27,7 @@ jobs:
           # feat > fix > chore (default). The PR title becomes the squash commit
           # message on main that release-please parses for the version bump type.
           TYPE="chore"
-          COMMITS=$(git log main..develop --format="%s")
+          COMMITS=$(git log origin/main..develop --format="%s")
 
           if echo "$COMMITS" | grep -qE '^feat(\([^)]*\))?:'; then
             TYPE="feat"
