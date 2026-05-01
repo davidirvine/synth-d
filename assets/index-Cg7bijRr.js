@@ -9954,6 +9954,12 @@ function mtof(midiNote) {
 function normalizedToValue(pos, min, max, scale) {
 	if (scale === "log") return min * Math.pow(max / min, pos);
 	if (scale === "log-reverse") return max + min - min * Math.pow(max / min, 1 - pos);
+	if (scale === "fine-center") {
+		const center = (max + min) / 2;
+		const range = (max - min) / 2;
+		const t = (pos - .5) * 2;
+		return center + Math.sign(t) * t * t * range;
+	}
 	return min + (max - min) * pos;
 }
 /**
@@ -9966,7 +9972,28 @@ function normalizedToValue(pos, min, max, scale) {
 function valueToNormalized(val, min, max, scale) {
 	if (scale === "log") return Math.log(val / min) / Math.log(max / min);
 	if (scale === "log-reverse") return 1 - Math.log((max + min - val) / min) / Math.log(max / min);
+	if (scale === "fine-center") {
+		const center = (max + min) / 2;
+		const range = (max - min) / 2;
+		const delta = val - center;
+		return Math.sign(delta) * Math.sqrt(Math.abs(delta) / range) / 2 + .5;
+	}
 	return (val - min) / (max - min);
+}
+/**
+* Detect a musical interval from a cent value, latching at m3 (±300¢),
+* M3 (±400¢), and P5 (±700¢) within a ±15¢ tolerance window. Symmetric
+* about zero. The P5 upper window is clipped at the slider maximum
+* (685–700¢ rather than 685–715¢) — see osc-freq-range-intervals design D4.
+* @param {number} cents
+* @returns {"m3" | "M3" | "P5" | null}
+*/
+function detectInterval(cents) {
+	const abs = Math.abs(cents);
+	if (abs >= 285 && abs <= 315) return "m3";
+	if (abs >= 385 && abs <= 415) return "M3";
+	if (abs >= 685 && abs <= 700) return "P5";
+	return null;
 }
 /**
 * @param {number} val
@@ -9980,6 +10007,7 @@ function formatValue(val, unit) {
 		return `${Math.round(val)} Hz`;
 	}
 	if (unit === "s") return val < 1 ? `${Math.round(val * 1e3)} ms` : `${val.toFixed(2)} s`;
+	if (unit === "st") return `${(val / 100).toFixed(2)} st`;
 	return val.toFixed(2);
 }
 //#endregion
@@ -10654,8 +10682,9 @@ function tweened(value, defaults = {}) {
 var root_1$3 = /* @__PURE__ */ from_svg(`<circle class="learn-ring svelte-1wmwmfc" fill="none" stroke-width="2"></circle>`);
 var root_2$3 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
 var root_3$2 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
-var root_4$1 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> </span>`);
-var root$15 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <span> </span> <!></div>`);
+var root_4$1 = /* @__PURE__ */ from_html(`<span class="interval-indicator svelte-1wmwmfc"> </span>`);
+var root_5 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> </span>`);
+var root$15 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <!> <span> </span> <!></div>`);
 function Knob($$anchor, $$props) {
 	push($$props, true);
 	const $animPos = () => store_get(animPos, "$animPos", $$stores);
@@ -10673,6 +10702,9 @@ function Knob($$anchor, $$props) {
 	showValue?: boolean,
 	showArc?: boolean,
 	bipolar?: boolean,
+	intervalIndicator?: boolean,
+	step?: number | null,
+	fineStep?: number | null,
 	externalValue?: number,
 	learningMidi?: boolean,
 	assignedCc?: number | null,
@@ -10680,7 +10712,7 @@ function Knob($$anchor, $$props) {
 	onchange?: (e: { value: number }) => void,
 	oncontextmenu?: () => void
 	}} */
-	let label = prop($$props, "label", 3, ""), min = prop($$props, "min", 3, 0), max = prop($$props, "max", 3, 1), defaultValue = prop($$props, "default", 3, .5), initialValue = prop($$props, "value", 3, void 0), scale = prop($$props, "scale", 3, "linear"), unit = prop($$props, "unit", 3, ""), ticks = prop($$props, "ticks", 19, () => []), showLabel = prop($$props, "showLabel", 3, true), showValue = prop($$props, "showValue", 3, true), showArc = prop($$props, "showArc", 3, true), bipolar = prop($$props, "bipolar", 3, false), externalValue = prop($$props, "externalValue", 3, void 0), learningMidi = prop($$props, "learningMidi", 3, false), assignedCc = prop($$props, "assignedCc", 3, null), disabled = prop($$props, "disabled", 3, false);
+	let label = prop($$props, "label", 3, ""), min = prop($$props, "min", 3, 0), max = prop($$props, "max", 3, 1), defaultValue = prop($$props, "default", 3, .5), initialValue = prop($$props, "value", 3, void 0), scale = prop($$props, "scale", 3, "linear"), unit = prop($$props, "unit", 3, ""), ticks = prop($$props, "ticks", 19, () => []), showLabel = prop($$props, "showLabel", 3, true), showValue = prop($$props, "showValue", 3, true), showArc = prop($$props, "showArc", 3, true), bipolar = prop($$props, "bipolar", 3, false), intervalIndicator = prop($$props, "intervalIndicator", 3, false), step = prop($$props, "step", 3, null), fineStep = prop($$props, "fineStep", 3, null), externalValue = prop($$props, "externalValue", 3, void 0), learningMidi = prop($$props, "learningMidi", 3, false), assignedCc = prop($$props, "assignedCc", 3, null), disabled = prop($$props, "disabled", 3, false);
 	let value = /* @__PURE__ */ state(proxy(untrack(() => initialValue() !== void 0 ? initialValue() : defaultValue())));
 	const SWEEP = 270;
 	const START_ANGLE = 225;
@@ -10744,12 +10776,18 @@ function Knob($$anchor, $$props) {
 			}
 		}
 	});
+	/** @param {KeyboardEvent} e */
+	function onShiftKey(e) {
+		if (e.key === "Shift") shiftHeld = e.type === "keydown";
+	}
 	/** @param {PointerEvent & { currentTarget: Element }} e */
 	function onPointerDown(e) {
 		dragging = true;
 		lastY = e.clientY;
 		shiftHeld = e.shiftKey;
 		e.currentTarget.setPointerCapture(e.pointerId);
+		window.addEventListener("keydown", onShiftKey);
+		window.addEventListener("keyup", onShiftKey);
 	}
 	/** @param {PointerEvent} e */
 	function onPointerMove(e) {
@@ -10758,15 +10796,22 @@ function Knob($$anchor, $$props) {
 		const delta = -(e.clientY - lastY);
 		lastY = e.clientY;
 		const sensitivity = shiftHeld ? .001 : .01;
-		const newPos = Math.max(0, Math.min(1, get(pos) + delta * sensitivity));
-		const newValue = normalizedToValue(newPos, min(), max(), scale());
+		const rawValue = normalizedToValue(Math.max(0, Math.min(1, get(pos) + delta * sensitivity)), min(), max(), scale());
+		const activeStep = shiftHeld && fineStep() !== null ? fineStep() : step();
+		const newValue = activeStep !== null && activeStep > 0 ? Math.max(min(), Math.min(max(), Math.round(rawValue / activeStep) * activeStep)) : rawValue;
 		set(value, newValue, true);
-		animPos.set(newPos, { duration: 0 });
+		animPos.set(valueToNormalized(newValue, min(), max(), scale()), { duration: 0 });
 		$$props.onchange?.({ value: newValue });
 	}
 	function onPointerUp() {
 		dragging = false;
+		window.removeEventListener("keydown", onShiftKey);
+		window.removeEventListener("keyup", onShiftKey);
 	}
+	onDestroy(() => {
+		window.removeEventListener("keydown", onShiftKey);
+		window.removeEventListener("keyup", onShiftKey);
+	});
 	function onDblClick() {
 		set(value, defaultValue());
 		animPos.set(valueToNormalized(defaultValue(), min(), max(), scale()), { duration: 0 });
@@ -10826,20 +10871,32 @@ function Knob($$anchor, $$props) {
 	});
 	reset(svg);
 	reset(div_1);
-	var span_1 = sibling(div_1, 2);
-	let classes_2;
-	var text_3 = child(span_1, true);
-	reset(span_1);
-	var node_3 = sibling(span_1, 2);
+	var node_3 = sibling(div_1, 2);
 	var consequent_2 = ($$anchor) => {
-		var span_2 = root_4$1();
-		var text_4 = child(span_2);
-		reset(span_2);
-		template_effect(() => set_text(text_4, `CC ${assignedCc() ?? ""}`));
-		append($$anchor, span_2);
+		const interval = /* @__PURE__ */ user_derived(() => detectInterval(get(value)));
+		var span_1 = root_4$1();
+		var text_3 = child(span_1, true);
+		reset(span_1);
+		template_effect(() => set_text(text_3, get(interval) ?? "\xA0"));
+		append($$anchor, span_1);
 	};
 	if_block(node_3, ($$render) => {
-		if (assignedCc() !== null) $$render(consequent_2);
+		if (intervalIndicator()) $$render(consequent_2);
+	});
+	var span_2 = sibling(node_3, 2);
+	let classes_2;
+	var text_4 = child(span_2, true);
+	reset(span_2);
+	var node_4 = sibling(span_2, 2);
+	var consequent_3 = ($$anchor) => {
+		var span_3 = root_5();
+		var text_5 = child(span_3);
+		reset(span_3);
+		template_effect(() => set_text(text_5, `CC ${assignedCc() ?? ""}`));
+		append($$anchor, span_3);
+	};
+	if_block(node_4, ($$render) => {
+		if (assignedCc() !== null) $$render(consequent_3);
 	});
 	reset(div);
 	template_effect(($0, $1) => {
@@ -10849,8 +10906,8 @@ function Knob($$anchor, $$props) {
 		set_attribute(path, "d", $0);
 		set_attribute(line, "x2", get(indicatorEnd).x);
 		set_attribute(line, "y2", get(indicatorEnd).y);
-		classes_2 = set_class(span_1, 1, "knob-value svelte-1wmwmfc", null, classes_2, { invisible: !showValue() });
-		set_text(text_3, $1);
+		classes_2 = set_class(span_2, 1, "knob-value svelte-1wmwmfc", null, classes_2, { invisible: !showValue() });
+		set_text(text_4, $1);
 	}, [() => arcPath(1), () => formatValue(get(value), unit())]);
 	delegated("pointerdown", div_1, onPointerDown);
 	delegated("pointermove", div_1, onPointerMove);
@@ -11027,13 +11084,15 @@ function Oscillator($$anchor, $$props) {
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.osc2Detune?.learningMidi ?? false);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.osc2Detune?.assignedCc ?? null);
 		Knob(node, {
-			label: "detune",
-			min: -100,
-			max: 100,
+			label: "freq",
+			min: -700,
+			max: 700,
 			default: 0,
-			scale: "linear",
-			unit: "c",
+			unit: "st",
 			bipolar: true,
+			intervalIndicator: true,
+			step: 5,
+			fineStep: 1,
 			get externalValue() {
 				return get($0);
 			},
@@ -11080,13 +11139,15 @@ function Oscillator($$anchor, $$props) {
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.osc3Detune?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.osc3Detune?.assignedCc ?? null);
 		Knob(node_1, {
-			label: "detune",
-			min: -100,
-			max: 100,
+			label: "freq",
+			min: -700,
+			max: 700,
 			default: 0,
-			scale: "linear",
-			unit: "c",
+			unit: "st",
 			bipolar: true,
+			intervalIndicator: true,
+			step: 5,
+			fineStep: 1,
 			get disabled() {
 				return get($0);
 			},
@@ -13059,7 +13120,7 @@ var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header cl
 function App($$anchor, $$props) {
 	push($$props, true);
 	const branch = "main";
-	const versionLabel = branch === "main" ? `v1.2.0` : `v1.2.0 (${branch})`;
+	const versionLabel = branch === "main" ? `v1.3.0` : `v1.3.0 (${branch})`;
 	const DEFAULTS = {
 		osc2Detune: 0,
 		osc3Detune: 0,

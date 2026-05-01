@@ -25,7 +25,7 @@
         "."
     ],
     "size": 1160036,
-    "code": "qBK+B1Q8Hw==",
+    "code": "CEG+B1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -787,9 +787,9 @@
                         }
                     ],
                     "init": 0,
-                    "min": -100,
-                    "max": 100,
-                    "step": 0.1
+                    "min": -700,
+                    "max": 700,
+                    "step": 1
                 },
                 {
                     "type": "hslider",
@@ -840,9 +840,9 @@
                         }
                     ],
                     "init": 0,
-                    "min": -100,
-                    "max": 100,
-                    "step": 0.1
+                    "min": -700,
+                    "max": 700,
+                    "step": 1
                 },
                 {
                     "type": "hslider",
