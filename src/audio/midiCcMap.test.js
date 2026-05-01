@@ -3,19 +3,19 @@ import { MidiCcMap } from './midiCcMap.js'
 
 // Minimal localStorage mock
 function makeStorage() {
-  const store = {}
+  const store = /** @type {Record<string, string>} */ ({})
   return {
-    getItem: (k) => store[k] ?? null,
-    setItem: (k, v) => {
+    getItem: (/** @type {string} */ k) => store[k] ?? null,
+    setItem: (/** @type {string} */ k, /** @type {string} */ v) => {
       store[k] = String(v)
     },
-    removeItem: (k) => {
+    removeItem: (/** @type {string} */ k) => {
       delete store[k]
     },
     get length() {
       return Object.keys(store).length
     },
-    key: (i) => Object.keys(store)[i] ?? null,
+    key: (/** @type {number} */ i) => Object.keys(store)[i] ?? null,
     _store: store,
   }
 }
@@ -87,7 +87,11 @@ describe('MidiCcMap — localStorage persistence', () => {
     const map = new MidiCcMap()
     map.assign(74, 'cutoff', 20, 20000)
     const raw = localStorage.getItem('midiCc:74')
-    expect(JSON.parse(raw)).toEqual({ param: 'cutoff', min: 20, max: 20000 })
+    expect(JSON.parse(/** @type {string} */ (raw))).toEqual({
+      param: 'cutoff',
+      min: 20,
+      max: 20000,
+    })
   })
 
   it('loads mappings from localStorage on construction', () => {
@@ -103,5 +107,45 @@ describe('MidiCcMap — localStorage persistence', () => {
     map.assign(71, 'cutoff', 20, 20000)
     expect(localStorage.getItem('midiCc:74')).toBeNull()
     expect(localStorage.getItem('midiCc:71')).not.toBeNull()
+  })
+})
+
+describe('MidiCcMap — reverbMix → reverbSend load-time translation', () => {
+  it('stored reverbMix entry resolves as reverbSend in memory', () => {
+    localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbMix', min: 0, max: 1 }))
+    const map = new MidiCcMap()
+    expect(map.resolve(42)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
+    expect(map.getAssignedCc('reverbSend')).toBe(42)
+    expect(map.getAssignedCc('reverbMix')).toBeNull()
+  })
+
+  it('translation does not rewrite the localStorage entry', () => {
+    localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbMix', min: 0, max: 1 }))
+    new MidiCcMap()
+    const raw = localStorage.getItem('midiCc:42')
+    expect(JSON.parse(/** @type {string} */ (raw))).toEqual({
+      param: 'reverbMix',
+      min: 0,
+      max: 1,
+    })
+  })
+
+  it('stored reverbSend entry loads unchanged', () => {
+    localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbSend', min: 0, max: 1 }))
+    const map = new MidiCcMap()
+    expect(map.resolve(42)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
+    expect(map.getAssignedCc('reverbSend')).toBe(42)
+  })
+
+  it('canonical reverbSend entry wins over stale reverbMix on the same param', () => {
+    // User assigned reverbMix to CC 42 before the rename, then assigned
+    // reverbSend to CC 71 after the rename. Both keys persist in storage.
+    localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbMix', min: 0, max: 1 }))
+    localStorage.setItem('midiCc:71', JSON.stringify({ param: 'reverbSend', min: 0, max: 1 }))
+    const map = new MidiCcMap()
+    expect(map.getAssignedCc('reverbSend')).toBe(71)
+    expect(map.resolve(71)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
+    // The stale reverbMix entry must not shadow the canonical one in #byCC.
+    expect(map.resolve(42)).toBeNull()
   })
 })

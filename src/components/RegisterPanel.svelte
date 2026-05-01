@@ -1,13 +1,10 @@
 <script>
-  let {
-    ondown,
-    onup,
-    activeRegister = 'mid',
-  } = /** @type {{
+  /** @type {{
     ondown?: () => void,
     onup?: () => void,
     activeRegister?: 'bottom' | 'top' | 'mid',
-  }} */ ($props())
+  }} */
+  let { ondown, onup, activeRegister = 'mid' } = $props()
 </script>
 
 <div class="panel">

@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+set -e
+
+# CI parity for pushes — mirrors .github/workflows/ci-develop.yml.
+# Bypass intentionally with `git push --no-verify` for WIP pushes.
+
+echo "[pre-push] eslint"
+npx eslint .
+
+echo "[pre-push] prettier --check"
+npx prettier --check .
+
+if [ ! -f public/dsp-module.wasm ] || [ faust/synth.dsp -nt public/dsp-module.wasm ]; then
+  echo "[pre-push] faust:build (synth.dsp newer than cached output)"
+  npm run faust:build
+fi
+
+echo "[pre-push] vitest"
+npx vitest run
+
+echo "[pre-push] playwright"
+npx playwright test

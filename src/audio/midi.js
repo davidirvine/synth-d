@@ -11,6 +11,7 @@ export class MidiManager {
   /** @type {Set<number>} */
   #activeNotes = new Set()
   #bendValue = 0
+  /** @type {number | null} */
   #lastNote = null
 
   /** @param {{ onNoteOn?: Function, onNoteOff?: Function, onPitchBend?: Function, onCc?: Function, onStatusChange?: Function, onDevicesChange?: Function }} callbacks */
@@ -42,6 +43,7 @@ export class MidiManager {
     this._notifyDevices()
   }
 
+  /** @param {string} id */
   selectDevice(id) {
     this._detachListeners()
     this.#selectedId = id
@@ -87,20 +89,22 @@ export class MidiManager {
     }
   }
 
+  /** @param {MIDIConnectionEvent} event */
   _handleStateChange(event) {
     const port = event.port
-    if (port.type !== 'input') return
+    if (!port || port.type !== 'input') return
+    const inputPort = /** @type {MIDIInput} */ (port)
 
-    if (port.state === 'disconnected') {
-      port.onmidimessage = null
-      if (port.id === this.#selectedId) {
+    if (inputPort.state === 'disconnected') {
+      inputPort.onmidimessage = null
+      if (inputPort.id === this.#selectedId) {
         this.#selectedId = null
         this._releaseAllNotes()
       }
-    } else if (port.state === 'connected') {
-      if (this.#selectedId === null || port.id === this.#selectedId) {
-        port.onmidimessage = this._handleMessage
-        if (this.#selectedId === null) this.#selectedId = port.id
+    } else if (inputPort.state === 'connected') {
+      if (this.#selectedId === null || inputPort.id === this.#selectedId) {
+        inputPort.onmidimessage = this._handleMessage
+        if (this.#selectedId === null) this.#selectedId = inputPort.id
       }
     }
 
@@ -116,7 +120,11 @@ export class MidiManager {
 
   /** @param {MIDIMessageEvent} event */
   _handleMessage(event) {
-    const [status, data1, data2] = event.data
+    if (!event.data) return
+    const data = Array.from(event.data)
+    const status = data[0]
+    const data1 = data[1]
+    const data2 = data[2]
     const type = status & 0xf0
 
     if (type === 0x90) {
@@ -139,6 +147,7 @@ export class MidiManager {
     }
   }
 
+  /** @param {number} note */
   _noteOn(note) {
     this.#activeNotes.add(note)
     this.#lastNote = note
@@ -146,12 +155,14 @@ export class MidiManager {
     this._onNoteOn(note, freq)
   }
 
+  /** @param {number} note */
   _noteOff(note) {
     if (!this.#activeNotes.has(note)) return
     this.#activeNotes.delete(note)
     this._onNoteOff(note)
   }
 
+  /** @param {number} raw */
   _pitchBend(raw) {
     const normalized = (raw - BEND_CENTER) / BEND_CENTER
     this.#bendValue = normalized * BEND_SEMITONES
@@ -160,6 +171,7 @@ export class MidiManager {
     }
   }
 
+  /** @param {number} note */
   _bentFreq(note) {
     return midiToFreq(note) * Math.pow(2, this.#bendValue / 12)
   }

@@ -2,17 +2,13 @@
   import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
-  let {
-    onchange,
-    midiState = {},
-    onknobcontextmenu,
-    reset = 0,
-  } = /** @type {{
+  /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
     reset?: number,
-  }} */ ($props())
+  }} */
+  let { onchange, midiState = {}, onknobcontextmenu, reset = 0 } = $props()
 
   let delayOn = $state(0)
   let delayModOn = $state(0)
@@ -157,17 +153,17 @@
   </div>
   <div class="effects-row reverb-row">
     <Knob
-      label="mix"
+      label="send"
       min={0}
       max={1}
-      default={0.5}
+      default={0.3}
       scale="linear"
       disabled={reverbOn === 0}
-      externalValue={midiState?.reverbMix?.externalValue}
-      learningMidi={midiState?.reverbMix?.learningMidi ?? false}
-      assignedCc={midiState?.reverbMix?.assignedCc ?? null}
-      onchange={(e) => onchange?.({ param: 'reverbMix', value: e.value })}
-      oncontextmenu={() => onknobcontextmenu?.('reverbMix')}
+      externalValue={midiState?.reverbSend?.externalValue}
+      learningMidi={midiState?.reverbSend?.learningMidi ?? false}
+      assignedCc={midiState?.reverbSend?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'reverbSend', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('reverbSend')}
     />
     <Knob
       label="damp"
@@ -200,7 +196,7 @@
       label="pre-delay"
       min={0}
       max={0.1}
-      default={0}
+      default={0.015}
       scale="linear"
       unit="s"
       disabled={reverbOn === 0}

@@ -1,3 +1,4 @@
+/** @param {number} mode */
 export function filterGains(mode) {
   return {
     lpGain: Math.max(0, 1 - mode),

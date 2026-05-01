@@ -26,8 +26,8 @@ describe('Mixer — rendering', () => {
 
   it('noise type defaults to white (wht button is active)', () => {
     const { container } = render(Mixer)
-    const whtBtn = [...container.querySelectorAll('.noise-btn')].find(
-      (b) => b.textContent.trim() === 'wht'
+    const whtBtn = /** @type {Element} */ (
+      [...container.querySelectorAll('.noise-btn')].find((b) => b.textContent.trim() === 'wht')
     )
     expect(whtBtn.classList.contains('active')).toBe(true)
   })
@@ -37,8 +37,8 @@ describe('Mixer — noise type toggle', () => {
   it('clicking pink button emits noiseType 1', async () => {
     const onchange = vi.fn()
     const { container } = render(Mixer, { props: { onchange } })
-    const pinkBtn = [...container.querySelectorAll('.noise-btn')].find(
-      (b) => b.textContent.trim() === 'pink'
+    const pinkBtn = /** @type {Element} */ (
+      [...container.querySelectorAll('.noise-btn')].find((b) => b.textContent.trim() === 'pink')
     )
     await fireEvent.click(pinkBtn)
     expect(onchange).toHaveBeenCalledWith({ param: 'noiseType', value: 1 })
@@ -46,8 +46,8 @@ describe('Mixer — noise type toggle', () => {
 
   it('pink button has active class after clicking it', async () => {
     const { container } = render(Mixer)
-    const pinkBtn = [...container.querySelectorAll('.noise-btn')].find(
-      (b) => b.textContent.trim() === 'pink'
+    const pinkBtn = /** @type {Element} */ (
+      [...container.querySelectorAll('.noise-btn')].find((b) => b.textContent.trim() === 'pink')
     )
     await fireEvent.click(pinkBtn)
     expect(pinkBtn.classList.contains('active')).toBe(true)
@@ -57,8 +57,8 @@ describe('Mixer — noise type toggle', () => {
     const onchange = vi.fn()
     const { container } = render(Mixer, { props: { onchange } })
     const btns = container.querySelectorAll('.noise-btn')
-    const pinkBtn = [...btns].find((b) => b.textContent.trim() === 'pink')
-    const whtBtn = [...btns].find((b) => b.textContent.trim() === 'wht')
+    const pinkBtn = /** @type {Element} */ ([...btns].find((b) => b.textContent.trim() === 'pink'))
+    const whtBtn = /** @type {Element} */ ([...btns].find((b) => b.textContent.trim() === 'wht'))
     await fireEvent.click(pinkBtn)
     await fireEvent.click(whtBtn)
     const calls = onchange.mock.calls.filter((c) => c[0].param === 'noiseType')

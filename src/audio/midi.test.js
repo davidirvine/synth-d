@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { MidiManager } from './midi.js'
 
 // jsdom has no navigator.requestMIDIAccess; install a mock via defineProperty.
+/** @param {any} access */
 function mockMidiAccess(access) {
   Object.defineProperty(navigator, 'requestMIDIAccess', {
     value: vi.fn().mockResolvedValue(access),
@@ -18,19 +19,25 @@ function removeMidiAccess() {
   })
 }
 
+/** @param {Array<any>} [ports] */
 function makeMidiAccess(ports = []) {
   const inputMap = new Map(ports.map((p) => [p.id, p]))
-  const access = { inputs: inputMap, onstatechange: null }
-  // Propagate onstatechange assignments so we can fire them in tests
-  return access
+  return /** @type {{ inputs: typeof inputMap, onstatechange: ((event: any) => void) | null }} */ ({
+    inputs: inputMap,
+    onstatechange: null,
+  })
 }
 
 function makePort(id = 'port-1', name = 'Test MIDI') {
   return { id, name, type: 'input', state: 'connected', onmidimessage: null }
 }
 
+/**
+ * @param {number[]} bytes
+ * @returns {MIDIMessageEvent}
+ */
 function midiEvent(bytes) {
-  return { data: new Uint8Array(bytes) }
+  return /** @type {MIDIMessageEvent} */ ({ data: new Uint8Array(bytes) })
 }
 
 describe('MidiManager — constructor / callbacks', () => {
@@ -103,7 +110,10 @@ describe('MidiManager — connect: success', () => {
 })
 
 describe('MidiManager — message parsing: note-on', () => {
-  let m, onNoteOn
+  /** @type {any} */
+  let m
+  /** @type {any} */
+  let onNoteOn
 
   beforeEach(async () => {
     onNoteOn = vi.fn()
@@ -128,7 +138,10 @@ describe('MidiManager — message parsing: note-on', () => {
 })
 
 describe('MidiManager — message parsing: note-off', () => {
-  let m, onNoteOff
+  /** @type {any} */
+  let m
+  /** @type {any} */
+  let onNoteOff
 
   beforeEach(async () => {
     onNoteOff = vi.fn()
@@ -160,7 +173,10 @@ describe('MidiManager — message parsing: note-off', () => {
 })
 
 describe('MidiManager — pitchbend', () => {
-  let m, onPitchBend
+  /** @type {any} */
+  let m
+  /** @type {any} */
+  let onPitchBend
 
   beforeEach(async () => {
     onPitchBend = vi.fn()
@@ -225,7 +241,7 @@ describe('MidiManager — disconnect note-off synthesis', () => {
 
     // Simulate disconnect by firing the access onstatechange
     port.state = 'disconnected'
-    access.onstatechange({ port })
+    access.onstatechange?.({ port })
 
     expect(onNoteOff).toHaveBeenCalledWith(60)
     expect(onNoteOff).toHaveBeenCalledWith(64)

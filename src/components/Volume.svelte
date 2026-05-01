@@ -1,15 +1,12 @@
 <script>
   import Knob from './Knob.svelte'
 
-  let {
-    onchange,
-    midiState = {},
-    onknobcontextmenu,
-  } = /** @type {{
+  /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void
-  }} */ ($props())
+  }} */
+  let { onchange, midiState = {}, onknobcontextmenu } = $props()
 </script>
 
 <div class="panel">

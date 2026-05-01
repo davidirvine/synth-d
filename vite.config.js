@@ -22,6 +22,7 @@ export default defineConfig({
     __GIT_BRANCH__: JSON.stringify(gitBranch),
   },
   plugins: [svelte()],
+  server: { strictPort: true },
   resolve: {
     conditions: ['browser'],
     alias: process.env.VITEST

@@ -36,7 +36,7 @@ describe('Keyboard — rendering', () => {
 describe('Keyboard — SVG structure', () => {
   it('renders a top rail rect at y=0 with fill #333', () => {
     const { container } = render(Keyboard)
-    const rail = container.querySelector('rect[fill="#333"]')
+    const rail = /** @type {Element} */ (container.querySelector('rect[fill="#333"]'))
     expect(rail).not.toBeNull()
     expect(rail.getAttribute('y')).toBe('0')
   })
@@ -48,17 +48,23 @@ describe('Keyboard — SVG structure', () => {
 
   it('totalWidth is 1008 px for baseMidi 21', () => {
     const { container } = render(Keyboard, { props: { baseMidi: 21 } })
-    expect(Number(container.querySelector('svg').getAttribute('width'))).toBe(1008)
+    expect(
+      Number(/** @type {Element} */ (container.querySelector('svg')).getAttribute('width'))
+    ).toBe(1008)
   })
 
   it('totalWidth is 1008 px for baseMidi 36', () => {
     const { container } = render(Keyboard)
-    expect(Number(container.querySelector('svg').getAttribute('width'))).toBe(1008)
+    expect(
+      Number(/** @type {Element} */ (container.querySelector('svg')).getAttribute('width'))
+    ).toBe(1008)
   })
 
   it('totalWidth is 1008 px for baseMidi 48', () => {
     const { container } = render(Keyboard, { props: { baseMidi: 48 } })
-    expect(Number(container.querySelector('svg').getAttribute('width'))).toBe(1008)
+    expect(
+      Number(/** @type {Element} */ (container.querySelector('svg')).getAttribute('width'))
+    ).toBe(1008)
   })
 })
 
@@ -66,26 +72,28 @@ describe('Keyboard — pointer interaction', () => {
   it('calls onnote when a key is pressed', async () => {
     const onnote = vi.fn()
     const { container } = render(Keyboard, { props: { onnote } })
-    const key = container.querySelector('.white-key')
+    const key = /** @type {Element} */ (container.querySelector('.white-key'))
     await fireEvent.pointerDown(key)
     expect(onnote).toHaveBeenCalled()
   })
 
   it('onnote messages include freq and gate=1 on press', async () => {
-    const messages = []
-    const onnote = (msgs) => messages.push(...msgs)
+    const messages = /** @type {Array<{param: string, value: number}>} */ ([])
+    const onnote = (/** @type {Array<{param: string, value: number}>} */ msgs) =>
+      messages.push(...msgs)
     const { container } = render(Keyboard, { props: { onnote } })
-    const key = container.querySelector('.white-key')
+    const key = /** @type {Element} */ (container.querySelector('.white-key'))
     await fireEvent.pointerDown(key)
     expect(messages.some((m) => m.param === 'freq')).toBe(true)
     expect(messages.some((m) => m.param === 'gate' && m.value === 1)).toBe(true)
   })
 
   it('sends gate=0 on pointer release when no other key held', async () => {
-    const messages = []
-    const onnote = (msgs) => messages.push(...msgs)
+    const messages = /** @type {Array<{param: string, value: number}>} */ ([])
+    const onnote = (/** @type {Array<{param: string, value: number}>} */ msgs) =>
+      messages.push(...msgs)
     const { container } = render(Keyboard, { props: { onnote } })
-    const key = container.querySelector('.white-key')
+    const key = /** @type {Element} */ (container.querySelector('.white-key'))
     await fireEvent.pointerDown(key)
     messages.length = 0
     await fireEvent.pointerUp(key)
@@ -96,17 +104,18 @@ describe('Keyboard — pointer interaction', () => {
 describe('Keyboard — bindable triggerNote / releaseNote', () => {
   it('exposes triggerNote as a bindable function', () => {
     render(Keyboard, {
-      props: {
+      props: /** @type {any} */ ({
         'bind:triggerNote': () => {},
-      },
+      }),
     })
     // In testing-library/svelte, we verify the prop was set by calling triggerNote
     // The bind mechanism is tested via direct prop access below
   })
 
   it('shared activeKeys: gate stays on while MIDI note held after pointer release', async () => {
-    const messages = []
-    const onnote = (msgs) => messages.push(...msgs)
+    const messages = /** @type {Array<{param: string, value: number}>} */ ([])
+    const onnote = (/** @type {Array<{param: string, value: number}>} */ msgs) =>
+      messages.push(...msgs)
 
     // We test via the component's internal exposed functions by rendering
     // with direct access — use component's triggerNote / releaseNote props

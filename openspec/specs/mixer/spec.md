@@ -49,27 +49,22 @@ Each mixer level knob SHALL participate in the standard MIDI CC learn workflow: 
 - **WHEN** a CC is assigned to a mixer level knob and that CC is received
 - **THEN** the mixer level updates to the scaled CC value and the knob indicator moves accordingly
 
-### Requirement: Mixer panel displays a clip LED indicator in the panel label row
+### Requirement: Mixer panel displays a level LED indicator in the panel label row
 
-The mixer panel SHALL display a `ClipLed` component right-aligned in the `panel-header` flex row alongside the "MIXER" label. The `ClipLed` SHALL receive `getPeak` (bound to `getMixerPeak` from the engine) and `powered` props. The existing `panel-header` structure SHALL be retained; the `LevelMeter` component import and usage SHALL be replaced by `ClipLed`. The `LevelMeter.svelte` and `LevelMeter.test.js` files SHALL be deleted.
+The mixer panel SHALL display a `LevelLed` component right-aligned in the `panel-header` flex row alongside the "MIXER" label. The `LevelLed` SHALL receive `getPeak` (bound to `getMixerPeak` from the engine) and `powered` props. The `ClipLed` import SHALL be removed and replaced by `LevelLed`. The `ClipLed.svelte` and `ClipLed.test.js` files SHALL be deleted once both usages are replaced.
 
-#### Scenario: Mixer panel header contains the clip LED
+#### Scenario: Mixer panel header contains the level LED
 
 - **WHEN** the mixer panel is rendered
 - **THEN** the panel label row contains both the "MIXER" text and a single circular LED element right-aligned
 
-#### Scenario: LED is dark at rest
+#### Scenario: Mixer LED color reflects signal level
 
-- **WHEN** the synth is powered and mixer output is below the clip threshold
-- **THEN** the LED displays dim red
+- **WHEN** the mixer output is at a low level (below 0.5 linear)
+- **THEN** the mixer LED displays a green color
 
-#### Scenario: LED lights when mixer output clips
+#### Scenario: Mixer LED turns red and latches on clip
 
-- **WHEN** the pre-filter mixer signal exceeds 1.0 (driving the ma.tanh into saturation)
-- **THEN** the LED displays bright red and latches for 1.5 s
-
-#### Scenario: LED goes dark when synth is powered off
-
-- **WHEN** the synth is powered off
-- **THEN** the LED returns to dim red and polling stops
+- **WHEN** the mixer output exceeds 1.0 linear
+- **THEN** the mixer LED displays bright red and latches for 1.5 s
 

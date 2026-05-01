@@ -5,6 +5,7 @@ const BASE_MIDI = 48
 
 // Lower octave: z–m row (white keys) and s/d/g/h/j row (black keys).
 // Upper octave: q–i row (white keys) and 2/3/5/6/7 row (black keys).
+/** @type {Record<string, number>} */
 export const QWERTY_MAP = {
   // Lower octave (C3–B3)
   z: BASE_MIDI + 0, // C3
@@ -35,13 +36,22 @@ export const QWERTY_MAP = {
   i: BASE_MIDI + 24, // C5
 }
 
-// Returns the 25 MIDI notes for the keyboard shifted by octaveOffset semitones.
+/**
+ * Returns the 25 MIDI notes for the keyboard shifted by octaveOffset semitones.
+ * @param {number} octaveOffset
+ * @returns {number[]}
+ */
 export function midiNotesForOctave(octaveOffset) {
   return Array.from({ length: 25 }, (_, i) => BASE_MIDI + i + octaveOffset * 12)
 }
 
-// Returns the ordered parameter messages to send to the DSP engine for a note-on.
-// When already active, only freq is updated to avoid an amplitude discontinuity click.
+/**
+ * Returns the ordered parameter messages to send to the DSP engine for a note-on.
+ * When already active, only freq is updated to avoid an amplitude discontinuity click.
+ * @param {number} freq
+ * @param {boolean} currentlyActive
+ * @returns {Array<{ param: string, value: number }>}
+ */
 export function buildNoteOnMessages(freq, currentlyActive) {
   if (currentlyActive) {
     return [{ param: 'freq', value: freq }]
@@ -52,7 +62,12 @@ export function buildNoteOnMessages(freq, currentlyActive) {
   ]
 }
 
-// Converts a MIDI note number to Hz, applying an octave transpose offset.
+/**
+ * Converts a MIDI note number to Hz, applying an octave transpose offset.
+ * @param {number} midiNote
+ * @param {number} [octaveOffset]
+ * @returns {number}
+ */
 export function midiToFreq(midiNote, octaveOffset = 0) {
   return mtof(midiNote + octaveOffset * 12)
 }

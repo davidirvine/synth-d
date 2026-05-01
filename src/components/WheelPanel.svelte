@@ -1,8 +1,9 @@
 <script>
-  let { externalValue, onchange } = /** @type {{
+  /** @type {{
     externalValue?: number,
     onchange?: (e: { param: string, value: number }) => void,
-  }} */ ($props())
+  }} */
+  let { externalValue, onchange } = $props()
 
   let modWheel = $state(0.5)
 
@@ -16,6 +17,7 @@
   let wheelStartY = 0
   let wheelStartVal = 0
 
+  /** @param {PointerEvent & { currentTarget: Element }} e */
   function onWheelPointerDown(e) {
     wheelDragging = true
     wheelStartY = e.clientY
@@ -23,6 +25,7 @@
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
+  /** @param {PointerEvent} e */
   function onWheelPointerMove(e) {
     if (!wheelDragging) return
     const dy = wheelStartY - e.clientY
@@ -35,6 +38,7 @@
     wheelDragging = false
   }
 
+  /** @param {KeyboardEvent} e */
   function onWheelKeyDown(e) {
     const step = 0.05
     if (e.key === 'ArrowUp') {

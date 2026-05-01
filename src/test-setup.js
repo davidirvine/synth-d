@@ -9,9 +9,15 @@ Element.prototype.hasPointerCapture = function () {
 
 // svelte/motion spring uses matchMedia to detect prefers-reduced-motion
 if (!window.matchMedia) {
-  window.matchMedia = () => ({
-    matches: false,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  })
+  window.matchMedia = () =>
+    /** @type {MediaQueryList} */ ({
+      matches: false,
+      media: '',
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })
 }

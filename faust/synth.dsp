@@ -69,10 +69,10 @@ delayModDepth = hslider("delayModDepth [unit:s]", 0, 0, 0.025, 0.0001);
 
 // Reverb
 reverbOn       = nentry("reverbOn", 0, 0, 1, 1);
-reverbMix      = hslider("reverbMix", 0.5, 0, 1, 0.001);
+reverbSend     = hslider("reverbSend", 0.3, 0, 1, 0.001);
 reverbDecay    = hslider("reverbDecay", 0.5, 0, 1, 0.001);
 reverbDamp     = hslider("reverbDamp", 0.5, 0, 1, 0.001);
-reverbPreDelay = hslider("reverbPreDelay [unit:s]", 0, 0, 0.1, 0.0001);
+reverbPreDelay = hslider("reverbPreDelay [unit:s]", 0.015, 0, 0.1, 0.0001);
 
 // Master
 masterVol = hslider("masterVol", 0.75, 0, 1, 0.001);
@@ -177,11 +177,12 @@ delayStage        = select2(int(delayOn), masterOut, delayOut);
 reverbDecayS    = reverbDecay    : si.smoo;
 reverbDampS     = reverbDamp     : si.smoo;
 reverbPreDelayS = reverbPreDelay : si.smoo;
-reverbMixS      = reverbMix      : si.smoo;
+reverbSendS     = reverbSend     : si.smoo;
 
 // Buffer covers 100 ms at 48 kHz (4800 samples + 1 headroom); max pre-delay halves to ~50 ms at 96 kHz.
 // mono_freeverb(fb1=decay, fb2=0.5 room-size fixed, damp=reverbDampS, spread=0 mono).
 reverbWet = de.fdelay(4801, reverbPreDelayS * ma.SR)
+          : fi.highpass(2, 180)
           : re.mono_freeverb(reverbDecayS, 0.5, reverbDampS, 0)
           : fi.dcblocker;
 
@@ -191,5 +192,9 @@ reverbWet = de.fdelay(4801, reverbPreDelayS * ma.SR)
 vcaOut     = filteredSig * ampEnvOut;
 outputPeak = abs(vcaOut * (masterVol / 0.6)) : vbargraph("outputPeak [unit:linear]", 0, 2);
 masterOut  = attach(vcaOut * (masterVol / 0.6), outputPeak) : ma.tanh;
-reverbOut = delayStage <: (_ * (1 - reverbMixS), reverbWet * reverbMixS) :> _;
+// Send-style routing: split delayStage into the dry path (`_`) and into
+// reverbWet's input, then sum (`:>`). Writing this as `delayStage + reverbWet
+// * reverbSendS` would compile but leave reverbWet's input unconnected, so
+// the wet path would process silence at runtime.
+reverbOut = delayStage <: (_, reverbWet * reverbSendS) :> _;
 process   = select2(int(reverbOn), delayStage, reverbOut) <: _, _;

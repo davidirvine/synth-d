@@ -41,17 +41,12 @@ The header strip title SHALL read "SYNTH-D". The browser window `<title>` elemen
 
 ### Requirement: Panel layout with six sections
 
-The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer, Filter (combined with filter contour envelope), Output (combined volume and loudness contour), Modulation, and Glide. The three top-level panel columns (Oscillator Bank, Mixer, and the filter-output grid) SHALL be laid out as a fixed three-column CSS grid. All three columns SHALL share the same height. The keyboard SHALL appear below the panels in a `.keyboard-row` flex row, flanked by `WheelPanel` on the left and `RegisterPanel` on the right. A header strip containing the synth title, MIDI status, and power button SHALL appear above the panels. The outer spacing around the synth module area SHALL be `8px` on all sides, matching the `8px` gap between individual panels. The layout SHALL NOT reflow or wrap when the browser window is resized.
+The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer, Filter (combined with filter contour envelope), Output (combined volume and loudness contour), Modulation, and Glide. The three top-level panel columns (Oscillator Bank, Mixer, and the filter-output grid) SHALL be laid out as a fixed three-column CSS grid. All three columns SHALL share the same height. The keyboard SHALL appear below all panels spanning the full width. A footer row containing the GitHub icon link SHALL appear below the keyboard. A header strip containing the synth title, MIDI status, and power button SHALL appear above the panels. The outer spacing around the synth module area SHALL be `8px` on all sides, matching the `8px` gap between individual panels. The layout SHALL NOT reflow or wrap when the browser window is resized.
 
 #### Scenario: Panel arrangement
 
 - **WHEN** the UI is rendered
-- **THEN** layout appears in order: header above, panels grid [Oscillator Bank | Mixer | filter-output-grid], then keyboard row [WheelPanel | Keyboard | RegisterPanel]
-
-#### Scenario: Keyboard row width matches keyboard SVG width
-
-- **WHEN** the UI is rendered
-- **THEN** the WheelPanel and RegisterPanel fill the space flanking the 1 008 px keyboard SVG within the keyboard row
+- **THEN** panels appear with header above, then three columns: Oscillator Bank | Mixer | filter-output-grid ([Filter/AmpEnv/Effects] over [Modulation+Glide/Scope]), keyboard below, footer row with GitHub icon below the keyboard
 
 #### Scenario: All top-level columns the same height
 
@@ -67,13 +62,6 @@ The system SHALL arrange controls in six labeled panels: Oscillator Bank, Mixer,
 
 - **WHEN** the browser window is resized to any width
 - **THEN** the three top-level panel columns remain in a single row and do not wrap or reorder
-
-#### Scenario: Minimum layout width is 1 008 px
-
-- **WHEN** the UI is rendered
-- **THEN** the keyboard row width is at least 1 008 px (36 white keys × 28 px) and the layout does not reflow or wrap below this width
-
----
 
 ### Requirement: Moog dark visual aesthetic
 

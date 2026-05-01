@@ -3,6 +3,7 @@ import { render } from '@testing-library/svelte'
 import Scope from './Scope.svelte'
 
 describe('Scope', () => {
+  /** @type {any} */
   let mockContext
 
   beforeEach(() => {
@@ -16,7 +17,9 @@ describe('Scope', () => {
       lineWidth: 0,
     }
 
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(mockContext)
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ (mockContext)
+    )
     vi.stubGlobal('requestAnimationFrame', vi.fn())
     vi.stubGlobal('cancelAnimationFrame', vi.fn())
   })
@@ -33,17 +36,17 @@ describe('Scope', () => {
 
   it('applies the expected inline canvas styling', () => {
     const { container } = render(Scope)
-    const canvas = container.querySelector('canvas')
+    const canvas = /** @type {Element} */ (container.querySelector('canvas'))
 
     expect(canvas.getAttribute('style')).toContain('height: 80px')
     expect(canvas.getAttribute('style')).toContain('background: #1c1c1c')
   })
 
   it('does not start an animation frame when powered is false', () => {
-    const analyser = {
+    const analyser = /** @type {any} */ ({
       fftSize: 2048,
       getByteTimeDomainData: vi.fn(),
-    }
+    })
 
     render(Scope, { props: { analyser, powered: false } })
 
@@ -51,15 +54,15 @@ describe('Scope', () => {
   })
 
   it('updates waveform samples when powered and analyser are present', () => {
-    const analyser = {
+    const analyser = /** @type {any} */ ({
       fftSize: 2048,
       getByteTimeDomainData: vi.fn((arr) => arr.fill(90)),
-    }
+    })
 
     render(Scope, { props: { analyser, powered: true } })
 
     expect(requestAnimationFrame).toHaveBeenCalled()
-    const tick = requestAnimationFrame.mock.calls[0][0]
+    const tick = /** @type {any} */ (requestAnimationFrame).mock.calls[0][0]
     tick()
 
     expect(analyser.getByteTimeDomainData).toHaveBeenCalledOnce()
@@ -67,22 +70,22 @@ describe('Scope', () => {
   })
 
   it('draws a centered flat waveform at silence when powered on', () => {
-    const analyser = {
+    const analyser = /** @type {any} */ ({
       fftSize: 2048,
       getByteTimeDomainData: vi.fn((arr) => arr.fill(128)),
-    }
+    })
 
     render(Scope, { props: { analyser, powered: true } })
 
-    const tick = requestAnimationFrame.mock.calls[0][0]
+    const tick = /** @type {any} */ (requestAnimationFrame).mock.calls[0][0]
     mockContext.moveTo.mockClear()
     mockContext.lineTo.mockClear()
 
     tick()
 
     expect(mockContext.moveTo).toHaveBeenCalledWith(0, 40)
-    const yCoordinates = mockContext.lineTo.mock.calls.map(([, y]) => y)
+    const yCoordinates = mockContext.lineTo.mock.calls.map((/** @type {any[]} */ call) => call[1])
     expect(yCoordinates.length).toBeGreaterThan(0)
-    expect(yCoordinates.every((y) => y === 40)).toBe(true)
+    expect(yCoordinates.every((/** @type {number} */ y) => y === 40)).toBe(true)
   })
 })

@@ -2,17 +2,13 @@
   import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
-  let {
-    onchange,
-    midiState = {},
-    onknobcontextmenu,
-    reset = 0,
-  } = /** @type {{
+  /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
     reset?: number,
-  }} */ ($props())
+  }} */
+  let { onchange, midiState = {}, onknobcontextmenu, reset = 0 } = $props()
 
   const WAVEFORMS = ['tri', 'rev-saw', 'saw', 'sq', 'wide', 'narrow']
 
@@ -24,6 +20,10 @@
   let osc3Range = $state(0)
   let osc3LfoMode = $state(0)
 
+  /**
+   * @param {number} osc
+   * @param {number} i
+   */
   function selectWave(osc, i) {
     const param = `osc${osc}Wave`
     if (osc === 1) osc1Wave = i
@@ -32,6 +32,10 @@
     onchange?.({ param, value: i })
   }
 
+  /**
+   * @param {number} osc
+   * @param {number} delta
+   */
   function stepRange(osc, delta) {
     const current = osc === 1 ? osc1Range : osc === 2 ? osc2Range : osc3Range
     const next = Math.max(-2, Math.min(2, current + delta))
