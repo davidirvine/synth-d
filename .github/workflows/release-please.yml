@@ -67,20 +67,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
-
-  backmerge:
-    needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Open backmerge PR to develop
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
-        run: |
-          gh pr create \
-            --base develop \
-            --head main \
-            --title "chore: backmerge release ${{ needs.release-please.outputs.tag_name }} to develop" \
-            --body "Brings the version bump from the ${{ needs.release-please.outputs.tag_name }} release back to develop so the next promotion PR is conflict-free." \
-          || echo "Backmerge PR already exists"

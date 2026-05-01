@@ -2,11 +2,11 @@
 # opsx-apply-worktree.sh <change-name> [<prefix>]
 #
 # Creates a sibling git worktree for implementing an approved OpenSpec proposal.
-# Assumes the proposal at openspec/changes/<change-name>/ has been committed to develop.
+# Assumes the proposal at openspec/changes/<change-name>/ has been committed to main.
 # <prefix> defaults to "feature" if omitted; use "bugfix" for bug-fix changes.
 #
 # Resulting layout:
-#   ../<repo>/              <- develop worktree, stays on develop
+#   ../<repo>/              <- main worktree, stays on main
 #   ../<repo>-<change>/     <- new worktree on <prefix>/<change>
 
 set -euo pipefail
@@ -29,19 +29,19 @@ CHANGE_DIR="${REPO_ROOT}/openspec/changes/${CHANGE_NAME}"
 
 if [[ ! -d "$CHANGE_DIR" ]]; then
   echo "✗ No proposal found at openspec/changes/${CHANGE_NAME}/" >&2
-  echo "  Run /opsx:new ${CHANGE_NAME} and /opsx:ff on develop first." >&2
+  echo "  Run /opsx:new ${CHANGE_NAME} and /opsx:ff on main first." >&2
   exit 1
 fi
 
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-if [[ "$CURRENT_BRANCH" != "develop" ]]; then
-  echo "✗ Must be on 'develop' to create a ${PREFIX} worktree (you are on '${CURRENT_BRANCH}')." >&2
+if [[ "$CURRENT_BRANCH" != "main" ]]; then
+  echo "✗ Must be on 'main' to create a ${PREFIX} worktree (you are on '${CURRENT_BRANCH}')." >&2
   exit 1
 fi
 
 if ! git diff-index --quiet HEAD --; then
   echo "✗ Working tree has uncommitted changes." >&2
-  echo "  Commit the proposal to develop before creating the implementation worktree." >&2
+  echo "  Commit the proposal to main before creating the implementation worktree." >&2
   exit 1
 fi
 
@@ -58,12 +58,12 @@ if [[ -e "$WORKTREE_PATH" ]]; then
   exit 1
 fi
 
-# --- Sync develop --------------------------------------------------------------
+# --- Sync main --------------------------------------------------------------
 
 if git remote get-url origin &>/dev/null; then
-  echo "→ Fetching latest develop..."
-  git fetch origin develop
-  git merge --ff-only origin/develop
+  echo "→ Fetching latest main..."
+  git fetch origin main
+  git merge --ff-only origin/main
 else
   echo "→ No remote 'origin' — skipping fetch (local-only repo)."
 fi
@@ -74,10 +74,10 @@ echo "→ Creating branch ${BRANCH} via stax..."
 stax create "${CHANGE_NAME}" --prefix "${PREFIX}/"
 
 # stax create switches the current worktree to the new branch; switch back
-# to develop before attaching the sibling worktree (git worktree add requires
+# to main before attaching the sibling worktree (git worktree add requires
 # the target branch to not be checked out anywhere).
-if [[ "$(git rev-parse --abbrev-ref HEAD)" != "develop" ]]; then
-  git switch develop
+if [[ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]]; then
+  git switch main
 fi
 
 echo "→ Attaching worktree at ${WORKTREE_PATH}..."

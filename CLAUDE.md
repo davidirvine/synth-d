@@ -8,7 +8,7 @@ A spec MUST exist before any implementation begins. This applies to new features
 
 ## Branching
 
-All tasks for a change MUST be implemented on a single branch. Branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name. Branches MUST be created from `develop` at the time `/opsx:propose` is invoked.
+All tasks for a change MUST be implemented on a single branch. Branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name. Branches MUST be created from `main` at the time `/opsx:propose` is invoked.
 
 **REQUIRED: Before creating a branch, prompt the human for the change type (feature or bugfix) and wait for confirmation. Do not create a branch until the human has confirmed the type.**
 
@@ -27,15 +27,15 @@ Before starting any implementation work the branch MUST exist. If the current br
 
 ## Worktree Workflow
 
-The `develop` branch is reserved exclusively for OpenSpec proposals and tooling work. All change implementation MUST happen in an isolated worktree. This is not optional.
+Implementation happens in worktrees branched from `main`. All change implementation MUST happen in an isolated worktree. This is not optional.
 
 **REQUIRED sequence:**
 
-1. From `develop`, run `/opsx-apply-wt <change-name>` to create a sibling worktree on the correct branch
+1. From `main`, run `/opsx-apply-wt <change-name>` to create a sibling worktree on the correct branch
 2. Open the new worktree in a separate VS Code window or terminal
 3. From inside that worktree, run `/opsx:apply <change-name>` to begin implementation
 
-Do not implement changes directly on `develop`. If you find yourself on `develop` with implementation work, halt and ask the human how to proceed.
+Do not implement changes directly on `main`. If you find yourself on `main` with implementation work, halt and ask the human how to proceed.
 
 ## Code review with roborev
 
@@ -86,7 +86,7 @@ Required types and their version-bump effect:
 | `refactor` | Code restructuring with no behaviour change          | none         |
 | `test`     | Adding or updating tests                             | none         |
 
-**This is a functional requirement, not a style preference.** The `promote.yml` workflow reads commit types from the `develop..main` diff to determine the promote PR title (e.g., `feat: promote develop to main`). GitHub squash-merges that PR, so the PR title becomes the single commit on `main` that `release-please` parses for the version bump type. Using the wrong type (or no type) silently breaks the release pipeline.
+**This is a functional requirement, not a style preference.** Each feature/bugfix PR is squash-merged to `main`, and the PR title becomes the single commit `release-please` parses for the version bump type. Using the wrong type (or no type) silently breaks the release pipeline.
 
 ## Implementation Completion
 
@@ -135,7 +135,7 @@ The feature branch is ready for PR ONLY after the human has completed:
 3. Personal reflection on the feature's behaviour and quality
 4. Explicit instruction to open the PR
 
-Do not open the PR autonomously. Wait for the human to request it. Pre-push hooks will run the same checks as the `ci-develop` GitHub Actions workflow before the push is accepted (see `.husky/pre-push`).
+Do not open the PR autonomously. Wait for the human to request it. Pre-push hooks will run the same checks as the `ci-main` GitHub Actions workflow before the push is accepted (see `.husky/pre-push`).
 
 ### Opening the PR
 

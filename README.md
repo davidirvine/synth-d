@@ -81,16 +81,13 @@ npm install
 
 ### Branching & Deployment
 
-| Branch      | Role                                                                  |
-| ----------- | --------------------------------------------------------------------- |
-| `main`      | Production. Deploys automatically to GitHub Pages on every merge.     |
-| `develop`   | Integration branch. All feature and bugfix branches merge here first. |
-| `feature/*` | New capability branches, cut from `develop`.                          |
-| `bugfix/*`  | Fix branches, cut from `develop`.                                     |
+| Branch      | Role                                                         |
+| ----------- | ------------------------------------------------------------ |
+| `main`      | Trunk. Deploys automatically to GitHub Pages on every merge. |
+| `feature/*` | New capability branches, cut from `main`.                    |
+| `bugfix/*`  | Fix branches, cut from `main`.                               |
 
-**CI checks on PRs to `develop`:** tests, lint, and format must all pass.
-
-**Auto-promotion:** a pull request from `develop` → `main` is raised automatically once CI is green on `develop`. CI on PRs to `main` runs tests only (lint and format are already verified upstream).
+**CI checks on PRs to `main`:** tests, lint, and format must all pass.
 
 **Production deploy:** merging to `main` triggers a GitHub Actions workflow that builds `dist/` and publishes it to GitHub Pages.
 
@@ -106,7 +103,7 @@ This project uses a spec-driven, AI-assisted development workflow:
 
 - **OpenSpec** — every change starts with a spec proposal (`/opsx:propose`). Implementation only begins after the spec is approved.
 - **roborev** — an AI code review daemon runs after every commit. Open findings are addressed with `/roborev-fix` before a section can be closed.
-- **stax** — all branch management and PR creation goes through `stax`. One stacked PR is created per spec section.
+- **stax** — all branch management and PR creation goes through `stax`. A single PR is opened per feature/bugfix branch when the entire change is complete.
 - **Husky hooks** — pre-commit (lint/format) and post-commit (roborev review trigger) run automatically.
 
 See [CLAUDE.md](CLAUDE.md) for the full mandatory workflow rules.

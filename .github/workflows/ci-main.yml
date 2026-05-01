@@ -23,6 +23,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npx eslint .
+
+      - name: Check formatting
+        run: npx prettier --check .
+
       - name: Restore Faust WASM cache
         id: faust-cache
         uses: actions/cache@v4
