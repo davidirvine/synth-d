@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mtof, normalizedToValue, valueToNormalized, formatValue } from './math.js'
+import { mtof, normalizedToValue, valueToNormalized, formatValue, detectInterval } from './math.js'
 
 describe('mtof', () => {
   it('A4 (MIDI 69) = 440 Hz', () => {
@@ -235,5 +235,169 @@ describe('formatValue', () => {
 
   it('formats dimensionless values to two decimals', () => {
     expect(formatValue(0.75, '')).toBe('0.75')
+  })
+
+  it('formats st (semitones) at 0', () => {
+    expect(formatValue(0, 'st')).toBe('0.00 st')
+  })
+
+  it('formats st (semitones) at +650 cents as 6.50 st', () => {
+    expect(formatValue(650, 'st')).toBe('6.50 st')
+  })
+
+  it('formats st (semitones) at -650 cents as -6.50 st', () => {
+    expect(formatValue(-650, 'st')).toBe('-6.50 st')
+  })
+
+  it('formats st (semitones) at +700 cents as 7.00 st', () => {
+    expect(formatValue(700, 'st')).toBe('7.00 st')
+  })
+
+  it('formats st (semitones) at -700 cents as -7.00 st', () => {
+    expect(formatValue(-700, 'st')).toBe('-7.00 st')
+  })
+})
+
+describe('normalizedToValue — fine-center scale', () => {
+  it('pos=0.5 returns center (0 for symmetric ±700 range)', () => {
+    expect(normalizedToValue(0.5, -700, 700, 'fine-center')).toBeCloseTo(0, 9)
+  })
+
+  it('pos=0 returns min', () => {
+    expect(normalizedToValue(0, -700, 700, 'fine-center')).toBeCloseTo(-700, 9)
+  })
+
+  it('pos=1 returns max', () => {
+    expect(normalizedToValue(1, -700, 700, 'fine-center')).toBeCloseTo(700, 9)
+  })
+
+  it('quadratic taper compresses outer travel (small t produces small value)', () => {
+    // pos=0.6 → t=0.2 → value = sign(t) × t² × range = 0.04 × 700 = 28
+    expect(normalizedToValue(0.6, -700, 700, 'fine-center')).toBeCloseTo(28, 9)
+  })
+
+  it('symmetric around center', () => {
+    const above = normalizedToValue(0.75, -700, 700, 'fine-center')
+    const below = normalizedToValue(0.25, -700, 700, 'fine-center')
+    expect(above).toBeCloseTo(-below, 9)
+  })
+})
+
+describe('valueToNormalized — fine-center scale', () => {
+  it('center value (0) maps to 0.5', () => {
+    expect(valueToNormalized(0, -700, 700, 'fine-center')).toBeCloseTo(0.5, 9)
+  })
+
+  it('min value maps to 0', () => {
+    expect(valueToNormalized(-700, -700, 700, 'fine-center')).toBeCloseTo(0, 9)
+  })
+
+  it('max value maps to 1', () => {
+    expect(valueToNormalized(700, -700, 700, 'fine-center')).toBeCloseTo(1, 9)
+  })
+})
+
+describe('round-trip fine-center scale', () => {
+  const positions = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1]
+  positions.forEach((pos) => {
+    it(`round-trips pos=${pos} through ±700 fine-center`, () => {
+      const val = normalizedToValue(pos, -700, 700, 'fine-center')
+      const back = valueToNormalized(val, -700, 700, 'fine-center')
+      expect(back).toBeCloseTo(pos, 9)
+    })
+  })
+})
+
+describe('detectInterval', () => {
+  it('returns null at zero', () => {
+    expect(detectInterval(0)).toBe(null)
+  })
+
+  it('latches m3 at +300 cents', () => {
+    expect(detectInterval(300)).toBe('m3')
+  })
+
+  it('latches m3 at -300 cents (symmetric)', () => {
+    expect(detectInterval(-300)).toBe('m3')
+  })
+
+  it('latches m3 at +285 cents (lower window edge)', () => {
+    expect(detectInterval(285)).toBe('m3')
+  })
+
+  it('latches m3 at +315 cents (upper window edge)', () => {
+    expect(detectInterval(315)).toBe('m3')
+  })
+
+  it('latches m3 inside window at +286 cents', () => {
+    expect(detectInterval(286)).toBe('m3')
+  })
+
+  it('latches m3 inside window at +314 cents', () => {
+    expect(detectInterval(314)).toBe('m3')
+  })
+
+  it('does not latch m3 just outside window at +284 cents', () => {
+    expect(detectInterval(284)).toBe(null)
+  })
+
+  it('does not latch m3 just outside window at +316 cents', () => {
+    expect(detectInterval(316)).toBe(null)
+  })
+
+  it('does not latch m3 just outside window at -284 cents', () => {
+    expect(detectInterval(-284)).toBe(null)
+  })
+
+  it('does not latch m3 just outside window at -316 cents', () => {
+    expect(detectInterval(-316)).toBe(null)
+  })
+
+  it('latches M3 at +400 cents', () => {
+    expect(detectInterval(400)).toBe('M3')
+  })
+
+  it('latches M3 at -400 cents (symmetric)', () => {
+    expect(detectInterval(-400)).toBe('M3')
+  })
+
+  it('latches M3 at +385 cents (lower window edge)', () => {
+    expect(detectInterval(385)).toBe('M3')
+  })
+
+  it('latches M3 at +415 cents (upper window edge)', () => {
+    expect(detectInterval(415)).toBe('M3')
+  })
+
+  it('does not latch M3 just outside window at +384 cents', () => {
+    expect(detectInterval(384)).toBe(null)
+  })
+
+  it('does not latch M3 just outside window at +416 cents', () => {
+    expect(detectInterval(416)).toBe(null)
+  })
+
+  it('latches P5 at +700 cents (travel limit)', () => {
+    expect(detectInterval(700)).toBe('P5')
+  })
+
+  it('latches P5 at +685 cents (lower window edge)', () => {
+    expect(detectInterval(685)).toBe('P5')
+  })
+
+  it('latches P5 at -700 cents (symmetric)', () => {
+    expect(detectInterval(-700)).toBe('P5')
+  })
+
+  it('latches P5 at -685 cents (lower window edge, negative)', () => {
+    expect(detectInterval(-685)).toBe('P5')
+  })
+
+  it('does not latch P5 just outside window at +684 cents', () => {
+    expect(detectInterval(684)).toBe(null)
+  })
+
+  it('does not latch P5 just outside window at -684 cents', () => {
+    expect(detectInterval(-684)).toBe(null)
   })
 })

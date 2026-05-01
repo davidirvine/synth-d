@@ -1,8 +1,13 @@
 <script>
-  import { untrack } from 'svelte'
+  import { untrack, onDestroy } from 'svelte'
   import { tweened } from 'svelte/motion'
   import { cubicOut } from 'svelte/easing'
-  import { normalizedToValue, valueToNormalized, formatValue } from '../audio/math.js'
+  import {
+    normalizedToValue,
+    valueToNormalized,
+    formatValue,
+    detectInterval,
+  } from '../audio/math.js'
 
   /** @type {{
     label?: string,
@@ -17,6 +22,9 @@
     showValue?: boolean,
     showArc?: boolean,
     bipolar?: boolean,
+    intervalIndicator?: boolean,
+    step?: number | null,
+    fineStep?: number | null,
     externalValue?: number,
     learningMidi?: boolean,
     assignedCc?: number | null,
@@ -37,6 +45,9 @@
     showValue = true,
     showArc = true,
     bipolar = false,
+    intervalIndicator = false,
+    step = null,
+    fineStep = null,
     externalValue = undefined,
     learningMidi = false,
     assignedCc = null,
@@ -131,12 +142,19 @@
     }
   })
 
+  /** @param {KeyboardEvent} e */
+  function onShiftKey(e) {
+    if (e.key === 'Shift') shiftHeld = e.type === 'keydown'
+  }
+
   /** @param {PointerEvent & { currentTarget: Element }} e */
   function onPointerDown(e) {
     dragging = true
     lastY = e.clientY
     shiftHeld = e.shiftKey
     e.currentTarget.setPointerCapture(e.pointerId)
+    window.addEventListener('keydown', onShiftKey)
+    window.addEventListener('keyup', onShiftKey)
   }
 
   /** @param {PointerEvent} e */
@@ -147,15 +165,27 @@
     lastY = e.clientY
     const sensitivity = shiftHeld ? 0.001 : 0.01
     const newPos = Math.max(0, Math.min(1, pos + delta * sensitivity))
-    const newValue = normalizedToValue(newPos, min, max, scale)
+    const rawValue = normalizedToValue(newPos, min, max, scale)
+    const activeStep = shiftHeld && fineStep !== null ? fineStep : step
+    const newValue =
+      activeStep !== null && activeStep > 0
+        ? Math.max(min, Math.min(max, Math.round(rawValue / activeStep) * activeStep))
+        : rawValue
     value = newValue
-    animPos.set(newPos, { duration: 0 })
+    animPos.set(valueToNormalized(newValue, min, max, scale), { duration: 0 })
     onchange?.({ value: newValue })
   }
 
   function onPointerUp() {
     dragging = false
+    window.removeEventListener('keydown', onShiftKey)
+    window.removeEventListener('keyup', onShiftKey)
   }
+
+  onDestroy(() => {
+    window.removeEventListener('keydown', onShiftKey)
+    window.removeEventListener('keyup', onShiftKey)
+  })
 
   function onDblClick() {
     value = defaultValue
@@ -210,6 +240,10 @@
       {/each}
     </svg>
   </div>
+  {#if intervalIndicator}
+    {@const interval = detectInterval(value)}
+    <span class="interval-indicator">{interval ?? ' '}</span>
+  {/if}
   <span class="knob-value" class:invisible={!showValue}>{formatValue(value, unit)}</span>
   {#if assignedCc !== null}
     <span class="cc-label">CC {assignedCc}</span>
@@ -221,7 +255,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 0;
     user-select: none;
   }
 
@@ -236,11 +270,40 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
     white-space: nowrap;
+    margin-bottom: 2px;
   }
 
   .knob-value {
     font-size: 10px;
     color: #888;
+    line-height: 1;
+  }
+
+  /* Lock the value-label column width only on knobs that opt into the
+     interval indicator, so a leading "-" doesn't widen the column on
+     these knobs and ripple the surrounding row. Other knobs keep their
+     auto width to avoid changing existing layouts. */
+  .knob-wrap:has(.interval-indicator) .knob-value {
+    display: inline-block;
+    width: 5em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .interval-indicator {
+    font-size: 10px;
+    color: #6a6a6a;
+    min-height: 1em;
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+
+  /* Pull whatever sits directly under the SVG up against the knob body.
+     The SVG's 48px box has empty space below the visible knob; -10px snugs
+     the first label right against the bottom of the body. */
+  .knob-hit + .interval-indicator,
+  .knob-hit + .knob-value {
+    margin-top: -10px;
   }
 
   .cc-label {

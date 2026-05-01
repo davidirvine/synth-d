@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: OSC 2 and OSC 3 continuous detune
-OSC 2 and OSC 3 SHALL each provide a continuous detune knob spanning −700 to +700 cents (bipolar, center = 0 cents), corresponding to ±7 semitones (a perfect fifth in either direction). The detune SHALL be applied as a frequency multiplier: `detunedFreq = baseFreq × pow(2, detuneCents / 1200)`. The knob SHALL use the `bipolar` prop so the arc extends from 12 o'clock in the direction of the current offset. The knob SHALL use the `'fine-center'` scale so that the center region occupies a larger proportion of the knob sweep, providing finer control for subtle chorus and beating effects near unison. The knob's displayed label SHALL read `freq` (uppercase rendering as `FREQ`); the underlying parameter identifiers (`osc2Detune`, `osc3Detune`) and the FAUST hslider names SHALL remain unchanged. The knob's value label SHALL display the value in semitones with two decimal places (e.g. `−6.50 st`). The knob's drag step SHALL default to 5 cents, with a 1-cent fine step while the Shift key is held. The knob SHALL display a musical interval indicator above its value label per the `knob` capability's interval-indicator requirement; the indicator SHALL latch at minor-third (±300¢), major-third (±400¢), and perfect-fifth (±700¢) targets within a ±15¢ tolerance window, and SHALL be blank otherwise.
+OSC 2 and OSC 3 SHALL each provide a continuous detune knob spanning −700 to +700 cents (bipolar, center = 0 cents), corresponding to ±7 semitones (a perfect fifth in either direction). The detune SHALL be applied as a frequency multiplier: `detunedFreq = baseFreq × pow(2, detuneCents / 1200)`. The knob SHALL use the `bipolar` prop so the arc extends from 12 o'clock in the direction of the current offset. The knob SHALL use a linear scale so the perceived knob travel is proportional to cent value across the full ±700¢ range; precision near unison is provided instead by the 5-cent default drag step (1-cent with Shift) and the numeric semitone readout. The knob's displayed label SHALL read `freq` (uppercase rendering as `FREQ`); the underlying parameter identifiers (`osc2Detune`, `osc3Detune`) and the FAUST hslider names SHALL remain unchanged. The knob's value label SHALL display the value in semitones with two decimal places (e.g. `−6.50 st`). The knob's drag step SHALL default to 5 cents, with a 1-cent fine step while the Shift key is held. The knob SHALL display a musical interval indicator above its value label per the `knob` capability's interval-indicator requirement; the indicator SHALL latch at minor-third (±300¢), major-third (±400¢), and perfect-fifth (±700¢) targets within a ±15¢ tolerance window, and SHALL be blank otherwise.
 
 #### Scenario: Zero detune — oscillator in tune
 - **WHEN** OSC 2 detune is 0 cents
@@ -46,10 +46,9 @@ OSC 2 and OSC 3 SHALL each provide a continuous detune knob spanning −700 to +
 - **THEN** each discrete value transition is a multiple of 1 cent (e.g. 397 → 398 → 399 → 400)
 - **AND** while inside the ±15¢ M3 window the interval indicator reads `M3`
 
-#### Scenario: Fine-center scale gives more travel near zero
-- **WHEN** the freq knob is turned from center to a small fraction of its half-sweep (where a linear scale would give a much larger value)
-- **THEN** the value remains in the low-cent region around unison, giving fine control for chorus/beating effects
-- **AND** correspondingly, the outer portion of the sweep covers the larger interval region (m3, M3, P5) more compressed than a linear scale would
+#### Scenario: Linear scale gives proportional travel across the range
+- **WHEN** the freq knob is turned from center toward maximum
+- **THEN** equal increments of knob travel produce equal increments of cent value (±700¢ ÷ half-sweep), so M3 (+400¢) and P5 (+700¢) are reached without disproportionate compression of the outer region
 
 ### Requirement: OSC 3 range and detune controls are disabled in LFO mode
 
