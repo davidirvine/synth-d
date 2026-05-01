@@ -88,36 +88,31 @@ Required types and their version-bump effect:
 
 **This is a functional requirement, not a style preference.** The `promote.yml` workflow reads commit types from the `develop..main` diff to determine the promote PR title (e.g., `feat: promote develop to main`). GitHub squash-merges that PR, so the PR title becomes the single commit on `main` that `release-please` parses for the version bump type. Using the wrong type (or no type) silently breaks the release pipeline.
 
-## Section Completion
+## Implementation Completion
 
-A section is NOT complete until ALL of the following are true:
+There are no review or human-verification gates at section boundaries. Proceed straight through all sections until every task is implemented. The single review + human-verification gate runs once, at the end of the implementation.
 
-1. All applicable tests pass (see table below)
+The implementation is NOT complete until ALL of the following are true:
+
+1. All applicable tests pass:
+   - `npx vitest run` (unit + component tests)
+   - `npx stryker run` (mutation score ≥ 85%)
+   - `npx playwright test` (E2E)
 2. All roborev reviews on the branch pass
-3. The human has explicitly approved moving to the next section
+3. The human has explicitly approved moving forward
 
-| Sections                         | Required passing                                           |
-| -------------------------------- | ---------------------------------------------------------- |
-| 1–11 (scaffold through assembly) | `npx vitest run` + all roborev reviews pass                |
-| 12–13 (unit + component tests)   | `npx vitest run` + all roborev reviews pass                |
-| 14 (Stryker)                     | `npx stryker run` (score ≥ 85%) + all roborev reviews pass |
-| 15 (Playwright)                  | `npx playwright test` + all roborev reviews pass           |
-| 16 (final verification)          | vitest + stryker + playwright + all roborev reviews pass   |
+### End-of-implementation workflow
 
-Do not proceed to the next section until all three conditions above are met.
+When all tasks across all sections are complete:
 
-### Section boundary workflow
-
-EVERY section MUST end by completing ALL of the following steps in order:
-
-1. All section tasks complete and tests pass (per the table above)
+1. Confirm all tests pass (per the list above)
 2. Run `roborev status` to confirm the daemon is healthy — if it is not running, halt and report the error; do not skip the review gate
 3. Run `roborev refine --max-iterations 3` to resolve all open review findings
-4. Present refine results to the human and **wait for explicit human approval** before beginning the next section — do not self-approve
+4. Present refine results to the human and **wait for explicit human approval** before opening the PR — do not self-approve
 
 If step 3 completes but open findings remain, present the remaining findings to the human. The human decides whether to run refine again, address findings manually, or explicitly override and proceed. Do not make this decision unilaterally.
 
-**Do not create a PR at section boundaries.** A single PR is opened for the whole feature/bugfix branch — see "Pull Requests" below.
+**Do not create a PR until human approval is granted.** A single PR is opened for the whole feature/bugfix branch — see "Pull Requests" below.
 
 ## Build Configuration
 
@@ -129,7 +124,7 @@ If step 3 completes but open findings remain, present the remaining findings to 
 
 > **MANDATORY: All branch creation, rebase, sync, and PR submission MUST use stax. There is a stax skill available. Raw `git` commands for branch management or PR operations are FORBIDDEN. No exceptions.**
 
-A single PR is opened per feature/bugfix branch when the entire change is complete. **Do not create per-section PRs.** Section boundaries are gated by tests, roborev, and human approval — not by PR creation.
+A single PR is opened per feature/bugfix branch when the entire change is complete. **Do not create per-section PRs.** The end-of-implementation gate (tests + roborev + human approval) runs once before the PR is opened — see "Implementation Completion" above.
 
 ### Feature-level verification
 
@@ -146,7 +141,7 @@ Do not open the PR autonomously. Wait for the human to request it. Pre-push hook
 
 When the human requests the PR:
 
-1. Confirm all sections are complete (tests pass, roborev clean per Section Completion above)
+1. Confirm the end-of-implementation gate has passed (tests pass, roborev clean, human approved per "Implementation Completion" above)
 2. Push and create the PR: `stax ss --yes --no-prompt`
 3. Report the PR URL to the human
 
