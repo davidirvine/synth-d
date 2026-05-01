@@ -31,8 +31,8 @@
 
 ## 5. Cutover PR — opsx tooling
 
-- [ ] 5.1 Locate the `opsx-apply-wt` skill or wherever the worktree base branch is configured (likely a hardcoded `develop` reference in skill markdown or shell command)
-- [ ] 5.2 Update the base branch reference from `develop` to `main`
+- [x] 5.1 Locate the `opsx-apply-wt` skill or wherever the worktree base branch is configured (likely a hardcoded `develop` reference in skill markdown or shell command)
+- [x] 5.2 Update the base branch reference from `develop` to `main`
 - [ ] 5.3 Test the change by running `/opsx-apply-wt drop-develop-branch` (or equivalent) and confirming the worktree is created off main
 
 ## 6. Cutover PR — submit and merge
