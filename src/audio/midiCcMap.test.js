@@ -136,4 +136,16 @@ describe('MidiCcMap — reverbMix → reverbSend load-time translation', () => {
     expect(map.resolve(42)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
     expect(map.getAssignedCc('reverbSend')).toBe(42)
   })
+
+  it('canonical reverbSend entry wins over stale reverbMix on the same param', () => {
+    // User assigned reverbMix to CC 42 before the rename, then assigned
+    // reverbSend to CC 71 after the rename. Both keys persist in storage.
+    localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbMix', min: 0, max: 1 }))
+    localStorage.setItem('midiCc:71', JSON.stringify({ param: 'reverbSend', min: 0, max: 1 }))
+    const map = new MidiCcMap()
+    expect(map.getAssignedCc('reverbSend')).toBe(71)
+    expect(map.resolve(71)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
+    // The stale reverbMix entry must not shadow the canonical one in #byCC.
+    expect(map.resolve(42)).toBeNull()
+  })
 })
