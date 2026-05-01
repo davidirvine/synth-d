@@ -12,7 +12,7 @@ osc1Range = nentry("osc1Range", 0, -2, 2, 1);
 // OSC 2
 osc2Wave   = nentry("osc2Wave", 0, 0, 5, 1);
 osc2Range  = nentry("osc2Range", 0, -2, 2, 1);
-osc2Detune = hslider("osc2Detune [unit:cents]", 0, -100, 100, 0.1);
+osc2Detune = hslider("osc2Detune [unit:cents]", 0, -700, 700, 1);
 
 // OSC 3
 osc3Wave    = nentry("osc3Wave", 0, 0, 5, 1);
