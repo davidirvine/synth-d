@@ -277,8 +277,7 @@ describe('Knob — intervalIndicator prop', () => {
         label: 'freq',
         min: -700,
         max: 700,
-        default: 0,
-        value: 300,
+        default: 300,
         intervalIndicator: true,
       },
     })
@@ -291,8 +290,7 @@ describe('Knob — intervalIndicator prop', () => {
         label: 'freq',
         min: -700,
         max: 700,
-        default: 0,
-        value: -300,
+        default: -300,
         intervalIndicator: true,
       },
     })
@@ -305,8 +303,7 @@ describe('Knob — intervalIndicator prop', () => {
         label: 'freq',
         min: -700,
         max: 700,
-        default: 0,
-        value: 313,
+        default: 313,
         intervalIndicator: true,
       },
     })
@@ -319,8 +316,7 @@ describe('Knob — intervalIndicator prop', () => {
         label: 'freq',
         min: -700,
         max: 700,
-        default: 0,
-        value: 400,
+        default: 400,
         intervalIndicator: true,
       },
     })
@@ -333,8 +329,7 @@ describe('Knob — intervalIndicator prop', () => {
         label: 'freq',
         min: -700,
         max: 700,
-        default: 0,
-        value: -387,
+        default: -387,
         intervalIndicator: true,
       },
     })
@@ -347,8 +342,7 @@ describe('Knob — intervalIndicator prop', () => {
         label: 'freq',
         min: -700,
         max: 700,
-        default: 0,
-        value: 700,
+        default: 700,
         intervalIndicator: true,
       },
     })
@@ -361,8 +355,7 @@ describe('Knob — intervalIndicator prop', () => {
         label: 'freq',
         min: -700,
         max: 700,
-        default: 0,
-        value: -685,
+        default: -685,
         intervalIndicator: true,
       },
     })
@@ -375,8 +368,7 @@ describe('Knob — intervalIndicator prop', () => {
         label: 'freq',
         min: -700,
         max: 700,
-        default: 0,
-        value: 416,
+        default: 416,
         intervalIndicator: true,
       },
     })
@@ -391,8 +383,7 @@ describe('Knob — intervalIndicator prop', () => {
         label: 'freq',
         min: -700,
         max: 700,
-        default: 0,
-        value: -684,
+        default: -684,
         intervalIndicator: true,
       },
     })
