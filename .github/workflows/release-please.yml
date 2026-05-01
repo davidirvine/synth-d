@@ -24,6 +24,8 @@ jobs:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          # Required: action otherwise falls back to the repo default branch (develop), not main
+          target-branch: main
 
   deploy:
     needs: release-please
