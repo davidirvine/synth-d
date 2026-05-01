@@ -240,6 +240,168 @@ describe('Knob — animation duration', () => {
   })
 })
 
+describe('Knob — intervalIndicator prop', () => {
+  it('does not render the indicator slot when prop is omitted', () => {
+    const { container } = render(Knob, {
+      props: { label: 'freq', min: -700, max: 700, default: 0 },
+    })
+    expect(container.querySelector('.interval-indicator')).toBeNull()
+  })
+
+  it('does not render the indicator slot when prop is false', () => {
+    const { container } = render(Knob, {
+      props: { label: 'freq', min: -700, max: 700, default: 0, intervalIndicator: false },
+    })
+    expect(container.querySelector('.interval-indicator')).toBeNull()
+  })
+
+  it('renders the indicator slot blank at value 0 when prop is true', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        intervalIndicator: true,
+      },
+    })
+    const slot = container.querySelector('.interval-indicator')
+    expect(slot).not.toBeNull()
+    // Blank state uses U+00A0 (NBSP); strip whitespace before asserting empty.
+    expect(slot?.textContent?.trim() ?? '').toBe('')
+  })
+
+  it('reads m3 at +300 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        value: 300,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('m3')
+  })
+
+  it('reads m3 at -300 cents (symmetric)', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        value: -300,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('m3')
+  })
+
+  it('reads m3 inside the +15¢ window at +313 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        value: 313,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('m3')
+  })
+
+  it('reads M3 at +400 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        value: 400,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('M3')
+  })
+
+  it('reads M3 inside the −15¢ window at −387 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        value: -387,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('M3')
+  })
+
+  it('reads P5 at +700 cents (travel limit)', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        value: 700,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('P5')
+  })
+
+  it('reads P5 at −685 cents (window edge, negative)', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        value: -685,
+        intervalIndicator: true,
+      },
+    })
+    expect(container.querySelector('.interval-indicator')?.textContent).toBe('P5')
+  })
+
+  it('is blank just outside the +M3 window at +416 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        value: 416,
+        intervalIndicator: true,
+      },
+    })
+    const slot = container.querySelector('.interval-indicator')
+    expect(slot).not.toBeNull()
+    expect(slot?.textContent?.trim() ?? '').toBe('')
+  })
+
+  it('is blank just outside the −P5 window at −684 cents', () => {
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        value: -684,
+        intervalIndicator: true,
+      },
+    })
+    const slot = container.querySelector('.interval-indicator')
+    expect(slot).not.toBeNull()
+    expect(slot?.textContent?.trim() ?? '').toBe('')
+  })
+})
+
 describe('Knob — bipolar prop', () => {
   it('renders a clockwise arc from center when pos > 0.5', () => {
     const { container } = render(Knob, {
