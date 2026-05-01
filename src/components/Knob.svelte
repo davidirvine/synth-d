@@ -142,12 +142,19 @@
     }
   })
 
+  /** @param {KeyboardEvent} e */
+  function onShiftKey(e) {
+    if (e.key === 'Shift') shiftHeld = e.type === 'keydown'
+  }
+
   /** @param {PointerEvent & { currentTarget: Element }} e */
   function onPointerDown(e) {
     dragging = true
     lastY = e.clientY
     shiftHeld = e.shiftKey
     e.currentTarget.setPointerCapture(e.pointerId)
+    window.addEventListener('keydown', onShiftKey)
+    window.addEventListener('keyup', onShiftKey)
   }
 
   /** @param {PointerEvent} e */
@@ -171,6 +178,8 @@
 
   function onPointerUp() {
     dragging = false
+    window.removeEventListener('keydown', onShiftKey)
+    window.removeEventListener('keyup', onShiftKey)
   }
 
   function onDblClick() {
