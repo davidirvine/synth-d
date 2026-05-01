@@ -38,7 +38,7 @@
     delayModRate: { min: 0.1, max: 10 },
     delayModDepth: { min: 0, max: 0.025 },
     // Reverb — reverbOn is intentionally excluded: it is a toggle, not a knob.
-    reverbMix: { min: 0, max: 1 },
+    reverbSend: { min: 0, max: 1 },
     reverbDecay: { min: 0.01, max: 1 },
     reverbDamp: { min: 0, max: 1 },
     reverbPreDelay: { min: 0, max: 0.1 },
@@ -126,10 +126,10 @@
     delayModRate: 0.5,
     delayModDepth: 0,
     // Reverb
-    reverbMix: 0.5,
+    reverbSend: 0.3,
     reverbDamp: 0.5,
     reverbDecay: 0.5,
-    reverbPreDelay: 0,
+    reverbPreDelay: 0.015,
   }
 
   let keyboardBase = $state(36)
@@ -309,7 +309,7 @@
 
   let effectsMidiState = $derived(
     midiStateFor(
-      'reverbMix',
+      'reverbSend',
       'reverbDamp',
       'reverbDecay',
       'reverbPreDelay',

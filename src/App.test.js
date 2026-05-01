@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, fireEvent, waitFor } from '@testing-library/svelte'
 import App, { powerOffValue } from './App.svelte'
+import { setParam } from './audio/engine.js'
 
 vi.mock('./audio/engine.js', () => ({
   getAnalyser: vi.fn().mockReturnValue(null),
@@ -478,6 +479,45 @@ describe('App — bipolar knob externalValue initialises to midpoint on page loa
       )
       const val = labelEl?.closest('.knob-wrap')?.querySelector('.knob-value')
       expect(val?.textContent).toBe('0.00')
+    })
+  })
+})
+
+describe('App — reverbSend forwards from knob to engine', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
+  })
+
+  it('reverbSend knob change calls setParam("reverbSend", value) on the worklet', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+    await fireEvent.click(btn)
+
+    const sendHit = Array.from(container.querySelectorAll('.knob-label'))
+      .find((el) => el.textContent === 'send')
+      ?.closest('.knob-wrap')
+      ?.querySelector('.knob-hit')
+    expect(sendHit).toBeTruthy()
+
+    await fireEvent.dblClick(/** @type {Element} */ (sendHit))
+
+    await waitFor(() => {
+      const sendCalls = /** @type {any} */ (setParam).mock.calls.filter(
+        (/** @type {any[]} */ c) => c[0] === 'reverbSend'
+      )
+      expect(sendCalls.length).toBeGreaterThan(0)
+      expect(sendCalls[sendCalls.length - 1][1]).toBeCloseTo(0.3, 5)
     })
   })
 })
