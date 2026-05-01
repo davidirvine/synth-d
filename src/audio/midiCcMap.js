@@ -1,5 +1,12 @@
 const STORAGE_PREFIX = 'midiCc:'
 
+// Param renames applied to persisted entries on load only. The underlying
+// localStorage value is left untouched so a revert keeps existing mappings
+// working without further migration.
+const PARAM_RENAMES = /** @type {Record<string, string>} */ ({
+  reverbMix: 'reverbSend',
+})
+
 export class MidiCcMap {
   /** @type {Map<number, { param: string, min: number, max: number }>} */
   #byCC = new Map()
@@ -58,8 +65,9 @@ export class MidiCcMap {
         const raw = localStorage.getItem(key)
         if (!raw) continue
         const { param, min, max } = JSON.parse(raw)
-        this.#byCC.set(cc, { param, min, max })
-        this.#byParam.set(param, cc)
+        const resolvedParam = PARAM_RENAMES[param] ?? param
+        this.#byCC.set(cc, { param: resolvedParam, min, max })
+        this.#byParam.set(resolvedParam, cc)
       }
     } catch {
       /* localStorage unavailable */
