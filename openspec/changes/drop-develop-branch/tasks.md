@@ -15,7 +15,7 @@
 ## 3. Cutover PR — workflow files
 
 - [x] 3.1 Create a `feature/drop-develop-branch` worktree from main (per the existing CLAUDE.md rules — this branch will become the base for itself once merged)
-- [ ] 3.2 Delete `.github/workflows/promote.yml`
+- [x] 3.2 Delete `.github/workflows/promote.yml`
 - [ ] 3.3 Edit `.github/workflows/release-please.yml`: remove the `backmerge` job entirely (keep `release-please` and `deploy` jobs)
 - [ ] 3.4 Edit `.github/workflows/ci-main.yml`: add `npx eslint .` step after Install dependencies, add `npx prettier --check .` step after the eslint step (mirror their position in `ci-develop.yml`)
 - [ ] 3.5 Delete `.github/workflows/ci-develop.yml`
