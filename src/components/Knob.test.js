@@ -240,6 +240,115 @@ describe('Knob — animation duration', () => {
   })
 })
 
+describe('Knob — step / fineStep quantization', () => {
+  it('preserves continuous behavior when neither prop is set', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: 0,
+        max: 1,
+        default: 0.5,
+        scale: 'linear',
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    await fireEvent.pointerMove(hit, { clientY: 93 })
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    // No quantization on a 0..1 linear scale → small Y deltas yield fractional values.
+    const last = values[values.length - 1]
+    expect(Number.isInteger(last)).toBe(false)
+  })
+
+  it('quantizes drag values to multiples of step={5}', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        scale: 'linear',
+        step: 5,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    await fireEvent.pointerMove(hit, { clientY: 95 })
+    await fireEvent.pointerMove(hit, { clientY: 88 })
+    await fireEvent.pointerMove(hit, { clientY: 80 })
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    for (const v of values) {
+      expect(v % 5).toBe(0)
+    }
+  })
+
+  it('quantizes drag values to multiples of fineStep={1} while Shift is held', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        scale: 'linear',
+        step: 5,
+        fineStep: 1,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.pointerDown(hit, { clientY: 100, shiftKey: true })
+    // With Shift held, sensitivity is 0.001 (10x reduction). One pixel of
+    // movement on a ±700 range advances by ~1.4¢ — small steps land on the
+    // 1¢ grid and naturally produce non-multiples-of-5.
+    for (let y = 99; y >= 90; y--) {
+      await fireEvent.pointerMove(hit, { clientY: y, shiftKey: true })
+    }
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    for (const v of values) {
+      expect(Number.isInteger(v)).toBe(true)
+    }
+    // At least one value should NOT be a multiple of 5 (otherwise Shift had no effect).
+    const offGrid = values.some((v) => v % 5 !== 0)
+    expect(offGrid).toBe(true)
+  })
+
+  it('returns to multiples of step={5} when Shift is released mid-drag', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: -700,
+        max: 700,
+        default: 0,
+        scale: 'linear',
+        step: 5,
+        fineStep: 1,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.pointerDown(hit, { clientY: 100, shiftKey: true })
+    await fireEvent.pointerMove(hit, { clientY: 50, shiftKey: true })
+    const fineCount = values.length
+    await fireEvent.pointerMove(hit, { clientY: 30, shiftKey: false })
+    await fireEvent.pointerMove(hit, { clientY: 10, shiftKey: false })
+    await fireEvent.pointerUp(hit)
+    const coarseValues = values.slice(fineCount)
+    expect(coarseValues.length).toBeGreaterThan(0)
+    for (const v of coarseValues) {
+      expect(v % 5).toBe(0)
+    }
+  })
+})
+
 describe('Knob — intervalIndicator prop', () => {
   it('does not render the indicator slot when prop is omitted', () => {
     const { container } = render(Knob, {
