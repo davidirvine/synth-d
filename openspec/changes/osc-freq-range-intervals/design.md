@@ -36,10 +36,16 @@ Add an `intervalIndicator` capability to `Knob.svelte` rather than a one-off in 
 
 Approach:
 - `Knob.svelte` exposes a new prop, e.g. `intervalIndicator: boolean` (default `false`).
-- When `true`, the component renders a `<span class="interval-indicator">` between the SVG and the value label (between current lines 211 and 213).
+- When `true`, the component renders a `<span class="interval-indicator">` between the closing `</svg>` of the knob body and the existing `<span class="knob-value">` element.
 - The interval is computed from the current value via a new helper `detectInterval(cents): "m3" | "M3" | "P5" | null` in `src/audio/math.js`.
 - The slot occupies fixed vertical space even when blank, so layout doesn't jump as the user drags through and out of windows.
 - The value passed to `detectInterval` is the *cents* value — the same as the underlying parameter — even though the user-facing label shows semitones. This keeps the helper unit-locked and testable.
+
+**Visual treatment:** the indicator SHALL match the existing `.knob-value` span typography (font family, weight, and base size) so the row reads as a single label/value column. Color and opacity are at implementer discretion within that constraint; the indicator may be rendered slightly dimmer or in a muted accent than the numeric value to avoid competing with it. The slot uses `min-height: 1em` (or equivalent) with a non-breaking-space fallback for the blank state.
+
+**Double-click reset interaction:** the existing `ondblclick` resets the knob to `defaultValue` (0 for the freq knobs). Because 0¢ is outside every interval window, the indicator slot goes blank as part of the reset — no special handling is needed; this is the same path as "value transitioned out of a window."
+
+**Accessibility:** the interval indicator is a passive visual signal and reinforces information already present in the numeric `knob-value` label and the audible pitch. The underlying `Knob` is not currently keyboard-operable in this codebase (pointer-only), so adding ARIA on the indicator alone would not be useful in isolation; broader keyboard/ARIA support for `Knob` is out of scope for this change and is tracked separately.
 
 **Alternative considered:** put the indicator in `Oscillator.svelte`, outside the Knob. Rejected — it would float independently of the knob's layout, introduce duplication if any other knob ever wants the same feature, and complicates double-click reset feedback.
 
@@ -68,13 +74,26 @@ Add discrete-step quantization to `Knob.svelte`:
 
 The existing **Shift-fine sensitivity reduction** (10× per the existing `Knob` spec) is independent and continues to apply — it changes pixels-per-cent, not the step grid. With Shift held, the user gets *both* finer pixel sensitivity *and* a finer (1¢) step, so landing inside the ±15¢ interval window is comfortable.
 
+**Scope of quantization — drag only:** the `Knob` component currently accepts user input only through pointer drag and double-click reset (no `wheel`, no `keydown`, no MIDI-internal handler beyond the parameter pipeline). Step quantization therefore applies to drag — the only quantizable input path. MIDI CC values arriving through `externalValue` already land on integer cent values (the FAUST hslider step is 1 — see D1) and are not re-quantized inside the knob; the spring animates between those integer-cent targets. Double-click reset assigns `defaultValue` directly and bypasses quantization — for the freq knobs, `defaultValue=0`, which is already on every step grid.
+
 ### D6. Value label format: semitones via formatValue path
 
 Add an `"st"` branch to `formatValue(value, unit)` in `src/audio/math.js` that returns `(value / 100).toFixed(2) + " st"`. The freq knobs change from `unit="c"` to `unit="st"`. The underlying value passed to `formatValue` remains in cents — the unit label drives the conversion. This keeps the param-storage representation untouched (still cents in JS, still cents in FAUST).
 
-### D7. Existing scale-prop drift: restore `'fine-center'`
+Note on existing state: `formatValue` does not currently have an explicit `"c"` branch — `unit="c"` falls through to the default `toFixed(2)` path, producing a bare number with no unit suffix. That happened to look acceptable for cents, but it was implicit, not designed. Switching the freq knobs to `unit="st"` (which has its own explicit branch) sidesteps the fallthrough. No change to other call sites is required as part of this work.
 
-The existing `oscillator` spec describes the detune knob as using a `'fine-center'` scale, but the code currently passes `scale="linear"` — prior drift between spec and code. We resolve the drift by restoring `'fine-center'` so the knob retains generous travel near unison (the original justification: subtle chorus/beating effects). The implementation in this change SHALL pass `scale="fine-center"` to the Knob.
+### D7. Implement and wire up `'fine-center'` scale
+
+The `fine-center-scale` capability spec already exists in main specs (`openspec/specs/fine-center-scale/spec.md`) and defines a quadratic taper symmetric around the midpoint:
+
+- Forward: `value = center + sign(t) × t² × range` where `t = (pos − 0.5) × 2`
+- Inverse: `normT = sign(v − center) × sqrt(|v − center| / range)`, then `pos = normT / 2 + 0.5`
+
+That spec was approved as part of an earlier change (`tweak-detune-taper`) but the implementation in `src/audio/math.js` was never landed — `normalizedToValue` and `valueToNormalized` only branch on `'log'` and `'log-reverse'`, and `'fine-center'` falls through to linear. The existing `oscillator` spec already calls for `scale="fine-center"`, so this is implementation drift, not a spec change.
+
+This change resolves the drift by **adding the `'fine-center'` branch to `normalizedToValue` and `valueToNormalized` per the existing `fine-center-scale` spec**, then wiring `scale="fine-center"` into the freq knobs. Without the implementation work, passing `scale="fine-center"` would silently behave as linear.
+
+The benefit: the knob retains generous travel near unison (subtle chorus/beating effects in low-cent territory) while still reaching the new ±700¢ extremes; the trade-offs at the wider range are discussed below.
 
 Implications at the wider ±700¢ range:
 - The outer portion of the sweep (where m3, M3, and P5 land) is compressed compared to a linear sweep — small drag movements there produce larger value jumps.

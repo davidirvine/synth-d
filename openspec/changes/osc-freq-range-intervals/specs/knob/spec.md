@@ -44,6 +44,8 @@ The indicator SHALL be opt-in so existing knobs without the prop continue to ren
 
 The `Knob` component SHALL accept an optional `step` numeric prop and an optional `fineStep` numeric prop. When `step` is provided, drag-induced value changes SHALL be quantized to the nearest multiple of `step`. When the Shift key is held during drag and `fineStep` is also provided, the active step SHALL be `fineStep` for the duration of the modifier press. When neither prop is set the knob SHALL behave as today (continuous value, no quantization). Step quantization SHALL apply to the *logical* value reported via `onchange`; the existing Shift-fine sensitivity reduction (10× pixels-per-unit) SHALL remain in effect independently of the step grid.
 
+Quantization SHALL apply to drag input. The double-click reset path SHALL assign `defaultValue` directly without quantization (callers are responsible for choosing a default value that aligns with their step grid; for the freq knobs `defaultValue=0` aligns with every multiple). Values arriving via the `externalValue` MIDI/automation path SHALL NOT be re-quantized inside the knob — upstream sources are expected to respect the underlying parameter's own step (e.g. the FAUST hslider step).
+
 #### Scenario: No step prop preserves continuous behavior
 - **WHEN** a `Knob` is rendered without a `step` prop
 - **THEN** drag updates report the raw continuous value with no quantization, exactly as today

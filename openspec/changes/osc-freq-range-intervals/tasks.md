@@ -1,15 +1,21 @@
 ## 1. Math helpers
 
-- [ ] 1.1 Add `detectInterval(cents)` helper to `src/audio/math.js` returning `"m3" | "M3" | "P5" | null` per the windows defined in the `knob` spec
-- [ ] 1.2 Add `"st"` (semitones) branch to `formatValue(value, unit)` in `src/audio/math.js`: divide cents by 100, two decimal places, suffix ` st`
-- [ ] 1.3 Add unit tests in `src/audio/math.test.js` (or existing equivalent) covering `detectInterval` at every target, both signs, just inside and just outside each ±15¢ window, and `formatValue("st")` at 0, ±650, ±700
-- [ ] 1.4 Run `npx vitest run` and confirm new tests pass; lint and format the touched files per CLAUDE.md
+- [ ] 1.1 Implement the `'fine-center'` branch in `normalizedToValue(pos, min, max, scale)` in `src/audio/math.js` per the existing `fine-center-scale` spec: `center = (max + min) / 2`, `range = (max − min) / 2`, `t = (pos − 0.5) × 2`, return `center + sign(t) × t² × range`
+- [ ] 1.2 Implement the matching `'fine-center'` branch in `valueToNormalized(val, min, max, scale)`: `normT = sign(val − center) × sqrt(|val − center| / range)`, return `normT / 2 + 0.5`
+- [ ] 1.3 Add `detectInterval(cents)` helper to `src/audio/math.js` returning `"m3" | "M3" | "P5" | null` per the windows defined in the `knob` spec
+- [ ] 1.4 Add `"st"` (semitones) branch to `formatValue(value, unit)` in `src/audio/math.js`: divide cents by 100, two decimal places, suffix ` st`
+- [ ] 1.5 Add unit tests in `src/audio/math.test.js` (or existing equivalent) covering:
+  - `normalizedToValue(0.5, -700, 700, 'fine-center') === 0`, endpoints map to ±700, and round-trip `valueToNormalized(normalizedToValue(pos, -700, 700, 'fine-center'), -700, 700, 'fine-center')` matches `pos` within floating-point precision for `pos ∈ {0, 0.1, 0.25, 0.5, 0.75, 0.9, 1}`
+  - `detectInterval` at every target value (±300, ±400, ±700), both signs, just inside (e.g. ±286, ±314 for m3) and just outside (±284, ±316 for m3) each ±15¢ window
+  - **P5 asymmetric window edge**: `detectInterval(700)` returns `"P5"`, `detectInterval(685)` returns `"P5"`, `detectInterval(684)` returns `null`, and `detectInterval(-700)` returns `"P5"`, `detectInterval(-685)` returns `"P5"`, `detectInterval(-684)` returns `null` — explicit test for the upper window being clipped at the slider maximum
+  - `formatValue("st")` at 0, ±650, ±700
+- [ ] 1.6 Run `npx vitest run` and confirm new tests pass; lint and format the touched files per CLAUDE.md
 
 ## 2. Knob component — interval indicator slot
 
 - [ ] 2.1 Add `intervalIndicator` boolean prop (default `false`) to `src/components/Knob.svelte`
-- [ ] 2.2 Render a `<span class="interval-indicator">` between the SVG (line ~211) and the value label (line ~213) when the prop is `true`; populate via `detectInterval(value)`
-- [ ] 2.3 Style the indicator with fixed vertical reservation (e.g. `min-height: 1em` and a non-breaking-space fallback) so layout does not jump as text appears or disappears
+- [ ] 2.2 When the prop is `true`, render a `<span class="interval-indicator">` inside the existing `.knob-wrap` container, positioned between the closing `</div>` of `.knob-hit` (the SVG wrapper) and the existing `<span class="knob-value">` element; populate via `detectInterval(value)`
+- [ ] 2.3 Style the indicator with fixed vertical reservation (e.g. `min-height: 1em` and a non-breaking-space fallback) so layout does not jump as text appears or disappears; match the typography (font family, weight, base size) of the adjacent `.knob-value` span so the rows read as one column
 - [ ] 2.4 Add component tests asserting: slot absent when prop omitted, slot present and blank at value 0, slot reads `m3` / `M3` / `P5` at the target values and inside their ±15¢ windows, slot blank just outside windows
 - [ ] 2.5 Run `npx vitest run`; lint and format
 
