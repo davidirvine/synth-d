@@ -254,6 +254,14 @@
     color: #888;
   }
 
+  .interval-indicator {
+    font-size: 10px;
+    color: #6a6a6a;
+    min-height: 1em;
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+
   .cc-label {
     font-size: 9px;
     color: #666;
