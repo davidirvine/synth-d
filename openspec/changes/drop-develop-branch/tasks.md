@@ -39,8 +39,8 @@
 
 - [x] 6.1 Run pre-push hooks (lint/format/test) and verify all pass
 - [x] 6.2 Submit the cutover PR using stax: `stax ss --yes --no-prompt`
-- [ ] 6.3 Verify CI on the cutover PR runs lint, prettier, vitest, and playwright (proves the migrated steps work)
-- [ ] 6.4 Address any roborev findings via `/roborev-fix` until clean
+- [x] 6.3 Verify CI on the cutover PR runs lint, prettier, vitest, and playwright (proves the migrated steps work)
+- [x] 6.4 Address any roborev findings via `/roborev-fix` until clean
 - [ ] 6.5 Wait for human approval per the implementation-completion gate in CLAUDE.md
 - [ ] 6.6 Merge the cutover PR (squash, per the existing per-feature PR convention — this is a normal feature merge, not a promote)
 
