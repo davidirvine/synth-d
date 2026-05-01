@@ -277,8 +277,15 @@
     font-size: 10px;
     color: #888;
     line-height: 1;
+  }
+
+  /* Lock the value-label column width only on knobs that opt into the
+     interval indicator, so a leading "-" doesn't widen the column on
+     these knobs and ripple the surrounding row. Other knobs keep their
+     auto width to avoid changing existing layouts. */
+  .knob-wrap:has(.interval-indicator) .knob-value {
     display: inline-block;
-    width: 6em;
+    width: 5em;
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
