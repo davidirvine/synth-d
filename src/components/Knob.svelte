@@ -1,5 +1,5 @@
 <script>
-  import { untrack } from 'svelte'
+  import { untrack, onDestroy } from 'svelte'
   import { tweened } from 'svelte/motion'
   import { cubicOut } from 'svelte/easing'
   import {
@@ -172,7 +172,7 @@
         ? Math.round(rawValue / activeStep) * activeStep
         : rawValue
     value = newValue
-    animPos.set(newPos, { duration: 0 })
+    animPos.set(valueToNormalized(newValue, min, max, scale), { duration: 0 })
     onchange?.({ value: newValue })
   }
 
@@ -181,6 +181,11 @@
     window.removeEventListener('keydown', onShiftKey)
     window.removeEventListener('keyup', onShiftKey)
   }
+
+  onDestroy(() => {
+    window.removeEventListener('keydown', onShiftKey)
+    window.removeEventListener('keyup', onShiftKey)
+  })
 
   function onDblClick() {
     value = defaultValue
