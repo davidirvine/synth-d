@@ -23,7 +23,7 @@
 
 ## 4. Cutover PR — documentation
 
-- [ ] 4.1 Edit `CLAUDE.md` "Branching" section: change "Branches MUST be created from `develop`" to "Branches MUST be created from `main`"; remove all references to develop as the proposal/tooling branch
+- [x] 4.1 Edit `CLAUDE.md` "Branching" section: change "Branches MUST be created from `develop`" to "Branches MUST be created from `main`"; remove all references to develop as the proposal/tooling branch
 - [ ] 4.2 Edit `CLAUDE.md` "Worktree Workflow" section: rewrite to drop the "develop is reserved for OpenSpec proposals and tooling work" framing; new framing is "implementation happens in worktrees branched from main"
 - [ ] 4.3 Edit `CLAUDE.md` "Pull Requests" section: remove all develop-vs-main split language; PRs target main directly
 - [ ] 4.4 Edit `README.md` "Branching & Deployment" section (lines ~82–99): rewrite the table to show only `main`, `feature/*`, `bugfix/*`; remove the develop row; rewrite the "Auto-promotion" paragraph (delete it); update the "CI checks" paragraph to describe checks on PRs to main; update the Releases paragraph to remove backmerge mention

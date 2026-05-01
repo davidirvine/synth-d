@@ -8,7 +8,7 @@ A spec MUST exist before any implementation begins. This applies to new features
 
 ## Branching
 
-All tasks for a change MUST be implemented on a single branch. Branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name. Branches MUST be created from `develop` at the time `/opsx:propose` is invoked.
+All tasks for a change MUST be implemented on a single branch. Branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name. Branches MUST be created from `main` at the time `/opsx:propose` is invoked.
 
 **REQUIRED: Before creating a branch, prompt the human for the change type (feature or bugfix) and wait for confirmation. Do not create a branch until the human has confirmed the type.**
 
