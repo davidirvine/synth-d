@@ -34,8 +34,8 @@
 
 ## 6. Section completion gate
 
-- [ ] 6.1 Run `npx vitest run` for the whole suite and confirm green.
-- [ ] 6.2 Run `roborev status` to confirm the daemon is healthy. If not running, halt and report.
-- [ ] 6.3 Run `roborev refine --max-iterations 3` and present results to the human.
-- [ ] 6.4 Wait for explicit human approval covering: visual verification of the reverb knob label and defaults, audio verification that engaging reverb no longer cuts dry low-end, and approval to open the PR. The PR description MUST mention the +6 dB output level change at default settings under the new send law.
-- [ ] 6.5 On approval, run `stax ss --yes --no-prompt` to push and open the PR. Report the PR URL.
+- [x] 6.1 Run `npx vitest run` for the whole suite and confirm green.
+- [x] 6.2 Run `roborev status` to confirm the daemon is healthy. If not running, halt and report.
+- [x] 6.3 Run `roborev refine --max-iterations 3` and present results to the human.
+- [x] 6.4 Wait for explicit human approval covering: visual verification of the reverb knob label and defaults, audio verification that engaging reverb no longer cuts dry low-end, and approval to open the PR. The PR description MUST mention the +6 dB output level change at default settings under the new send law.
+- [x] 6.5 On approval, run `stax ss --yes --no-prompt` to push and open the PR. Report the PR URL.
