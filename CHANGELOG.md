@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.2.0...subtractive-synth-v1.3.0) (2026-05-01)
+
+
+### Features
+
+* promote develop to main ([#61](https://github.com/davidirvine/synth-d/issues/61)) ([1e3a589](https://github.com/davidirvine/synth-d/commit/1e3a589597b8edec81880c326f02809055a29f36))
+
 ## [1.2.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.1.0...subtractive-synth-v1.2.0) (2026-05-01)
 
 
