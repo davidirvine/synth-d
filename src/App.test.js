@@ -248,7 +248,7 @@ describe('App — power-off sets bipolar knob externalValue to midpoint', () => 
     })
   })
 
-  it('osc2Detune externalValue is midpoint (0.00) after power-off, not min (-100.00)', async () => {
+  it('osc2Detune externalValue is midpoint (0.00 st) after power-off, not min (-7.00 st)', async () => {
     const { container } = render(App)
     const btn = /** @type {Element} */ (container.querySelector('button'))
 
@@ -256,9 +256,9 @@ describe('App — power-off sets bipolar knob externalValue to midpoint', () => 
     await fireEvent.click(btn)
     await waitFor(() => {
       const val = Array.from(container.querySelectorAll('.knob-label'))
-        .filter((el) => el.textContent === 'detune')
+        .filter((el) => el.textContent === 'freq')
         .map((el) => el.closest('.knob-wrap')?.querySelector('.knob-value'))[0]
-      expect(val?.textContent).toBe('0.00')
+      expect(val?.textContent).toBe('0.00 st')
     })
   })
 
@@ -323,35 +323,35 @@ describe('App — zero-default knobs respond to power-off after manual change', 
     )
   })
 
-  it('osc2Detune returns to midpoint (0.00) after manual change and power-off', async () => {
+  it('osc2Detune returns to midpoint (0.00 st) after manual change and power-off', async () => {
     const { container } = render(App)
     const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
 
-    await dragKnobUp(findKnobHits(container, 'detune')[0])
+    await dragKnobUp(findKnobHits(container, 'freq')[0])
     await waitFor(() => {
-      expect(findKnobValues(container, 'detune')[0]?.textContent).not.toBe('0.00')
+      expect(findKnobValues(container, 'freq')[0]?.textContent).not.toBe('0.00 st')
     })
 
     await fireEvent.click(btn)
     await waitFor(() => {
-      expect(findKnobValues(container, 'detune')[0]?.textContent).toBe('0.00')
+      expect(findKnobValues(container, 'freq')[0]?.textContent).toBe('0.00 st')
     })
   })
 
-  it('osc3Detune returns to midpoint (0.00) after manual change and power-off', async () => {
+  it('osc3Detune returns to midpoint (0.00 st) after manual change and power-off', async () => {
     const { container } = render(App)
     const btn = /** @type {Element} */ (container.querySelector('button'))
     await fireEvent.click(btn)
 
-    await dragKnobUp(findKnobHits(container, 'detune')[1])
+    await dragKnobUp(findKnobHits(container, 'freq')[1])
     await waitFor(() => {
-      expect(findKnobValues(container, 'detune')[1]?.textContent).not.toBe('0.00')
+      expect(findKnobValues(container, 'freq')[1]?.textContent).not.toBe('0.00 st')
     })
 
     await fireEvent.click(btn)
     await waitFor(() => {
-      expect(findKnobValues(container, 'detune')[1]?.textContent).toBe('0.00')
+      expect(findKnobValues(container, 'freq')[1]?.textContent).toBe('0.00 st')
     })
   })
 
@@ -460,14 +460,14 @@ describe('App — bipolar knob externalValue initialises to midpoint on page loa
     })
   })
 
-  it('osc2Detune externalValue is midpoint (0.00) on page load, not min (-100.00)', async () => {
+  it('osc2Detune externalValue is midpoint (0.00 st) on page load, not min (-7.00 st)', async () => {
     const { container } = render(App)
     await waitFor(() => {
       const labelEl = Array.from(container.querySelectorAll('.knob-label')).find(
-        (el) => el.textContent === 'detune'
+        (el) => el.textContent === 'freq'
       )
       const val = labelEl?.closest('.knob-wrap')?.querySelector('.knob-value')
-      expect(val?.textContent).toBe('0.00')
+      expect(val?.textContent).toBe('0.00 st')
     })
   })
 

@@ -108,13 +108,16 @@
       <span class="range-val">{osc2Range > 0 ? '+' : ''}{osc2Range}</span>
       <button class="step-btn" onclick={() => stepRange(2, 1)}>+</button>
       <Knob
-        label="detune"
-        min={-100}
-        max={100}
+        label="freq"
+        min={-700}
+        max={700}
         default={0}
-        scale="linear"
-        unit="c"
+        scale="fine-center"
+        unit="st"
         bipolar={true}
+        intervalIndicator={true}
+        step={5}
+        fineStep={1}
         externalValue={midiState?.osc2Detune?.externalValue}
         learningMidi={midiState?.osc2Detune?.learningMidi ?? false}
         assignedCc={midiState?.osc2Detune?.assignedCc ?? null}
@@ -143,13 +146,16 @@
         >+</button
       >
       <Knob
-        label="detune"
-        min={-100}
-        max={100}
+        label="freq"
+        min={-700}
+        max={700}
         default={0}
-        scale="linear"
-        unit="c"
+        scale="fine-center"
+        unit="st"
         bipolar={true}
+        intervalIndicator={true}
+        step={5}
+        fineStep={1}
         disabled={osc3LfoMode === 1}
         externalValue={midiState?.osc3Detune?.externalValue}
         learningMidi={midiState?.osc3Detune?.learningMidi ?? false}
