@@ -109,3 +109,31 @@ describe('MidiCcMap — localStorage persistence', () => {
     expect(localStorage.getItem('midiCc:71')).not.toBeNull()
   })
 })
+
+describe('MidiCcMap — reverbMix → reverbSend load-time translation', () => {
+  it('stored reverbMix entry resolves as reverbSend in memory', () => {
+    localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbMix', min: 0, max: 1 }))
+    const map = new MidiCcMap()
+    expect(map.resolve(42)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
+    expect(map.getAssignedCc('reverbSend')).toBe(42)
+    expect(map.getAssignedCc('reverbMix')).toBeNull()
+  })
+
+  it('translation does not rewrite the localStorage entry', () => {
+    localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbMix', min: 0, max: 1 }))
+    new MidiCcMap()
+    const raw = localStorage.getItem('midiCc:42')
+    expect(JSON.parse(/** @type {string} */ (raw))).toEqual({
+      param: 'reverbMix',
+      min: 0,
+      max: 1,
+    })
+  })
+
+  it('stored reverbSend entry loads unchanged', () => {
+    localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbSend', min: 0, max: 1 }))
+    const map = new MidiCcMap()
+    expect(map.resolve(42)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
+    expect(map.getAssignedCc('reverbSend')).toBe(42)
+  })
+})
