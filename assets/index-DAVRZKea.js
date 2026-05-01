@@ -5494,7 +5494,7 @@ export default ${(_a = jsCode.match(jsCodeHead)) == null ? void 0 : _a[1]};
 			return { promises: fs };
 		}, [], import.meta.url);
 		const { pathToFileURL } = await __vitePreload(async () => {
-			const { pathToFileURL } = await import("./url-N1wrHRkr.js");
+			const { pathToFileURL } = await import("./url-C2p_mfe_.js");
 			return { pathToFileURL };
 		}, [], import.meta.url);
 		let jsCode = await fs.readFile(jsFile, { encoding: "utf-8" });
@@ -9937,19 +9937,42 @@ var _FaustDspGenerator = class _FaustDspGenerator {
 _FaustDspGenerator.compilerPromise = null;
 //#endregion
 //#region src/audio/math.js
+/**
+* @param {number} midiNote
+* @returns {number}
+*/
 function mtof(midiNote) {
 	return 440 * Math.pow(2, (midiNote - 69) / 12);
 }
+/**
+* @param {number} pos
+* @param {number} min
+* @param {number} max
+* @param {string} scale
+* @returns {number}
+*/
 function normalizedToValue(pos, min, max, scale) {
 	if (scale === "log") return min * Math.pow(max / min, pos);
 	if (scale === "log-reverse") return max + min - min * Math.pow(max / min, 1 - pos);
 	return min + (max - min) * pos;
 }
+/**
+* @param {number} val
+* @param {number} min
+* @param {number} max
+* @param {string} scale
+* @returns {number}
+*/
 function valueToNormalized(val, min, max, scale) {
 	if (scale === "log") return Math.log(val / min) / Math.log(max / min);
 	if (scale === "log-reverse") return 1 - Math.log((max + min - val) / min) / Math.log(max / min);
 	return (val - min) / (max - min);
 }
+/**
+* @param {number} val
+* @param {string} unit
+* @returns {string}
+*/
 function formatValue(val, unit) {
 	if (unit === "Hz") {
 		if (Math.abs(val) >= 1e3) return `${(val / 1e3).toFixed(1)} kHz`;
@@ -9962,6 +9985,7 @@ function formatValue(val, unit) {
 //#endregion
 //#region src/audio/keyboard.js
 var BASE_MIDI = 48;
+/** @type {Record<string, number>} */
 var QWERTY_MAP = {
 	z: BASE_MIDI + 0,
 	s: BASE_MIDI + 1,
@@ -9989,6 +10013,13 @@ var QWERTY_MAP = {
 	u: BASE_MIDI + 23,
 	i: BASE_MIDI + 24
 };
+/**
+* Returns the ordered parameter messages to send to the DSP engine for a note-on.
+* When already active, only freq is updated to avoid an amplitude discontinuity click.
+* @param {number} freq
+* @param {boolean} currentlyActive
+* @returns {Array<{ param: string, value: number }>}
+*/
 function buildNoteOnMessages(freq, currentlyActive) {
 	if (currentlyActive) return [{
 		param: "freq",
@@ -10002,14 +10033,23 @@ function buildNoteOnMessages(freq, currentlyActive) {
 		value: 1
 	}];
 }
+/**
+* Converts a MIDI note number to Hz, applying an octave transpose offset.
+* @param {number} midiNote
+* @param {number} [octaveOffset]
+* @returns {number}
+*/
 function midiToFreq(midiNote, octaveOffset = 0) {
 	return mtof(midiNote + octaveOffset * 12);
 }
 //#endregion
 //#region src/audio/engine.js
 var PARAM_PREFIX = "/synth/";
+/** @type {AudioContext | null} */
 var ctx = null;
+/** @type {any} */
 var node = null;
+/** @type {AnalyserNode | null} */
 var analyserNode = null;
 var mixerPeakValue = 0;
 var outputPeakValue = 0;
@@ -10047,6 +10087,10 @@ async function powerOff() {
 	ctx = null;
 	analyserNode = null;
 }
+/**
+* @param {string} name
+* @param {number} value
+*/
 function setParam(name, value) {
 	if (!node) return;
 	if (!Number.isFinite(value)) return;
@@ -10073,6 +10117,7 @@ var MidiManager = class {
 	/** @type {Set<number>} */
 	#activeNotes = /* @__PURE__ */ new Set();
 	#bendValue = 0;
+	/** @type {number | null} */
 	#lastNote = null;
 	/** @param {{ onNoteOn?: Function, onNoteOff?: Function, onPitchBend?: Function, onCc?: Function, onStatusChange?: Function, onDevicesChange?: Function }} callbacks */
 	constructor(callbacks = {}) {
@@ -10101,6 +10146,7 @@ var MidiManager = class {
 		this._onStatusChange("connected");
 		this._notifyDevices();
 	}
+	/** @param {string} id */
 	selectDevice(id) {
 		this._detachListeners();
 		this.#selectedId = id;
@@ -10133,19 +10179,21 @@ var MidiManager = class {
 		if (!this.#access) return;
 		for (const port of this.#access.inputs.values()) port.onmidimessage = null;
 	}
+	/** @param {MIDIConnectionEvent} event */
 	_handleStateChange(event) {
 		const port = event.port;
-		if (port.type !== "input") return;
-		if (port.state === "disconnected") {
-			port.onmidimessage = null;
-			if (port.id === this.#selectedId) {
+		if (!port || port.type !== "input") return;
+		const inputPort = port;
+		if (inputPort.state === "disconnected") {
+			inputPort.onmidimessage = null;
+			if (inputPort.id === this.#selectedId) {
 				this.#selectedId = null;
 				this._releaseAllNotes();
 			}
-		} else if (port.state === "connected") {
-			if (this.#selectedId === null || port.id === this.#selectedId) {
-				port.onmidimessage = this._handleMessage;
-				if (this.#selectedId === null) this.#selectedId = port.id;
+		} else if (inputPort.state === "connected") {
+			if (this.#selectedId === null || inputPort.id === this.#selectedId) {
+				inputPort.onmidimessage = this._handleMessage;
+				if (this.#selectedId === null) this.#selectedId = inputPort.id;
 			}
 		}
 		this._notifyDevices();
@@ -10156,7 +10204,11 @@ var MidiManager = class {
 	}
 	/** @param {MIDIMessageEvent} event */
 	_handleMessage(event) {
-		const [status, data1, data2] = event.data;
+		if (!event.data) return;
+		const data = Array.from(event.data);
+		const status = data[0];
+		const data1 = data[1];
+		const data2 = data[2];
 		const type = status & 240;
 		if (type === 144) if (data2 === 0) this._noteOff(data1);
 		else this._noteOn(data1);
@@ -10169,22 +10221,26 @@ var MidiManager = class {
 			value: data2
 		});
 	}
+	/** @param {number} note */
 	_noteOn(note) {
 		this.#activeNotes.add(note);
 		this.#lastNote = note;
 		const freq = this._bentFreq(note);
 		this._onNoteOn(note, freq);
 	}
+	/** @param {number} note */
 	_noteOff(note) {
 		if (!this.#activeNotes.has(note)) return;
 		this.#activeNotes.delete(note);
 		this._onNoteOff(note);
 	}
+	/** @param {number} raw */
 	_pitchBend(raw) {
 		const normalized = (raw - BEND_CENTER) / BEND_CENTER;
 		this.#bendValue = normalized * BEND_SEMITONES;
 		if (this.#lastNote !== null && this.#activeNotes.has(this.#lastNote)) this._onPitchBend(this._bentFreq(this.#lastNote));
 	}
+	/** @param {number} note */
 	_bentFreq(note) {
 		return midiToFreq(note) * Math.pow(2, this.#bendValue / 12);
 	}
@@ -10192,6 +10248,7 @@ var MidiManager = class {
 //#endregion
 //#region src/audio/midiCcMap.js
 var STORAGE_PREFIX = "midiCc:";
+var PARAM_RENAMES = { reverbMix: "reverbSend" };
 var MidiCcMap = class {
 	/** @type {Map<number, { param: string, min: number, max: number }>} */
 	#byCC = /* @__PURE__ */ new Map();
@@ -10239,6 +10296,8 @@ var MidiCcMap = class {
 	}
 	#load() {
 		try {
+			/** @type {Array<{ cc: number, param: string, min: number, max: number }>} */
+			const entries = [];
 			for (let i = 0; i < localStorage.length; i++) {
 				const key = localStorage.key(i);
 				if (!key?.startsWith(STORAGE_PREFIX)) continue;
@@ -10247,12 +10306,32 @@ var MidiCcMap = class {
 				const raw = localStorage.getItem(key);
 				if (!raw) continue;
 				const { param, min, max } = JSON.parse(raw);
+				entries.push({
+					cc,
+					param,
+					min,
+					max
+				});
+			}
+			for (const { cc, param, min, max } of entries) {
+				if (PARAM_RENAMES[param] !== void 0) continue;
 				this.#byCC.set(cc, {
 					param,
 					min,
 					max
 				});
 				this.#byParam.set(param, cc);
+			}
+			for (const { cc, param, min, max } of entries) {
+				const target = PARAM_RENAMES[param];
+				if (target === void 0) continue;
+				if (this.#byParam.has(target)) continue;
+				this.#byCC.set(cc, {
+					param: target,
+					min,
+					max
+				});
+				this.#byParam.set(target, cc);
 			}
 		} catch {}
 	}
@@ -10581,7 +10660,6 @@ function Knob($$anchor, $$props) {
 	push($$props, true);
 	const $animPos = () => store_get(animPos, "$animPos", $$stores);
 	const [$$stores, $$cleanup] = setup_stores();
-	let label = prop($$props, "label", 3, ""), min = prop($$props, "min", 3, 0), max = prop($$props, "max", 3, 1), defaultValue = prop($$props, "default", 3, .5), initialValue = prop($$props, "value", 3, void 0), scale = prop($$props, "scale", 3, "linear"), unit = prop($$props, "unit", 3, ""), ticks = prop($$props, "ticks", 19, () => []), showLabel = prop($$props, "showLabel", 3, true), showValue = prop($$props, "showValue", 3, true), showArc = prop($$props, "showArc", 3, true), bipolar = prop($$props, "bipolar", 3, false), externalValue = prop($$props, "externalValue", 3, void 0), learningMidi = prop($$props, "learningMidi", 3, false), assignedCc = prop($$props, "assignedCc", 3, null), disabled = prop($$props, "disabled", 3, false);
 	/** @type {{
 	label?: string,
 	min?: number,
@@ -10602,12 +10680,17 @@ function Knob($$anchor, $$props) {
 	onchange?: (e: { value: number }) => void,
 	oncontextmenu?: () => void
 	}} */
+	let label = prop($$props, "label", 3, ""), min = prop($$props, "min", 3, 0), max = prop($$props, "max", 3, 1), defaultValue = prop($$props, "default", 3, .5), initialValue = prop($$props, "value", 3, void 0), scale = prop($$props, "scale", 3, "linear"), unit = prop($$props, "unit", 3, ""), ticks = prop($$props, "ticks", 19, () => []), showLabel = prop($$props, "showLabel", 3, true), showValue = prop($$props, "showValue", 3, true), showArc = prop($$props, "showArc", 3, true), bipolar = prop($$props, "bipolar", 3, false), externalValue = prop($$props, "externalValue", 3, void 0), learningMidi = prop($$props, "learningMidi", 3, false), assignedCc = prop($$props, "assignedCc", 3, null), disabled = prop($$props, "disabled", 3, false);
 	let value = /* @__PURE__ */ state(proxy(untrack(() => initialValue() !== void 0 ? initialValue() : defaultValue())));
 	const SWEEP = 270;
 	const START_ANGLE = 225;
 	const CX = 24;
 	const CY = 24;
 	const R = 18;
+	/**
+	* @param {number} angleDeg
+	* @param {number} r
+	*/
 	function polarToXY(angleDeg, r) {
 		const rad = (angleDeg - 90) * Math.PI / 180;
 		return {
@@ -10615,9 +10698,11 @@ function Knob($$anchor, $$props) {
 			y: CY + r * Math.sin(rad)
 		};
 	}
+	/** @param {{ pos: number, label: string, r?: number }} tick */
 	function tickXY(tick) {
 		return polarToXY(START_ANGLE + tick.pos * SWEEP, tick.r ?? R + 10);
 	}
+	/** @param {number} pos */
 	function arcPath(pos) {
 		const startRad = (START_ANGLE - 90) * Math.PI / 180;
 		const endRad = (START_ANGLE + pos * SWEEP - 90) * Math.PI / 180;
@@ -10627,6 +10712,7 @@ function Knob($$anchor, $$props) {
 		const ey = CY + R * Math.sin(endRad);
 		return `M ${sx} ${sy} A ${R} ${R} 0 ${pos * SWEEP > 180 ? 1 : 0} 1 ${ex} ${ey}`;
 	}
+	/** @param {number} pos */
 	function bipolarArcPath(pos) {
 		if (Math.abs(pos - .5) < .001) return "";
 		const centerRad = (START_ANGLE + .5 * SWEEP - 90) * Math.PI / 180;
@@ -10658,12 +10744,14 @@ function Knob($$anchor, $$props) {
 			}
 		}
 	});
+	/** @param {PointerEvent & { currentTarget: Element }} e */
 	function onPointerDown(e) {
 		dragging = true;
 		lastY = e.clientY;
 		shiftHeld = e.shiftKey;
 		e.currentTarget.setPointerCapture(e.pointerId);
 	}
+	/** @param {PointerEvent} e */
 	function onPointerMove(e) {
 		if (!dragging) return;
 		shiftHeld = e.shiftKey;
@@ -10684,6 +10772,7 @@ function Knob($$anchor, $$props) {
 		animPos.set(valueToNormalized(defaultValue(), min(), max(), scale()), { duration: 0 });
 		$$props.onchange?.({ value: defaultValue() });
 	}
+	/** @param {MouseEvent} e */
 	function handleContextMenu(e) {
 		e.preventDefault();
 		$$props.oncontextmenu?.();
@@ -10787,13 +10876,13 @@ var root_3$1 = /* @__PURE__ */ from_html(`<button> </button>`);
 var root$14 = /* @__PURE__ */ from_html(`<div class="panel svelte-19bkkl2"><span class="panel-label svelte-19bkkl2">oscillator bank</span> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 1</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 2</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 3</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!> <button>lfo</button> <!></div></div></div>`);
 function Oscillator($$anchor, $$props) {
 	push($$props, true);
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$7 = prop($$props, "reset", 3, 0);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
 	reset?: number,
 	}} */
+	let midiState = prop($$props, "midiState", 19, () => ({})), reset$7 = prop($$props, "reset", 3, 0);
 	const WAVEFORMS = [
 		"tri",
 		"rev-saw",
@@ -10809,6 +10898,10 @@ function Oscillator($$anchor, $$props) {
 	let osc3Wave = /* @__PURE__ */ state(0);
 	let osc3Range = /* @__PURE__ */ state(0);
 	let osc3LfoMode = /* @__PURE__ */ state(0);
+	/**
+	* @param {number} osc
+	* @param {number} i
+	*/
 	function selectWave(osc, i) {
 		const param = `osc${osc}Wave`;
 		if (osc === 1) set(osc1Wave, i, true);
@@ -10819,6 +10912,10 @@ function Oscillator($$anchor, $$props) {
 			value: i
 		});
 	}
+	/**
+	* @param {number} osc
+	* @param {number} delta
+	*/
 	function stepRange(osc, delta) {
 		const current = osc === 1 ? get(osc1Range) : osc === 2 ? get(osc2Range) : get(osc3Range);
 		const next = Math.max(-2, Math.min(2, current + delta));
@@ -11071,10 +11168,12 @@ delegate(["click"]);
 var root$13 = /* @__PURE__ */ from_html(`<div class="level-led svelte-1hlnysh"></div>`);
 function LevelLed($$anchor, $$props) {
 	push($$props, true);
+	/** @type {{ getPeak?: () => number, powered?: boolean }} */
 	let getPeak = prop($$props, "getPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
 	let color = /* @__PURE__ */ state("#111111");
 	let rafHandle = 0;
 	let latchHandle = 0;
+	/** @param {number} peak */
 	function computeColor(peak) {
 		if (peak <= 0) return "#111111";
 		let hue;
@@ -11131,7 +11230,6 @@ function LevelLed($$anchor, $$props) {
 var root$12 = /* @__PURE__ */ from_html(`<div class="panel svelte-gq0xe5"><div class="panel-header svelte-gq0xe5"><span class="panel-label svelte-gq0xe5">mixer</span> <!></div> <div class="mixer-col svelte-gq0xe5"><!> <!> <!> <div class="section-divider svelte-gq0xe5"></div> <div class="noise-row svelte-gq0xe5"><!> <div class="noise-type-row svelte-gq0xe5"><button>wht</button> <button>pink</button></div></div></div></div>`);
 function Mixer($$anchor, $$props) {
 	push($$props, true);
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$6 = prop($$props, "reset", 3, 0), getPeak = prop($$props, "getPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
@@ -11140,7 +11238,9 @@ function Mixer($$anchor, $$props) {
 	getPeak?: () => number,
 	powered?: boolean,
 	}} */
+	let midiState = prop($$props, "midiState", 19, () => ({})), reset$6 = prop($$props, "reset", 3, 0), getPeak = prop($$props, "getPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
 	let noiseType = /* @__PURE__ */ state(0);
+	/** @param {number} t */
 	function selectNoiseType(t) {
 		if (t === get(noiseType)) return;
 		set(noiseType, t, true);
@@ -11302,13 +11402,13 @@ delegate(["click"]);
 var root$11 = /* @__PURE__ */ from_html(`<div class="panel svelte-xeds7y"><span class="panel-label svelte-xeds7y">filter</span> <div class="knob-row centered svelte-xeds7y"><!> <!> <div class="key-track-col svelte-xeds7y"><div class="key-track-btn-wrap svelte-xeds7y"><button>KEY TRACK</button></div></div></div> <div class="section-divider svelte-xeds7y"></div> <div class="contour-header svelte-xeds7y"><span class="sub-label svelte-xeds7y">filter contour</span></div> <div class="knob-row svelte-xeds7y"><!> <!> <!> <!> <!></div></div>`);
 function Filter($$anchor, $$props) {
 	push($$props, true);
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$5 = prop($$props, "reset", 3, 0);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
 	reset?: number,
 	}} */
+	let midiState = prop($$props, "midiState", 19, () => ({})), reset$5 = prop($$props, "reset", 3, 0);
 	let keyTrackOn = /* @__PURE__ */ state(0);
 	function toggleKeyTrack() {
 		set(keyTrackOn, get(keyTrackOn) === 0 ? 1 : 0, true);
@@ -11545,13 +11645,13 @@ delegate(["click"]);
 var root$10 = /* @__PURE__ */ from_html(`<div class="panel svelte-123klp2"><span class="panel-label svelte-123klp2">effects</span> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">delay</span> <button> </button></div> <div class="effects-row svelte-123klp2"><!> <!> <!></div> <div class="mod-row svelte-123klp2"><button>MOD</button> <!> <!></div> <div class="section-divider svelte-123klp2"></div> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">reverb</span> <button> </button></div> <div class="effects-row reverb-row svelte-123klp2"><!> <!> <!> <!></div></div>`);
 function Effects($$anchor, $$props) {
 	push($$props, true);
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$4 = prop($$props, "reset", 3, 0);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
 	reset?: number,
 	}} */
+	let midiState = prop($$props, "midiState", 19, () => ({})), reset$4 = prop($$props, "reset", 3, 0);
 	let delayOn = /* @__PURE__ */ state(0);
 	let delayModOn = /* @__PURE__ */ state(0);
 	let reverbOn = /* @__PURE__ */ state(0);
@@ -11777,14 +11877,14 @@ function Effects($$anchor, $$props) {
 	var node_5 = child(div_5);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => get(reverbOn) === 0);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbMix?.externalValue);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbMix?.learningMidi ?? false);
-		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbMix?.assignedCc ?? null);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbSend?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbSend?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbSend?.assignedCc ?? null);
 		Knob(node_5, {
-			label: "mix",
+			label: "send",
 			min: 0,
 			max: 1,
-			default: .5,
+			default: .3,
 			scale: "linear",
 			get disabled() {
 				return get($0);
@@ -11799,10 +11899,10 @@ function Effects($$anchor, $$props) {
 				return get($3);
 			},
 			onchange: (e) => $$props.onchange?.({
-				param: "reverbMix",
+				param: "reverbSend",
 				value: e.value
 			}),
-			oncontextmenu: () => $$props.onknobcontextmenu?.("reverbMix")
+			oncontextmenu: () => $$props.onknobcontextmenu?.("reverbSend")
 		});
 	}
 	var node_6 = sibling(node_5, 2);
@@ -11878,7 +11978,7 @@ function Effects($$anchor, $$props) {
 			label: "pre-delay",
 			min: 0,
 			max: .1,
-			default: 0,
+			default: .015,
 			scale: "linear",
 			unit: "s",
 			get disabled() {
@@ -11925,7 +12025,6 @@ delegate(["click"]);
 var root$9 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
 function AmpEnv($$anchor, $$props) {
 	push($$props, true);
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$3 = prop($$props, "reset", 3, 0), getOutputPeak = prop($$props, "getOutputPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
@@ -11934,6 +12033,7 @@ function AmpEnv($$anchor, $$props) {
 	getOutputPeak?: () => number,
 	powered?: boolean,
 	}} */
+	let midiState = prop($$props, "midiState", 19, () => ({})), reset$3 = prop($$props, "reset", 3, 0), getOutputPeak = prop($$props, "getOutputPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
 	let drLock = /* @__PURE__ */ state(1);
 	let decayValue = /* @__PURE__ */ state(.5);
 	function toggleDrLock() {
@@ -12130,13 +12230,13 @@ delegate(["click"]);
 var root$8 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div></div></div>`);
 function Modulation($$anchor, $$props) {
 	push($$props, true);
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$2 = prop($$props, "reset", 3, 0);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
 	reset?: number,
 	}} */
+	let midiState = prop($$props, "midiState", 19, () => ({})), reset$2 = prop($$props, "reset", 3, 0);
 	let modToOsc1 = /* @__PURE__ */ state(0);
 	let modToOsc2 = /* @__PURE__ */ state(0);
 	let modToFilter = /* @__PURE__ */ state(0);
@@ -12251,13 +12351,13 @@ delegate(["click"]);
 var root$7 = /* @__PURE__ */ from_html(`<div class="panel svelte-oqc131"><span class="panel-label svelte-oqc131">glide</span> <div class="glide-row svelte-oqc131"><button> </button> <!></div></div>`);
 function Glide($$anchor, $$props) {
 	push($$props, true);
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$1 = prop($$props, "reset", 3, 0);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
 	reset?: number,
 	}} */
+	let midiState = prop($$props, "midiState", 19, () => ({})), reset$1 = prop($$props, "reset", 3, 0);
 	let glideOn = /* @__PURE__ */ state(0);
 	function toggleGlide() {
 		set(glideOn, get(glideOn) === 0 ? 1 : 0, true);
@@ -12333,6 +12433,12 @@ var root_4 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-lab
 var root$6 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><rect fill="#333"></rect><!><!><!><!></svg></div>`);
 function Keyboard($$anchor, $$props) {
 	push($$props, true);
+	/** @type {{
+	onnote?: (msgs: Array<{ param: string, value: number }>) => void,
+	triggerNote?: ((midi: number) => void) | null,
+	releaseNote?: ((midi: number) => void) | null,
+	baseMidi?: number,
+	}} */
 	let triggerNote = prop($$props, "triggerNote", 15, null), releaseNote = prop($$props, "releaseNote", 15, null), baseMidi = prop($$props, "baseMidi", 3, 36);
 	const BLACK_SEMITONES = new Set([
 		1,
@@ -12346,6 +12452,10 @@ function Keyboard($$anchor, $$props) {
 	const WHITE_H = 100;
 	const BLACK_W = 18;
 	const BLACK_H = 60;
+	/**
+	* @param {number} base
+	* @param {number} count
+	*/
 	function buildKeys(base, count) {
 		let whiteIdx = 0;
 		return Array.from({ length: count }, (_, i) => {
@@ -12366,6 +12476,7 @@ function Keyboard($$anchor, $$props) {
 	const keys = /* @__PURE__ */ user_derived(() => buildKeys(baseMidi(), 61));
 	const whiteKeys = /* @__PURE__ */ user_derived(() => get(keys).filter((k) => !k.black));
 	const totalWidth = /* @__PURE__ */ user_derived(() => get(whiteKeys).length * WHITE_W);
+	/** @param {number} midi */
 	function midiToNoteName(midi) {
 		return `${[
 			"C",
@@ -12499,6 +12610,11 @@ delegate(["pointerdown", "pointerup"]);
 //#region src/components/RegisterPanel.svelte
 var root$5 = /* @__PURE__ */ from_html(`<div class="panel svelte-pygl9d"><span class="panel-label svelte-pygl9d">keyboard range</span> <div class="btn-col svelte-pygl9d"><button>Oct ▲</button> <button>Oct ▼</button></div></div>`);
 function RegisterPanel($$anchor, $$props) {
+	/** @type {{
+	ondown?: () => void,
+	onup?: () => void,
+	activeRegister?: 'bottom' | 'top' | 'mid',
+	}} */
 	let activeRegister = prop($$props, "activeRegister", 3, "mid");
 	var div = root$5();
 	var div_1 = sibling(child(div), 2);
@@ -12539,12 +12655,14 @@ function WheelPanel($$anchor, $$props) {
 	let wheelDragging = /* @__PURE__ */ state(false);
 	let wheelStartY = 0;
 	let wheelStartVal = 0;
+	/** @param {PointerEvent & { currentTarget: Element }} e */
 	function onWheelPointerDown(e) {
 		set(wheelDragging, true);
 		wheelStartY = e.clientY;
 		wheelStartVal = get(modWheel);
 		e.currentTarget.setPointerCapture(e.pointerId);
 	}
+	/** @param {PointerEvent} e */
 	function onWheelPointerMove(e) {
 		if (!get(wheelDragging)) return;
 		const delta = (wheelStartY - e.clientY) / 80;
@@ -12557,6 +12675,7 @@ function WheelPanel($$anchor, $$props) {
 	function onWheelPointerUp() {
 		set(wheelDragging, false);
 	}
+	/** @param {KeyboardEvent} e */
 	function onWheelKeyDown(e) {
 		const step = .05;
 		if (e.key === "ArrowUp") {
@@ -12650,6 +12769,12 @@ var root_1 = /* @__PURE__ */ from_html(`<select class="device-select svelte-1w0i
 var root$2 = /* @__PURE__ */ from_html(`<div class="midi-status svelte-1w0iv8d"><span></span> <span class="label svelte-1w0iv8d">MIDI</span> <!></div>`);
 function MidiStatus($$anchor, $$props) {
 	push($$props, true);
+	/** @type {{
+	status?: string,
+	devices?: Array<{ id: string, name: string }>,
+	selectedDeviceId?: string | null,
+	ondevicechange?: (id: string) => void,
+	}} */
 	let status = prop($$props, "status", 3, "unavailable"), devices = prop($$props, "devices", 19, () => []), selectedDeviceId = prop($$props, "selectedDeviceId", 3, null);
 	var div = root$2();
 	var span = child(div);
@@ -12901,7 +13026,7 @@ var KNOB_PARAMS = {
 		min: 0,
 		max: .025
 	},
-	reverbMix: {
+	reverbSend: {
 		min: 0,
 		max: 1
 	},
@@ -12963,16 +13088,19 @@ function App($$anchor, $$props) {
 		delayMix: .3,
 		delayModRate: .5,
 		delayModDepth: 0,
-		reverbMix: .5,
+		reverbSend: .3,
 		reverbDamp: .5,
 		reverbDecay: .5,
-		reverbPreDelay: 0
+		reverbPreDelay: .015
 	};
 	let keyboardBase = /* @__PURE__ */ state(36);
 	const activeRegister = /* @__PURE__ */ user_derived(() => get(keyboardBase) === 21 ? "bottom" : get(keyboardBase) === 48 ? "top" : "mid");
 	let powered = /* @__PURE__ */ state(false);
 	let loading = /* @__PURE__ */ state(false);
-	let analyser = /* @__PURE__ */ state(null);
+	let analyser = /* @__PURE__ */ state(
+		/** @type {AnalyserNode | null} */
+		null
+	);
 	let resetCounter = /* @__PURE__ */ state(0);
 	let midiStatus = /* @__PURE__ */ state(
 		/** @type {'unavailable'|'connected'|'active'} */
@@ -13047,11 +13175,11 @@ function App($$anchor, $$props) {
 		}
 	});
 	let keyboardTriggerNote = /* @__PURE__ */ state(
-		/** @type {Function|null} */
+		/** @type {((midi: number) => void) | null} */
 		null
 	);
 	let keyboardReleaseNote = /* @__PURE__ */ state(
-		/** @type {Function|null} */
+		/** @type {((midi: number) => void) | null} */
 		null
 	);
 	async function handleToggle() {
@@ -13089,9 +13217,11 @@ function App($$anchor, $$props) {
 	function onKeyboardNote(messages) {
 		for (const msg of messages) setParam(msg.param, msg.value);
 	}
+	/** @param {string} param */
 	function onKnobContextMenu(param) {
 		set(learningParam, get(learningParam) === param ? null : param, true);
 	}
+	/** @param {KeyboardEvent} e */
 	function onKeyDown(e) {
 		if (e.key === "Escape" && get(learningParam) !== null) set(learningParam, null);
 	}
@@ -13100,6 +13230,7 @@ function App($$anchor, $$props) {
 		window.removeEventListener("keydown", onKeyDown);
 		midiManager.destroy();
 	});
+	/** @param {...string} params */
 	function midiStateFor(...params) {
 		return Object.fromEntries(params.map((p) => [p, {
 			externalValue: get(ccExternalValues)[p],
@@ -13113,7 +13244,7 @@ function App($$anchor, $$props) {
 	let ampEnvMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("ampAttack", "ampDecay", "ampSustain", "ampRelease", "masterVol"));
 	let modMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("modMix"));
 	let glideMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("glideRate"));
-	let effectsMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("reverbMix", "reverbDamp", "reverbDecay", "reverbPreDelay", "delayTime", "delayFeedback", "delayMix", "delayModRate", "delayModDepth"));
+	let effectsMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("reverbSend", "reverbDamp", "reverbDecay", "reverbPreDelay", "delayTime", "delayFeedback", "delayMix", "delayModRate", "delayModDepth"));
 	var div = root();
 	var header = child(div);
 	var div_1 = sibling(child(header), 2);

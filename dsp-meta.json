@@ -24,8 +24,8 @@
         "/usr/share/faust",
         "."
     ],
-    "size": 1159992,
-    "code": "IDCyB1Q8Hw==",
+    "size": 1160036,
+    "code": "qBK+B1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -102,6 +102,12 @@
             "filters.lib/fir:license": "MIT-style STK-4.3 license"
         },
         {
+            "filters.lib/highpass:author": "Julius O. Smith III"
+        },
+        {
+            "filters.lib/highpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+        },
+        {
             "filters.lib/iir:author": "Julius O. Smith III"
         },
         {
@@ -156,6 +162,15 @@
             "filters.lib/tf1s:license": "MIT-style STK-4.3 license"
         },
         {
+            "filters.lib/tf2:author": "Julius O. Smith III"
+        },
+        {
+            "filters.lib/tf2:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+        },
+        {
+            "filters.lib/tf2:license": "MIT-style STK-4.3 license"
+        },
+        {
             "filters.lib/tf2np:author": "Julius O. Smith III"
         },
         {
@@ -163,6 +178,15 @@
         },
         {
             "filters.lib/tf2np:license": "MIT-style STK-4.3 license"
+        },
+        {
+            "filters.lib/tf2s:author": "Julius O. Smith III"
+        },
+        {
+            "filters.lib/tf2s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+        },
+        {
+            "filters.lib/tf2s:license": "MIT-style STK-4.3 license"
         },
         {
             "filters.lib/version": "1.7.1"
@@ -915,10 +939,10 @@
                 {
                     "type": "hslider",
                     "label": "reverbDamp",
-                    "varname": "fHslider32",
+                    "varname": "fHslider31",
                     "shortname": "reverbDamp",
                     "address": "/synth/reverbDamp",
-                    "index": 868924,
+                    "index": 868956,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -927,22 +951,10 @@
                 {
                     "type": "hslider",
                     "label": "reverbDecay",
-                    "varname": "fHslider31",
+                    "varname": "fHslider30",
                     "shortname": "reverbDecay",
                     "address": "/synth/reverbDecay",
-                    "index": 868912,
-                    "init": 0.5,
-                    "min": 0,
-                    "max": 1,
-                    "step": 0.001
-                },
-                {
-                    "type": "hslider",
-                    "label": "reverbMix",
-                    "varname": "fHslider29",
-                    "shortname": "reverbMix",
-                    "address": "/synth/reverbMix",
-                    "index": 868888,
+                    "index": 868944,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -963,19 +975,31 @@
                 {
                     "type": "hslider",
                     "label": "reverbPreDelay",
-                    "varname": "fHslider30",
+                    "varname": "fHslider29",
                     "shortname": "reverbPreDelay",
                     "address": "/synth/reverbPreDelay",
-                    "index": 868900,
+                    "index": 868908,
                     "meta": [
                         {
                             "unit": "s"
                         }
                     ],
-                    "init": 0,
+                    "init": 0.015,
                     "min": 0,
                     "max": 0.1,
                     "step": 0.0001
+                },
+                {
+                    "type": "hslider",
+                    "label": "reverbSend",
+                    "varname": "fHslider32",
+                    "shortname": "reverbSend",
+                    "address": "/synth/reverbSend",
+                    "index": 1160008,
+                    "init": 0.3,
+                    "min": 0,
+                    "max": 1,
+                    "step": 0.001
                 }
             ]
         }
