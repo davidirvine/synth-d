@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.3.0...subtractive-synth-v1.4.0) (2026-05-01)
+
+
+### Features
+
+* enforce type correctness across the codebase ([0ead3e1](https://github.com/davidirvine/synth-d/commit/0ead3e134d71a0ada4aa297b2ac901701c086b4f))
+* enhance Knob component functionality ([0ead3e1](https://github.com/davidirvine/synth-d/commit/0ead3e134d71a0ada4aa297b2ac901701c086b4f))
+* introduce Conventional Commits specification ([0ead3e1](https://github.com/davidirvine/synth-d/commit/0ead3e134d71a0ada4aa297b2ac901701c086b4f))
+* promote develop to main (final pre-cutover) ([bd0844b](https://github.com/davidirvine/synth-d/commit/bd0844bd69d56d164acc8769eee2311184435878))
+* redefine CD pipeline deployment triggers and requirements ([0ead3e1](https://github.com/davidirvine/synth-d/commit/0ead3e134d71a0ada4aa297b2ac901701c086b4f))
+* refine release management process ([0ead3e1](https://github.com/davidirvine/synth-d/commit/0ead3e134d71a0ada4aa297b2ac901701c086b4f))
+* revamp reverb DSP stage and UI controls ([0ead3e1](https://github.com/davidirvine/synth-d/commit/0ead3e134d71a0ada4aa297b2ac901701c086b4f))
+* update oscillator detune behavior ([0ead3e1](https://github.com/davidirvine/synth-d/commit/0ead3e134d71a0ada4aa297b2ac901701c086b4f))
+
 ## [1.3.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.2.0...subtractive-synth-v1.3.0) (2026-05-01)
 
 
