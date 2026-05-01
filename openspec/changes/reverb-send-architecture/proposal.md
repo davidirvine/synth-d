@@ -24,11 +24,13 @@ None.
 ## Impact
 
 - `faust/synth.dsp` — reverb section (lines 70–75 parameter declarations, lines 174–195 reverb chain and signal-chain routing).
-- `src/App.svelte` — `KNOB_PARAMS` registry entry for `reverbMix`.
-- `src/lib/midiCcMap.js` — CC map entry for `reverbMix`.
+- `src/App.svelte` — three sites contain the literal string `reverbMix`: `KNOB_PARAMS` registry (line 41), `DEFAULTS` (line 129), and the `midiStateFor(...)` call list (line 312). All three are renamed to `reverbSend`.
+- `src/audio/midiCcMap.js` — the mapper itself is generic and contains no `reverbMix` literal; however, a load-time translation is added in `MidiCcMap#load()` so persisted `localStorage` CC assignments under the old `reverbMix` key resolve to `reverbSend` in memory without rewriting storage (rollback-safe).
 - `src/components/Effects.svelte` — reverb knob label, `onchange` event payloads, `oncontextmenu` payload, `disabled` binding, default value, and any `midiState.reverbMix` references.
 - `src/components/Effects.test.js` — reverb mix knob assertions, defaults, and event-name assertions.
-- `src/App.test.js` — any references to `reverbMix` in the engine wiring.
+- `src/App.test.js` — references to `reverbMix` in the engine wiring; new test for `reverbSend` forwarding mirrors the existing `delayMix` forwarding test.
+- New test for the `MidiCcMap` load-time `reverbMix → reverbSend` translation.
 - `e2e/` — any Playwright assertion targeting the reverb mix knob label or default.
 - `openspec/specs/reverb/spec.md` — requirement text and several scenarios are updated via a delta in this change.
+- **Output level change**: under the new send law at default `reverbSend = 0.3`, the output is `1.0·dry + 0.3·wet`. Under the old crossfade at `reverbMix = 0.5` it was `0.5·dry + 0.5·wet`. The dry component alone is +6 dB louder than before. With no presets to migrate, this is acceptable but should be called out in the PR description for users who feed the synth into a DAW or external mixer.
 - No external API or dependency changes. No preset migration (no presets exist yet). `vite.config.js` `build: { minify: false }` is unaffected.

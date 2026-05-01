@@ -108,7 +108,7 @@ All four continuous parameters (`reverbSend`, `reverbDamp`, `reverbDecay`, `reve
 
 ### Requirement: Reverb UI panel with on/off toggle and four MIDI-learnable knobs
 
-The system SHALL provide reverb controls inside `Effects.svelte`. The reverb section SHALL contain an on/off toggle button (controlling `reverbOn`) and four `Knob` components: `send` (linear, 0–1, default 0.3, param `reverbSend`), `damp` (linear, 0–1, default 0.5, param `reverbDamp`, `showValue={false}`), `decay` (log-reverse, 0.01–1, default 0.5, param `reverbDecay`), and `pre-delay` (linear, 0–0.1 s, default 0.015, param `reverbPreDelay`). The `mix` knob (param `reverbMix`) SHALL NOT be present. The `LPF` knob (param `reverbTone`) SHALL NOT be present. The `damp` knob SHALL NOT display a value label. The toggle SHALL use the existing amber active / grey inactive button style. The four knobs SHALL participate in the MIDI CC learn workflow via `midiState` and `onknobcontextmenu` props. The `reverbOn` toggle SHALL NOT be MIDI-learnable. The `reverbShimmer` knob SHALL NOT be present. The CSS fixed-width rule targeting the second reverb knob's value element SHALL be removed.
+The system SHALL provide reverb controls inside `Effects.svelte`. The reverb section SHALL contain an on/off toggle button (controlling `reverbOn`) and four `Knob` components: `send` (linear, 0–1, default 0.3, param `reverbSend`), `damp` (linear, 0–1, default 0.5, param `reverbDamp`, `showValue={false}`), `decay` (log-reverse, 0.01–1, default 0.5, param `reverbDecay`), and `pre-delay` (linear, 0–0.1 s, default 0.015, param `reverbPreDelay`). The `mix` knob (param `reverbMix`) SHALL NOT be present. The `LPF` knob (param `reverbTone`) SHALL NOT be present. The `damp` knob SHALL NOT display a value label. The toggle SHALL use the existing amber active / grey inactive button style. The four knobs SHALL participate in the MIDI CC learn workflow via `midiState` and `onknobcontextmenu` props. The `reverbOn` toggle SHALL NOT be MIDI-learnable. The `reverbShimmer` knob SHALL NOT be present. No CSS rule SHALL target a fixed width on a reverb knob value element.
 
 #### Scenario: Toggle defaults to off
 
@@ -225,3 +225,26 @@ The system SHALL register `reverbSend` (0–1), `reverbDecay` (0.01–1), `rever
 
 - **WHEN** the MIDI CC map is inspected
 - **THEN** there is no entry for `reverbShimmer`
+
+## ADDED Requirements
+
+### Requirement: MIDI CC assignments persisted under `reverbMix` are translated to `reverbSend` on load
+
+To preserve MIDI CC mappings learned under the prior `reverbMix` parameter name, `MidiCcMap#load()` in `src/audio/midiCcMap.js` SHALL translate persisted assignments whose stored `param` field is `"reverbMix"` into in-memory entries with `param: "reverbSend"`. The underlying `localStorage` entry SHALL NOT be rewritten by this translation. After translation, both `MidiCcMap#resolve(cc)` for the original CC and `MidiCcMap#getAssignedCc('reverbSend')` SHALL behave as if the assignment had originally been made under the new name.
+
+This translation is rollback-safe: if the change is reverted, the unchanged `localStorage` entry is read by the prior code as `reverbMix` and continues to work without further migration.
+
+#### Scenario: Stored reverbMix entry is loaded as reverbSend
+
+- **WHEN** `localStorage` contains an entry with key `midiCc:42` and value `{"param":"reverbMix","min":0,"max":1}`, and a new `MidiCcMap` is constructed
+- **THEN** `resolve(42)` returns `{ param: 'reverbSend', min: 0, max: 1 }` and `getAssignedCc('reverbSend')` returns `42`
+
+#### Scenario: Translation does not rewrite localStorage
+
+- **WHEN** `localStorage` contains a `reverbMix` entry, a new `MidiCcMap` is constructed, and no further `assign()` calls are made for the corresponding CC or for `reverbSend`
+- **THEN** the `localStorage` entry remains unchanged (still under the same key, still with `param: "reverbMix"`)
+
+#### Scenario: Stored reverbSend entry loads unchanged
+
+- **WHEN** `localStorage` contains an entry whose `param` is `"reverbSend"` and a new `MidiCcMap` is constructed
+- **THEN** `resolve(...)` returns the entry unchanged with `param: 'reverbSend'`

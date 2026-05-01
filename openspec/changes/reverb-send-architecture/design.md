@@ -24,7 +24,7 @@ Constraints from `CLAUDE.md`:
 - `build: { minify: false }` must remain in `vite.config.js` (FAUST AudioWorklet requires unminified function names).
 - Lint/format after every file edit per the table in `CLAUDE.md`.
 
-There are no presets in the project yet, so no migration path is required for saved patches. MIDI CC mappings are runtime user state and are not persisted across sessions in this codebase, so the parameter rename does not require a CC remap migration either — but this should be re-verified against `App.svelte` during implementation.
+There are no presets in the project yet, so no migration path is required for saved patches. **MIDI CC mappings DO persist** across sessions: `src/audio/midiCcMap.js` writes assignments to `localStorage` under the prefix `midiCc:` and rehydrates them in `MidiCcMap#load()`. Without a migration path, any user who learned a CC to `reverbMix` would reload with a stale entry whose `param` field references a parameter that no longer exists in `KNOB_PARAMS`, and the CC would silently stop working. The rename therefore requires an explicit migration step (Decision 7 below).
 
 ## Goals / Non-Goals
 
@@ -113,12 +113,28 @@ Under the send law, the perceptual range of "tasteful → drenched" maps roughly
 
 The DC blocker sits after `re.mono_freeverb` and before the send-amount multiply. It removes any DC offset accumulated in the freeverb feedback paths. With the new HPF at 180 Hz on the send input, the wet signal already has aggressively reduced sub-bass, but the DC blocker is independent of the HPF (it operates at a much lower corner and is intended as a safety filter rather than a tone shaper). It is retained.
 
+### Decision 7: Read-side `reverbMix → reverbSend` translation in `MidiCcMap#load()`, no storage rewrite
+
+Because MIDI CC assignments persist via `localStorage`, the parameter rename requires a migration step. Two options:
+
+- **(A) Read-side translation, storage untouched**: in `MidiCcMap#load()`, when a stored entry has `param === 'reverbMix'`, load it into the in-memory maps under `param: 'reverbSend'`. The `localStorage` entry is never rewritten.
+- **(B) Migration shim that rewrites storage**: same translation, plus rewrite the `localStorage` key with the new param name on first load.
+
+**(A) is chosen.** Rationale: the change can be reverted by reverting the feature branch's PR. With (A), a user who reverts immediately gets their `reverbMix` CC mapping back without further action — `localStorage` still holds the old key, the reverted code reads it as-is. With (B), reverting would orphan the user's mapping under the new `reverbSend` key, which the reverted code does not recognise.
+
+The cost of (A) is one additional pass through the in-memory map per load, and one stale entry that lingers in `localStorage` indefinitely if the user never re-learns the CC. Both are acceptable. The translation is implemented as a small lookup table (currently a single entry) so future renames can be added without further restructuring.
+
+### Decision 8: Quantify the +6 dB output level change
+
+Under the old crossfade at default `reverbMix = 0.5`, the output is `0.5·dry + 0.5·wet`. Under the new send law at default `reverbSend = 0.3`, the output is `1.0·dry + 0.3·wet`. The dry component alone is +6 dB louder. The summed output is louder by a frequency-dependent amount (full +6 dB at frequencies where the wet contributes little, somewhat less at frequencies where wet is in-phase with dry). Users feeding the synth into a DAW or hardware mixer will notice and may want to drop their input gain. With no presets to migrate, this is acceptable, but it is called out as a **BREAKING** change in the proposal and must appear in the PR description.
+
 ## Risks / Trade-offs
 
 - **Risk: Existing tests assert on `reverbMix` and crossfade-specific scenarios** → tests are updated as part of this change. The spec delta drives which scenarios change, so test updates and spec updates stay in sync.
-- **Risk: MIDI CC learn state held in `midiState` references the old key** → the rename must be applied everywhere the string `'reverbMix'` appears. Search will catch all sites; lint-clean DSP compile and `vitest run` will catch any miss in the JS layer.
+- **Risk: MIDI CC learn state held in `midiState` references the old key** → the rename must be applied everywhere the string `'reverbMix'` appears (verified locations: `App.svelte` lines 41, 129, 312; `Effects.svelte` knob block and `midiState.reverbMix` references). Persisted assignments under the old key are translated read-side in `MidiCcMap#load()` per Decision 7.
 - **Risk: The `Mix at one passes wet signal only` scenario is no longer reachable under the send law** → that scenario is removed in the spec delta, not preserved. The new model is "dry is always present; send scales wet on top," which is a different behaviour, not a renamed equivalent.
-- **Trade-off: Default `reverbSend = 0.3` is louder than the old `reverbMix = 0.5` was at low/mid frequencies** because the dry is no longer attenuated. Total perceived loudness when the toggle engages will increase. This is the intended improvement (no more body loss), but users moving from one build to the next may hit it as "louder." Not a problem given no presets exist and no users are on the prior build.
+- **Risk: Sections 1–3 of the task list are not independently testable against the full vitest suite** → renaming the DSP parameter in section 1 without updating `KNOB_PARAMS` (section 2) and the UI (section 3) breaks tests that reference `reverbMix`. Sections 1–3 form a single atomic unit; only section 4 is expected to bring the full suite back to green. This is documented in `tasks.md` and acknowledged here so the implementer is not surprised by failing tests during section 1 or 2.
+- **Trade-off: Default `reverbSend = 0.3` produces +6 dB more dry signal than the old `reverbMix = 0.5`** (Decision 8). This is the intended improvement (no more body loss). Not a problem given no presets exist and no users are on the prior build, but called out as a **BREAKING** change in the proposal.
 - **Trade-off: The HPF at 180 Hz removes some "warmth" from the reverb tail itself** because freeverb won't have low-end to ring on. The trade is intentional — clean dry low-end matters more than a warm reverb tail in this synth voicing.
 
 ## Migration Plan
@@ -133,5 +149,5 @@ Rollback: revert the feature branch's PR. Single PR, single commit on `develop` 
 
 ## Open Questions
 
-- Confirm during implementation whether MIDI CC assignments persist across page reloads (e.g., via `localStorage`). If they do, the rename produces stale entries pointing at a missing parameter, and either a one-time migration shim or a graceful "ignore unknown param" path is required. Current read of `Effects.svelte` and recent commit history suggests they do not, but verify before completing the MIDI task step.
 - Whether to expose the HPF cutoff as a parameter is intentionally deferred. The simplest, most defensible thing is a fixed corner; if user feedback later requests control, a `reverbHpfHz` parameter can be added in a follow-up change.
+- The design file `design/synth-d.pen` may contain a reverb section whose UI labels reference "mix" rather than "send." Updating the design file is intentionally out of scope for this change (the `.pen` file is encrypted and edited via the pencil tool, separately from the codebase), but a follow-up change may bring the design and code labels back into sync.
