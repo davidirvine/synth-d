@@ -23,6 +23,8 @@
     showArc?: boolean,
     bipolar?: boolean,
     intervalIndicator?: boolean,
+    step?: number | null,
+    fineStep?: number | null,
     externalValue?: number,
     learningMidi?: boolean,
     assignedCc?: number | null,
@@ -44,6 +46,8 @@
     showArc = true,
     bipolar = false,
     intervalIndicator = false,
+    step = null,
+    fineStep = null,
     externalValue = undefined,
     learningMidi = false,
     assignedCc = null,
@@ -154,7 +158,12 @@
     lastY = e.clientY
     const sensitivity = shiftHeld ? 0.001 : 0.01
     const newPos = Math.max(0, Math.min(1, pos + delta * sensitivity))
-    const newValue = normalizedToValue(newPos, min, max, scale)
+    const rawValue = normalizedToValue(newPos, min, max, scale)
+    const activeStep = shiftHeld && fineStep !== null ? fineStep : step
+    const newValue =
+      activeStep !== null && activeStep > 0
+        ? Math.round(rawValue / activeStep) * activeStep
+        : rawValue
     value = newValue
     animPos.set(newPos, { duration: 0 })
     onchange?.({ value: newValue })
