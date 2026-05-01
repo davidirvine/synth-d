@@ -57,6 +57,22 @@ export function valueToNormalized(val, min, max, scale) {
 }
 
 /**
+ * Detect a musical interval from a cent value, latching at m3 (±300¢),
+ * M3 (±400¢), and P5 (±700¢) within a ±15¢ tolerance window. Symmetric
+ * about zero. The P5 upper window is clipped at the slider maximum
+ * (685–700¢ rather than 685–715¢) — see osc-freq-range-intervals design D4.
+ * @param {number} cents
+ * @returns {"m3" | "M3" | "P5" | null}
+ */
+export function detectInterval(cents) {
+  const abs = Math.abs(cents)
+  if (abs >= 285 && abs <= 315) return 'm3'
+  if (abs >= 385 && abs <= 415) return 'M3'
+  if (abs >= 685 && abs <= 700) return 'P5'
+  return null
+}
+
+/**
  * @param {number} val
  * @param {string} unit
  * @returns {string}
