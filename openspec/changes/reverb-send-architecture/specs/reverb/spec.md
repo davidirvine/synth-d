@@ -194,7 +194,7 @@ The system SHALL provide reverb controls inside `Effects.svelte`. The reverb sec
 
 ### Requirement: Reverb parameters registered in MIDI CC map
 
-The system SHALL register `reverbSend` (0–1), `reverbDecay` (0.01–1), `reverbDamp` (0–1), and `reverbPreDelay` (0–0.1) in the `KNOB_PARAMS` registry in `App.svelte` and in `midiCcMap.js`. `reverbMix` SHALL NOT be present in either registry. `reverbTone` SHALL NOT be present in either registry. `reverbShimmer` SHALL NOT be present. `reverbOn` SHALL NOT be registered.
+The system SHALL register `reverbSend` (0–1), `reverbDecay` (0.01–1), `reverbDamp` (0–1), and `reverbPreDelay` (0–0.1) in the `KNOB_PARAMS` registry in `App.svelte`. The MIDI CC map (`midiCcMap.js`) is a generic mapper that resolves parameters registered in `KNOB_PARAMS`; it contains no parameter literals of its own. `reverbMix` SHALL NOT be present in the registry. `reverbTone` SHALL NOT be present in the registry. `reverbShimmer` SHALL NOT be present. `reverbOn` SHALL NOT be registered.
 
 #### Scenario: Reverb send responds to assigned MIDI CC
 

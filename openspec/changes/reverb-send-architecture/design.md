@@ -142,7 +142,7 @@ Under the old crossfade at default `reverbMix = 0.5`, the output is `0.5·dry + 
 No external migration is required:
 
 - No presets exist; nothing to rewrite.
-- MIDI CC mappings are runtime-only (verify during implementation in `App.svelte`); users who happen to have learned `reverbMix` mid-session will need to re-learn after this change ships, but no persisted state is broken.
+- MIDI CC assignments persist via `localStorage`. The load-time read-side translation (Decision 7) maps stale `reverbMix` entries to `reverbSend` in memory without rewriting storage; no user action is required.
 - The DSP rebuild happens in the normal Vite build step; AudioWorklet hot-reloads automatically when the user reloads.
 
 Rollback: revert the feature branch's PR. Single PR, single commit on `develop` after squash-merge, single revert if needed.
