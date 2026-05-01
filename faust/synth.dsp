@@ -72,7 +72,7 @@ reverbOn       = nentry("reverbOn", 0, 0, 1, 1);
 reverbSend     = hslider("reverbSend", 0.3, 0, 1, 0.001);
 reverbDecay    = hslider("reverbDecay", 0.5, 0, 1, 0.001);
 reverbDamp     = hslider("reverbDamp", 0.5, 0, 1, 0.001);
-reverbPreDelay = hslider("reverbPreDelay [unit:s]", 0, 0, 0.1, 0.0001);
+reverbPreDelay = hslider("reverbPreDelay [unit:s]", 0.015, 0, 0.1, 0.0001);
 
 // Master
 masterVol = hslider("masterVol", 0.75, 0, 1, 0.001);
