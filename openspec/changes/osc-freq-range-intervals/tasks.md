@@ -37,10 +37,10 @@
 
 ## 5. Oscillator wiring
 
-- [ ] 5.1 In `src/components/Oscillator.svelte`, update the OSC 2 detune knob (lines ~110–123): `label="freq"`, `min={-700}`, `max={700}`, `scale="fine-center"`, `unit="st"`, add `step={5}`, `fineStep={1}`, `intervalIndicator={true}`
-- [ ] 5.2 In `src/components/Oscillator.svelte`, update the OSC 3 detune knob (lines ~145–159) with the same set of changes (including `scale="fine-center"`); preserve the existing `disabled={osc3LfoMode === 1}` binding
-- [ ] 5.3 Lint and format `Oscillator.svelte`
-- [ ] 5.4 Run `npx vitest run` (full suite, not just touched files)
+- [x] 5.1 In `src/components/Oscillator.svelte`, update the OSC 2 detune knob (lines ~110–123): `label="freq"`, `min={-700}`, `max={700}`, `scale="fine-center"`, `unit="st"`, add `step={5}`, `fineStep={1}`, `intervalIndicator={true}`
+- [x] 5.2 In `src/components/Oscillator.svelte`, update the OSC 3 detune knob (lines ~145–159) with the same set of changes (including `scale="fine-center"`); preserve the existing `disabled={osc3LfoMode === 1}` binding
+- [x] 5.3 Lint and format `Oscillator.svelte`
+- [x] 5.4 Run `npx vitest run` (full suite, not just touched files)
 
 ## 6. Visual + audio verification
 
