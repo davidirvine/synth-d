@@ -1,9 +1,9 @@
 ## 1. Pre-migration triage
 
-- [ ] 1.1 Audit local and remote branches: list every `feature/*`, `bugfix/*`, `design/*`, and `planing-*` branch and classify as active (in-progress worktree) or stale (abandoned/merged)
-- [ ] 1.2 For each active branch, record its current base (should be develop) and confirm the human knows it will need a one-time rebase onto main after Phase 3
-- [ ] 1.3 Confirm develop's unreleased commits ahead of main are intentional and ready to ship: `0ead3e1` (CD pipeline deployment triggers), `a9389cd` (implementation completion workflows), and the backmerge commit `b9e068a`
-- [ ] 1.4 Confirm no in-flight promote PR or release-please PR is open at the start of the migration
+- [x] 1.1 Audit local and remote branches: list every `feature/*`, `bugfix/*`, `design/*`, and `planing-*` branch and classify as active (in-progress worktree) or stale (abandoned/merged)
+- [x] 1.2 For each active branch, record its current base (should be develop) and confirm the human knows it will need a one-time rebase onto main after Phase 3
+- [x] 1.3 Confirm develop's unreleased commits ahead of main are intentional and ready to ship: `0ead3e1` (CD pipeline deployment triggers), `a9389cd` (implementation completion workflows), and the backmerge commit `b9e068a`
+- [x] 1.4 Confirm no in-flight promote PR or release-please PR is open at the start of the migration
 
 ## 2. Final develop → main promotion
 
