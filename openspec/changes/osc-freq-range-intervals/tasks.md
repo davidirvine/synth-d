@@ -21,12 +21,12 @@
 
 ## 3. Knob component — step / fineStep quantization
 
-- [ ] 3.1 Add `step` and `fineStep` numeric props (both default `null`) to `src/components/Knob.svelte`
-- [ ] 3.2 In the drag handler, after computing the candidate value, if a step is active, round to the nearest multiple before assigning to `value` and firing `onchange`
-- [ ] 3.3 Track Shift key state during drag (pointerdown/keydown/keyup) so toggling Shift mid-drag switches between `step` and `fineStep` for subsequent updates
-- [ ] 3.4 Confirm the existing 10× Shift sensitivity reduction continues to apply alongside the step grid
-- [ ] 3.5 Add component tests: continuous behavior when neither prop set, multiples of 5 with `step={5}`, multiples of 1 with Shift held when `fineStep={1}`, returns to multiples of 5 when Shift released mid-drag
-- [ ] 3.6 Run `npx vitest run`; lint and format
+- [x] 3.1 Add `step` and `fineStep` numeric props (both default `null`) to `src/components/Knob.svelte`
+- [x] 3.2 In the drag handler, after computing the candidate value, if a step is active, round to the nearest multiple before assigning to `value` and firing `onchange`
+- [x] 3.3 Track Shift key state during drag (pointerdown/keydown/keyup) so toggling Shift mid-drag switches between `step` and `fineStep` for subsequent updates
+- [x] 3.4 Confirm the existing 10× Shift sensitivity reduction continues to apply alongside the step grid
+- [x] 3.5 Add component tests: continuous behavior when neither prop set, multiples of 5 with `step={5}`, multiples of 1 with Shift held when `fineStep={1}`, returns to multiples of 5 when Shift released mid-drag
+- [x] 3.6 Run `npx vitest run`; lint and format
 
 ## 4. FAUST DSP — widen slider bounds
 
