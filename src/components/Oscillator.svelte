@@ -112,7 +112,6 @@
         min={-700}
         max={700}
         default={0}
-        scale="fine-center"
         unit="st"
         bipolar={true}
         intervalIndicator={true}
@@ -150,7 +149,6 @@
         min={-700}
         max={700}
         default={0}
-        scale="fine-center"
         unit="st"
         bipolar={true}
         intervalIndicator={true}
