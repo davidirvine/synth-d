@@ -13059,7 +13059,7 @@ var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header cl
 function App($$anchor, $$props) {
 	push($$props, true);
 	const branch = "main";
-	const versionLabel = branch === "main" ? `v1.1.0` : `v1.1.0 (${branch})`;
+	const versionLabel = branch === "main" ? `v1.2.0` : `v1.2.0 (${branch})`;
 	const DEFAULTS = {
 		osc2Detune: 0,
 		osc3Detune: 0,
