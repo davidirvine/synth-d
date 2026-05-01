@@ -182,6 +182,7 @@ reverbSendS     = reverbSend     : si.smoo;
 // Buffer covers 100 ms at 48 kHz (4800 samples + 1 headroom); max pre-delay halves to ~50 ms at 96 kHz.
 // mono_freeverb(fb1=decay, fb2=0.5 room-size fixed, damp=reverbDampS, spread=0 mono).
 reverbWet = de.fdelay(4801, reverbPreDelayS * ma.SR)
+          : fi.highpass(2, 180)
           : re.mono_freeverb(reverbDecayS, 0.5, reverbDampS, 0)
           : fi.dcblocker;
 
