@@ -255,7 +255,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 0;
     user-select: none;
   }
 
@@ -270,11 +270,17 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
     white-space: nowrap;
+    margin-bottom: 2px;
   }
 
   .knob-value {
     font-size: 10px;
     color: #888;
+    line-height: 1;
+    display: inline-block;
+    width: 6em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
   }
 
   .interval-indicator {
@@ -283,6 +289,14 @@
     min-height: 1em;
     line-height: 1;
     letter-spacing: 0.03em;
+  }
+
+  /* Pull whatever sits directly under the SVG up against the knob body.
+     The SVG's 48px box has empty space below the visible knob; -10px snugs
+     the first label right against the bottom of the body. */
+  .knob-hit + .interval-indicator,
+  .knob-hit + .knob-value {
+    margin-top: -10px;
   }
 
   .cc-label {
