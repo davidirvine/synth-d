@@ -30,10 +30,10 @@ describe('Effects — rendering', () => {
     expect(container.querySelectorAll('.toggle-btn')).toHaveLength(3)
   })
 
-  it('reverb send knob defaults to 0.30', () => {
+  it('reverb send knob defaults to 0.50', () => {
     const { container } = render(Effects)
     const knobValues = container.querySelectorAll('.knob-value')
-    expect(knobValues[5].textContent).toBe('0.30')
+    expect(knobValues[5].textContent).toBe('0.50')
   })
 
   it('shimmer knob is absent from the rendered effects panel', () => {
