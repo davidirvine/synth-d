@@ -86,7 +86,7 @@ Required types and their version-bump effect:
 | `refactor` | Code restructuring with no behaviour change          | none         |
 | `test`     | Adding or updating tests                             | none         |
 
-**This is a functional requirement, not a style preference.** The `promote.yml` workflow reads commit types from the `develop..main` diff to determine the promote PR title (e.g., `feat: promote develop to main`). GitHub squash-merges that PR, so the PR title becomes the single commit on `main` that `release-please` parses for the version bump type. Using the wrong type (or no type) silently breaks the release pipeline.
+**This is a functional requirement, not a style preference.** Each feature/bugfix PR is squash-merged to `main`, and the PR title becomes the single commit `release-please` parses for the version bump type. Using the wrong type (or no type) silently breaks the release pipeline.
 
 ## Implementation Completion
 
@@ -135,7 +135,7 @@ The feature branch is ready for PR ONLY after the human has completed:
 3. Personal reflection on the feature's behaviour and quality
 4. Explicit instruction to open the PR
 
-Do not open the PR autonomously. Wait for the human to request it. Pre-push hooks will run the same checks as the `ci-develop` GitHub Actions workflow before the push is accepted (see `.husky/pre-push`).
+Do not open the PR autonomously. Wait for the human to request it. Pre-push hooks will run the same checks as the `ci-main` GitHub Actions workflow before the push is accepted (see `.husky/pre-push`).
 
 ### Opening the PR
 
