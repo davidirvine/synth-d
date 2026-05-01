@@ -1,6 +1,6 @@
 ## 1. Workflow fix
 
-- [ ] 1.1 Add `target-branch: main` to the `googleapis/release-please-action` step's `with:` block in `.github/workflows/release-please.yml`
+- [x] 1.1 Add `target-branch: main` to the `googleapis/release-please-action` step's `with:` block in `.github/workflows/release-please.yml`
 - [ ] 1.2 Run `npx prettier --write .github/workflows/release-please.yml` to satisfy the project's formatting rule
 
 ## 2. Verification
