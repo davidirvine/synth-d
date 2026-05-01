@@ -192,5 +192,9 @@ reverbWet = de.fdelay(4801, reverbPreDelayS * ma.SR)
 vcaOut     = filteredSig * ampEnvOut;
 outputPeak = abs(vcaOut * (masterVol / 0.6)) : vbargraph("outputPeak [unit:linear]", 0, 2);
 masterOut  = attach(vcaOut * (masterVol / 0.6), outputPeak) : ma.tanh;
-reverbOut = delayStage + reverbWet * reverbSendS;
+// Send-style routing: split delayStage into the dry path (`_`) and into
+// reverbWet's input, then sum (`:>`). Writing this as `delayStage + reverbWet
+// * reverbSendS` would compile but leave reverbWet's input unconnected, so
+// the wet path would process silence at runtime.
+reverbOut = delayStage <: (_, reverbWet * reverbSendS) :> _;
 process   = select2(int(reverbOn), delayStage, reverbOut) <: _, _;

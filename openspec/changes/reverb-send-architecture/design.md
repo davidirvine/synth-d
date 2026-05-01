@@ -53,10 +53,17 @@ There are no presets in the project yet, so no migration path is required for sa
 out = dry * (1 - mix) + wet * mix
 ```
 
-**New form:**
+**New form (prose):**
 ```
-out = dry + wet * send
+out = dry + wet(dry) * send
 ```
+
+**New form (Faust):**
+```faust
+reverbOut = delayStage <: (_, reverbWet * reverbSendS) :> _;
+```
+
+The split (`<:`) is required to feed `delayStage` into `reverbWet`'s audio input. Writing `delayStage + reverbWet * reverbSendS` would compile but leave `reverbWet`'s input unconnected — Faust treats the expression as a 1→1 effect rather than a 0→1 generator, and the AudioWorklet supplies silence to that orphan input at runtime. The split form makes the wiring explicit.
 
 **Why:** This decouples the wet contribution from the dry level. Engaging the effect adds; it never subtracts. Matches how hardware effects loops, plugin sends, and most professional reverb plugins work.
 
