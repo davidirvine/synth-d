@@ -2,7 +2,12 @@
   import { untrack } from 'svelte'
   import { tweened } from 'svelte/motion'
   import { cubicOut } from 'svelte/easing'
-  import { normalizedToValue, valueToNormalized, formatValue } from '../audio/math.js'
+  import {
+    normalizedToValue,
+    valueToNormalized,
+    formatValue,
+    detectInterval,
+  } from '../audio/math.js'
 
   /** @type {{
     label?: string,
@@ -17,6 +22,7 @@
     showValue?: boolean,
     showArc?: boolean,
     bipolar?: boolean,
+    intervalIndicator?: boolean,
     externalValue?: number,
     learningMidi?: boolean,
     assignedCc?: number | null,
@@ -37,6 +43,7 @@
     showValue = true,
     showArc = true,
     bipolar = false,
+    intervalIndicator = false,
     externalValue = undefined,
     learningMidi = false,
     assignedCc = null,
@@ -210,6 +217,10 @@
       {/each}
     </svg>
   </div>
+  {#if intervalIndicator}
+    {@const interval = detectInterval(value)}
+    <span class="interval-indicator">{interval ?? ' '}</span>
+  {/if}
   <span class="knob-value" class:invisible={!showValue}>{formatValue(value, unit)}</span>
   {#if assignedCc !== null}
     <span class="cc-label">CC {assignedCc}</span>
