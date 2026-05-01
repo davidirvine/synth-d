@@ -169,7 +169,7 @@
     const activeStep = shiftHeld && fineStep !== null ? fineStep : step
     const newValue =
       activeStep !== null && activeStep > 0
-        ? Math.round(rawValue / activeStep) * activeStep
+        ? Math.max(min, Math.min(max, Math.round(rawValue / activeStep) * activeStep))
         : rawValue
     value = newValue
     animPos.set(valueToNormalized(newValue, min, max, scale), { duration: 0 })

@@ -347,6 +347,56 @@ describe('Knob — step / fineStep quantization', () => {
       expect(v % 5).toBe(0)
     }
   })
+
+  it('uses continuous coarse mode when fineStep is set but step is null', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: 0,
+        max: 1,
+        default: 0.5,
+        scale: 'linear',
+        fineStep: 0.1,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    // Coarse drag (no Shift) — step is null so values are continuous
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    await fireEvent.pointerMove(hit, { clientY: 93 })
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    const last = values[values.length - 1]
+    expect(Number.isInteger(last * 10)).toBe(false)
+  })
+
+  it('clamps quantized values within min/max bounds', async () => {
+    const values = /** @type {number[]} */ ([])
+    const { container } = render(Knob, {
+      props: {
+        label: 'freq',
+        min: 0,
+        max: 100,
+        default: 50,
+        scale: 'linear',
+        step: 30,
+        onchange: (/** @type {{value: number}} */ e) => values.push(e.value),
+      },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    // Drag far upward to push value toward max
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    for (let y = 99; y >= 10; y -= 5) {
+      await fireEvent.pointerMove(hit, { clientY: y })
+    }
+    await fireEvent.pointerUp(hit)
+    expect(values.length).toBeGreaterThan(0)
+    for (const v of values) {
+      expect(v).toBeGreaterThanOrEqual(0)
+      expect(v).toBeLessThanOrEqual(100)
+    }
+  })
 })
 
 describe('Knob — intervalIndicator prop', () => {
