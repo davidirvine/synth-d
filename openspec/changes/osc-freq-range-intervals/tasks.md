@@ -13,11 +13,11 @@
 
 ## 2. Knob component — interval indicator slot
 
-- [ ] 2.1 Add `intervalIndicator` boolean prop (default `false`) to `src/components/Knob.svelte`
-- [ ] 2.2 When the prop is `true`, render a `<span class="interval-indicator">` inside the existing `.knob-wrap` container, positioned between the closing `</div>` of `.knob-hit` (the SVG wrapper) and the existing `<span class="knob-value">` element; populate via `detectInterval(value)`
-- [ ] 2.3 Style the indicator with fixed vertical reservation (e.g. `min-height: 1em` and a non-breaking-space fallback) so layout does not jump as text appears or disappears; match the typography (font family, weight, base size) of the adjacent `.knob-value` span so the rows read as one column
-- [ ] 2.4 Add component tests asserting: slot absent when prop omitted, slot present and blank at value 0, slot reads `m3` / `M3` / `P5` at the target values and inside their ±15¢ windows, slot blank just outside windows
-- [ ] 2.5 Run `npx vitest run`; lint and format
+- [x] 2.1 Add `intervalIndicator` boolean prop (default `false`) to `src/components/Knob.svelte`
+- [x] 2.2 When the prop is `true`, render a `<span class="interval-indicator">` inside the existing `.knob-wrap` container, positioned between the closing `</div>` of `.knob-hit` (the SVG wrapper) and the existing `<span class="knob-value">` element; populate via `detectInterval(value)`
+- [x] 2.3 Style the indicator with fixed vertical reservation (e.g. `min-height: 1em` and a non-breaking-space fallback) so layout does not jump as text appears or disappears; match the typography (font family, weight, base size) of the adjacent `.knob-value` span so the rows read as one column
+- [x] 2.4 Add component tests asserting: slot absent when prop omitted, slot present and blank at value 0, slot reads `m3` / `M3` / `P5` at the target values and inside their ±15¢ windows, slot blank just outside windows
+- [x] 2.5 Run `npx vitest run`; lint and format
 
 ## 3. Knob component — step / fineStep quantization
 
