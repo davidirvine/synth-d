@@ -1,15 +1,15 @@
 ## 1. Math helpers
 
-- [ ] 1.1 Implement the `'fine-center'` branch in `normalizedToValue(pos, min, max, scale)` in `src/audio/math.js` per the existing `fine-center-scale` spec: `center = (max + min) / 2`, `range = (max − min) / 2`, `t = (pos − 0.5) × 2`, return `center + sign(t) × t² × range`
-- [ ] 1.2 Implement the matching `'fine-center'` branch in `valueToNormalized(val, min, max, scale)`: `normT = sign(val − center) × sqrt(|val − center| / range)`, return `normT / 2 + 0.5`
-- [ ] 1.3 Add `detectInterval(cents)` helper to `src/audio/math.js` returning `"m3" | "M3" | "P5" | null` per the windows defined in the `knob` spec
-- [ ] 1.4 Add `"st"` (semitones) branch to `formatValue(value, unit)` in `src/audio/math.js`: divide cents by 100, two decimal places, suffix ` st`
-- [ ] 1.5 Add unit tests in `src/audio/math.test.js` (or existing equivalent) covering:
+- [x] 1.1 Implement the `'fine-center'` branch in `normalizedToValue(pos, min, max, scale)` in `src/audio/math.js` per the existing `fine-center-scale` spec: `center = (max + min) / 2`, `range = (max − min) / 2`, `t = (pos − 0.5) × 2`, return `center + sign(t) × t² × range`
+- [x] 1.2 Implement the matching `'fine-center'` branch in `valueToNormalized(val, min, max, scale)`: `normT = sign(val − center) × sqrt(|val − center| / range)`, return `normT / 2 + 0.5`
+- [x] 1.3 Add `detectInterval(cents)` helper to `src/audio/math.js` returning `"m3" | "M3" | "P5" | null` per the windows defined in the `knob` spec
+- [x] 1.4 Add `"st"` (semitones) branch to `formatValue(value, unit)` in `src/audio/math.js`: divide cents by 100, two decimal places, suffix ` st`
+- [x] 1.5 Add unit tests in `src/audio/math.test.js` (or existing equivalent) covering:
   - `normalizedToValue(0.5, -700, 700, 'fine-center') === 0`, endpoints map to ±700, and round-trip `valueToNormalized(normalizedToValue(pos, -700, 700, 'fine-center'), -700, 700, 'fine-center')` matches `pos` within floating-point precision for `pos ∈ {0, 0.1, 0.25, 0.5, 0.75, 0.9, 1}`
   - `detectInterval` at every target value (±300, ±400, ±700), both signs, just inside (e.g. ±286, ±314 for m3) and just outside (±284, ±316 for m3) each ±15¢ window
   - **P5 asymmetric window edge**: `detectInterval(700)` returns `"P5"`, `detectInterval(685)` returns `"P5"`, `detectInterval(684)` returns `null`, and `detectInterval(-700)` returns `"P5"`, `detectInterval(-685)` returns `"P5"`, `detectInterval(-684)` returns `null` — explicit test for the upper window being clipped at the slider maximum
   - `formatValue("st")` at 0, ±650, ±700
-- [ ] 1.6 Run `npx vitest run` and confirm new tests pass; lint and format the touched files per CLAUDE.md
+- [x] 1.6 Run `npx vitest run` and confirm new tests pass; lint and format the touched files per CLAUDE.md
 
 ## 2. Knob component — interval indicator slot
 
