@@ -18,7 +18,7 @@
 - [x] 3.2 Delete `.github/workflows/promote.yml`
 - [x] 3.3 Edit `.github/workflows/release-please.yml`: remove the `backmerge` job entirely (keep `release-please` and `deploy` jobs)
 - [x] 3.4 Edit `.github/workflows/ci-main.yml`: add `npx eslint .` step after Install dependencies, add `npx prettier --check .` step after the eslint step (mirror their position in `ci-develop.yml`)
-- [ ] 3.5 Delete `.github/workflows/ci-develop.yml`
+- [x] 3.5 Delete `.github/workflows/ci-develop.yml`
 - [ ] 3.6 Verify locally that the YAML in `ci-main.yml` parses (e.g., `npx yamllint` or just inspect)
 
 ## 4. Cutover PR — documentation
