@@ -4,8 +4,8 @@
 # Tears down a worktree + branch for a change that was abandoned
 # (proposal rejected after implementation started, direction changed, etc).
 #
-# This does NOT touch the proposal files on develop — if you want to remove those,
-# revert or delete openspec/changes/<change-name>/ on develop separately.
+# This does NOT touch the proposal files on main — if you want to remove those,
+# revert or delete openspec/changes/<change-name>/ on main separately.
 
 set -euo pipefail
 
@@ -19,7 +19,16 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 REPO_NAME="$(basename "$REPO_ROOT")"
 PARENT_DIR="$(dirname "$REPO_ROOT")"
 WORKTREE_PATH="${PARENT_DIR}/${REPO_NAME}-${CHANGE_NAME}"
-BRANCH="feature/${CHANGE_NAME}"
+
+# Resolve the branch name — opsx-apply-wt creates either feature/<name> or bugfix/<name>.
+if git show-ref --verify --quiet "refs/heads/feature/${CHANGE_NAME}"; then
+  BRANCH="feature/${CHANGE_NAME}"
+elif git show-ref --verify --quiet "refs/heads/bugfix/${CHANGE_NAME}"; then
+  BRANCH="bugfix/${CHANGE_NAME}"
+else
+  echo "✗ No local branch found for ${CHANGE_NAME} (tried feature/ and bugfix/)." >&2
+  exit 1
+fi
 
 echo "⚠ About to abandon worktree for ${CHANGE_NAME}:"
 echo "  Remove worktree: ${WORKTREE_PATH}"
@@ -47,5 +56,5 @@ if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null 2>&1; then
 fi
 
 echo "✓ Abandoned ${CHANGE_NAME}"
-echo "  Note: openspec/changes/${CHANGE_NAME}/ on develop is untouched."
+echo "  Note: openspec/changes/${CHANGE_NAME}/ on main is untouched."
 echo "  Remove it manually if the proposal should also be dropped."
