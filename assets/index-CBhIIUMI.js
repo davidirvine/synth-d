@@ -12498,9 +12498,10 @@ function Keyboard($$anchor, $$props) {
 	onnote?: (msgs: Array<{ param: string, value: number }>) => void,
 	triggerNote?: ((midi: number) => void) | null,
 	releaseNote?: ((midi: number) => void) | null,
+	releaseAll?: (() => void) | null,
 	baseMidi?: number,
 	}} */
-	let triggerNote = prop($$props, "triggerNote", 15, null), releaseNote = prop($$props, "releaseNote", 15, null), baseMidi = prop($$props, "baseMidi", 3, 36);
+	let triggerNote = prop($$props, "triggerNote", 15, null), releaseNote = prop($$props, "releaseNote", 15, null), releaseAll = prop($$props, "releaseAll", 15, null), baseMidi = prop($$props, "baseMidi", 3, 36);
 	const BLACK_SEMITONES = new Set([
 		1,
 		3,
@@ -12569,8 +12570,12 @@ function Keyboard($$anchor, $$props) {
 			value: 0
 		}]);
 	}
+	function _releaseAll() {
+		for (const midi of Array.from(activeKeys)) _releaseNote(midi);
+	}
 	triggerNote(_triggerNote);
 	releaseNote(_releaseNote);
+	releaseAll(_releaseAll);
 	function onKeyDown(e) {
 		if (e.repeat) return;
 		const midi = QWERTY_MAP[e.key];
@@ -13120,7 +13125,7 @@ var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header cl
 function App($$anchor, $$props) {
 	push($$props, true);
 	const branch = "main";
-	const versionLabel = branch === "main" ? `v1.4.0` : `v1.4.0 (${branch})`;
+	const versionLabel = branch === "main" ? `v1.4.1` : `v1.4.1 (${branch})`;
 	const DEFAULTS = {
 		osc2Detune: 0,
 		osc3Detune: 0,
@@ -13243,8 +13248,13 @@ function App($$anchor, $$props) {
 		/** @type {((midi: number) => void) | null} */
 		null
 	);
+	let keyboardReleaseAll = /* @__PURE__ */ state(
+		/** @type {(() => void) | null} */
+		null
+	);
 	async function handleToggle() {
 		if (get(powered)) {
+			get(keyboardReleaseAll)?.();
 			midiManager.destroy();
 			await powerOff();
 			set(powered, false);
@@ -13472,6 +13482,12 @@ function App($$anchor, $$props) {
 		},
 		set releaseNote($$value) {
 			set(keyboardReleaseNote, $$value, true);
+		},
+		get releaseAll() {
+			return get(keyboardReleaseAll);
+		},
+		set releaseAll($$value) {
+			set(keyboardReleaseAll, $$value, true);
 		}
 	});
 	RegisterPanel(sibling(node_11, 2), {
