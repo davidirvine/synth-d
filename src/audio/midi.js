@@ -1,7 +1,5 @@
 import { midiToFreq } from './keyboard.js'
-
-const BEND_SEMITONES = 2
-const BEND_CENTER = 8192
+import { parseBend, bentFreq } from './pitchbend.js'
 
 export class MidiManager {
   /** @type {MIDIAccess | null} */
@@ -164,8 +162,7 @@ export class MidiManager {
 
   /** @param {number} raw */
   _pitchBend(raw) {
-    const normalized = (raw - BEND_CENTER) / BEND_CENTER
-    this.#bendValue = normalized * BEND_SEMITONES
+    this.#bendValue = parseBend(raw)
     if (this.#lastNote !== null && this.#activeNotes.has(this.#lastNote)) {
       this._onPitchBend(this._bentFreq(this.#lastNote))
     }
@@ -173,6 +170,6 @@ export class MidiManager {
 
   /** @param {number} note */
   _bentFreq(note) {
-    return midiToFreq(note) * Math.pow(2, this.#bendValue / 12)
+    return bentFreq(midiToFreq(note), this.#bendValue)
   }
 }
