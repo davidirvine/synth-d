@@ -41,4 +41,28 @@ test.describe('MIDI E2E', () => {
     await expect(page.locator('[data-midi="60"].active')).toBeVisible({ timeout: 1000 })
     await expect(page.locator('.midi-status .dot.active')).toBeVisible({ timeout: 1000 })
   })
+
+  test('learn mode binds CC and the assigned-CC label appears on the knob', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('.midi-status .dot.connected')).toBeVisible({ timeout: 2000 })
+
+    // The cutoff knob lives in the inert <main> until the synth is powered
+    // on, so a real right-click would be swallowed. dispatchEvent fires the
+    // contextmenu listener directly through Svelte's property handler.
+    const cutoffHit = page
+      .locator('.knob-wrap')
+      .filter({ has: page.locator('.knob-label', { hasText: /^cutoff$/ }) })
+      .locator('.knob-hit')
+    await cutoffHit.dispatchEvent('contextmenu')
+
+    // 0xb0 = CC channel 1, controller 74, value 64 → assigns CC 74 to cutoff.
+    await page.evaluate(() => window.__fakeMidi.send([0xb0, 74, 64]))
+
+    const cutoffWrap = page
+      .locator('.knob-wrap')
+      .filter({ has: page.locator('.knob-label', { hasText: /^cutoff$/ }) })
+    await expect(cutoffWrap.locator('.cc-label', { hasText: /CC 74/ })).toBeVisible({
+      timeout: 1000,
+    })
+  })
 })
