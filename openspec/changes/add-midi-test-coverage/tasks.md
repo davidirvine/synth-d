@@ -30,7 +30,7 @@
 - [x] 4.1 Create `src/audio/test-helpers/midi.js` exporting `makeFakeMidiAccess(ports)`, `makePort(id, name)`, `bytes(messageName, ...args)` (semantic byte builder), and `installFakeMidiOnNavigator(target)` returning a teardown function.
 - [x] 4.2 Replace the inline mock helpers in `src/audio/midi.test.js` with imports from `test-helpers/midi.js`. All tests still pass unchanged.
 - [x] 4.3 Use `bytes()` from the helper in the new `e2e/midi.spec.js` `addInitScript` body (serialized into the page) so byte literals live in one place.
-- [ ] 4.4 Leave `App.test.js`'s class-level `MidiManager` mock in place — it operates at a different abstraction layer and does not consume the fake-port helpers.
+- [x] 4.4 Leave `App.test.js`'s class-level `MidiManager` mock in place — it operates at a different abstraction layer and does not consume the fake-port helpers.
 
 ## 5. Verification
 
