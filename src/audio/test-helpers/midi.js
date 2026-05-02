@@ -21,9 +21,11 @@ export function makePort(id = 'port-1', name = 'Test MIDI') {
 /**
  * Build a `MIDIAccess`-shaped fake. Returns the minimum surface the
  * production code reads: `inputs` (a Map keyed by port id) and
- * `onstatechange` (settable handler).
+ * `onstatechange` (settable handler — production code assigns a listener,
+ * tests dispatch via `access.onstatechange?.(event)`).
  *
  * @param {Array<ReturnType<typeof makePort>>} [ports]
+ * @returns {{ inputs: Map<string, ReturnType<typeof makePort>>, onstatechange: ((event: any) => void) | null }}
  */
 export function makeFakeMidiAccess(ports = []) {
   return {

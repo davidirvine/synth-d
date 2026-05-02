@@ -1,14 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { MidiManager } from './midi.js'
+import {
+  makePort,
+  makeFakeMidiAccess as makeMidiAccess,
+  installFakeMidiOnNavigator,
+  bytes,
+} from './test-helpers/midi.js'
 
-// jsdom has no navigator.requestMIDIAccess; install a mock via defineProperty.
+// jsdom has no navigator.requestMIDIAccess; the helper installs one via
+// defineProperty. Wrapper kept locally so call sites stay terse.
 /** @param {any} access */
 function mockMidiAccess(access) {
-  Object.defineProperty(navigator, 'requestMIDIAccess', {
-    value: vi.fn().mockResolvedValue(access),
-    configurable: true,
-    writable: true,
-  })
+  installFakeMidiOnNavigator(navigator, access)
 }
 
 function removeMidiAccess() {
@@ -19,25 +22,12 @@ function removeMidiAccess() {
   })
 }
 
-/** @param {Array<any>} [ports] */
-function makeMidiAccess(ports = []) {
-  const inputMap = new Map(ports.map((p) => [p.id, p]))
-  return /** @type {{ inputs: typeof inputMap, onstatechange: ((event: any) => void) | null }} */ ({
-    inputs: inputMap,
-    onstatechange: null,
-  })
-}
-
-function makePort(id = 'port-1', name = 'Test MIDI') {
-  return { id, name, type: 'input', state: 'connected', onmidimessage: null }
-}
-
 /**
- * @param {number[]} bytes
+ * @param {number[]} data
  * @returns {MIDIMessageEvent}
  */
-function midiEvent(bytes) {
-  return /** @type {MIDIMessageEvent} */ ({ data: new Uint8Array(bytes) })
+function midiEvent(data) {
+  return /** @type {MIDIMessageEvent} */ ({ data: new Uint8Array(data) })
 }
 
 describe('MidiManager — constructor / callbacks', () => {
@@ -127,7 +117,7 @@ describe('MidiManager — message parsing: note-on', () => {
   afterEach(() => vi.restoreAllMocks())
 
   it('fires onNoteOn with note and freq for note-on (velocity > 0)', () => {
-    m._handleMessage(midiEvent([0x90, 60, 100]))
+    m._handleMessage(midiEvent(bytes('noteOn', 60, 100)))
     expect(onNoteOn).toHaveBeenCalledWith(60, expect.closeTo(261.63, 0))
   })
 
@@ -155,19 +145,19 @@ describe('MidiManager — message parsing: note-off', () => {
   afterEach(() => vi.restoreAllMocks())
 
   it('fires onNoteOff for note-off message (0x80)', () => {
-    m._handleMessage(midiEvent([0x90, 60, 100]))
-    m._handleMessage(midiEvent([0x80, 60, 0]))
+    m._handleMessage(midiEvent(bytes('noteOn', 60, 100)))
+    m._handleMessage(midiEvent(bytes('noteOff', 60, 0)))
     expect(onNoteOff).toHaveBeenCalledWith(60)
   })
 
   it('treats note-on with velocity 0 as note-off', () => {
-    m._handleMessage(midiEvent([0x90, 60, 100]))
-    m._handleMessage(midiEvent([0x90, 60, 0]))
+    m._handleMessage(midiEvent(bytes('noteOn', 60, 100)))
+    m._handleMessage(midiEvent(bytes('noteOn', 60, 0)))
     expect(onNoteOff).toHaveBeenCalledWith(60)
   })
 
   it('ignores note-off for non-active note', () => {
-    m._handleMessage(midiEvent([0x80, 60, 0]))
+    m._handleMessage(midiEvent(bytes('noteOff', 60, 0)))
     expect(onNoteOff).not.toHaveBeenCalled()
   })
 })
@@ -190,21 +180,21 @@ describe('MidiManager — pitchbend', () => {
   afterEach(() => vi.restoreAllMocks())
 
   it('does not fire onPitchBend when no note is active', () => {
-    m._handleMessage(midiEvent([0xe0, 0x00, 0x7f]))
+    m._handleMessage(midiEvent(bytes('pitchBend', 0x00, 0x7f)))
     expect(onPitchBend).not.toHaveBeenCalled()
   })
 
   it('fires onPitchBend with bent freq when note is active', () => {
-    m._handleMessage(midiEvent([0x90, 69, 100])) // A4 = 440 Hz
+    m._handleMessage(midiEvent(bytes('noteOn', 69, 100))) // A4 = 440 Hz
     // max bend: raw = (0x7f << 7) | 0x7f = 16383
-    m._handleMessage(midiEvent([0xe0, 0x7f, 0x7f]))
+    m._handleMessage(midiEvent(bytes('pitchBend', 0x7f, 0x7f)))
     expect(onPitchBend).toHaveBeenCalledWith(expect.closeTo(440 * Math.pow(2, 2 / 12), 1))
   })
 
   it('center pitchbend returns unmodified freq', () => {
-    m._handleMessage(midiEvent([0x90, 69, 100]))
+    m._handleMessage(midiEvent(bytes('noteOn', 69, 100)))
     // center: raw = (0x40 << 7) | 0x00 = 8192
-    m._handleMessage(midiEvent([0xe0, 0x00, 0x40]))
+    m._handleMessage(midiEvent(bytes('pitchBend', 0x00, 0x40)))
     expect(onPitchBend).toHaveBeenCalledWith(expect.closeTo(440, 1))
   })
 
@@ -218,11 +208,11 @@ describe('MidiManager — pitchbend', () => {
 
     // Max bend before any note is active — must NOT fire onPitchBend
     // (no active note) but the bend value MUST be retained.
-    mgr._handleMessage(midiEvent([0xe0, 0x7f, 0x7f]))
+    mgr._handleMessage(midiEvent(bytes('pitchBend', 0x7f, 0x7f)))
 
     // First note-on after the deferred bend: A4 (69) with max bend should
     // arrive bent up two semitones (~493.88 Hz), not at the unbent 440 Hz.
-    mgr._handleMessage(midiEvent([0x90, 69, 100]))
+    mgr._handleMessage(midiEvent(bytes('noteOn', 69, 100)))
     expect(onNoteOn).toHaveBeenCalledWith(69, expect.closeTo(440 * Math.pow(2, 2 / 12), 1))
   })
 })
@@ -238,7 +228,7 @@ describe('MidiManager — CC dispatch', () => {
     const m = new MidiManager({ onCc })
     await m.connect()
 
-    m._handleMessage(midiEvent([0xb0, 74, 100]))
+    m._handleMessage(midiEvent(bytes('cc', 74, 100)))
     expect(onCc).toHaveBeenCalledWith({ cc: 74, value: 100 })
   })
 })
@@ -254,8 +244,8 @@ describe('MidiManager — disconnect note-off synthesis', () => {
     const m = new MidiManager({ onNoteOff })
     await m.connect()
 
-    m._handleMessage(midiEvent([0x90, 60, 100]))
-    m._handleMessage(midiEvent([0x90, 64, 100]))
+    m._handleMessage(midiEvent(bytes('noteOn', 60, 100)))
+    m._handleMessage(midiEvent(bytes('noteOn', 64, 100)))
 
     // Simulate disconnect by firing the access onstatechange
     port.state = 'disconnected'
