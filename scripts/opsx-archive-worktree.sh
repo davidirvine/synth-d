@@ -2,10 +2,10 @@
 # opsx-archive-worktree.sh <change-name>
 #
 # Cleans up the worktree and branch after a change has been archived.
-# Run this from the develop worktree, AFTER:
-#   1. The feature PR has been merged to develop
-#   2. You have pulled develop locally
-#   3. /opsx:archive <change-name> has been run and committed on develop
+# Run this from the main worktree, AFTER:
+#   1. The feature/bugfix PR has been merged to main
+#   2. You have pulled main locally
+#   3. /opsx:archive <change-name> has been run and committed on main
 
 set -euo pipefail
 
@@ -19,13 +19,22 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 REPO_NAME="$(basename "$REPO_ROOT")"
 PARENT_DIR="$(dirname "$REPO_ROOT")"
 WORKTREE_PATH="${PARENT_DIR}/${REPO_NAME}-${CHANGE_NAME}"
-BRANCH="feature/${CHANGE_NAME}"
 
 # --- Preflight --------------------------------------------------------------
 
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-if [[ "$CURRENT_BRANCH" != "develop" ]]; then
-  echo "✗ Must be on 'develop' to clean up (you are on '${CURRENT_BRANCH}')." >&2
+if [[ "$CURRENT_BRANCH" != "main" ]]; then
+  echo "✗ Must be on 'main' to clean up (you are on '${CURRENT_BRANCH}')." >&2
+  exit 1
+fi
+
+# Resolve the branch name — opsx-apply-wt creates either feature/<name> or bugfix/<name>.
+if git show-ref --verify --quiet "refs/heads/feature/${CHANGE_NAME}"; then
+  BRANCH="feature/${CHANGE_NAME}"
+elif git show-ref --verify --quiet "refs/heads/bugfix/${CHANGE_NAME}"; then
+  BRANCH="bugfix/${CHANGE_NAME}"
+else
+  echo "✗ No local branch found for ${CHANGE_NAME} (tried feature/ and bugfix/)." >&2
   exit 1
 fi
 
@@ -33,7 +42,7 @@ ARCHIVE_GLOB="${REPO_ROOT}/openspec/changes/archive/*-${CHANGE_NAME}"
 # shellcheck disable=SC2086
 if ! compgen -G "$ARCHIVE_GLOB" > /dev/null; then
   echo "✗ No archived change found matching openspec/changes/archive/*-${CHANGE_NAME}" >&2
-  echo "  Run /opsx:archive ${CHANGE_NAME} first, then commit the archive to develop." >&2
+  echo "  Run /opsx:archive ${CHANGE_NAME} first, then commit the archive to main." >&2
   exit 1
 fi
 
