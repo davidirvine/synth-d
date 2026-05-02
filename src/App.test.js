@@ -702,3 +702,44 @@ describe('App — keyboard highlights cleared on power-off (held QWERTY across c
     ).toBe(true)
   })
 })
+
+describe('App — MIDI status indicator transitions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
+  })
+
+  it('onNoteOn flips the MIDI status dot from connected to active', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    // The mocked connect resolves with status='unavailable'; force the App
+    // into the 'connected' state the way a real MidiManager would after a
+    // successful requestMIDIAccess so we can observe the connected→active flip.
+    lastMidiCallbacks?.onStatusChange?.('connected')
+    await waitFor(() => {
+      expect(container.querySelector('.midi-status .dot.connected')).not.toBeNull()
+    })
+
+    lastMidiCallbacks?.onNoteOn?.(60, 261.63)
+    await waitFor(() => {
+      expect(container.querySelector('.midi-status .dot.active')).not.toBeNull()
+      expect(container.querySelector('.midi-status .dot.connected')).toBeNull()
+    })
+  })
+})
