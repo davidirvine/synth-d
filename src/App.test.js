@@ -743,3 +743,69 @@ describe('App — MIDI status indicator transitions', () => {
     })
   })
 })
+
+describe('App — MIDI CC learn lifecycle', () => {
+  /** @param {any} container @param {string} label */
+  function findKnobWrap(container, label) {
+    const labelEl = Array.from(container.querySelectorAll('.knob-label')).find(
+      (el) => el.textContent === label
+    )
+    return labelEl?.closest('.knob-wrap') ?? null
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
+    // Each test starts with a fresh CC map; the App constructs MidiCcMap()
+    // which loads from real jsdom localStorage.
+    localStorage.clear()
+  })
+
+  it('right-click + onCc assigns CC, second onCc forwards scaled value to engine and shows CC label', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    const cutoffWrap = /** @type {Element} */ (findKnobWrap(container, 'cutoff'))
+    expect(cutoffWrap).toBeTruthy()
+    const cutoffHit = /** @type {Element} */ (cutoffWrap.querySelector('.knob-hit'))
+
+    // Right-click → enters learn mode for cutoff.
+    await fireEvent.contextMenu(cutoffHit)
+
+    // First CC arrival: assigns CC 74 → cutoff and exits learn mode.
+    lastMidiCallbacks?.onCc?.({ cc: 74, value: 64 })
+    await waitFor(() => {
+      expect(cutoffWrap.querySelector('.cc-label')?.textContent).toBe('CC 74')
+    })
+
+    // Second CC arrival: applies scaled value through ccExternalValues →
+    // the Knob's externalValue $effect fires onchange → App.onParamChange
+    // calls setParam('cutoff', scaled).
+    const setParamMock = /** @type {any} */ (setParam)
+    setParamMock.mockClear()
+    lastMidiCallbacks?.onCc?.({ cc: 74, value: 64 })
+
+    const expectedScaled = 20 + (20000 - 20) * (64 / 127)
+    await waitFor(() => {
+      const cutoffCalls = setParamMock.mock.calls.filter(
+        (/** @type {any[]} */ c) => c[0] === 'cutoff'
+      )
+      expect(cutoffCalls.length).toBeGreaterThan(0)
+      expect(cutoffCalls[cutoffCalls.length - 1][1]).toBeCloseTo(expectedScaled, 5)
+    })
+  })
+})
