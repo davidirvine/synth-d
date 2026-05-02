@@ -3,9 +3,7 @@
 ## Purpose
 
 Defines the continuous-deployment behaviour of this project: production builds are produced and published to GitHub Pages when (and only when) `release-please` cuts a release. The pipeline serves the production bundle from the `gh-pages` branch root, leaving PR preview subdirectories untouched.
-
 ## Requirements
-
 ### Requirement: Cutting a release triggers production deployment
 The CD pipeline SHALL automatically build and deploy the application to GitHub Pages when a release is cut (i.e., `release_created = true` from the release-please workflow). The deployment MUST NOT fire on every push to `main`; it SHALL only fire after the version bump commit lands via the Release PR merge.
 
@@ -17,8 +15,8 @@ The CD pipeline SHALL automatically build and deploy the application to GitHub P
 - **THEN** the contents of `dist/` are deployed to the `gh-pages` branch root
 - **THEN** the production GitHub Pages site reflects the new versioned build
 
-#### Scenario: No deployment on promote-PR merge
-- **WHEN** the promote PR (develop→main) is merged and release-please does not set `release_created = true`
+#### Scenario: No deployment on non-release commits to main
+- **WHEN** a commit is pushed to `main` (e.g., a feature merge) and release-please does not set `release_created = true`
 - **THEN** no deployment occurs
 
 #### Scenario: Deployment uses cached WASM when DSP unchanged
@@ -43,3 +41,4 @@ The `gh-pages` branch SHALL be the source for GitHub Pages. The production build
 - **WHEN** a production deployment completes
 - **THEN** `dist/` contents are at the root of `gh-pages`
 - **THEN** PR preview subdirectories (e.g. `pr-preview/pr-42/`) are not affected
+
