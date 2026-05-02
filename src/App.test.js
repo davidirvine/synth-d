@@ -830,4 +830,28 @@ describe('App — MIDI CC learn lifecycle', () => {
     expect(cutoffWrap.querySelector('.cc-label')).toBeNull()
     expect(localStorage.getItem('midiCc:74')).toBeNull()
   })
+
+  it('right-clicking a second knob before any CC swaps the learn target', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    const cutoffWrap = /** @type {Element} */ (findKnobWrap(container, 'cutoff'))
+    // The resonance knob renders with the label "res" in Filter.svelte.
+    const resonanceWrap = /** @type {Element} */ (findKnobWrap(container, 'res'))
+    const cutoffHit = /** @type {Element} */ (cutoffWrap.querySelector('.knob-hit'))
+    const resonanceHit = /** @type {Element} */ (resonanceWrap.querySelector('.knob-hit'))
+
+    await fireEvent.contextMenu(cutoffHit)
+    await fireEvent.contextMenu(resonanceHit)
+    lastMidiCallbacks?.onCc?.({ cc: 74, value: 64 })
+
+    await waitFor(() => {
+      expect(resonanceWrap.querySelector('.cc-label')?.textContent).toBe('CC 74')
+    })
+    expect(cutoffWrap.querySelector('.cc-label')).toBeNull()
+  })
 })
