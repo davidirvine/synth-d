@@ -19,7 +19,7 @@
 
 ## 3. Tier 3 — End-to-end MIDI in Playwright
 
-- [ ] 3.1 Create `e2e/midi.spec.js` with a `beforeEach` that calls `page.addInitScript` to install a fake `requestMIDIAccess` exposing one fake port and a `window.__fakeMidi.send(bytes)` helper.
+- [x] 3.1 Create `e2e/midi.spec.js` with a `beforeEach` that calls `page.addInitScript` to install a fake `requestMIDIAccess` exposing one fake port and a `window.__fakeMidi.send(bytes)` helper.
 - [ ] 3.2 Add E2E spec: power on the synth → assert `.midi-status .dot.connected` becomes visible within 2000ms.
 - [ ] 3.3 Add E2E spec: power on, then `__fakeMidi.send([0x90, 60, 100])` → assert `[data-midi="60"].active` AND `.midi-status .dot.active` are both visible within 1000ms.
 - [ ] 3.4 Add E2E spec: power on, right-click a knob (e.g., the cutoff knob), then `__fakeMidi.send([0xb0, 74, 64])` → assert the knob's assigned-CC label (e.g., text matching `/CC 74/`) becomes visible within 1000ms.
