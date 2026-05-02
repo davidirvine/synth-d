@@ -30,4 +30,15 @@ test.describe('MIDI E2E', () => {
     await page.goto('/')
     await expect(page.locator('.midi-status .dot.connected')).toBeVisible({ timeout: 2000 })
   })
+
+  test('synthetic note-on highlights the key and flips status to active', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('.midi-status .dot.connected')).toBeVisible({ timeout: 2000 })
+
+    // 0x90 = note-on channel 1, note 60 (C4), velocity 100.
+    await page.evaluate(() => window.__fakeMidi.send([0x90, 60, 100]))
+
+    await expect(page.locator('[data-midi="60"].active')).toBeVisible({ timeout: 1000 })
+    await expect(page.locator('.midi-status .dot.active')).toBeVisible({ timeout: 1000 })
+  })
 })
