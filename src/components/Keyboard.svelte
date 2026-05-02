@@ -78,7 +78,6 @@
     for (const midi of Array.from(activeKeys)) {
       _releaseNote(midi)
     }
-    pressedQwerty.clear()
   }
 
   // Expose to parent so MIDI callbacks and power-off can call into the shared activeKeys path.
