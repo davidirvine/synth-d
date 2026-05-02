@@ -854,4 +854,15 @@ describe('App — MIDI CC learn lifecycle', () => {
     })
     expect(cutoffWrap.querySelector('.cc-label')).toBeNull()
   })
+
+  it('pre-seeded localStorage CC mapping renders the assigned-CC label on mount', async () => {
+    localStorage.setItem('midiCc:74', JSON.stringify({ param: 'cutoff', min: 20, max: 20000 }))
+
+    const { container } = render(App)
+
+    const cutoffWrap = /** @type {Element} */ (findKnobWrap(container, 'cutoff'))
+    await waitFor(() => {
+      expect(cutoffWrap.querySelector('.cc-label')?.textContent).toBe('CC 74')
+    })
+  })
 })

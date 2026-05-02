@@ -6,7 +6,7 @@
 - [x] 1.4 Add test in `src/App.test.js`: right-click a knob → drive `lastMidiCallbacks.onCc` → assert `engine.setParam` is called with the scaled value AND the assigned-CC label is visible on the knob.
 - [x] 1.5 Add test in `src/App.test.js`: enter learn mode, press Escape, then drive `lastMidiCallbacks.onCc` → no `midiCcMap.assign` mapping is created (Escape cancelled).
 - [x] 1.6 Add test in `src/App.test.js`: right-click knob A, then right-click knob B before any CC arrives → drive `onCc` → mapping is created for B only, A has no assigned CC.
-- [ ] 1.7 Add test in `src/App.test.js`: pre-seed `localStorage` with a `midiCc:74 → cutoff` entry, render App → assert the knob renders with the assigned-CC label visible.
+- [x] 1.7 Add test in `src/App.test.js`: pre-seed `localStorage` with a `midiCc:74 → cutoff` entry, render App → assert the knob renders with the assigned-CC label visible.
 
 ## 2. Tier 2 — Bring MIDI math under Stryker
 
