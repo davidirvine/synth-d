@@ -10,7 +10,7 @@
 
 ## 3. Tests for new spec scenarios
 
-- [ ] 3.1 Component test: invoking `_releaseAll` while one key is held empties `activeKeys`, removes the active class on the rendered key, and writes `gate = 0`
+- [x] 3.1 Component test: invoking `_releaseAll` while one key is held empties `activeKeys`, removes the active class on the rendered key, and writes `gate = 0`
 - [ ] 3.2 Component test: invoking `_releaseAll` with multiple held inputs (QWERTY + simulated MIDI binding) empties `activeKeys` and removes all highlights
 - [ ] 3.3 Component / integration test: simulating a power-off → power-on cycle with a continuously-held QWERTY key leaves the keyboard un-highlighted after power-on and `gate` at 0; a fresh keydown is required to retrigger
 - [ ] 3.4 Run `npx vitest run` and confirm the new tests pass alongside the existing keyboard suite

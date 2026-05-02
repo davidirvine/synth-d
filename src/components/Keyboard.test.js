@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, fireEvent } from '@testing-library/svelte'
+import { render, fireEvent, waitFor } from '@testing-library/svelte'
 import Keyboard from './Keyboard.svelte'
+import KeyboardTestHarness from './Keyboard.test.harness.svelte'
 
 describe('Keyboard — rendering', () => {
   it('renders exactly 61 key elements', () => {
@@ -148,4 +149,50 @@ describe('Keyboard — bindable triggerNote / releaseNote', () => {
     await fireEvent.pointerUp(key2)
     expect(messages.some((m) => m.param === 'gate' && m.value === 0)).toBe(true)
   })
+})
+
+describe('Keyboard — releaseAll clears highlights and writes gate=0', () => {
+  /**
+   * Render the Keyboard via a harness that captures the bindable functions
+   * (triggerNote / releaseNote / releaseAll) so tests can drive them
+   * directly. testing-library/svelte does not surface bind:fn assignments
+   * on its own, so we pipe them out through an `onref` callback.
+   * @param {{ onnote?: (msgs: Array<{param: string, value: number}>) => void, baseMidi?: number }} props
+   */
+  async function renderHarness(props = {}) {
+    let api =
+      /** @type {{ triggerNote: ((m: number) => void) | null, releaseNote: ((m: number) => void) | null, releaseAll: (() => void) | null } | null} */ (
+        null
+      )
+    const { container } = render(KeyboardTestHarness, {
+      props: {
+        ...props,
+        /** @param {{ triggerNote: ((m: number) => void) | null, releaseNote: ((m: number) => void) | null, releaseAll: (() => void) | null }} a */
+        onref: (a) => {
+          api = a
+        },
+      },
+    })
+    await waitFor(() => expect(api?.releaseAll).toBeTypeOf('function'))
+    return { container, api: /** @type {NonNullable<typeof api>} */ (api) }
+  }
+
+  it('clears active class and writes gate=0 when one key is held via pointer', async () => {
+    const messages = /** @type {Array<{param: string, value: number}>} */ ([])
+    const { container, api } = await renderHarness({
+      onnote: (msgs) => messages.push(...msgs),
+    })
+
+    const key = /** @type {Element} */ (container.querySelector('.white-key'))
+    await fireEvent.pointerDown(key)
+    expect(key.classList.contains('active')).toBe(true)
+
+    messages.length = 0
+    api.releaseAll?.()
+    await waitFor(() => {
+      expect(/** @type {Element} */ (container.querySelector('.white-key.active'))).toBeNull()
+    })
+    expect(messages.some((m) => m.param === 'gate' && m.value === 0)).toBe(true)
+  })
+
 })
