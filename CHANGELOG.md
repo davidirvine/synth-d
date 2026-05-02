@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.4.0...subtractive-synth-v1.4.1) (2026-05-02)
+
+
+### Bug Fixes
+
+* **keyboard:** clear key highlights on power-off ([#68](https://github.com/davidirvine/synth-d/issues/68)) ([146968a](https://github.com/davidirvine/synth-d/commit/146968a7d22c436a03566705fd8f40caf3d2de16))
+
 ## [1.4.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.3.0...subtractive-synth-v1.4.0) (2026-05-01)
 
 
