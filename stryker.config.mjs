@@ -1,7 +1,13 @@
 /** @type {import('@stryker-mutator/api/core').PartialStrykerOptions} */
 export default {
   testRunner: 'vitest',
-  mutate: ['src/audio/math.js', 'src/audio/filterGains.js', 'src/audio/keyboard.js'],
+  mutate: [
+    'src/audio/math.js',
+    'src/audio/filterGains.js',
+    'src/audio/keyboard.js',
+    'src/audio/midiCcMap.js',
+    'src/audio/pitchbend.js',
+  ],
   vitest: {
     configFile: 'vite.config.js',
   },

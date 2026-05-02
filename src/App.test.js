@@ -13,16 +13,29 @@ vi.mock('./audio/engine.js', () => ({
 }))
 
 // Captures the callbacks App.svelte passes into `new MidiManager(...)` so
-// tests can drive `onNoteOn` / `onNoteOff` directly — emulating an external
-// MIDI device without a real Web MIDI access object (which jsdom lacks).
-let lastMidiCallbacks =
-  /** @type {{ onNoteOn?: Function, onNoteOff?: Function, onStatusChange?: Function } | null} */ (
-    null
-  )
+// tests can drive `onNoteOn` / `onNoteOff` / `onCc` directly — emulating an
+// external MIDI device without a real Web MIDI access object (which jsdom
+// lacks). All callbacks the real constructor accepts are typed here so tests
+// can drive any layer of the MIDI surface without TypeScript noise.
+let lastMidiCallbacks = /** @type {{
+    onNoteOn?: Function,
+    onNoteOff?: Function,
+    onPitchBend?: Function,
+    onCc?: Function,
+    onStatusChange?: Function,
+    onDevicesChange?: Function,
+  } | null} */ (null)
 
 vi.mock('./audio/midi.js', () => ({
   MidiManager: class {
-    /** @param {{ onNoteOn?: Function, onNoteOff?: Function, onStatusChange?: Function }} callbacks */
+    /** @param {{
+      onNoteOn?: Function,
+      onNoteOff?: Function,
+      onPitchBend?: Function,
+      onCc?: Function,
+      onStatusChange?: Function,
+      onDevicesChange?: Function,
+    }} callbacks */
     constructor(callbacks = {}) {
       lastMidiCallbacks = callbacks
     }
@@ -687,5 +700,169 @@ describe('App — keyboard highlights cleared on power-off (held QWERTY across c
     expect(
       setParamMock.mock.calls.some((/** @type {any[]} */ c) => c[0] === 'gate' && c[1] === 0)
     ).toBe(true)
+  })
+})
+
+describe('App — MIDI status indicator transitions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
+  })
+
+  it('onNoteOn flips the MIDI status dot from connected to active', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    // The mocked connect resolves with status='unavailable'; force the App
+    // into the 'connected' state the way a real MidiManager would after a
+    // successful requestMIDIAccess so we can observe the connected→active flip.
+    lastMidiCallbacks?.onStatusChange?.('connected')
+    await waitFor(() => {
+      expect(container.querySelector('.midi-status .dot.connected')).not.toBeNull()
+    })
+
+    lastMidiCallbacks?.onNoteOn?.(60, 261.63)
+    await waitFor(() => {
+      expect(container.querySelector('.midi-status .dot.active')).not.toBeNull()
+      expect(container.querySelector('.midi-status .dot.connected')).toBeNull()
+    })
+  })
+})
+
+describe('App — MIDI CC learn lifecycle', () => {
+  /** @param {any} container @param {string} label */
+  function findKnobWrap(container, label) {
+    const labelEl = Array.from(container.querySelectorAll('.knob-label')).find(
+      (el) => el.textContent === label
+    )
+    return labelEl?.closest('.knob-wrap') ?? null
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
+    // Each test starts with a fresh CC map; the App constructs MidiCcMap()
+    // which loads from real jsdom localStorage.
+    localStorage.clear()
+  })
+
+  it('right-click + onCc assigns CC, second onCc forwards scaled value to engine and shows CC label', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    const cutoffWrap = /** @type {Element} */ (findKnobWrap(container, 'cutoff'))
+    expect(cutoffWrap).toBeTruthy()
+    const cutoffHit = /** @type {Element} */ (cutoffWrap.querySelector('.knob-hit'))
+
+    // Right-click → enters learn mode for cutoff.
+    await fireEvent.contextMenu(cutoffHit)
+
+    // First CC arrival: assigns CC 74 → cutoff and exits learn mode.
+    lastMidiCallbacks?.onCc?.({ cc: 74, value: 64 })
+    await waitFor(() => {
+      expect(cutoffWrap.querySelector('.cc-label')?.textContent).toBe('CC 74')
+    })
+
+    // Second CC arrival: applies scaled value through ccExternalValues →
+    // the Knob's externalValue $effect fires onchange → App.onParamChange
+    // calls setParam('cutoff', scaled).
+    const setParamMock = /** @type {any} */ (setParam)
+    setParamMock.mockClear()
+    lastMidiCallbacks?.onCc?.({ cc: 74, value: 64 })
+
+    const expectedScaled = 20 + (20000 - 20) * (64 / 127)
+    await waitFor(() => {
+      const cutoffCalls = setParamMock.mock.calls.filter(
+        (/** @type {any[]} */ c) => c[0] === 'cutoff'
+      )
+      expect(cutoffCalls.length).toBeGreaterThan(0)
+      expect(cutoffCalls[cutoffCalls.length - 1][1]).toBeCloseTo(expectedScaled, 5)
+    })
+  })
+
+  it('Escape during learn mode cancels — subsequent onCc creates no mapping', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    const cutoffWrap = /** @type {Element} */ (findKnobWrap(container, 'cutoff'))
+    const cutoffHit = /** @type {Element} */ (cutoffWrap.querySelector('.knob-hit'))
+
+    await fireEvent.contextMenu(cutoffHit)
+    await fireEvent.keyDown(window, { key: 'Escape' })
+    lastMidiCallbacks?.onCc?.({ cc: 74, value: 64 })
+
+    // Give Svelte a tick to flush any reactive updates the assignment
+    // would have caused, then assert nothing was assigned.
+    await new Promise((r) => setTimeout(r, 30))
+    expect(cutoffWrap.querySelector('.cc-label')).toBeNull()
+    expect(localStorage.getItem('midiCc:74')).toBeNull()
+  })
+
+  it('right-clicking a second knob before any CC swaps the learn target', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    const cutoffWrap = /** @type {Element} */ (findKnobWrap(container, 'cutoff'))
+    // The resonance knob renders with the label "res" in Filter.svelte.
+    const resonanceWrap = /** @type {Element} */ (findKnobWrap(container, 'res'))
+    const cutoffHit = /** @type {Element} */ (cutoffWrap.querySelector('.knob-hit'))
+    const resonanceHit = /** @type {Element} */ (resonanceWrap.querySelector('.knob-hit'))
+
+    await fireEvent.contextMenu(cutoffHit)
+    await fireEvent.contextMenu(resonanceHit)
+    lastMidiCallbacks?.onCc?.({ cc: 74, value: 64 })
+
+    await waitFor(() => {
+      expect(resonanceWrap.querySelector('.cc-label')?.textContent).toBe('CC 74')
+    })
+    expect(cutoffWrap.querySelector('.cc-label')).toBeNull()
+  })
+
+  it('pre-seeded localStorage CC mapping renders the assigned-CC label on mount', async () => {
+    localStorage.setItem('midiCc:74', JSON.stringify({ param: 'cutoff', min: 20, max: 20000 }))
+
+    const { container } = render(App)
+
+    const cutoffWrap = /** @type {Element} */ (findKnobWrap(container, 'cutoff'))
+    await waitFor(() => {
+      expect(cutoffWrap.querySelector('.cc-label')?.textContent).toBe('CC 74')
+    })
   })
 })
