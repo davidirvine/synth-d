@@ -35,7 +35,7 @@
 ## 5. Verification
 
 - [x] 5.1 `npx vitest run` passes (unit + component, including all new Tier 1 tests).
-- [ ] 5.2 `npx stryker run` passes with score ≥85% across all targeted modules including the newly added `midiCcMap.js` and `pitchbend.js`.
+- [x] 5.2 `npx stryker run` passes with score ≥85% across all targeted modules including the newly added `midiCcMap.js` and `pitchbend.js`.
 - [ ] 5.3 `npx playwright test` passes locally including the new `e2e/midi.spec.js` specs.
 - [ ] 5.4 `roborev refine --max-iterations 3` resolves all open review findings on the branch.
 - [ ] 5.5 Present results to the human and wait for explicit approval before opening the PR (per CLAUDE.md "Implementation Completion").
