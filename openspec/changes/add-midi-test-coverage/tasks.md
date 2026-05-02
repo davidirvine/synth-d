@@ -15,7 +15,7 @@
 - [x] 2.3 Refactor `src/audio/midi.js` `_pitchBend` and `_bentFreq` to delegate to `pitchbend.js`. Remove the local `BEND_SEMITONES` and `BEND_CENTER` constants. Verify all existing `midi.test.js` cases pass unchanged.
 - [x] 2.4 Locate the Stryker config (`stryker.conf.json`, `stryker.conf.cjs`, or inline in `package.json` — confirm at apply time) and add `src/audio/midiCcMap.js` and `src/audio/pitchbend.js` to the `mutate` glob list.
 - [x] 2.5 Run `npx stryker run` and iterate on `midiCcMap.test.js` until the score for that file is ≥85%. Add scenarios as needed (suggested gaps: `scale` at intermediate values, `getAssignedCc` after overwrite, the rename-pass tie-break logic).
-- [ ] 2.6 Run `npx stryker run` and iterate on `pitchbend.test.js` until the score for that file is ≥85%. If equivalent mutants prevent the threshold, document the per-file override decision in `design.md` (Open Questions section) and apply it in the Stryker config.
+- [x] 2.6 Run `npx stryker run` and iterate on `pitchbend.test.js` until the score for that file is ≥85%. If equivalent mutants prevent the threshold, document the per-file override decision in `design.md` (Open Questions section) and apply it in the Stryker config.
 
 ## 3. Tier 3 — End-to-end MIDI in Playwright
 
