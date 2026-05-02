@@ -1,7 +1,7 @@
 ## 1. Expose release-all from Keyboard
 
-- [ ] 1.1 Add a `_releaseAll` function in [Keyboard.svelte](src/components/Keyboard.svelte) that empties `activeKeys` by routing through the existing release path (so `gate` → 0 fires via the established "all sources released" branch and is not open-coded)
-- [ ] 1.2 Export `_releaseAll` alongside the existing `_triggerNote` / `_releaseNote` bindings, matching the same prop/bind pattern
+- [x] 1.1 Add a `_releaseAll` function in [Keyboard.svelte](src/components/Keyboard.svelte) that empties `activeKeys` by routing through the existing release path (so `gate` → 0 fires via the established "all sources released" branch and is not open-coded)
+- [x] 1.2 Export `_releaseAll` alongside the existing `_triggerNote` / `_releaseNote` bindings, matching the same prop/bind pattern
 
 ## 2. Wire power-off in App.svelte
 
