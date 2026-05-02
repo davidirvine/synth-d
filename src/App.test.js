@@ -610,6 +610,51 @@ describe('App — keyboard highlights cleared on power-off (held QWERTY across c
     })
   })
 
+  it('stray keydown post-cycle without prior keyup does NOT retrigger (release+re-press required)', async () => {
+    // Locks down design.md decision: pressedQwerty is intentionally preserved
+    // across power-off so a keydown without an intervening keyup cannot
+    // re-trigger the note. Guards against regressions that would clear
+    // pressedQwerty inside _releaseAll.
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    // Hold 'z' (MIDI 48), power off, power on — all without firing keyUp.
+    await fireEvent.keyDown(window, { key: 'z' })
+    await waitFor(() => {
+      expect(
+        container.querySelectorAll('.white-key.active, .black-key.active').length
+      ).toBeGreaterThan(0)
+    })
+    await fireEvent.click(btn) // power off
+    await waitFor(() => {
+      expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+    })
+    await fireEvent.click(btn) // power on
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    // Stray keydown for 'z' WITHOUT a prior keyUp — a real keyboard wouldn't
+    // emit this without auto-repeat, but the spec is firm: only release+re-press
+    // re-triggers. The keydown must be suppressed by the pressedQwerty short-circuit.
+    const setParamMock = /** @type {any} */ (setParam)
+    setParamMock.mockClear()
+    await fireEvent.keyDown(window, { key: 'z' })
+
+    // Give Svelte a tick — if a re-trigger did happen, it would have rendered.
+    await new Promise((r) => setTimeout(r, 30))
+
+    expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+    expect(
+      setParamMock.mock.calls.some((/** @type {any[]} */ c) => c[0] === 'gate' && c[1] === 1)
+    ).toBe(false)
+  })
+
   it('held MIDI note is unhighlighted when power is toggled off', async () => {
     const { container } = render(App)
     const btn = /** @type {Element} */ (container.querySelector('button'))
@@ -628,9 +673,7 @@ describe('App — keyboard highlights cleared on power-off (held QWERTY across c
     // pointer / QWERTY paths).
     lastMidiCallbacks?.onNoteOn?.(48, 130.81) // MIDI 48 = C3, ~130.81 Hz
     await waitFor(() => {
-      expect(
-        container.querySelectorAll('.white-key.active, .black-key.active').length
-      ).toBe(1)
+      expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(1)
     })
 
     // Power off — keyboardReleaseAll should clear the MIDI-added entry,
@@ -642,9 +685,7 @@ describe('App — keyboard highlights cleared on power-off (held QWERTY across c
       expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
     })
     expect(
-      setParamMock.mock.calls.some(
-        (/** @type {any[]} */ c) => c[0] === 'gate' && c[1] === 0
-      )
+      setParamMock.mock.calls.some((/** @type {any[]} */ c) => c[0] === 'gate' && c[1] === 0)
     ).toBe(true)
   })
 })

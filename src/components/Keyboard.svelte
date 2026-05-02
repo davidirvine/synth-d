@@ -75,6 +75,12 @@
   }
 
   function _releaseAll() {
+    // Intentionally does NOT clear `pressedQwerty`. The OS still considers any
+    // physically-held QWERTY key to be down across a power-cycle, so leaving
+    // its entry in `pressedQwerty` makes the keydown short-circuit suppress a
+    // stray keydown without an intervening keyup — enforcing the spec's
+    // "release + re-press is required to retrigger" requirement
+    // (see openspec/changes/clear-key-highlights-on-power-off/design.md).
     for (const midi of Array.from(activeKeys)) {
       _releaseNote(midi)
     }
