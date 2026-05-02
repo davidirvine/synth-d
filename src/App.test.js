@@ -808,4 +808,26 @@ describe('App — MIDI CC learn lifecycle', () => {
       expect(cutoffCalls[cutoffCalls.length - 1][1]).toBeCloseTo(expectedScaled, 5)
     })
   })
+
+  it('Escape during learn mode cancels — subsequent onCc creates no mapping', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    const cutoffWrap = /** @type {Element} */ (findKnobWrap(container, 'cutoff'))
+    const cutoffHit = /** @type {Element} */ (cutoffWrap.querySelector('.knob-hit'))
+
+    await fireEvent.contextMenu(cutoffHit)
+    await fireEvent.keyDown(window, { key: 'Escape' })
+    lastMidiCallbacks?.onCc?.({ cc: 74, value: 64 })
+
+    // Give Svelte a tick to flush any reactive updates the assignment
+    // would have caused, then assert nothing was assigned.
+    await new Promise((r) => setTimeout(r, 30))
+    expect(cutoffWrap.querySelector('.cc-label')).toBeNull()
+    expect(localStorage.getItem('midiCc:74')).toBeNull()
+  })
 })
