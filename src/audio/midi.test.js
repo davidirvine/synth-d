@@ -207,6 +207,24 @@ describe('MidiManager — pitchbend', () => {
     m._handleMessage(midiEvent([0xe0, 0x00, 0x40]))
     expect(onPitchBend).toHaveBeenCalledWith(expect.closeTo(440, 1))
   })
+
+  it('stores bend with no active note, applies on next note-on', async () => {
+    const onNoteOn = vi.fn()
+    const port = makePort('port-bend', 'Bend MIDI')
+    const access = makeMidiAccess([port])
+    mockMidiAccess(access)
+    const mgr = new MidiManager({ onNoteOn })
+    await mgr.connect()
+
+    // Max bend before any note is active — must NOT fire onPitchBend
+    // (no active note) but the bend value MUST be retained.
+    mgr._handleMessage(midiEvent([0xe0, 0x7f, 0x7f]))
+
+    // First note-on after the deferred bend: A4 (69) with max bend should
+    // arrive bent up two semitones (~493.88 Hz), not at the unbent 440 Hz.
+    mgr._handleMessage(midiEvent([0x90, 69, 100]))
+    expect(onNoteOn).toHaveBeenCalledWith(69, expect.closeTo(440 * Math.pow(2, 2 / 12), 1))
+  })
 })
 
 describe('MidiManager — CC dispatch', () => {
