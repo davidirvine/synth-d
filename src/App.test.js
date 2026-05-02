@@ -12,6 +12,28 @@ vi.mock('./audio/engine.js', () => ({
   setParam: vi.fn(),
 }))
 
+// Captures the callbacks App.svelte passes into `new MidiManager(...)` so
+// tests can drive `onNoteOn` / `onNoteOff` directly — emulating an external
+// MIDI device without a real Web MIDI access object (which jsdom lacks).
+let lastMidiCallbacks =
+  /** @type {{ onNoteOn?: Function, onNoteOff?: Function, onStatusChange?: Function } | null} */ (
+    null
+  )
+
+vi.mock('./audio/midi.js', () => ({
+  MidiManager: class {
+    /** @param {{ onNoteOn?: Function, onNoteOff?: Function, onStatusChange?: Function }} callbacks */
+    constructor(callbacks = {}) {
+      lastMidiCallbacks = callbacks
+    }
+    async connect() {
+      lastMidiCallbacks?.onStatusChange?.('unavailable')
+    }
+    selectDevice() {}
+    destroy() {}
+  },
+}))
+
 describe('App power state', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -586,5 +608,43 @@ describe('App — keyboard highlights cleared on power-off (held QWERTY across c
         container.querySelectorAll('.white-key.active, .black-key.active').length
       ).toBeGreaterThan(0)
     })
+  })
+
+  it('held MIDI note is unhighlighted when power is toggled off', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+
+    // Power on — App.svelte instantiates MidiManager and stashes the
+    // callbacks via the test mock above.
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+    expect(lastMidiCallbacks?.onNoteOn).toBeTypeOf('function')
+
+    // Simulate a MIDI note-on the same way MidiManager would — driving
+    // App.svelte's onNoteOn callback directly. This exercises the
+    // `keyboardTriggerNote?.(note)` wiring at the App level (not the
+    // pointer / QWERTY paths).
+    lastMidiCallbacks?.onNoteOn?.(48, 130.81) // MIDI 48 = C3, ~130.81 Hz
+    await waitFor(() => {
+      expect(
+        container.querySelectorAll('.white-key.active, .black-key.active').length
+      ).toBe(1)
+    })
+
+    // Power off — keyboardReleaseAll should clear the MIDI-added entry,
+    // even though no MIDI note-off was ever delivered.
+    const setParamMock = /** @type {any} */ (setParam)
+    setParamMock.mockClear()
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+    })
+    expect(
+      setParamMock.mock.calls.some(
+        (/** @type {any[]} */ c) => c[0] === 'gate' && c[1] === 0
+      )
+    ).toBe(true)
   })
 })
