@@ -36,4 +36,4 @@ None. All work targets existing capabilities.
   - `stryker.config.json` (or equivalent — expand `mutate` glob)
 - **Spec changes**: `openspec/specs/testing/spec.md` — modify one requirement, add one requirement.
 - **CI**: new MIDI E2E specs run in CI without WASM, broadening what CI verifies. No new dependencies.
-- **No runtime behavior change**: the pitchbend extraction is a pure refactor; everything else is test-only.
+- **One small runtime change**: `App.svelte` now connects/destroys `MidiManager` on mount/unmount instead of inside the power-on/off cycle. MIDI input becomes independent of the audio path so the new E2E specs can verify the MIDI surface unconditionally in CI (where AudioWorklet init fails for lack of audio hardware). `setParam`/`noteOn`/`noteOff` already guard on `!node`, so MIDI events while powered-off are safe no-ops. The pitchbend extraction is a pure refactor; everything else is test-only.

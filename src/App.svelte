@@ -215,10 +215,8 @@
   async function handleToggle() {
     if (powered) {
       keyboardReleaseAll?.()
-      midiManager.destroy()
       await powerOff()
       powered = false
-      midiStatus = 'unavailable'
       ccExternalValues = Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)]))
     } else {
       loading = true
@@ -228,7 +226,6 @@
         powered = true
         ccExternalValues = { ...DEFAULTS }
         resetCounter++
-        await midiManager.connect()
       } catch (err) {
         console.error('Power on failed:', err)
       } finally {
@@ -264,7 +261,15 @@
     }
   }
 
-  onMount(() => window.addEventListener('keydown', onKeyDown))
+  onMount(() => {
+    window.addEventListener('keydown', onKeyDown)
+    // MIDI is independent of the audio path: connect on mount so the status
+    // indicator and incoming-event wiring work even before the synth is
+    // powered on (and in CI, where AudioWorklet init fails for lack of audio
+    // hardware). MIDI events while powered-off are safe — engine.setParam
+    // and friends are no-ops when the worklet node hasn't been created yet.
+    midiManager.connect()
+  })
   onDestroy(() => {
     window.removeEventListener('keydown', onKeyDown)
     midiManager.destroy()

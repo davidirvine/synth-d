@@ -97,6 +97,10 @@ The existing powered-audio specs in [e2e/synth.spec.js:8-9,93-94](e2e/synth.spec
 
 This means all assertions in the new E2E file must be DOM-only (key `.active` class, `.dot.active`, knob CC label visibility). No `engine.setParam` checks, no `AudioContext.state` checks.
 
+**Implementation note (added during apply).** As written, [App.svelte](src/App.svelte) called `midiManager.connect()` *inside* `handleToggle`'s try block, after `await powerOn()`. In CI, `powerOn()` throws (no audio hardware), the catch fires, and `midiManager.connect()` never runs. The MIDI status indicator stays `'unavailable'` and every E2E assertion times out — the design goal of "runs unconditionally in CI" was unreachable without a small runtime adjustment.
+
+Resolution: `midiManager.connect()` moved into `onMount`; `midiManager.destroy()` moved out of the power-off path (it remains in `onDestroy`). MIDI now lives for the full app lifetime, independent of audio. `setParam`/`noteOn`/`noteOff` already guard on `!node`, so MIDI events while powered-off are no-ops. This is the only runtime change in the branch and is recorded in the proposal's Impact section.
+
 ### Decision 5: Spec change shape — modify one, add one
 
 The current testing spec's mutation-testing requirement at [openspec/specs/testing/spec.md:121-150](openspec/specs/testing/spec.md#L121-L150) lists the targeted modules. Per OpenSpec rules, MODIFIED requirements MUST include the full updated content — so the delta will copy the entire block and add `midiCcMap.js` and `pitchbend.js` to the listed modules and add corresponding scenarios.
