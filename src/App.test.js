@@ -13,16 +13,29 @@ vi.mock('./audio/engine.js', () => ({
 }))
 
 // Captures the callbacks App.svelte passes into `new MidiManager(...)` so
-// tests can drive `onNoteOn` / `onNoteOff` directly — emulating an external
-// MIDI device without a real Web MIDI access object (which jsdom lacks).
-let lastMidiCallbacks =
-  /** @type {{ onNoteOn?: Function, onNoteOff?: Function, onStatusChange?: Function } | null} */ (
-    null
-  )
+// tests can drive `onNoteOn` / `onNoteOff` / `onCc` directly — emulating an
+// external MIDI device without a real Web MIDI access object (which jsdom
+// lacks). All callbacks the real constructor accepts are typed here so tests
+// can drive any layer of the MIDI surface without TypeScript noise.
+let lastMidiCallbacks = /** @type {{
+    onNoteOn?: Function,
+    onNoteOff?: Function,
+    onPitchBend?: Function,
+    onCc?: Function,
+    onStatusChange?: Function,
+    onDevicesChange?: Function,
+  } | null} */ (null)
 
 vi.mock('./audio/midi.js', () => ({
   MidiManager: class {
-    /** @param {{ onNoteOn?: Function, onNoteOff?: Function, onStatusChange?: Function }} callbacks */
+    /** @param {{
+      onNoteOn?: Function,
+      onNoteOff?: Function,
+      onPitchBend?: Function,
+      onCc?: Function,
+      onStatusChange?: Function,
+      onDevicesChange?: Function,
+    }} callbacks */
     constructor(callbacks = {}) {
       lastMidiCallbacks = callbacks
     }

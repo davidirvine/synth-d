@@ -1,7 +1,7 @@
 ## 1. Tier 1 — Plug spec gaps with unit/component tests
 
-- [ ] 1.1 Add test in `src/audio/midi.test.js`: pitchbend with no active note is stored, then applied on next note-on (verifies midi spec "Pitchbend with no active note" scenario).
-- [ ] 1.2 Widen the `MidiManager` mock callback type in `src/App.test.js` to include `onNoteOn`, `onNoteOff`, and `onCc` (the constructor already captures all callbacks; only the JSDoc needs updating).
+- [x] 1.1 Add test in `src/audio/midi.test.js`: pitchbend with no active note is stored, then applied on next note-on (verifies midi spec "Pitchbend with no active note" scenario).
+- [x] 1.2 Widen the `MidiManager` mock callback type in `src/App.test.js` to include `onNoteOn`, `onNoteOff`, and `onCc` (the constructor already captures all callbacks; only the JSDoc needs updating).
 - [ ] 1.3 Add test in `src/App.test.js`: driving `lastMidiCallbacks.onNoteOn` flips the rendered MidiStatus dot from `connected` to `active`.
 - [ ] 1.4 Add test in `src/App.test.js`: right-click a knob → drive `lastMidiCallbacks.onCc` → assert `engine.setParam` is called with the scaled value AND the assigned-CC label is visible on the knob.
 - [ ] 1.5 Add test in `src/App.test.js`: enter learn mode, press Escape, then drive `lastMidiCallbacks.onCc` → no `midiCcMap.assign` mapping is created (Escape cancelled).
