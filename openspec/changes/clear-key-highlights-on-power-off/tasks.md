@@ -6,7 +6,7 @@
 ## 2. Wire power-off in App.svelte
 
 - [x] 2.1 Add a `keyboardReleaseAll` binding in [App.svelte](src/App.svelte) (mirroring `keyboardTriggerNote` / `keyboardReleaseNote`)
-- [ ] 2.2 Call `keyboardReleaseAll?.()` from `handleToggle()` on the power-off branch, before `midiManager.destroy()` and `engine.powerOff()`
+- [x] 2.2 Call `keyboardReleaseAll?.()` from `handleToggle()` on the power-off branch, before `midiManager.destroy()` and `engine.powerOff()`
 
 ## 3. Tests for new spec scenarios
 

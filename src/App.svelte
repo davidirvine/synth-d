@@ -214,6 +214,7 @@
 
   async function handleToggle() {
     if (powered) {
+      keyboardReleaseAll?.()
       midiManager.destroy()
       await powerOff()
       powered = false
