@@ -26,12 +26,8 @@ test.describe('MIDI E2E', () => {
     })
   })
 
-  test('fake MIDI access is installed before page script runs', async ({ page }) => {
+  test('page mount populates the MIDI status dot to connected', async ({ page }) => {
     await page.goto('/')
-    const installed = await page.evaluate(() => {
-      const fake = /** @type {any} */ (window).__fakeMidi
-      return fake !== undefined && typeof fake.send === 'function'
-    })
-    expect(installed).toBe(true)
+    await expect(page.locator('.midi-status .dot.connected')).toBeVisible({ timeout: 2000 })
   })
 })

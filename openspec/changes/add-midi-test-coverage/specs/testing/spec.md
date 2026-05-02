@@ -56,14 +56,16 @@ The system SHALL include Playwright specs that exercise the MIDI feature end-to-
 
 The fake MIDI infrastructure SHALL expose a `window.__fakeMidi.send(bytes)` helper from inside the page so tests can dispatch synthetic MIDI messages to the running App.
 
-#### Scenario: Power on populates MIDI status indicator
+#### Scenario: Page mount populates MIDI status indicator
 
-- **WHEN** the synth is powered on with the fake MIDI access installed and one fake input port present
+- **WHEN** the page loads with the fake MIDI access installed and one fake input port present
 - **THEN** the MIDI status dot in the header receives the `connected` class within 2000ms
+
+(MIDI connects on app mount, independent of audio power — see App.svelte's `onMount`. The dot transitions from `unavailable` to `connected` without requiring a click on the power button.)
 
 #### Scenario: Synthetic note-on highlights key and flips status to active
 
-- **WHEN** a synthetic MIDI note-on message (status `0x90`, note 60, velocity 100) is dispatched after power-on
+- **WHEN** a synthetic MIDI note-on message (status `0x90`, note 60, velocity 100) is dispatched after the page has loaded
 - **THEN** the keyboard key with `data-midi="60"` receives the `active` class AND the MIDI status dot receives the `active` class within 1000ms
 
 #### Scenario: Learn mode binds CC and the assigned-CC label appears on the knob
