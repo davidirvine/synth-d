@@ -13,7 +13,7 @@
 - [x] 2.1 Create `src/audio/pitchbend.js` exporting `parseBend(raw)` returning a value in `[-2, +2]` semitones, `bentFreq(noteFreq, bendSemitones)` returning the bent frequency, and the `BEND_CENTER` / `BEND_SEMITONES` constants. No imports.
 - [x] 2.2 Create `src/audio/pitchbend.test.js` with cases: `parseBend(8192) === 0`, `parseBend(16383) === 2`, `parseBend(0)` ≈ `-2`, `bentFreq(440, 0) === 440`, `bentFreq(440, 2)` ≈ `440 * 2^(2/12)`, `bentFreq(440, -12) === 220`.
 - [x] 2.3 Refactor `src/audio/midi.js` `_pitchBend` and `_bentFreq` to delegate to `pitchbend.js`. Remove the local `BEND_SEMITONES` and `BEND_CENTER` constants. Verify all existing `midi.test.js` cases pass unchanged.
-- [ ] 2.4 Locate the Stryker config (`stryker.conf.json`, `stryker.conf.cjs`, or inline in `package.json` — confirm at apply time) and add `src/audio/midiCcMap.js` and `src/audio/pitchbend.js` to the `mutate` glob list.
+- [x] 2.4 Locate the Stryker config (`stryker.conf.json`, `stryker.conf.cjs`, or inline in `package.json` — confirm at apply time) and add `src/audio/midiCcMap.js` and `src/audio/pitchbend.js` to the `mutate` glob list.
 - [ ] 2.5 Run `npx stryker run` and iterate on `midiCcMap.test.js` until the score for that file is ≥85%. Add scenarios as needed (suggested gaps: `scale` at intermediate values, `getAssignedCc` after overwrite, the rename-pass tie-break logic).
 - [ ] 2.6 Run `npx stryker run` and iterate on `pitchbend.test.js` until the score for that file is ≥85%. If equivalent mutants prevent the threshold, document the per-file override decision in `design.md` (Open Questions section) and apply it in the Stryker config.
 
