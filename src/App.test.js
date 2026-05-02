@@ -521,3 +521,70 @@ describe('App — reverbSend forwards from knob to engine', () => {
     })
   })
 })
+
+describe('App — keyboard highlights cleared on power-off (held QWERTY across cycle)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
+  })
+
+  it('held QWERTY key shows clean keyboard after power-off → power-on cycle', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+
+    // Power on.
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    // Hold a QWERTY key — 'z' maps to MIDI 48 (C3), which is on the
+    // baseMidi=36 keyboard. The window keydown listener inside Keyboard
+    // turns this into an `_triggerNote(48)` that highlights the rendered key.
+    await fireEvent.keyDown(window, { key: 'z' })
+    await waitFor(() => {
+      expect(
+        container.querySelectorAll('.white-key.active, .black-key.active').length
+      ).toBeGreaterThan(0)
+    })
+
+    // Power off — keyboardReleaseAll should fire and clear all highlights;
+    // gate=0 should be written to the still-live FAUST node.
+    const setParamMock = /** @type {any} */ (setParam)
+    setParamMock.mockClear()
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+    })
+    expect(
+      setParamMock.mock.calls.some((/** @type {any[]} */ c) => c[0] === 'gate' && c[1] === 0)
+    ).toBe(true)
+
+    // Power on again — the QWERTY key was never released, so no fresh
+    // keydown has been delivered. The keyboard must remain un-highlighted.
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+    expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+
+    // A fresh release + re-press IS required to retrigger.
+    await fireEvent.keyUp(window, { key: 'z' })
+    await fireEvent.keyDown(window, { key: 'z' })
+    await waitFor(() => {
+      expect(
+        container.querySelectorAll('.white-key.active, .black-key.active').length
+      ).toBeGreaterThan(0)
+    })
+  })
+})
