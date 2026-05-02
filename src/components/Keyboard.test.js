@@ -195,4 +195,31 @@ describe('Keyboard — releaseAll clears highlights and writes gate=0', () => {
     expect(messages.some((m) => m.param === 'gate' && m.value === 0)).toBe(true)
   })
 
+  it('clears highlights from multiple held inputs (pointer + simulated MIDI)', async () => {
+    const messages = /** @type {Array<{param: string, value: number}>} */ ([])
+    const { container, api } = await renderHarness({
+      onnote: (msgs) => messages.push(...msgs),
+    })
+
+    const [pointerKey, midiKey] = container.querySelectorAll('.white-key')
+    await fireEvent.pointerDown(pointerKey)
+
+    // Simulate an external MIDI note-on by calling the bound triggerNote
+    // — this is exactly the path App.svelte uses from MidiManager.onNoteOn.
+    const midiNote = Number(midiKey.getAttribute('data-midi'))
+    api.triggerNote?.(midiNote)
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.white-key.active').length).toBe(2)
+    })
+
+    messages.length = 0
+    api.releaseAll?.()
+    await waitFor(() => {
+      expect(container.querySelectorAll('.white-key.active').length).toBe(0)
+      expect(container.querySelectorAll('.black-key.active').length).toBe(0)
+    })
+    // gate=0 fires exactly once — from the final release in the loop.
+    expect(messages.filter((m) => m.param === 'gate' && m.value === 0).length).toBe(1)
+  })
 })
