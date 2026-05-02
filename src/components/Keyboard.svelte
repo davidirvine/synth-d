@@ -7,12 +7,14 @@
     onnote?: (msgs: Array<{ param: string, value: number }>) => void,
     triggerNote?: ((midi: number) => void) | null,
     releaseNote?: ((midi: number) => void) | null,
+    releaseAll?: (() => void) | null,
     baseMidi?: number,
   }} */
   let {
     onnote,
     triggerNote = $bindable(null), // eslint-disable-line no-useless-assignment
     releaseNote = $bindable(null), // eslint-disable-line no-useless-assignment
+    releaseAll = $bindable(null), // eslint-disable-line no-useless-assignment
     baseMidi = 36,
   } = $props()
 
@@ -72,11 +74,25 @@
     }
   }
 
-  // Expose to parent so MIDI callbacks can call into the shared activeKeys path.
+  function _releaseAll() {
+    // Intentionally does NOT clear `pressedQwerty`. The OS still considers any
+    // physically-held QWERTY key to be down across a power-cycle, so leaving
+    // its entry in `pressedQwerty` makes the keydown short-circuit suppress a
+    // stray keydown without an intervening keyup — enforcing the spec's
+    // "release + re-press is required to retrigger" requirement
+    // (see openspec/changes/clear-key-highlights-on-power-off/design.md).
+    for (const midi of Array.from(activeKeys)) {
+      _releaseNote(midi)
+    }
+  }
+
+  // Expose to parent so MIDI callbacks and power-off can call into the shared activeKeys path.
   // eslint-disable-next-line no-useless-assignment
   triggerNote = _triggerNote
   // eslint-disable-next-line no-useless-assignment
   releaseNote = _releaseNote
+  // eslint-disable-next-line no-useless-assignment
+  releaseAll = _releaseAll
 
   function onKeyDown(/** @type {KeyboardEvent} */ e) {
     if (e.repeat) return

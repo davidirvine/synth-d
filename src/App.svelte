@@ -210,9 +210,11 @@
   // Bindable functions exposed by Keyboard
   let keyboardTriggerNote = $state(/** @type {((midi: number) => void) | null} */ (null))
   let keyboardReleaseNote = $state(/** @type {((midi: number) => void) | null} */ (null))
+  let keyboardReleaseAll = $state(/** @type {(() => void) | null} */ (null))
 
   async function handleToggle() {
     if (powered) {
+      keyboardReleaseAll?.()
       midiManager.destroy()
       await powerOff()
       powered = false
@@ -425,6 +427,7 @@
           onnote={onKeyboardNote}
           bind:triggerNote={keyboardTriggerNote}
           bind:releaseNote={keyboardReleaseNote}
+          bind:releaseAll={keyboardReleaseAll}
           baseMidi={keyboardBase}
         />
         <RegisterPanel

@@ -12,6 +12,28 @@ vi.mock('./audio/engine.js', () => ({
   setParam: vi.fn(),
 }))
 
+// Captures the callbacks App.svelte passes into `new MidiManager(...)` so
+// tests can drive `onNoteOn` / `onNoteOff` directly — emulating an external
+// MIDI device without a real Web MIDI access object (which jsdom lacks).
+let lastMidiCallbacks =
+  /** @type {{ onNoteOn?: Function, onNoteOff?: Function, onStatusChange?: Function } | null} */ (
+    null
+  )
+
+vi.mock('./audio/midi.js', () => ({
+  MidiManager: class {
+    /** @param {{ onNoteOn?: Function, onNoteOff?: Function, onStatusChange?: Function }} callbacks */
+    constructor(callbacks = {}) {
+      lastMidiCallbacks = callbacks
+    }
+    async connect() {
+      lastMidiCallbacks?.onStatusChange?.('unavailable')
+    }
+    selectDevice() {}
+    destroy() {}
+  },
+}))
+
 describe('App power state', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -519,5 +541,151 @@ describe('App — reverbSend forwards from knob to engine', () => {
       expect(sendCalls.length).toBeGreaterThan(0)
       expect(sendCalls[sendCalls.length - 1][1]).toBeCloseTo(0.3, 5)
     })
+  })
+})
+
+describe('App — keyboard highlights cleared on power-off (held QWERTY across cycle)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
+  })
+
+  it('held QWERTY key shows clean keyboard after power-off → power-on cycle', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+
+    // Power on.
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    // Hold a QWERTY key — 'z' maps to MIDI 48 (C3), which is on the
+    // baseMidi=36 keyboard. The window keydown listener inside Keyboard
+    // turns this into an `_triggerNote(48)` that highlights the rendered key.
+    await fireEvent.keyDown(window, { key: 'z' })
+    await waitFor(() => {
+      expect(
+        container.querySelectorAll('.white-key.active, .black-key.active').length
+      ).toBeGreaterThan(0)
+    })
+
+    // Power off — keyboardReleaseAll should fire and clear all highlights;
+    // gate=0 should be written to the still-live FAUST node.
+    const setParamMock = /** @type {any} */ (setParam)
+    setParamMock.mockClear()
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+    })
+    expect(
+      setParamMock.mock.calls.some((/** @type {any[]} */ c) => c[0] === 'gate' && c[1] === 0)
+    ).toBe(true)
+
+    // Power on again — the QWERTY key was never released, so no fresh
+    // keydown has been delivered. The keyboard must remain un-highlighted.
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+    expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+
+    // A fresh release + re-press IS required to retrigger.
+    await fireEvent.keyUp(window, { key: 'z' })
+    await fireEvent.keyDown(window, { key: 'z' })
+    await waitFor(() => {
+      expect(
+        container.querySelectorAll('.white-key.active, .black-key.active').length
+      ).toBeGreaterThan(0)
+    })
+  })
+
+  it('stray keydown post-cycle without prior keyup does NOT retrigger (release+re-press required)', async () => {
+    // Locks down design.md decision: pressedQwerty is intentionally preserved
+    // across power-off so a keydown without an intervening keyup cannot
+    // re-trigger the note. Guards against regressions that would clear
+    // pressedQwerty inside _releaseAll.
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    // Hold 'z' (MIDI 48), power off, power on — all without firing keyUp.
+    await fireEvent.keyDown(window, { key: 'z' })
+    await waitFor(() => {
+      expect(
+        container.querySelectorAll('.white-key.active, .black-key.active').length
+      ).toBeGreaterThan(0)
+    })
+    await fireEvent.click(btn) // power off
+    await waitFor(() => {
+      expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+    })
+    await fireEvent.click(btn) // power on
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+
+    // Stray keydown for 'z' WITHOUT a prior keyUp — a real keyboard wouldn't
+    // emit this without auto-repeat, but the spec is firm: only release+re-press
+    // re-triggers. The keydown must be suppressed by the pressedQwerty short-circuit.
+    const setParamMock = /** @type {any} */ (setParam)
+    setParamMock.mockClear()
+    await fireEvent.keyDown(window, { key: 'z' })
+
+    // Give Svelte a tick — if a re-trigger did happen, it would have rendered.
+    await new Promise((r) => setTimeout(r, 30))
+
+    expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+    expect(
+      setParamMock.mock.calls.some((/** @type {any[]} */ c) => c[0] === 'gate' && c[1] === 1)
+    ).toBe(false)
+  })
+
+  it('held MIDI note is unhighlighted when power is toggled off', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+
+    // Power on — App.svelte instantiates MidiManager and stashes the
+    // callbacks via the test mock above.
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+    expect(lastMidiCallbacks?.onNoteOn).toBeTypeOf('function')
+
+    // Simulate a MIDI note-on the same way MidiManager would — driving
+    // App.svelte's onNoteOn callback directly. This exercises the
+    // `keyboardTriggerNote?.(note)` wiring at the App level (not the
+    // pointer / QWERTY paths).
+    lastMidiCallbacks?.onNoteOn?.(48, 130.81) // MIDI 48 = C3, ~130.81 Hz
+    await waitFor(() => {
+      expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(1)
+    })
+
+    // Power off — keyboardReleaseAll should clear the MIDI-added entry,
+    // even though no MIDI note-off was ever delivered.
+    const setParamMock = /** @type {any} */ (setParam)
+    setParamMock.mockClear()
+    await fireEvent.click(btn)
+    await waitFor(() => {
+      expect(container.querySelectorAll('.white-key.active, .black-key.active').length).toBe(0)
+    })
+    expect(
+      setParamMock.mock.calls.some((/** @type {any[]} */ c) => c[0] === 'gate' && c[1] === 0)
+    ).toBe(true)
   })
 })
