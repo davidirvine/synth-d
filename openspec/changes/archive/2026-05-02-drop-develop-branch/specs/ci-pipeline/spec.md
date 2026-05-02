@@ -2,9 +2,13 @@
 
 ### Requirement: PRs to develop run tests, lint, and format checks
 **Reason:** The `develop` branch is being removed as part of the trunk-based migration. PRs no longer target develop because develop no longer exists.
-**Migration:** All quality checks previously enforced on PRs to develop (`npx vitest run`, `npx playwright test`, `npx eslint .`, `npx prettier --check .`) are migrated to PRs to `main`. See the MODIFIED `Requirement: PRs to main run tests, lint, and format checks` below.
+**Migration:** All quality checks previously enforced on PRs to develop (`npx vitest run`, `npx playwright test`, `npx eslint .`, `npx prettier --check .`) are migrated to PRs to `main`. See the ADDED `Requirement: PRs to main run tests, lint, and format checks` below.
 
-## MODIFIED Requirements
+### Requirement: PRs to main run tests including e2e
+**Reason:** Superseded by the broader requirement that PRs to main run tests, lint, AND format checks (since `develop` no longer enforces lint/format upstream).
+**Migration:** Replaced by `Requirement: PRs to main run tests, lint, and format checks` below, which retains the unit + e2e test scenarios and adds lint and format scenarios.
+
+## ADDED Requirements
 
 ### Requirement: PRs to main run tests, lint, and format checks
 The CI pipeline SHALL run automated quality checks on every pull request targeting the `main` branch, including unit tests, e2e tests, lint, and format checks. All checks MUST pass before the PR can be merged.

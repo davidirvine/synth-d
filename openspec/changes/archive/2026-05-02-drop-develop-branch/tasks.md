@@ -41,33 +41,33 @@
 - [x] 6.2 Submit the cutover PR using stax: `stax ss --yes --no-prompt`
 - [x] 6.3 Verify CI on the cutover PR runs lint, prettier, vitest, and playwright (proves the migrated steps work)
 - [x] 6.4 Address any roborev findings via `/roborev-fix` until clean
-- [ ] 6.5 Wait for human approval per the implementation-completion gate in CLAUDE.md
-- [ ] 6.6 Merge the cutover PR (squash, per the existing per-feature PR convention — this is a normal feature merge, not a promote)
+- [x] 6.5 Wait for human approval per the implementation-completion gate in CLAUDE.md
+- [x] 6.6 Merge the cutover PR (squash, per the existing per-feature PR convention — this is a normal feature merge, not a promote)
 
 ## 7. GitHub repository settings
 
-- [ ] 7.1 Switch GitHub default branch from `develop` to `main` (Settings → Branches → Default branch)
-- [ ] 7.2 Add or verify branch protection rules on `main` mirroring whatever protection `develop` had (require CI checks, require review, etc.)
-- [ ] 7.3 Remove branch protection from `develop` (required before deletion)
+- [x] 7.1 Switch GitHub default branch from `develop` to `main` (Settings → Branches → Default branch)
+- [x] 7.2 Add or verify branch protection rules on `main` mirroring whatever protection `develop` had (require CI checks, require review, etc.)
+- [x] 7.3 Remove branch protection from `develop` (required before deletion)
 
 ## 8. Branch deletion
 
-- [ ] 8.1 Delete the remote develop branch: `git push origin --delete develop`
-- [ ] 8.2 Delete the local develop branch: `git branch -D develop`
-- [ ] 8.3 Delete the stale release-please tracking branch: `git push origin --delete release-please--branches--develop--components--subtractive-synth`
-- [ ] 8.4 Update local `origin/HEAD` to point at main: `git remote set-head origin -a`
+- [x] 8.1 Delete the remote develop branch: `git push origin --delete develop`
+- [x] 8.2 Delete the local develop branch: `git branch -D develop`
+- [x] 8.3 Delete the stale release-please tracking branch: `git push origin --delete release-please--branches--develop--components--subtractive-synth`
+- [x] 8.4 Update local `origin/HEAD` to point at main: `git remote set-head origin -a`
 
 ## 9. Active worktree migration
 
-- [ ] 9.1 For each active branch identified in Phase 1: rebase onto main with `git rebase --onto main develop <branch>` (this must happen before reflog gc reclaims the develop ref)
-- [ ] 9.2 Force-push the rebased branches if they were already on origin
-- [ ] 9.3 Confirm each rebased branch's PR (if any) now targets main, not develop
+- [x] 9.1 For each active branch identified in Phase 1: rebase onto main with `git rebase --onto main develop <branch>` (this must happen before reflog gc reclaims the develop ref)
+- [x] 9.2 Force-push the rebased branches if they were already on origin
+- [x] 9.3 Confirm each rebased branch's PR (if any) now targets main, not develop
 
 ## 10. Verification
 
-- [ ] 10.1 Confirm `git branch -a` shows no `develop` ref (local or remote)
-- [ ] 10.2 Confirm a fresh clone defaults to main (`git clone <repo> /tmp/test && cd /tmp/test && git branch --show-current` returns `main`)
-- [ ] 10.3 Confirm CI on a test PR to main runs the full check suite (vitest + playwright + eslint + prettier)
-- [ ] 10.4 Confirm release-please.yml no longer references the develop branch or a backmerge job
-- [ ] 10.5 Confirm `/opsx-apply-wt` creates worktrees off main
+- [x] 10.1 Confirm `git branch -a` shows no `develop` ref (local or remote)
+- [x] 10.2 Confirm a fresh clone defaults to main (`git clone <repo> /tmp/test && cd /tmp/test && git branch --show-current` returns `main`)
+- [x] 10.3 Confirm CI on a test PR to main runs the full check suite (vitest + playwright + eslint + prettier)
+- [x] 10.4 Confirm release-please.yml no longer references the develop branch or a backmerge job
+- [x] 10.5 Confirm `/opsx-apply-wt` creates worktrees off main
 - [ ] 10.6 Wait one release cycle and confirm no backmerge conflict appears (this is the success criterion that motivated the change)
