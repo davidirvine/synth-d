@@ -37,4 +37,4 @@ The implementation-completion gate in `CLAUDE.md` requires all applicable tests 
 These stack-specific checks compose with the human-approval gate in `CLAUDE.md`'s Pull Requests section — the human completes them before instructing that the PR be opened:
 
 - Audio verification (where applicable)
-- Pre-push hooks run the same checks as the `ci-main` GitHub Actions workflow before the push is accepted (see `.husky/pre-push`).
+- Pre-push hooks run the same checks as the `ci-main` GitHub Actions workflow before the push is accepted (see `.githooks/pre-push`).
