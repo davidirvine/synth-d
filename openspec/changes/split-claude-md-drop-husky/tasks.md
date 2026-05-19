@@ -54,5 +54,5 @@
 - [x] 7.3 Run `npx playwright test` — verify pass.
 - [x] 7.4 Run `roborev status` to confirm the daemon is healthy. If it is not running, halt and report to the human; do not skip the review gate.
 - [x] 7.5 Run `roborev refine --max-iterations 3` to resolve all open review findings on the branch.
-- [ ] 7.6 Present refine results and any remaining findings to the human; wait for explicit human approval before proceeding to PR.
+- [x] 7.6 Present refine results and any remaining findings to the human; wait for explicit human approval before proceeding to PR.
 - [ ] 7.7 On approval, push and open the PR with `stax ss --yes --no-prompt`. PR title must use conventional-commit `fix:` prefix (per `design.md` Decision 6) and a concise description.
