@@ -8,6 +8,8 @@
 // controller state, excluded from patches, and owned directly by App.svelte.
 // Likewise the keyboard register and MIDI CC assignments are not stored here.
 
+import { setParam } from '../audio/engine.js'
+
 /**
  * Continuous (knob) parameters and their factory-default values.
  * Mirrors App.svelte's KNOB_PARAMS minus `modWheel` (controller state).
@@ -118,3 +120,65 @@ export const AUDIO_PARAMS = Object.freeze(new Set(PARAM_NAMES))
  * @type {Record<string, number>}
  */
 export const synthParams = $state({ ...PARAM_DEFAULTS })
+
+// --- DSP subscriber -------------------------------------------------------
+//
+// writeParam is the single, central setter wrapper that applies a store change
+// to both the store state and the DSP. It is the ONLY path that calls
+// engine.setParam, so there is exactly one place where the store drives audio.
+// Guards (in order):
+//   1. Non-audio / unknown keys (e.g. `modWheel`, register) are skipped entirely
+//      — they are not store parameters and must never reach the DSP via the store.
+//   2. Non-finite values are skipped — they would corrupt the DSP and the store.
+//   3. Redundant writes (value unchanged) do not re-fire setParam, preventing the
+//      duplicate/feedback fires that a MIDI ⇄ store ⇄ knob loop could otherwise
+//      cause. `force` overrides this for power-on/load, where the freshly created
+//      DSP node holds no state and every parameter must be (re)sent.
+
+/**
+ * Write a single parameter to the store and forward it to the DSP.
+ * @param {string} name parameter name
+ * @param {number} value new value
+ * @param {boolean} [force] when true, call setParam even if the value is unchanged
+ */
+export function writeParam(name, value, force = false) {
+  if (!AUDIO_PARAMS.has(name)) return
+  if (!Number.isFinite(value)) return
+  const changed = synthParams[name] !== value
+  if (changed) synthParams[name] = value
+  if (changed || force) setParam(name, value)
+}
+
+/**
+ * Apply a full or partial set of parameter values to the store at once. Used to
+ * apply the active patch on power-on and to load a patch. Unknown keys in the
+ * input are ignored by writeParam.
+ * @param {Record<string, number>} params
+ * @param {boolean} [force] forwarded to writeParam (defaults true: power-on/load
+ *   must (re)send every parameter to the freshly created DSP node)
+ */
+export function applyParams(params, force = true) {
+  for (const name of PARAM_NAMES) {
+    if (name in params) writeParam(name, params[name], force)
+  }
+}
+
+/**
+ * Apply the factory defaults to the store (the bootstrap "active patch").
+ * @param {boolean} [force]
+ */
+export function resetToDefaults(force = true) {
+  applyParams(PARAM_DEFAULTS, force)
+}
+
+/**
+ * Snapshot the in-scope parameter values as a plain object, suitable for
+ * serializing into a patch. Only PARAM_NAMES are included.
+ * @returns {Record<string, number>}
+ */
+export function serializeParams() {
+  /** @type {Record<string, number>} */
+  const out = {}
+  for (const name of PARAM_NAMES) out[name] = synthParams[name]
+  return out
+}

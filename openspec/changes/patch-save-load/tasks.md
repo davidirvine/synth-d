@@ -1,7 +1,7 @@
 ## 1. Central synth store (land green before anything else)
 
 - [x] 1.1 Create `src/state/synth.svelte.js` exporting a runes `$state` store keyed by every in-scope param (all knob params + all switch params), seeded from the existing factory `DEFAULTS` plus switch defaults; export the param-name list and the audio-param set
-- [ ] 1.2 Add a single DSP subscriber (`$effect` or setter wrapper) that calls `engine.setParam(name, value)` only for audio params and only for finite values, with a guard preventing redundant/duplicate fires
+- [x] 1.2 Add a single DSP subscriber (`$effect` or setter wrapper) that calls `engine.setParam(name, value)` only for audio params and only for finite values, with a guard preventing redundant/duplicate fires
 - [ ] 1.3 Add unit tests for the store: seeding from defaults, that only audio+finite values reach `setParam`, that non-finite/non-audio keys are skipped, and no duplicate fire on equal-value writes
 - [ ] 1.4 Rebind `Knob.svelte` so its `externalValue` is fed from the store; preserve the clamp + spring-animate + not-while-dragging behavior; on user change write the store (not a bare `onchange`)
 - [ ] 1.5 Rebind `Oscillator.svelte` to read/write osc1/2/3 wave, osc1/2/3 range, and osc3 LFO mode from the store; remove its `reset` prop and reset `$effect`
