@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines how releases are versioned, proposed, cut, deployed, and back-merged. The release pipeline is driven by `release-please` reading conventional commits on `main`; releases produce git tags, GitHub Releases with notes, gated production deployments, and a backmerge PR returning the version bump to `develop`.
+Defines how releases are versioned, proposed, cut, and deployed. The release pipeline is driven by `release-please` reading conventional commits on `main`; releases produce git tags, GitHub Releases with notes, and gated production deployments.
 ## Requirements
 ### Requirement: Conventional commits drive automated version bumps
 The release management system SHALL use `release-please` to analyse conventional commits on `main` and determine the next semantic version. The version bump type SHALL follow the Conventional Commits specification: `feat` → minor, `fix` → patch, `feat!` or `BREAKING CHANGE` → major.

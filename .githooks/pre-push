@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -e
 
-# CI parity for pushes — mirrors .github/workflows/ci-develop.yml.
+# CI parity for pushes — mirrors .github/workflows/ci-main.yml.
 # Bypass intentionally with `git push --no-verify` for WIP pushes.
 
 echo "[pre-push] eslint"
