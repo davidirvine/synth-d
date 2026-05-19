@@ -15,7 +15,7 @@
     "mutate": "stryker run",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "prepare": "husky"
+    "postinstall": "sh scripts/install-hooks.sh"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -29,7 +29,6 @@
     "eslint": "^10.2.1",
     "eslint-plugin-svelte": "^3.17.1",
     "globals": "^17.5.0",
-    "husky": "^9.1.7",
     "jsdom": "^29.0.2",
     "prettier": "^3.8.3",
     "prettier-plugin-svelte": "^3.5.1",
