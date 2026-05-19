@@ -37,22 +37,22 @@
 - [x] 5.2 Update `package.json`: remove `husky` from `devDependencies`; remove any `prepare: "husky"` script; add `"postinstall": "sh scripts/install-hooks.sh"`.
 - [x] 5.3 Run `npm install` to regenerate `package-lock.json` reflecting the husky removal; commit lockfile alongside `package.json`.
 - [x] 5.4 Verify activation end-to-end: `git config --unset core.hooksPath` then `rm -rf node_modules && npm install` then `git config --get core.hooksPath` returns `.githooks`. Re-run `npm install` and confirm the second run does not re-log activation (idempotency).
-- [ ] 5.5 Verify hook firing: make a trivial commit and confirm `roborev` queues a review (post-commit fires); run `git push --dry-run` against origin and confirm the pre-push script runs the CI parity checks.
+- [x] 5.5 Verify hook firing: make a trivial commit and confirm `roborev` queues a review (post-commit fires); run `git push --dry-run` against origin and confirm the pre-push script runs the CI parity checks.
 - [x] 5.6 Commit (`refactor(hooks): drop husky in favor of .githooks/ + postinstall activation`).
 
 ## 6. Update STACK.md hook-path references
 
-- [ ] 6.1 In `STACK.md`'s Feature-level verification subsection, update the `.husky/pre-push` path reference to `.githooks/pre-push`.
-- [ ] 6.2 Grep the entire repo for any remaining `.husky` references in tracked, non-archive files: `grep -rn "\.husky" --include="*.md" --include="*.json" --include="*.toml" --include="*.yml" .` — verify only expected matches remain (the only acceptable matches are archived openspec changes).
-- [ ] 6.3 Lint and format: `npx prettier --write STACK.md`.
-- [ ] 6.4 Commit (`docs(stack): update hook-path references to .githooks/`).
+- [x] 6.1 In `STACK.md`'s Feature-level verification subsection, update the `.husky/pre-push` path reference to `.githooks/pre-push`.
+- [x] 6.2 Grep the entire repo for any remaining `.husky` references in tracked, non-archive files: `grep -rn "\.husky" --include="*.md" --include="*.json" --include="*.toml" --include="*.yml" .` — verify only expected matches remain (the only acceptable matches are archived openspec changes).
+- [x] 6.3 Lint and format: `npx prettier --write STACK.md`.
+- [x] 6.4 Commit (`docs(stack): update hook-path references to .githooks/`).
 
 ## 7. End-of-implementation gate
 
-- [ ] 7.1 Run `npx vitest run` — verify pass.
-- [ ] 7.2 Run `npx stryker run` — verify mutation score ≥ 85%.
-- [ ] 7.3 Run `npx playwright test` — verify pass.
-- [ ] 7.4 Run `roborev status` to confirm the daemon is healthy. If it is not running, halt and report to the human; do not skip the review gate.
+- [x] 7.1 Run `npx vitest run` — verify pass.
+- [x] 7.2 Run `npx stryker run` — verify mutation score ≥ 85%.
+- [x] 7.3 Run `npx playwright test` — verify pass.
+- [x] 7.4 Run `roborev status` to confirm the daemon is healthy. If it is not running, halt and report to the human; do not skip the review gate.
 - [ ] 7.5 Run `roborev refine --max-iterations 3` to resolve all open review findings on the branch.
 - [ ] 7.6 Present refine results and any remaining findings to the human; wait for explicit human approval before proceeding to PR.
 - [ ] 7.7 On approval, push and open the PR with `stax ss --yes --no-prompt`. PR title must use conventional-commit `fix:` prefix (per `design.md` Decision 6) and a concise description.
