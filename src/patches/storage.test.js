@@ -124,6 +124,49 @@ describe('storage — corrupt / missing slots', () => {
   })
 })
 
+describe('storage — legacy name migration', () => {
+  // Simulate patches saved before names were normalized to upper-case.
+  function seedLegacy(/** @type {string} */ name, /** @type {object} */ params) {
+    const index = JSON.parse(localStorage.getItem('synth-d:patches') ?? '[]')
+    index.push(name)
+    localStorage.setItem('synth-d:patches', JSON.stringify(index))
+    localStorage.setItem('synth-d:patch:' + name, JSON.stringify({ name, version: 1, params }))
+  }
+
+  it('listPatches migrates legacy lower-case names to upper-case', () => {
+    seedLegacy('my-sound', { cutoff: 1234 })
+    expect(listPatches()).toEqual(['MY-SOUND'])
+    // The slot moved to the upper-cased key with an updated envelope name.
+    expect(localStorage.getItem('synth-d:patch:my-sound')).toBeNull()
+    expect(loadPatch('MY-SOUND')?.params.cutoff).toBe(1234)
+    const env = JSON.parse(/** @type {string} */ (localStorage.getItem('synth-d:patch:MY-SOUND')))
+    expect(env.name).toBe('MY-SOUND')
+  })
+
+  it('a legacy patch becomes deletable after listing (the reported bug)', () => {
+    seedLegacy('first', PARAM_DEFAULTS)
+    expect(listPatches()).toEqual(['FIRST'])
+    expect(deletePatch('FIRST')).toBe(true)
+    expect(listPatches()).toEqual([])
+  })
+
+  it('migration is idempotent and order-preserving for mixed legacy/canonical', () => {
+    savePatch('ALPHA', PARAM_DEFAULTS) // already upper-case
+    seedLegacy('beta', PARAM_DEFAULTS)
+    expect(listPatches()).toEqual(['ALPHA', 'BETA'])
+    expect(listPatches()).toEqual(['ALPHA', 'BETA'])
+  })
+
+  it('de-duplicates when a legacy name and its upper-case twin both exist', () => {
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 2000 })
+    seedLegacy('lead', { cutoff: 1000 })
+    // Canonical 'LEAD' already claimed; the legacy 'lead' slot is dropped.
+    expect(listPatches()).toEqual(['LEAD'])
+    expect(loadPatch('LEAD')?.params.cutoff).toBe(2000)
+    expect(localStorage.getItem('synth-d:patch:lead')).toBeNull()
+  })
+})
+
 describe('storage — renamePatch', () => {
   it('renames to a new name: listed and loadable under the new name only', () => {
     savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 8000 })
@@ -238,8 +281,8 @@ describe('storage — malformed slot envelopes read as absent', () => {
 
 describe('storage — index integrity', () => {
   it('listPatches drops non-string index entries', () => {
-    localStorage.setItem('synth-d:patches', JSON.stringify(['a', 5, null, 'b', { x: 1 }]))
-    expect(listPatches()).toEqual(['a', 'b'])
+    localStorage.setItem('synth-d:patches', JSON.stringify(['A', 5, null, 'B', { x: 1 }]))
+    expect(listPatches()).toEqual(['A', 'B'])
   })
 })
 

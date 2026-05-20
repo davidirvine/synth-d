@@ -283,6 +283,22 @@ describe('PatchControl — delete', () => {
     expect(listPatches()).toEqual([])
   })
 
+  it('removes the deleted row from the list without reopening', async () => {
+    savePatch('LEAD', PARAM_DEFAULTS)
+    savePatch('PAD', PARAM_DEFAULTS)
+    const { container, getByLabelText } = render(PatchControl)
+    await openPopover(container)
+    expect(container.querySelectorAll('.patch-row').length).toBe(2)
+    await fireEvent.click(getByLabelText('delete LEAD'))
+    await fireEvent.click(getByLabelText('confirm delete'))
+    const rows = Array.from(container.querySelectorAll('.patch-load')).map((b) =>
+      b.textContent?.trim()
+    )
+    expect(container.querySelectorAll('.patch-row').length).toBe(1)
+    expect(rows.some((t) => t?.includes('LEAD'))).toBe(false)
+    expect(rows.some((t) => t?.includes('PAD'))).toBe(true)
+  })
+
   it('canceling delete leaves the patch intact', async () => {
     savePatch('LEAD', PARAM_DEFAULTS)
     const { container, getByLabelText } = render(PatchControl)

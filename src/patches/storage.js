@@ -86,10 +86,61 @@ function writeIndex(names) {
 }
 
 /**
- * List the names of all saved patches (the index is the authority).
+ * Migrate any legacy patch whose name is not already upper-case to its
+ * upper-cased name (patch names are now always all caps). Rewrites the slot
+ * under the upper-cased key (updating the envelope name) and the index entry,
+ * de-duplicating if an upper-cased twin already exists. Idempotent: when every
+ * name is already upper-case it does nothing. Runs as part of listPatches so the
+ * UI (which lists before any load/delete/rename) always operates on canonical
+ * upper-case names.
+ */
+function migrateLegacyNames() {
+  const index = readIndex()
+  /** @type {string[]} */
+  const nextIndex = []
+  const seen = new Set()
+  let changed = false
+
+  for (const name of index) {
+    const upper = name.toUpperCase()
+    if (upper === name) {
+      if (!seen.has(upper)) {
+        nextIndex.push(name)
+        seen.add(upper)
+      }
+      continue
+    }
+    // Legacy lower/mixed-case entry → move its slot to the upper-cased key.
+    changed = true
+    const raw = safeGet(SLOT_PREFIX + name)
+    if (raw !== null && !seen.has(upper)) {
+      let payload = raw
+      try {
+        const env = JSON.parse(raw)
+        if (env && typeof env === 'object') {
+          env.name = upper
+          payload = JSON.stringify(env)
+        }
+      } catch {
+        /* corrupt slot — carry the raw payload across as-is */
+      }
+      safeSet(SLOT_PREFIX + upper, payload)
+      nextIndex.push(upper)
+      seen.add(upper)
+    }
+    safeRemove(SLOT_PREFIX + name)
+  }
+
+  if (changed) writeIndex(nextIndex)
+}
+
+/**
+ * List the names of all saved patches (the index is the authority). Legacy
+ * non-upper-case names are migrated to upper-case first.
  * @returns {string[]}
  */
 export function listPatches() {
+  migrateLegacyNames()
   return readIndex()
 }
 

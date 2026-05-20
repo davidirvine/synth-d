@@ -39,6 +39,43 @@ test.describe('Patch save/load', () => {
     await expect(page.locator('.patch-load', { hasText: 'FIRST' })).toHaveCount(0)
   })
 
+  test('deleting a patch removes it from the list', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('.patch-control .trigger').click()
+    await page.locator('.name-input').fill('one')
+    await page.locator('.save-btn').click()
+    await expect(page.locator('.patch-load', { hasText: 'ONE' })).toBeVisible()
+    // Save a second so the popover/list clearly stays open after one delete.
+    await page.locator('.name-input').fill('two')
+    await page.locator('.save-btn').click()
+    await expect(page.locator('.patch-row')).toHaveCount(2)
+
+    await page.locator('[aria-label="delete ONE"]').click()
+    await page.locator('[aria-label="confirm delete"]').click()
+
+    await expect(page.locator('.patch-load', { hasText: 'ONE' })).toHaveCount(0)
+    await expect(page.locator('.patch-row')).toHaveCount(1)
+  })
+
+  test('a legacy lower-case patch can be deleted from the list', async ({ page }) => {
+    // Seed a patch saved before names were normalized to upper-case.
+    await page.addInitScript(() => {
+      localStorage.setItem('synth-d:patches', JSON.stringify(['my-sound']))
+      localStorage.setItem(
+        'synth-d:patch:my-sound',
+        JSON.stringify({ name: 'my-sound', version: 1, params: { cutoff: 1234 } })
+      )
+    })
+    await page.goto('/')
+    await page.locator('.patch-control .trigger').click()
+    // Listed under its migrated upper-case name.
+    await expect(page.locator('.patch-load', { hasText: 'MY-SOUND' })).toBeVisible()
+    await page.locator('[aria-label="delete MY-SOUND"]').click()
+    await page.locator('[aria-label="confirm delete"]').click()
+    await expect(page.locator('.patch-row')).toHaveCount(0)
+    await expect(page.getByText('no patches saved yet')).toBeVisible()
+  })
+
   test.describe('powered round-trip (requires WASM)', () => {
     test.skip(!wasmBuilt, 'Requires WASM build: npm run faust:build')
 
