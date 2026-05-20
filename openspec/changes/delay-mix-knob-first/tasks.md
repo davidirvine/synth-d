@@ -9,6 +9,6 @@
 
 ## 3. Verify
 
-- [ ] 3.1 Run `npx vitest run` and confirm all unit/component tests pass.
-- [ ] 3.2 Run `npx playwright test` and confirm E2E tests pass.
-- [ ] 3.3 Run `npx stryker run` and confirm mutation score ≥ 85%.
+- [x] 3.1 Run `npx vitest run` and confirm all unit/component tests pass.
+- [x] 3.2 Run `npx playwright test` and confirm E2E tests pass.
+- [x] 3.3 Run `npx stryker run` and confirm mutation score ≥ 85%.
