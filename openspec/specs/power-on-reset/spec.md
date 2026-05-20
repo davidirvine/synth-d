@@ -4,15 +4,19 @@
 TBD - created by archiving change fix-engine-stability. Update Purpose after archive.
 ## Requirements
 ### Requirement: All parameters reset to safe defaults on every power-on
-After the engine initialises on power-on, App.svelte SHALL push the default value of every continuous parameter to the DSP and SHALL signal every panel component to reset its discrete state. The DSP SHALL receive default values for all parameters before any note is played. The result SHALL be that the UI and DSP are in complete agreement at the moment the synth becomes playable.
+On power-on, after the engine initialises, App.svelte SHALL apply the **active patch** to the central synth store, which drives both the DSP and the UI. The active patch is the most recently loaded patch, or the factory defaults when no patch has been loaded. Every continuous and discrete parameter of the active patch SHALL be applied to the DSP before any note is played. The result SHALL be that the UI and DSP are in complete agreement at the moment the synth becomes playable.
 
-#### Scenario: Continuous params match UI defaults after power-on
-- **WHEN** the power button is toggled on
-- **THEN** every continuous parameter (cutoff, resonance, envelope times, levels, etc.) is set in the DSP to the value shown by the UI knob in its default position
+#### Scenario: Continuous params match the active patch after power-on
+- **WHEN** the power button is toggled on and no patch has been loaded
+- **THEN** every continuous parameter (cutoff, resonance, envelope times, levels, etc.) is set in the DSP to its factory-default value, matching the UI knob position
 
-#### Scenario: Discrete controls reset to defaults after power-on
-- **WHEN** the power button is toggled on
-- **THEN** all wave selectors reset to triangle, OSC ranges reset to 0, all routing buttons reset to off, key track resets to off, glide resets to off, delay and reverb reset to off, D/R lock resets to off
+#### Scenario: Discrete controls match the active patch after power-on
+- **WHEN** the power button is toggled on and no patch has been loaded
+- **THEN** all wave selectors reset to triangle, OSC ranges reset to 0, all routing buttons reset to off, key track resets to off, glide resets to off, and delay and reverb reset to off
+
+#### Scenario: Power-on applies a loaded patch instead of defaults
+- **WHEN** a patch has been loaded while powered off and the power button is then toggled on
+- **THEN** every continuous and discrete parameter is set in the DSP and UI to the loaded patch's values, not to factory defaults
 
 #### Scenario: DSP and UI agree from first sample
 - **WHEN** a note is played immediately after power-on
@@ -20,18 +24,18 @@ After the engine initialises on power-on, App.svelte SHALL push the default valu
 
 ---
 
-### Requirement: Panel components accept a reset signal
-Each panel component (`Oscillator`, `Mixer`, `Filter`, `AmpEnv`, `Modulation`, `Glide`, `Effects`) SHALL accept a numeric `reset` prop. When the `reset` value increments, the component SHALL restore all internal discrete state to its defaults and SHALL fire `onchange` for each parameter so the DSP receives the reset values. Continuous params are reset via `externalValue` / `ccExternalValues` in App.svelte and do not require panel-level reset handling.
+### Requirement: A central store is the single source of truth for synth parameters
+The synth's continuous and discrete parameters SHALL be held in a single central reactive store. User interactions, MIDI CC input, patch loads, and power-on SHALL write to this store, and the store SHALL be the sole driver of `setParam` calls to the DSP. A single subscription SHALL apply store changes to the DSP, firing `setParam(name, value)` only for audio parameters and only for finite values, without creating feedback loops between MIDI, knob, and store updates.
 
-#### Scenario: Oscillator resets waveforms and range on reset signal
-- **WHEN** the Oscillator component's reset prop increments
-- **THEN** all three oscillator waveform selections return to triangle (index 0), OSC ranges return to 0, and onchange fires for each
+#### Scenario: Store change drives the DSP
+- **WHEN** a parameter value in the store changes to a finite value for an audio parameter
+- **THEN** `setParam` is called exactly once for that parameter with the new value
 
-#### Scenario: Modulation resets routing on reset signal
-- **WHEN** the Modulation component's reset prop increments
-- **THEN** modToOsc1, modToOsc2, and modToFilter all return to 0 (off) and onchange fires for each
+#### Scenario: Knob animation behavior is preserved
+- **WHEN** the store changes a knob's value while the user is not dragging that knob
+- **THEN** the knob's indicator animates to the new position via its existing spring animation, exactly as it did when driven by `externalValue`
 
-#### Scenario: Consecutive resets both fire
-- **WHEN** the reset prop increments twice in separate power-on cycles
-- **THEN** both increments trigger a full discrete reset
+#### Scenario: Non-finite and non-audio values are not sent to the DSP
+- **WHEN** a store value is non-finite, or the key is not an audio parameter
+- **THEN** no `setParam` call is made for it
 
