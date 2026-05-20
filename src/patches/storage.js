@@ -199,12 +199,6 @@ export function renamePatch(oldName, newName) {
   const patch = loadPatch(from)
   if (!patch) return { ok: false, error: 'not-found' }
 
-  // Write the new slot with the renamed envelope.
-  const envelope = { name: to, version: PATCH_VERSION, params: patch.params }
-  if (!safeSet(SLOT_PREFIX + to, JSON.stringify(envelope))) {
-    return { ok: false, error: 'storage-unavailable' }
-  }
-
   // Replace `from` with `to` at its position; drop any pre-existing `to` entry
   // (overwrite) so the index has no duplicate. Preserve order otherwise.
   const index = readIndex()
@@ -217,10 +211,22 @@ export function renamePatch(oldName, newName) {
   }
   if (!next.includes(to)) next.push(to)
 
-  if (!writeIndex(next)) {
-    safeRemove(SLOT_PREFIX + to) // roll back the orphaned new slot
+  // Write the index FIRST: if it fails, nothing has changed and no slot data is
+  // touched. (Ordering mirrors deletePatch and avoids destroying an overwritten
+  // target's data on a later rollback.)
+  if (!writeIndex(next)) return { ok: false, error: 'storage-unavailable' }
+
+  // Then write the renamed slot. setItem is all-or-nothing per key, so a failure
+  // here leaves the (possibly pre-existing) target slot untouched — restore the
+  // original index and bail without having destroyed any patch's data.
+  const envelope = { name: to, version: PATCH_VERSION, params: patch.params }
+  if (!safeSet(SLOT_PREFIX + to, JSON.stringify(envelope))) {
+    writeIndex(index)
     return { ok: false, error: 'storage-unavailable' }
   }
+
+  // Finally drop the old slot (best effort — a failure here orphans it but
+  // destroys nothing).
   safeRemove(SLOT_PREFIX + from)
   return { ok: true, name: to }
 }

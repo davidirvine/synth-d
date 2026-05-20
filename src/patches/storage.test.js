@@ -172,7 +172,7 @@ describe('storage — renamePatch', () => {
     expect(loadPatch('lead')).toBeNull()
   })
 
-  it('rolls back the new slot when the index write fails', () => {
+  it('leaves everything intact when the index write fails', () => {
     savePatch('lead', PARAM_DEFAULTS)
     const realSet = Storage.prototype.setItem
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
@@ -184,6 +184,23 @@ describe('storage — renamePatch', () => {
     expect(localStorage.getItem('synth-d:patch:lead2')).toBeNull()
     expect(listPatches()).toEqual(['lead'])
     expect(loadPatch('lead')).not.toBeNull()
+  })
+
+  it('does not destroy the overwritten target when the slot write fails', () => {
+    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('pad', { ...PARAM_DEFAULTS, cutoff: 1000 })
+    const realSet = Storage.prototype.setItem
+    // Allow the index write but fail the destination slot write.
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
+      if (key === 'synth-d:patch:pad') throw new DOMException('quota', 'QuotaExceededError')
+      return realSet.call(this, key, value)
+    })
+    expect(renamePatch('lead', 'pad')).toEqual({ ok: false, error: 'storage-unavailable' })
+    vi.restoreAllMocks()
+    // Index restored and both patches intact with their original data.
+    expect(listPatches()).toEqual(['lead', 'pad'])
+    expect(loadPatch('lead')?.params.cutoff).toBe(8000)
+    expect(loadPatch('pad')?.params.cutoff).toBe(1000)
   })
 })
 
