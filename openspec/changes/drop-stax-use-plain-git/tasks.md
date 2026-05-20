@@ -8,7 +8,7 @@
 ## 2. Simplify the worktree script and command
 
 - [x] 2.1 Edit `scripts/opsx-apply-worktree.sh`: replace `stax create "$CHANGE_NAME" --prefix "$PREFIX/"` + the switch-back-to-main block with `git branch "$BRANCH" main` (creates the branch without checking it out), keeping the existing `git worktree add` step
-- [ ] 2.2 Update `.claude/commands/opsx-apply-wt.md` step 3 to describe `git branch` instead of `stax create`
+- [x] 2.2 Update `.claude/commands/opsx-apply-wt.md` step 3 to describe `git branch` instead of `stax create`
 - [ ] 2.3 Dry-run the script logic (or run it for a throwaway change name and tear down the worktree) to confirm the worktree attaches on the correct branch from `main`
 
 ## 3. Remove stax tooling

@@ -18,7 +18,7 @@ Create an isolated git worktree on the correct branch and begin implementation t
    The script will:
    - Verify the proposal exists at `openspec/changes/$ARGUMENTS/`
    - Verify `main` is clean and up to date
-   - Create the branch via stax: `stax create $ARGUMENTS --prefix "<prefix>/"`
+   - Create the branch from `main` with `git branch <prefix>/$ARGUMENTS main` (no checkout)
    - Attach a sibling worktree at `../<repo>-$ARGUMENTS` to that branch
    - Copy untracked essentials (`.env`, `.env.local`)
 
