@@ -64,24 +64,28 @@
       return
     }
     setActivePatch(patch.name, patch.params)
-    // Apply to the store. While powered this drives the DSP immediately; while
-    // powered off the worklet doesn't exist yet (setParam is a no-op) and the
-    // knobs stay at their rest positions, but the store now matches the patch so
-    // it is applied on the next power-on and dirty is cleared.
-    applyParams(patch.params, true)
+    // Apply to the store (force=false: only changed params reach the DSP). While
+    // powered this drives the DSP immediately; while powered off the worklet
+    // doesn't exist yet and the knobs stay at their rest positions, but the store
+    // now matches the patch so it is force-reapplied on the next power-on and
+    // dirty is cleared.
+    applyParams(patch.params, false)
     nameInput = patch.name
     confirmingDeleteName = null
     error = ''
   }
 
   function doSave() {
-    const res = savePatch(nameInput, serializeParams())
+    // Snapshot once so the persisted slot and the dirty-tracking baseline are
+    // guaranteed identical, even if the store changes between the two uses.
+    const snapshot = serializeParams()
+    const res = savePatch(nameInput, snapshot)
     if (!res.ok) {
       error = res.error === 'invalid-name' ? 'name required' : 'storage unavailable'
       return
     }
     // The saved state becomes the active patch's baseline, clearing dirty.
-    setActivePatch(res.name, serializeParams())
+    setActivePatch(res.name, snapshot)
     confirmingOverwrite = false
     refresh()
   }
@@ -122,7 +126,12 @@
 
   /** @param {KeyboardEvent} e */
   function onKeyDown(e) {
-    if (e.key === 'Escape' && open) open = false
+    if (e.key === 'Escape' && open) {
+      // Stop the keypress from also reaching App's Escape handler (MIDI-learn
+      // cancel) — one Escape should close the popover, not trigger both.
+      e.stopPropagation()
+      open = false
+    }
   }
 </script>
 

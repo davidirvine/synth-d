@@ -211,6 +211,20 @@ describe('storage — failures are non-fatal', () => {
     expect(savePatch('lead', PARAM_DEFAULTS)).toEqual({ ok: false, error: 'storage-unavailable' })
   })
 
+  it('rolls back the slot when the index write fails (no orphaned slot)', () => {
+    const realSet = Storage.prototype.setItem
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
+      if (key === 'synth-d:patches') throw new DOMException('quota', 'QuotaExceededError')
+      return realSet.call(this, key, value)
+    })
+    const res = savePatch('lead', PARAM_DEFAULTS)
+    expect(res).toEqual({ ok: false, error: 'storage-unavailable' })
+    vi.restoreAllMocks()
+    // The slot must not linger unreferenced by the index.
+    expect(localStorage.getItem('synth-d:patch:lead')).toBeNull()
+    expect(listPatches()).toEqual([])
+  })
+
   it('listPatches returns [] instead of throwing when getItem throws', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('unavailable')

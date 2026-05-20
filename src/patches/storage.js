@@ -117,7 +117,12 @@ export function savePatch(name, params) {
   const index = readIndex()
   if (!index.includes(clean)) {
     index.push(clean)
-    writeIndex(index)
+    if (!writeIndex(index)) {
+      // The slot was written but the index update failed (e.g. quota). Roll back
+      // the orphaned slot so it can't linger unreferenced by listPatches().
+      safeRemove(SLOT_PREFIX + clean)
+      return { ok: false, error: 'storage-unavailable' }
+    }
   }
   return { ok: true, name: clean }
 }
