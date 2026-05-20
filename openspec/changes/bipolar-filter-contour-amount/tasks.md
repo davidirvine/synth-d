@@ -19,7 +19,7 @@
 - [x] 4.1 Add/update a unit test asserting the `filterEnvAmt` param range is `-10000 … 10000` and the knob renders in bipolar mode
 - [x] 4.2 Add/update a power-on/off-reset test asserting `filterEnvAmt` resets to `0` (centre), not `-10000` (min)
 - [x] 4.3 Add/update a UI test asserting the amount value display fits `-10.0 kHz` with no layout shift
-- [ ] 4.4 Run the completion-gate test suite (`npx vitest run`, then the mutation + E2E checks per STACK.md)
+- [x] 4.4 Run the completion-gate test suite (`npx vitest run`, then the mutation + E2E checks per STACK.md)
 
 ## 5. Verification
 
