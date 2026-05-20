@@ -21,7 +21,17 @@ A patch SHALL capture the complete *sound* of the synth: every continuous knob p
 
 ### Requirement: User can save the current sound as a named patch
 
-The system SHALL let the user save the current synth state under a name they choose. Saving captures the live sound, so the save action and the name field SHALL be disabled while the synth is powered off. The name SHALL be trimmed of surrounding whitespace; an empty or whitespace-only name SHALL be rejected and SHALL NOT create a patch. Saving under a name that does not yet exist SHALL create a new patch. Saving under the name of the **currently active patch** SHALL update that patch in place WITHOUT a confirmation (the active patch is the user's own working patch). Saving under the name of a **different** existing patch SHALL require an inline confirmation before overwriting it.
+The system SHALL let the user save the current synth state under a name they choose. Saving captures the live sound, so the save action and the name field SHALL be disabled while the synth is powered off. The name SHALL be trimmed of surrounding whitespace, upper-cased (patch names are always all caps), and capped at a maximum length (24 characters); an empty or whitespace-only name SHALL be rejected and SHALL NOT create a patch. Names that differ only by letter case SHALL refer to the same patch. Saving under a name that does not yet exist SHALL create a new patch. Saving under the name of the **currently active patch** SHALL update that patch in place WITHOUT a confirmation (the active patch is the user's own working patch). Saving under the name of a **different** existing patch SHALL require an inline confirmation before overwriting it. Pressing Enter in the name field SHALL activate the save.
+
+#### Scenario: Patch names are normalized to upper case
+
+- **WHEN** the user saves a patch typing its name in any letter case
+- **THEN** the patch is stored, listed, and displayed with the name in all caps
+
+#### Scenario: Enter in the name field saves
+
+- **WHEN** the synth is powered on and the user presses Enter in the name field with a valid name
+- **THEN** the patch is saved exactly as if the save action had been activated
 
 #### Scenario: Saving is disabled while powered off
 
@@ -50,7 +60,7 @@ The system SHALL let the user save the current synth state under a name they cho
 
 ### Requirement: User can rename a saved patch
 
-The system SHALL let the user rename a saved patch in place from the patch list, keeping its stored parameters. The new name SHALL be validated like a save name (trimmed; empty rejected). Renaming SHALL update both the patch index and the stored slot so the patch is listed and loadable under the new name only. If the new name matches a different existing patch, an inline overwrite confirmation SHALL be required before replacing it. Renaming the currently active patch SHALL update the active patch's displayed name. The rename interaction SHALL be inline within the popover (no browser dialog).
+The system SHALL let the user rename a saved patch in place from the patch list, keeping its stored parameters. The new name SHALL be validated like a save name (trimmed, upper-cased, empty rejected). Renaming SHALL update both the patch index and the stored slot so the patch is listed and loadable under the new name only. If the new name matches a different existing patch, an inline overwrite confirmation SHALL be required before replacing it. Renaming the currently active patch SHALL update the active patch's displayed name. The rename interaction SHALL be inline within the popover (no browser dialog), and pressing Enter in the rename field SHALL confirm it.
 
 #### Scenario: Rename a patch to a new name
 
@@ -102,12 +112,17 @@ The system SHALL let the user delete a saved patch. Because deletion is irrevers
 
 ### Requirement: Patches persist across page reloads
 
-Saved patches SHALL persist in the browser's local storage so they survive a page reload. The patch name SHALL serve as the storage slot identifier. Storage access failures (unavailable storage, quota exceeded, corrupt data) SHALL be handled gracefully and SHALL NOT break audio or crash the UI.
+Saved patches SHALL persist in the browser's local storage so they survive a page reload. The patch name SHALL serve as the storage slot identifier. Storage access failures (unavailable storage, quota exceeded, corrupt data) SHALL be handled gracefully and SHALL NOT break audio or crash the UI. Patches persisted under a non-upper-case name (e.g. saved before names were normalized) SHALL be migrated to their upper-cased name when the list is read, so they remain listable, loadable, renamable, and deletable.
 
 #### Scenario: Saved patch survives reload
 
 - **WHEN** the user saves a patch and then reloads the page
 - **THEN** the patch still appears in the patch list and can be loaded
+
+#### Scenario: Legacy lower-case patches are migrated
+
+- **WHEN** a patch persisted under a non-upper-case name is present and the patch list is read
+- **THEN** it is migrated to its upper-cased name and can be loaded, renamed, and deleted under that name
 
 #### Scenario: Storage failure is non-fatal
 
@@ -135,7 +150,7 @@ The system SHALL track whether the current synth state differs from the saved ve
 
 ### Requirement: Patch controls live in the header and use the app's native idiom
 
-The patch controls SHALL be presented as a control in the header, alongside the MIDI status and power button, and SHALL remain reachable while the synth is powered off. The control SHALL open a popover containing the list of saved patches (with the active patch marked), per-row load, rename, and delete affordances, an inline name field for saving, and a save action. The popover SHALL show an empty-state message when no patches exist. The patch UI SHALL use the application's dark/monospace styling and SHALL NOT use browser dialogs (`window.prompt`/`window.confirm`) for naming or confirmation.
+The patch controls SHALL be presented as a control in the header, alongside the MIDI status and power button, and SHALL remain reachable while the synth is powered off. The trigger SHALL show the active patch's name, or `DEFAULT` when no patch has been loaded, together with the dirty indicator. The control SHALL open a popover containing the list of saved patches (with the active patch marked), per-row load, rename, and delete affordances, an inline name field for saving, and a save action. The popover SHALL show an empty-state message when no patches exist. Typing in the name (or rename) field SHALL NOT trigger the computer-keyboard note input. The patch UI SHALL use the application's dark/monospace styling and SHALL NOT use browser dialogs (`window.prompt`/`window.confirm`) for naming or confirmation.
 
 #### Scenario: Patch control is usable while powered off
 
@@ -156,3 +171,13 @@ The patch controls SHALL be presented as a control in the header, alongside the 
 
 - **WHEN** the user names a patch or confirms an overwrite or delete
 - **THEN** the interaction happens inline within the app UI, not via a browser `prompt`/`confirm` dialog
+
+#### Scenario: Trigger shows DEFAULT when no patch is loaded
+
+- **WHEN** no patch has been loaded
+- **THEN** the patch control trigger displays the active-patch name as `DEFAULT`
+
+#### Scenario: Typing a patch name does not play notes
+
+- **WHEN** the synth is powered on and the user types a patch name in the name field
+- **THEN** no synth notes are triggered by those keystrokes
