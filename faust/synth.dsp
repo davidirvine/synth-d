@@ -34,7 +34,7 @@ resonance = hslider("resonance", 0.3, 0, 1, 0.001);
 keyTrack  = hslider("keyTrack", 0, 0, 1, 0.001);
 
 // Filter envelope
-filterEnvAmt  = hslider("filterEnvAmt [unit:Hz]", 0, 0, 10000, 1);
+filterEnvAmt  = hslider("filterEnvAmt [unit:Hz]", 0, -10000, 10000, 1);
 filterAttack  = hslider("filterAttack [unit:s]", 0.01, 0.001, 4, 0.001);
 filterDecay   = hslider("filterDecay [unit:s]", 0.3, 0.001, 4, 0.001);
 filterSustain = hslider("filterSustain", 0.5, 0, 1, 0.001);

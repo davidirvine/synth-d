@@ -1,7 +1,7 @@
 ## 1. DSP range
 
-- [ ] 1.1 In `faust/synth.dsp`, change the `filterEnvAmt` hslider minimum from `0` to `-10000` (keep default 0, max 10000, step 1); leave the cutoff summation and `max(20, min(18000, …))` clamp unchanged
-- [ ] 1.2 Validate the DSP compiles: `faust faust/synth.dsp -o /dev/null`
+- [x] 1.1 In `faust/synth.dsp`, change the `filterEnvAmt` hslider minimum from `0` to `-10000` (keep default 0, max 10000, step 1); leave the cutoff summation and `max(20, min(18000, …))` clamp unchanged
+- [x] 1.2 Validate the DSP compiles: `faust faust/synth.dsp -o /dev/null`
 
 ## 2. Param registry and reset wiring
 
