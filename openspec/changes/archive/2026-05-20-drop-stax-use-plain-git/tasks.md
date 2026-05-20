@@ -25,9 +25,9 @@
 > - 4.2 `openspec/specs/section-review-gate/` → `openspec/specs/implementation-completion-gate/`; apply the `section-review-gate` delta.
 > - 4.3 After archive, grep `openspec/specs/` (excluding archive) for `stax`/`stacked`/`section-review-gate` and fix any cross-references to the renamed capabilities.
 
-- [ ] 4.1 Apply the `stacked-pr-workflow` delta to `openspec/specs/stacked-pr-workflow/spec.md` (remove section-stacked-PR + stax requirements, add plain-git/gh + single-PR requirements, modify the feedback-path and post-rewrite requirements) and rename the spec directory to `openspec/specs/pr-workflow/`, updating the spec title to "PR Workflow"
-- [ ] 4.2 Apply the `section-review-gate` delta to `openspec/specs/section-review-gate/spec.md` (remove "refine runs at section boundaries", add "refine runs once at the end-of-implementation gate", modify the human-checkpoint and daemon-verification requirements) and rename the spec directory to `openspec/specs/implementation-completion-gate/`, updating the spec title accordingly
-- [ ] 4.3 Grep `openspec/specs/` (excluding archive) for `stax`/`stacked`/`section-review-gate` and confirm only intended references remain; update any cross-reference to the renamed `pr-workflow` and `implementation-completion-gate` capabilities
+- [x] 4.1 Apply the `stacked-pr-workflow` delta to `openspec/specs/stacked-pr-workflow/spec.md` (remove section-stacked-PR + stax requirements, add plain-git/gh + single-PR requirements, modify the feedback-path and post-rewrite requirements) and rename the spec directory to `openspec/specs/pr-workflow/`, updating the spec title to "PR Workflow"
+- [x] 4.2 Apply the `section-review-gate` delta to `openspec/specs/section-review-gate/spec.md` (remove "refine runs at section boundaries", add "refine runs once at the end-of-implementation gate", modify the human-checkpoint and daemon-verification requirements) and rename the spec directory to `openspec/specs/implementation-completion-gate/`, updating the spec title accordingly
+- [x] 4.3 Grep `openspec/specs/` (excluding archive) for `stax`/`stacked`/`section-review-gate` and confirm only intended references remain; update any cross-reference to the renamed `pr-workflow` and `implementation-completion-gate` capabilities
 
 ## 5. Clean up memory notes
 
