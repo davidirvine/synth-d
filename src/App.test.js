@@ -975,23 +975,25 @@ describe('App — header brand glyph', () => {
   it('marks the glyph decorative for assistive technology', () => {
     const { container } = render(App)
     const glyph = /** @type {HTMLElement} */ (container.querySelector('.header .header-glyph'))
-    const svg = /** @type {SVGElement} */ (glyph.querySelector('svg'))
+    // aria-hidden on the wrapper hides the whole glyph subtree from assistive
+    // technology, so the inner <svg> needs no redundant aria-hidden of its own.
     expect(glyph.getAttribute('aria-hidden')).toBe('true')
-    expect(svg.getAttribute('aria-hidden')).toBe('true')
     // Decorative, not interactive: not wrapped in a link or any interactive element.
     expect(glyph.closest('a')).toBeNull()
     expect(glyph.closest('button')).toBeNull()
   })
 
-  it('carries the centering / pointer-events positioning via the .header-glyph class', () => {
+  it('renders the .header-glyph positioning hook in the header', () => {
     const { container } = render(App)
-    const glyph = /** @type {HTMLElement} */ (container.querySelector('.header .header-glyph'))
+    const glyph = /** @type {HTMLElement | null} */ (
+      container.querySelector('.header .header-glyph')
+    )
     // jsdom does not compute layout, and under vitest Svelte's scoped component
     // CSS is not injected into the DOM at all, so the rendered position cannot be
-    // asserted here. The .header-glyph class is the hook carrying the absolute
-    // centering (left: 50%; translateX) and pointer-events: none rules; assert it
-    // is present. Rendered centering/sizing is verified at the human visual gate
-    // (and was confirmed empirically during sizing verification, task 2.2).
-    expect(glyph.classList.contains('header-glyph')).toBe(true)
+    // asserted here. The .header-glyph element is the hook carrying the absolute
+    // centering and pointer-events: none rules; assert it exists in the header.
+    // Rendered centering/sizing is verified at the human visual gate (and was
+    // confirmed empirically during sizing verification, task 2.2).
+    expect(glyph).not.toBeNull()
   })
 })
