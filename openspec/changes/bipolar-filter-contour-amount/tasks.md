@@ -10,9 +10,9 @@
 
 ## 3. Filter panel knob
 
-- [ ] 3.1 In `src/components/Filter.svelte`, set the amount knob `min={-10000}` and add `bipolar={true}`; keep `scale="linear"`, `default={0}`, `unit="Hz"`
-- [ ] 3.2 In `src/components/Filter.svelte`, widen the reserved value-display width so a negative reading (`-10.0 kHz`) fits without layout shift
-- [ ] 3.3 Lint/format the edited files (`npx eslint --fix` then `npx prettier --write` on the `.svelte` files)
+- [x] 3.1 In `src/components/Filter.svelte`, set the amount knob `min={-10000}` and add `bipolar={true}`; keep `scale="linear"`, `default={0}`, `unit="Hz"`
+- [x] 3.2 In `src/components/Filter.svelte`, widen the reserved value-display width so a negative reading (`-10.0 kHz`) fits without layout shift
+- [x] 3.3 Lint/format the edited files (`npx eslint --fix` then `npx prettier --write` on the `.svelte` files)
 
 ## 4. Tests
 
