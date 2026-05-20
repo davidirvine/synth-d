@@ -5,8 +5,8 @@
 
 ## 2. Param registry and reset wiring
 
-- [ ] 2.1 In `src/App.svelte`, change the `filterEnvAmt` registry entry min to `-10000` (max stays `10000`)
-- [ ] 2.2 In `src/App.svelte`, add `'filterEnvAmt'` to the `BIPOLAR_PARAMS` set
+- [x] 2.1 In `src/App.svelte`, change the `filterEnvAmt` registry entry min to `-10000` (max stays `10000`)
+- [x] 2.2 In `src/App.svelte`, add `'filterEnvAmt'` to the `BIPOLAR_PARAMS` set
 
 ## 3. Filter panel knob
 
