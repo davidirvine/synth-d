@@ -103,7 +103,7 @@ When all tasks across all sections are complete:
 4. Run `roborev refine --max-iterations 3` to resolve all open review findings
 5. Present refine results to the human and **wait for explicit human approval** before opening the PR — do not self-approve
 
-If step 3 completes but open findings remain, present the remaining findings to the human. The human decides whether to run refine again, address findings manually, or explicitly override and proceed. Do not make this decision unilaterally.
+If step 4 (`roborev refine`) completes but open findings remain, present the remaining findings to the human. The human decides whether to run refine again, address findings manually, or explicitly override and proceed. Do not make this decision unilaterally.
 
 **Do not create a PR until human approval is granted.** A single PR is opened for the whole feature/bugfix branch — see "Pull Requests" below.
 
