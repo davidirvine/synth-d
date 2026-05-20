@@ -43,6 +43,14 @@ describe('PatchControl — trigger and empty state', () => {
     const { container } = render(PatchControl)
     expect(container.querySelector('.popover')).toBeNull()
   })
+
+  it('closes the popover on a click outside the control', async () => {
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    expect(container.querySelector('.popover')).not.toBeNull()
+    await fireEvent.click(document.body)
+    expect(container.querySelector('.popover')).toBeNull()
+  })
 })
 
 describe('PatchControl — save', () => {
@@ -52,6 +60,17 @@ describe('PatchControl — save', () => {
     await typeName(container, 'lead')
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
     expect(listPatches()).toContain('lead')
+  })
+
+  it('normalizes the name field to the trimmed name after a successful save', async () => {
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    await typeName(container, '  pad  ')
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
+    expect(listPatches()).toEqual(['pad'])
+    expect(/** @type {HTMLInputElement} */ (container.querySelector('.name-input')).value).toBe(
+      'pad'
+    )
   })
 
   it('an empty name shows "name required" and saves nothing', async () => {

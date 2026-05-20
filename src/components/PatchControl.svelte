@@ -18,6 +18,7 @@
   } from '../patches/storage.js'
 
   let open = $state(false)
+  let rootEl = $state(/** @type {HTMLElement | null} */ (null))
   let patches = $state(/** @type {string[]} */ ([]))
   let nameInput = $state('')
   let confirmingOverwrite = $state(false)
@@ -93,6 +94,8 @@
     }
     // The saved state becomes the active patch's baseline, clearing dirty.
     setActivePatch(res.name, snapshot)
+    // Reflect the trimmed/normalized name back into the field.
+    nameInput = res.name
     confirmingOverwrite = false
     refresh()
   }
@@ -140,11 +143,20 @@
       open = false
     }
   }
+
+  /** @param {MouseEvent} e */
+  function onWindowClick(e) {
+    // Close the popover on any click outside the control. The trigger's own
+    // click is inside rootEl, so toggling still works.
+    if (open && rootEl && e.target instanceof Node && !rootEl.contains(e.target)) {
+      open = false
+    }
+  }
 </script>
 
-<svelte:window onkeydown={onKeyDown} />
+<svelte:window onkeydown={onKeyDown} onclick={onWindowClick} />
 
-<div class="patch-control">
+<div class="patch-control" bind:this={rootEl}>
   <button
     class="trigger"
     onclick={toggleOpen}

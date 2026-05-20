@@ -223,6 +223,9 @@
 
   /** @param {{ param: string, value: number }} e */
   function onModWheelChange(e) {
+    // Guard on power state to match onParamChange: only act on real user
+    // interaction while powered.
+    if (!powered) return
     // Keep the external value in sync with the wheel's position so a later CC 1
     // carrying this same value still registers as a change and re-renders.
     modWheelExternal = e.value
