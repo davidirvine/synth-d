@@ -129,7 +129,7 @@ When addressing comments left by a human reviewer on the feature PR:
 
 1. Make response commits on the feature branch — the roborev post-commit hook fires and queues async reviews as normal
 2. Human reviews the response commits and any roborev findings directly — `roborev refine` is **not** run during feedback cycles
-3. On human approval, squash+force-push: `git rebase -i` to squash, then `stax ss --yes --no-prompt` to push
+3. On human approval, squash+force-push: `git rebase -i` to squash, then `git push --force-with-lease` to push
 
 ## Project-specific rules
 
