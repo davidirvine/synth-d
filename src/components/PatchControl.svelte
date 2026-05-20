@@ -311,7 +311,7 @@
                     class="patch-delete"
                     onclick={() => requestDelete(name)}
                     title="Delete patch"
-                    aria-label={`delete ${name}`}>🗑</button
+                    aria-label={`delete ${name}`}>✕</button
                   >
                 {/if}
               {/if}
