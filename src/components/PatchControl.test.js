@@ -51,6 +51,14 @@ describe('PatchControl — trigger and empty state', () => {
     await fireEvent.click(document.body)
     expect(container.querySelector('.popover')).toBeNull()
   })
+
+  it('closes the popover on Escape', async () => {
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    expect(container.querySelector('.popover')).not.toBeNull()
+    await fireEvent.keyDown(window, { key: 'Escape' })
+    expect(container.querySelector('.popover')).toBeNull()
+  })
 })
 
 describe('PatchControl — save', () => {
@@ -153,6 +161,17 @@ describe('PatchControl — delete', () => {
     await fireEvent.click(getByLabelText('delete lead'))
     await fireEvent.click(getByLabelText('cancel delete'))
     expect(listPatches()).toEqual(['lead'])
+  })
+
+  it('deleting the active patch clears its name from the trigger', async () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    const { container, getByText, getByLabelText } = render(PatchControl)
+    await openPopover(container)
+    await fireEvent.click(getByText('lead'))
+    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('lead')
+    await fireEvent.click(getByLabelText('delete lead'))
+    await fireEvent.click(getByLabelText('confirm delete'))
+    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('init')
   })
 })
 

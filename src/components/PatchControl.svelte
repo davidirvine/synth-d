@@ -130,6 +130,10 @@
   /** @param {string} name */
   function confirmDelete(name) {
     deletePatch(name)
+    // If the active patch was deleted, clear its name (the trigger would
+    // otherwise still show a patch that no longer exists). The current params
+    // stay applied; they're just no longer associated with a saved patch.
+    if (name === activePatch.name) setActivePatch(null, activePatch.params)
     confirmingDeleteName = null
     refresh()
   }

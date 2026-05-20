@@ -161,6 +161,10 @@
         setParam('modWheel', scaled)
         return
       }
+      // While powered off the synth is reset to the active patch on power-on,
+      // so a store write here would be discarded — skip it, matching the
+      // `!powered` guard in onParamChange.
+      if (!powered) return
       const mapping = midiCcMap.resolve(cc)
       if (!mapping) return
       const scaled = midiCcMap.scale(cc, value)
