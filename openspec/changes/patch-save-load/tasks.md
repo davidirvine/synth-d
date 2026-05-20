@@ -40,5 +40,5 @@
 
 ## 5. End-to-end verification
 
-- [ ] 5.1 Add a Playwright E2E: power on → tweak params → save a named patch → reload page → load the patch → assert params restored
+- [x] 5.1 Add a Playwright E2E: power on → tweak params → save a named patch → reload page → load the patch → assert params restored
 - [ ] 5.2 Run the full completion-gate suite (`npx vitest run`, `npx stryker run`, `npx playwright test`) and confirm all green
