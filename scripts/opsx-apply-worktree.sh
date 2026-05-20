@@ -68,17 +68,13 @@ else
   echo "→ No remote 'origin' — skipping fetch (local-only repo)."
 fi
 
-# --- Create branch via stax and attach worktree --------------------------------
+# --- Create branch and attach worktree --------------------------------------
 
-echo "→ Creating branch ${BRANCH} via stax..."
-stax create "${CHANGE_NAME}" --prefix "${PREFIX}/"
-
-# stax create switches the current worktree to the new branch; switch back
-# to main before attaching the sibling worktree (git worktree add requires
-# the target branch to not be checked out anywhere).
-if [[ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]]; then
-  git switch main
-fi
+# Create the branch from main without checking it out anywhere, so the
+# sibling worktree can claim it (git worktree add requires the target branch
+# to not be checked out in another worktree).
+echo "→ Creating branch ${BRANCH} from main..."
+git branch "$BRANCH" main
 
 echo "→ Attaching worktree at ${WORKTREE_PATH}..."
 git worktree add "$WORKTREE_PATH" "$BRANCH"
