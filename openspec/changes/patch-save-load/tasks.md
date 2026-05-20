@@ -29,14 +29,14 @@
 
 ## 4. Patch UI (header popover)
 
-- [ ] 4.1 Create `src/components/PatchControl.svelte`: header trigger showing `PATCH: <name>` plus dirty `*`; styled to match `MidiStatus.svelte`; lives outside the `inert` `<main>` so it works while powered off
-- [ ] 4.2 Build the popover: list of saved patches with the active one marked `▸`, per-row load affordance, and an empty-state message when none exist
-- [ ] 4.3 Add the inline name field (prefilled with the active patch name) + SAVE; on existing-name, show an inline "Overwrite <name>?" confirm before writing
-- [ ] 4.4 Add per-row delete with an inline "delete? ✓ ✕" confirm (never one-click)
-- [ ] 4.5 Wire load: powered on → apply to store immediately; powered off → set as active patch for next power-on; loading clears dirty
-- [ ] 4.6 Implement dirty tracking (serialized current in-scope state vs. saved slot) and bind the `*` marker; saving/loading clears it
-- [ ] 4.7 Mount `PatchControl` in `App.svelte`'s header next to `MidiStatus`/`PowerButton`
-- [ ] 4.8 Add component tests: save (new + overwrite confirm), load (on/off), delete (confirm + cancel), name validation, empty state, dirty marker, no `window.prompt`/`confirm` used
+- [x] 4.1 Create `src/components/PatchControl.svelte`: header trigger showing `PATCH: <name>` plus dirty `*`; styled to match `MidiStatus.svelte`; lives outside the `inert` `<main>` so it works while powered off
+- [x] 4.2 Build the popover: list of saved patches with the active one marked `▸`, per-row load affordance, and an empty-state message when none exist
+- [x] 4.3 Add the inline name field (prefilled with the active patch name) + SAVE; on existing-name, show an inline "Overwrite <name>?" confirm before writing
+- [x] 4.4 Add per-row delete with an inline "delete? ✓ ✕" confirm (never one-click)
+- [x] 4.5 Wire load: powered on → apply to store immediately; powered off → set as active patch for next power-on; loading clears dirty
+- [x] 4.6 Implement dirty tracking (serialized current in-scope state vs. saved slot) and bind the `*` marker; saving/loading clears it
+- [x] 4.7 Mount `PatchControl` in `App.svelte`'s header next to `MidiStatus`/`PowerButton`
+- [x] 4.8 Add component tests: save (new + overwrite confirm), load (on/off), delete (confirm + cancel), name validation, empty state, dirty marker, no `window.prompt`/`confirm` used
 
 ## 5. End-to-end verification
 

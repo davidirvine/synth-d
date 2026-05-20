@@ -76,7 +76,7 @@ describe('App power state', () => {
 
   it('main panel inert property is falsy after power on', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
     await waitFor(() => {
       expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
@@ -92,7 +92,7 @@ describe('App power state', () => {
 
   it('panels are not dimmed after power on', async () => {
     const { container } = render(App)
-    await fireEvent.click(/** @type {Element} */ (container.querySelector('button')))
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('button[aria-label]')))
     await waitFor(() => {
       expect(
         /** @type {Element} */ (container.querySelector('.synth')).classList.contains('dimmed')
@@ -179,7 +179,7 @@ describe('App — ccExternalValues initialised at per-param min', () => {
 
   it('osc1Level knob returns to min (0.00) after power-off, not frozen at default (0.75)', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -194,7 +194,7 @@ describe('App — ccExternalValues initialised at per-param min', () => {
 
   it('osc1Level knob returns to default (0.75) after power-off → power-on cycle', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -269,7 +269,7 @@ describe('App — power-off sets bipolar knob externalValue to midpoint', () => 
 
   it('modMix externalValue is midpoint (0.50) after power-off, not min (0.00)', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -286,7 +286,7 @@ describe('App — power-off sets bipolar knob externalValue to midpoint', () => 
 
   it('osc2Detune externalValue is midpoint (0.00 st) after power-off, not min (-7.00 st)', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
 
     await fireEvent.click(btn)
     await fireEvent.click(btn)
@@ -300,7 +300,7 @@ describe('App — power-off sets bipolar knob externalValue to midpoint', () => 
 
   it('osc1Level externalValue is min (0.00) after power-off (non-bipolar unchanged)', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -361,7 +361,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('osc2Detune returns to midpoint (0.00 st) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'freq')[0])
@@ -377,7 +377,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('osc3Detune returns to midpoint (0.00 st) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'freq')[1])
@@ -393,7 +393,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('osc2Level returns to min (0.00) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'osc 2')[0])
@@ -409,7 +409,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('osc3Level returns to min (0.00) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'osc 3')[0])
@@ -425,7 +425,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('noiseLevel returns to min (0.00) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'noise')[0])
@@ -441,7 +441,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('delayModDepth returns to min (0 ms) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'depth')[0])
@@ -457,7 +457,7 @@ describe('App — zero-default knobs respond to power-off after manual change', 
 
   it('reverbPreDelay returns to min (0 ms) after manual change and power-off', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
 
     await dragKnobUp(findKnobHits(container, 'pre-delay')[0])
@@ -537,7 +537,7 @@ describe('App — reverbSend forwards from knob to engine', () => {
 
   it('reverbSend knob change calls setParam("reverbSend", value) on the worklet', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
 
     const sendHit = Array.from(container.querySelectorAll('.knob-label'))
@@ -576,7 +576,7 @@ describe('App — keyboard highlights cleared on power-off (held QWERTY across c
 
   it('held QWERTY key shows clean keyboard after power-off → power-on cycle', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
 
     // Power on.
     await fireEvent.click(btn)
@@ -630,7 +630,7 @@ describe('App — keyboard highlights cleared on power-off (held QWERTY across c
     // re-trigger the note. Guards against regressions that would clear
     // pressedQwerty inside _releaseAll.
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -671,7 +671,7 @@ describe('App — keyboard highlights cleared on power-off (held QWERTY across c
 
   it('held MIDI note is unhighlighted when power is toggled off', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
 
     // Power on — App.svelte instantiates MidiManager and stashes the
     // callbacks via the test mock above.
@@ -722,7 +722,7 @@ describe('App — MIDI status indicator transitions', () => {
 
   it('onNoteOn flips the MIDI status dot from connected to active', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
 
     await fireEvent.click(btn)
     await waitFor(() => {
@@ -774,7 +774,7 @@ describe('App — MIDI CC learn lifecycle', () => {
 
   it('right-click + onCc assigns CC, second onCc forwards scaled value to engine and shows CC label', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
     await waitFor(() => {
       expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
@@ -812,7 +812,7 @@ describe('App — MIDI CC learn lifecycle', () => {
 
   it('Escape during learn mode cancels — subsequent onCc creates no mapping', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
     await waitFor(() => {
       expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
@@ -834,7 +834,7 @@ describe('App — MIDI CC learn lifecycle', () => {
 
   it('right-clicking a second knob before any CC swaps the learn target', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     await fireEvent.click(btn)
     await waitFor(() => {
       expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
@@ -894,7 +894,7 @@ describe('App — power-on applies the active patch', () => {
 
   it('power-on with no patch loaded sends factory defaults to the DSP', async () => {
     const { container } = render(App)
-    await fireEvent.click(/** @type {Element} */ (container.querySelector('button')))
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('button[aria-label]')))
     await waitFor(() => {
       expect(lastCall('cutoff')).toBe(PARAM_DEFAULTS.cutoff)
       expect(lastCall('masterVol')).toBe(PARAM_DEFAULTS.masterVol)
@@ -906,7 +906,7 @@ describe('App — power-on applies the active patch', () => {
     // App init reset the active patch to factory defaults; stub a loaded patch
     // before powering on (emulates a load while powered off, section 4 UI).
     setActivePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000, osc1Wave: 3 })
-    await fireEvent.click(/** @type {Element} */ (container.querySelector('button')))
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('button[aria-label]')))
     await waitFor(() => {
       expect(lastCall('cutoff')).toBe(8000)
       expect(lastCall('osc1Wave')).toBe(3)
@@ -915,7 +915,7 @@ describe('App — power-on applies the active patch', () => {
 
   it('consecutive power cycles consistently reapply the active patch', async () => {
     const { container } = render(App)
-    const btn = /** @type {Element} */ (container.querySelector('button'))
+    const btn = /** @type {Element} */ (container.querySelector('button[aria-label]'))
     setActivePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
 
     await fireEvent.click(btn) // on

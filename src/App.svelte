@@ -81,6 +81,7 @@
   import WheelPanel from './components/WheelPanel.svelte'
   import PowerButton from './components/PowerButton.svelte'
   import MidiStatus from './components/MidiStatus.svelte'
+  import PatchControl from './components/PatchControl.svelte'
   import Scope from './components/Scope.svelte'
   import {
     synthParams,
@@ -340,6 +341,7 @@
       <span class="version-label">{versionLabel}</span>
     </div>
     <div class="header-right">
+      <PatchControl />
       <MidiStatus
         status={midiStatus}
         devices={midiDevices}

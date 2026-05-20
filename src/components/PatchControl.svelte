@@ -1,0 +1,385 @@
+<script>
+  import {
+    synthParams,
+    activePatch,
+    applyParams,
+    setActivePatch,
+    serializeParams,
+    PARAM_NAMES,
+  } from '../state/synth.svelte.js'
+  import {
+    listPatches,
+    savePatch,
+    loadPatch,
+    deletePatch,
+    validateName,
+    MAX_NAME_LENGTH,
+  } from '../patches/storage.js'
+
+  let open = $state(false)
+  let patches = $state(/** @type {string[]} */ ([]))
+  let nameInput = $state('')
+  let confirmingOverwrite = $state(false)
+  let confirmingDeleteName = $state(/** @type {string | null} */ (null))
+  let error = $state('')
+
+  // Dirty = the live in-scope state differs from the active patch's saved
+  // baseline. Compared as a positional signature over PARAM_NAMES so key order
+  // never matters. Saving or loading resets the baseline (activePatch.params),
+  // which clears this.
+  const dirty = $derived.by(() => {
+    const cur = PARAM_NAMES.map((p) => synthParams[p]).join('|')
+    const base = PARAM_NAMES.map((p) => activePatch.params[p]).join('|')
+    return cur !== base
+  })
+
+  const displayName = $derived(activePatch.name ?? 'init')
+
+  function refresh() {
+    patches = listPatches()
+  }
+
+  function toggleOpen() {
+    open = !open
+    if (open) {
+      refresh()
+      nameInput = activePatch.name ?? ''
+      error = ''
+      confirmingOverwrite = false
+      confirmingDeleteName = null
+    }
+  }
+
+  function onNameInput() {
+    // Editing the name forks a new patch — drop any pending overwrite confirm.
+    confirmingOverwrite = false
+    error = ''
+  }
+
+  /** @param {string} name */
+  function handleLoad(name) {
+    const patch = loadPatch(name)
+    if (!patch) {
+      error = `could not load "${name}"`
+      return
+    }
+    setActivePatch(patch.name, patch.params)
+    // Apply to the store. While powered this drives the DSP immediately; while
+    // powered off the worklet doesn't exist yet (setParam is a no-op) and the
+    // knobs stay at their rest positions, but the store now matches the patch so
+    // it is applied on the next power-on and dirty is cleared.
+    applyParams(patch.params, true)
+    nameInput = patch.name
+    confirmingDeleteName = null
+    error = ''
+  }
+
+  function doSave() {
+    const res = savePatch(nameInput, serializeParams())
+    if (!res.ok) {
+      error = res.error === 'invalid-name' ? 'name required' : 'storage unavailable'
+      return
+    }
+    // The saved state becomes the active patch's baseline, clearing dirty.
+    setActivePatch(res.name, serializeParams())
+    confirmingOverwrite = false
+    refresh()
+  }
+
+  function handleSave() {
+    const clean = validateName(nameInput)
+    if (clean === null) {
+      error = 'name required'
+      return
+    }
+    // Saving under an existing name requires an inline overwrite confirm first.
+    if (patches.includes(clean) && !confirmingOverwrite) {
+      confirmingOverwrite = true
+      return
+    }
+    doSave()
+  }
+
+  function cancelOverwrite() {
+    confirmingOverwrite = false
+  }
+
+  /** @param {string} name */
+  function requestDelete(name) {
+    confirmingDeleteName = name
+  }
+
+  function cancelDelete() {
+    confirmingDeleteName = null
+  }
+
+  /** @param {string} name */
+  function confirmDelete(name) {
+    deletePatch(name)
+    confirmingDeleteName = null
+    refresh()
+  }
+
+  /** @param {KeyboardEvent} e */
+  function onKeyDown(e) {
+    if (e.key === 'Escape' && open) open = false
+  }
+</script>
+
+<svelte:window onkeydown={onKeyDown} />
+
+<div class="patch-control">
+  <button
+    class="trigger"
+    onclick={toggleOpen}
+    aria-haspopup="true"
+    aria-expanded={open}
+    title="Patches"
+  >
+    PATCH: <span class="patch-name">{displayName}</span>{#if dirty}<span
+        class="dirty"
+        aria-label="unsaved changes">*</span
+      >{/if}
+  </button>
+
+  {#if open}
+    <div class="popover" role="dialog" aria-label="Patches">
+      {#if patches.length === 0}
+        <p class="empty">no patches saved yet</p>
+      {:else}
+        <ul class="patch-list">
+          {#each patches as name (name)}
+            <li class="patch-row" class:active={name === activePatch.name}>
+              <button class="patch-load" onclick={() => handleLoad(name)} title="Load patch">
+                <span class="marker">{name === activePatch.name ? '▸' : ' '}</span>{name}
+              </button>
+              {#if confirmingDeleteName === name}
+                <span class="confirm">
+                  delete?
+                  <button
+                    class="confirm-btn"
+                    onclick={() => confirmDelete(name)}
+                    aria-label="confirm delete">✓</button
+                  >
+                  <button class="confirm-btn" onclick={cancelDelete} aria-label="cancel delete"
+                    >✕</button
+                  >
+                </span>
+              {:else}
+                <button
+                  class="patch-delete"
+                  onclick={() => requestDelete(name)}
+                  aria-label={`delete ${name}`}>⌫</button
+                >
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      {/if}
+
+      <div class="save-row">
+        <input
+          class="name-input"
+          type="text"
+          maxlength={MAX_NAME_LENGTH}
+          placeholder="patch name"
+          aria-label="patch name"
+          bind:value={nameInput}
+          oninput={onNameInput}
+        />
+        {#if confirmingOverwrite}
+          <span class="confirm">
+            overwrite {validateName(nameInput)}?
+            <button class="confirm-btn" onclick={doSave} aria-label="confirm overwrite">✓</button>
+            <button class="confirm-btn" onclick={cancelOverwrite} aria-label="cancel overwrite"
+              >✕</button
+            >
+          </span>
+        {:else}
+          <button class="save-btn" onclick={handleSave}>SAVE</button>
+        {/if}
+      </div>
+
+      {#if error}
+        <p class="error" role="alert">{error}</p>
+      {/if}
+    </div>
+  {/if}
+</div>
+
+<style>
+  .patch-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .trigger {
+    font-family: monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    border-radius: 2px;
+    padding: 3px 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .trigger:hover {
+    color: #e8dcc8;
+  }
+
+  .patch-name {
+    color: #c87941;
+    text-transform: uppercase;
+  }
+
+  .dirty {
+    color: #c87941;
+    margin-left: 1px;
+  }
+
+  .popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 10;
+    min-width: 200px;
+    background: #1c1c1c;
+    border: 1px solid #444;
+    border-radius: 2px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .empty {
+    font-family: monospace;
+    font-size: 10px;
+    color: #666;
+    margin: 0;
+    padding: 4px 0;
+    text-align: center;
+  }
+
+  .patch-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .patch-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: space-between;
+  }
+
+  .patch-load {
+    flex: 1;
+    text-align: left;
+    font-family: monospace;
+    font-size: 11px;
+    background: transparent;
+    color: #e8dcc8;
+    border: none;
+    padding: 3px 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .patch-row.active .patch-load {
+    color: #c87941;
+  }
+
+  .patch-load:hover {
+    background: #2a2a2a;
+  }
+
+  .marker {
+    display: inline-block;
+    width: 0.9em;
+    color: #c87941;
+  }
+
+  .patch-delete,
+  .confirm-btn {
+    font-family: monospace;
+    font-size: 11px;
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    border-radius: 2px;
+    padding: 1px 5px;
+    cursor: pointer;
+  }
+
+  .patch-delete:hover {
+    color: #c8413a;
+    border-color: #c8413a;
+  }
+
+  .confirm {
+    font-family: monospace;
+    font-size: 10px;
+    color: #c87941;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+
+  .save-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-top: 1px solid #333;
+    padding-top: 6px;
+  }
+
+  .name-input {
+    flex: 1;
+    min-width: 0;
+    font-family: monospace;
+    font-size: 11px;
+    background: #2a2a2a;
+    color: #e8dcc8;
+    border: 1px solid #444;
+    border-radius: 2px;
+    padding: 3px 5px;
+  }
+
+  .save-btn {
+    font-family: monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    background: #3a2a1a;
+    color: #c87941;
+    border: 1px solid #c87941;
+    border-radius: 2px;
+    padding: 3px 8px;
+    cursor: pointer;
+  }
+
+  .save-btn:hover {
+    background: #4a3424;
+  }
+
+  .error {
+    font-family: monospace;
+    font-size: 10px;
+    color: #c8413a;
+    margin: 0;
+  }
+</style>
