@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, fireEvent, waitFor } from '@testing-library/svelte'
 import App, { powerOffValue } from './App.svelte'
 import { setParam } from './audio/engine.js'
+import { setActivePatch, PARAM_DEFAULTS } from './state/synth.svelte.js'
 
 vi.mock('./audio/engine.js', () => ({
   getAnalyser: vi.fn().mockReturnValue(null),
@@ -864,5 +865,67 @@ describe('App — MIDI CC learn lifecycle', () => {
     await waitFor(() => {
       expect(cutoffWrap.querySelector('.cc-label')?.textContent).toBe('CC 74')
     })
+  })
+})
+
+describe('App — power-on applies the active patch', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      /** @type {any} */ ({
+        clearRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        strokeStyle: '',
+        lineWidth: 0,
+      })
+    )
+  })
+
+  /** @param {string} param */
+  function lastCall(param) {
+    const calls = /** @type {any} */ (setParam).mock.calls.filter(
+      (/** @type {any[]} */ c) => c[0] === param
+    )
+    return calls.length ? calls[calls.length - 1][1] : undefined
+  }
+
+  it('power-on with no patch loaded sends factory defaults to the DSP', async () => {
+    const { container } = render(App)
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('button')))
+    await waitFor(() => {
+      expect(lastCall('cutoff')).toBe(PARAM_DEFAULTS.cutoff)
+      expect(lastCall('masterVol')).toBe(PARAM_DEFAULTS.masterVol)
+    })
+  })
+
+  it('power-on after a loaded patch applies that patch, not factory defaults', async () => {
+    const { container } = render(App)
+    // App init reset the active patch to factory defaults; stub a loaded patch
+    // before powering on (emulates a load while powered off, section 4 UI).
+    setActivePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000, osc1Wave: 3 })
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('button')))
+    await waitFor(() => {
+      expect(lastCall('cutoff')).toBe(8000)
+      expect(lastCall('osc1Wave')).toBe(3)
+    })
+  })
+
+  it('consecutive power cycles consistently reapply the active patch', async () => {
+    const { container } = render(App)
+    const btn = /** @type {Element} */ (container.querySelector('button'))
+    setActivePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
+
+    await fireEvent.click(btn) // on
+    await waitFor(() => expect(lastCall('cutoff')).toBe(8000))
+    await fireEvent.click(btn) // off
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBe(true)
+    })
+    /** @type {any} */ ;(setParam).mockClear()
+    await fireEvent.click(btn) // on again
+    await waitFor(() => expect(lastCall('cutoff')).toBe(8000))
   })
 })

@@ -121,6 +121,26 @@ export const AUDIO_PARAMS = Object.freeze(new Set(PARAM_NAMES))
  */
 export const synthParams = $state({ ...PARAM_DEFAULTS })
 
+/**
+ * The active patch: the patch applied on power-on and the baseline for dirty
+ * tracking. `name` is null when the active patch is the (unsaved) factory
+ * defaults or freshly-edited state; `params` is the snapshot to (re)apply on the
+ * next power-on. Loading a patch updates this; power-on reads `params` from it.
+ * @type {{ name: string | null, params: Record<string, number> }}
+ */
+export const activePatch = $state({ name: null, params: { ...PARAM_DEFAULTS } })
+
+/**
+ * Set the active patch (e.g. on load). Stores a copy of params so later store
+ * mutations don't retroactively change the dirty-tracking baseline.
+ * @param {string | null} name
+ * @param {Record<string, number>} params
+ */
+export function setActivePatch(name, params) {
+  activePatch.name = name
+  activePatch.params = { ...params }
+}
+
 // --- DSP subscriber -------------------------------------------------------
 //
 // writeParam is the single, central setter wrapper that applies a store change

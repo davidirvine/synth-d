@@ -15,9 +15,9 @@
 
 ## 2. Power-on applies the active patch
 
-- [ ] 2.1 Introduce an `activePatch` concept (defaults = the initial active patch) and replace `handleToggle`'s hardcoded `ccExternalValues = {...DEFAULTS}; resetCounter++` with "apply the active patch to the store"
-- [ ] 2.2 Preserve power-off behavior: knobs return to power-off rest positions per `knob-power-state` (store/externalValue path), no audio
-- [ ] 2.3 Add tests: power-on with no patch loaded applies factory defaults; power-on after a (stubbed) loaded patch applies that patch; consecutive power cycles behave consistently
+- [x] 2.1 Introduce an `activePatch` concept (defaults = the initial active patch) and replace `handleToggle`'s hardcoded `ccExternalValues = {...DEFAULTS}; resetCounter++` with "apply the active patch to the store"
+- [x] 2.2 Preserve power-off behavior: knobs return to power-off rest positions per `knob-power-state` (store/externalValue path), no audio
+- [x] 2.3 Add tests: power-on with no patch loaded applies factory defaults; power-on after a (stubbed) loaded patch applies that patch; consecutive power cycles behave consistently
 
 ## 3. Patch persistence layer
 

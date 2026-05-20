@@ -87,6 +87,8 @@
     writeParam,
     applyParams,
     resetParams,
+    setActivePatch,
+    activePatch,
     PARAM_DEFAULTS,
   } from './state/synth.svelte.js'
 
@@ -99,9 +101,11 @@
 
   // Seed the store to factory defaults for this App instance. On page load this
   // shows factory defaults (knobs sit at their power-off rest positions until
-  // power-on). The store is a module singleton, so this also gives tests a clean
-  // baseline. No DSP writes happen here — the worklet isn't created yet.
+  // power-on) and the active patch is the (unsaved) factory defaults. The store
+  // is a module singleton, so this also gives tests a clean baseline. No DSP
+  // writes happen here — the worklet isn't created yet.
   resetParams()
+  setActivePatch(null, PARAM_DEFAULTS)
 
   let keyboardBase = $state(36)
   const activeRegister = $derived(
@@ -192,10 +196,11 @@
         analyser = getAnalyser()
         powered = true
         // Apply the active patch to the store, which drives both UI and DSP.
-        // For now the active patch is always the factory defaults; section 2
-        // wires a loaded patch. `force` re-sends every param to the freshly
-        // created worklet node so the DSP and UI agree from the first sample.
-        applyParams(PARAM_DEFAULTS, true)
+        // The active patch is the most recently loaded patch, or the factory
+        // defaults when none has been loaded. `force` re-sends every param to
+        // the freshly created worklet node so the DSP and UI agree from the
+        // first sample.
+        applyParams(activePatch.params, true)
         modWheelExternal = MOD_WHEEL_DEFAULT
         setParam('modWheel', MOD_WHEEL_DEFAULT)
       } catch (err) {
