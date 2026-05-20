@@ -523,6 +523,12 @@
     text-transform: uppercase;
   }
 
+  .name-input::placeholder {
+    color: #666;
+    /* Placeholder is descriptive text, not an entered name — keep it as-is. */
+    text-transform: none;
+  }
+
   .save-btn {
     font-family: monospace;
     font-size: 10px;
