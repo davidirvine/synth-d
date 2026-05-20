@@ -135,7 +135,7 @@ When the human requests the PR:
 
 When addressing comments left by a human reviewer on the feature PR:
 
-1. Make response commits on the feature branch — the roborev post-commit hook fires and queues async reviews as normal
+1. Make response commits on the feature branch. Worktree-branch commits are not auto-queued, so any roborev review of a response commit is invoked explicitly (`roborev review`) when needed — there is no reliance on an automatic post-commit review
 2. Human reviews the response commits and any roborev findings directly — `roborev refine` is **not** run during feedback cycles
 3. On human approval, squash+force-push: `git rebase -i` to squash, then `git push --force-with-lease` to push
 

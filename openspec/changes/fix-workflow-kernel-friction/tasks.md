@@ -1,7 +1,7 @@
 ## 1. #1 — Stop claiming roborev reviews fire automatically after each commit
 
 - [x] 1.1 In `CLAUDE.md` "Code review with roborev", replace "After each commit, reviews run automatically in the background" with prose stating reviews are invoked explicitly at the defined gates (proposal design review, end-of-implementation `roborev refine`, explicit `roborev review` / `roborev tui`) and that worktree-branch commits are not auto-queued. Run prettier on `CLAUDE.md`.
-- [ ] 1.2 In `CLAUDE.md` PR-feedback step 1, remove "the roborev post-commit hook fires and queues async reviews as normal"; state that any review of a response commit is invoked explicitly. Run prettier on `CLAUDE.md`.
+- [x] 1.2 In `CLAUDE.md` PR-feedback step 1, remove "the roborev post-commit hook fires and queues async reviews as normal"; state that any review of a response commit is invoked explicitly. Run prettier on `CLAUDE.md`.
 
 ## 2. #2 — Correct the Conventional Commits rationale
 
