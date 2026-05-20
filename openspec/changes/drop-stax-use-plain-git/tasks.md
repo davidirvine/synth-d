@@ -13,7 +13,7 @@
 
 ## 3. Remove stax tooling
 
-- [ ] 3.1 Remove the `.claude/skills/stax/` directory (SKILL.md, README.md, references/)
+- [x] 3.1 Remove the `.claude/skills/stax/` directory (SKILL.md, README.md, references/)
 - [ ] 3.2 Remove `.stax.toml`
 - [ ] 3.3 Grep the repo for `stax` outside `openspec/changes/archive/` and `CHANGELOG.md`; resolve any remaining references (README/docs)
 
