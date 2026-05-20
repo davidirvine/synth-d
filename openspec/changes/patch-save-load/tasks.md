@@ -21,11 +21,11 @@
 
 ## 3. Patch persistence layer
 
-- [ ] 3.1 Create `src/patches/storage.js` (or similar) with `listPatches()`, `savePatch(name, data)`, `loadPatch(name)`, `deletePatch(name)` using a `synth-d:patches` index key + `synth-d:patch:<name>` slots
-- [ ] 3.2 Define the patch envelope `{ name, version, params }`; `savePatch` serializes only in-scope params (exclude register, MIDI CC map, mod-wheel)
-- [ ] 3.3 Wrap all `localStorage` access so unavailable/quota/corrupt-JSON failures are caught and surfaced as non-fatal (never throw into audio/UI); a missing/corrupt slot reads as absent
-- [ ] 3.4 Add name validation: trim, reject empty/whitespace-only, cap ~40 chars; collisions are not errors (routed to overwrite by the caller)
-- [ ] 3.5 Add unit tests: round-trip save/list/load/delete; index stays consistent; excluded params absent from serialized data; storage-failure paths are non-fatal; validation rejects bad names
+- [x] 3.1 Create `src/patches/storage.js` (or similar) with `listPatches()`, `savePatch(name, data)`, `loadPatch(name)`, `deletePatch(name)` using a `synth-d:patches` index key + `synth-d:patch:<name>` slots
+- [x] 3.2 Define the patch envelope `{ name, version, params }`; `savePatch` serializes only in-scope params (exclude register, MIDI CC map, mod-wheel)
+- [x] 3.3 Wrap all `localStorage` access so unavailable/quota/corrupt-JSON failures are caught and surfaced as non-fatal (never throw into audio/UI); a missing/corrupt slot reads as absent
+- [x] 3.4 Add name validation: trim, reject empty/whitespace-only, cap ~40 chars; collisions are not errors (routed to overwrite by the caller)
+- [x] 3.5 Add unit tests: round-trip save/list/load/delete; index stays consistent; excluded params absent from serialized data; storage-failure paths are non-fatal; validation rejects bad names
 
 ## 4. Patch UI (header popover)
 
