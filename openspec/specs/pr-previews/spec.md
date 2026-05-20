@@ -1,4 +1,10 @@
-## ADDED Requirements
+# PR Previews
+
+## Purpose
+
+Defines the automatic preview-deployment workflow for pull requests targeting `main` — when a preview build is deployed, the stable URL it is served at, and its lifecycle.
+
+## Requirements
 
 ### Requirement: PRs to main receive a preview deployment
 The system SHALL automatically deploy a preview build for every pull request targeting `main`. The preview SHALL be available at a stable URL for the lifetime of the PR.
