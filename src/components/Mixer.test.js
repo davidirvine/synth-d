@@ -44,25 +44,22 @@ describe('Mixer — noise type toggle', () => {
     expect(onchange).toHaveBeenCalledWith({ param: 'noiseType', value: 1 })
   })
 
-  it('pink button has active class after clicking it', async () => {
-    const { container } = render(Mixer)
+  it('pink button has active class when noiseType prop is 1', () => {
+    const { container } = render(Mixer, { props: { noiseType: 1 } })
     const pinkBtn = /** @type {Element} */ (
       [...container.querySelectorAll('.noise-btn')].find((b) => b.textContent.trim() === 'pink')
     )
-    await fireEvent.click(pinkBtn)
     expect(pinkBtn.classList.contains('active')).toBe(true)
   })
 
-  it('clicking wht after pink emits noiseType 0', async () => {
+  it('clicking wht while noiseType is 1 emits noiseType 0', async () => {
     const onchange = vi.fn()
-    const { container } = render(Mixer, { props: { onchange } })
-    const btns = container.querySelectorAll('.noise-btn')
-    const pinkBtn = /** @type {Element} */ ([...btns].find((b) => b.textContent.trim() === 'pink'))
-    const whtBtn = /** @type {Element} */ ([...btns].find((b) => b.textContent.trim() === 'wht'))
-    await fireEvent.click(pinkBtn)
+    const { container } = render(Mixer, { props: { noiseType: 1, onchange } })
+    const whtBtn = /** @type {Element} */ (
+      [...container.querySelectorAll('.noise-btn')].find((b) => b.textContent.trim() === 'wht')
+    )
     await fireEvent.click(whtBtn)
-    const calls = onchange.mock.calls.filter((c) => c[0].param === 'noiseType')
-    expect(calls[calls.length - 1][0].value).toBe(0)
+    expect(onchange).toHaveBeenCalledWith({ param: 'noiseType', value: 0 })
   })
 })
 

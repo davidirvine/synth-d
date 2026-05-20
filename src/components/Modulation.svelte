@@ -1,41 +1,30 @@
 <script>
-  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
   /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number,
+    modToOsc1?: number,
+    modToOsc2?: number,
+    modToFilter?: number,
   }} */
-  let { onchange, midiState = {}, onknobcontextmenu, reset = 0 } = $props()
-
-  let modToOsc1 = $state(0)
-  let modToOsc2 = $state(0)
-  let modToFilter = $state(0)
-
-  $effect(() => {
-    if (reset === 0) return
-    modToOsc1 = 0
-    modToOsc2 = 0
-    modToFilter = 0
-    untrack(() => {
-      onchange?.({ param: 'modToOsc1', value: 0 })
-      onchange?.({ param: 'modToOsc2', value: 0 })
-      onchange?.({ param: 'modToFilter', value: 0 })
-    })
-  })
+  let {
+    onchange,
+    midiState = {},
+    onknobcontextmenu,
+    modToOsc1 = 0,
+    modToOsc2 = 0,
+    modToFilter = 0,
+  } = $props()
 
   function toggleRoute(/** @type {string} */ param) {
     if (param === 'modToOsc1') {
-      modToOsc1 = modToOsc1 === 0 ? 1 : 0
-      onchange?.({ param, value: modToOsc1 })
+      onchange?.({ param, value: modToOsc1 === 0 ? 1 : 0 })
     } else if (param === 'modToOsc2') {
-      modToOsc2 = modToOsc2 === 0 ? 1 : 0
-      onchange?.({ param, value: modToOsc2 })
+      onchange?.({ param, value: modToOsc2 === 0 ? 1 : 0 })
     } else if (param === 'modToFilter') {
-      modToFilter = modToFilter === 0 ? 1 : 0
-      onchange?.({ param, value: modToFilter })
+      onchange?.({ param, value: modToFilter === 0 ? 1 : 0 })
     }
   }
 </script>

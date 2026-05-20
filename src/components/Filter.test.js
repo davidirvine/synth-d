@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/svelte'
 import Filter from './Filter.svelte'
 
@@ -36,12 +36,19 @@ describe('Filter — Key Track switch', () => {
     expect(keyTrackButton.getAttribute('aria-pressed')).toBe('false')
   })
 
-  it('toggles on on first click and back off on second click', async () => {
-    render(Filter)
+  it('clicking while off emits keyTrack 1', async () => {
+    const onchange = vi.fn()
+    render(Filter, { props: { keyTrack: 0, onchange } })
+    await fireEvent.click(screen.getByRole('button', { name: /key track/i }))
+    expect(onchange).toHaveBeenCalledWith({ param: 'keyTrack', value: 1 })
+  })
+
+  it('reflects keyTrack prop = 1 (active) and clicking emits keyTrack 0', async () => {
+    const onchange = vi.fn()
+    render(Filter, { props: { keyTrack: 1, onchange } })
     const keyTrackButton = screen.getByRole('button', { name: /key track/i })
-    await fireEvent.click(keyTrackButton)
     expect(keyTrackButton.classList.contains('active')).toBe(true)
     await fireEvent.click(keyTrackButton)
-    expect(keyTrackButton.classList.contains('active')).toBe(false)
+    expect(onchange).toHaveBeenCalledWith({ param: 'keyTrack', value: 0 })
   })
 })

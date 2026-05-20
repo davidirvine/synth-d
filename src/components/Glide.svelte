@@ -1,27 +1,17 @@
 <script>
-  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
   /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number,
+    glideOn?: number,
   }} */
-  let { onchange, midiState = {}, onknobcontextmenu, reset = 0 } = $props()
-
-  let glideOn = $state(0)
+  let { onchange, midiState = {}, onknobcontextmenu, glideOn = 0 } = $props()
 
   function toggleGlide() {
-    glideOn = glideOn === 0 ? 1 : 0
-    onchange?.({ param: 'glideOn', value: glideOn })
+    onchange?.({ param: 'glideOn', value: glideOn === 0 ? 1 : 0 })
   }
-
-  $effect(() => {
-    if (reset === 0) return
-    glideOn = 0
-    untrack(() => onchange?.({ param: 'glideOn', value: 0 }))
-  })
 </script>
 
 <div class="panel">

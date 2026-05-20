@@ -1,27 +1,17 @@
 <script>
-  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
   /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number,
+    keyTrack?: number,
   }} */
-  let { onchange, midiState = {}, onknobcontextmenu, reset = 0 } = $props()
-
-  let keyTrackOn = $state(0)
+  let { onchange, midiState = {}, onknobcontextmenu, keyTrack = 0 } = $props()
 
   function toggleKeyTrack() {
-    keyTrackOn = keyTrackOn === 0 ? 1 : 0
-    onchange?.({ param: 'keyTrack', value: keyTrackOn })
+    onchange?.({ param: 'keyTrack', value: keyTrack === 0 ? 1 : 0 })
   }
-
-  $effect(() => {
-    if (reset === 0) return
-    keyTrackOn = 0
-    untrack(() => onchange?.({ param: 'keyTrack', value: 0 }))
-  })
 </script>
 
 <div class="panel">
@@ -57,9 +47,9 @@
       <div class="key-track-btn-wrap">
         <button
           class="toggle-btn"
-          class:active={keyTrackOn === 1}
+          class:active={keyTrack === 1}
           onclick={toggleKeyTrack}
-          aria-pressed={keyTrackOn === 1}
+          aria-pressed={keyTrack === 1}
         >
           KEY TRACK
         </button>

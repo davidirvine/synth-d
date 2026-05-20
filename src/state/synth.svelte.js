@@ -172,6 +172,15 @@ export function resetToDefaults(force = true) {
 }
 
 /**
+ * Seed the store state to factory defaults WITHOUT touching the DSP. Used at
+ * App initialisation (the worklet isn't created yet, so there is nothing to
+ * drive) and to give a clean baseline in tests, where the store is a singleton.
+ */
+export function resetParams() {
+  for (const name of PARAM_NAMES) synthParams[name] = PARAM_DEFAULTS[name]
+}
+
+/**
  * Snapshot the in-scope parameter values as a plain object, suitable for
  * serializing into a patch. Only PARAM_NAMES are included.
  * @returns {Record<string, number>}

@@ -39,22 +39,18 @@ describe('AmpEnv — D/R lock switch', () => {
     expect(onchange).toHaveBeenCalledWith({ param: 'drLock', value: 0 })
   })
 
-  it('D/R lock button becomes inactive after click', async () => {
-    const { container } = render(AmpEnv)
-    await fireEvent.click(/** @type {Element} */ (container.querySelector('.drlock-btn')))
+  it('D/R lock button is inactive when drLock prop is 0', () => {
+    const { container } = render(AmpEnv, { props: { drLock: 0 } })
     expect(
       /** @type {Element} */ (container.querySelector('.drlock-btn')).classList.contains('active')
     ).toBe(false)
   })
 
-  it('second click emits drLock 1', async () => {
+  it('clicking while drLock is 0 emits drLock 1', async () => {
     const onchange = vi.fn()
-    const { container } = render(AmpEnv, { props: { onchange } })
-    const btn = /** @type {Element} */ (container.querySelector('.drlock-btn'))
-    await fireEvent.click(btn)
-    await fireEvent.click(btn)
-    const calls = onchange.mock.calls.filter((c) => c[0].param === 'drLock')
-    expect(calls[calls.length - 1][0].value).toBe(1)
+    const { container } = render(AmpEnv, { props: { drLock: 0, onchange } })
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('.drlock-btn')))
+    expect(onchange).toHaveBeenCalledWith({ param: 'drLock', value: 1 })
   })
 
   it('release knob is disabled when D/R lock is on', () => {
@@ -63,18 +59,10 @@ describe('AmpEnv — D/R lock switch', () => {
     expect(releaseWrap.classList.contains('disabled')).toBe(true)
   })
 
-  it('release knob is enabled when D/R lock is off', async () => {
-    const { container } = render(AmpEnv)
-    await fireEvent.click(/** @type {Element} */ (container.querySelector('.drlock-btn')))
+  it('release knob is enabled when drLock prop is 0', () => {
+    const { container } = render(AmpEnv, { props: { drLock: 0 } })
     const releaseWrap = container.querySelectorAll('.knob-wrap')[4]
     expect(releaseWrap.classList.contains('disabled')).toBe(false)
-  })
-
-  it('reset emits drLock 1', async () => {
-    const onchange = vi.fn()
-    const { rerender } = render(AmpEnv, { props: { onchange, reset: 0 } })
-    await rerender({ onchange, reset: 1 })
-    expect(onchange).toHaveBeenCalledWith({ param: 'drLock', value: 1 })
   })
 })
 

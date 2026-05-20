@@ -66,20 +66,16 @@ describe('Effects — delay toggle', () => {
     expect(onchange).toHaveBeenCalledWith({ param: 'delayOn', value: 1 })
   })
 
-  it('second click on delay toggle dispatches delayOn = 0', async () => {
+  it('clicking while delayOn is 1 dispatches delayOn = 0', async () => {
     const onchange = vi.fn()
-    const { container } = render(Effects, { props: { onchange } })
-    const btn = container.querySelectorAll('.toggle-btn')[0]
-    await fireEvent.click(btn)
-    await fireEvent.click(btn)
-    const calls = onchange.mock.calls.filter((c) => c[0].param === 'delayOn')
-    expect(calls[calls.length - 1][0].value).toBe(0)
+    const { container } = render(Effects, { props: { delayOn: 1, onchange } })
+    await fireEvent.click(container.querySelectorAll('.toggle-btn')[0])
+    expect(onchange).toHaveBeenCalledWith({ param: 'delayOn', value: 0 })
   })
 
-  it('delay toggle becomes active and shows on after click', async () => {
-    const { container } = render(Effects)
+  it('delay toggle is active and shows on when delayOn prop is 1', () => {
+    const { container } = render(Effects, { props: { delayOn: 1 } })
     const btn = container.querySelectorAll('.toggle-btn')[0]
-    await fireEvent.click(btn)
     expect(btn.classList.contains('active')).toBe(true)
     expect(btn.textContent.trim()).toBe('on')
   })
@@ -100,26 +96,16 @@ describe('Effects — MOD toggle', () => {
     expect(onchange).toHaveBeenCalledWith({ param: 'delayModOn', value: 1 })
   })
 
-  it('second click on MOD toggle dispatches delayModOn = 0', async () => {
+  it('clicking while delayModOn is 1 dispatches delayModOn = 0', async () => {
     const onchange = vi.fn()
-    const { container } = render(Effects, { props: { onchange } })
-    const btn = container.querySelectorAll('.toggle-btn')[1]
-    await fireEvent.click(btn)
-    await fireEvent.click(btn)
-    const calls = onchange.mock.calls.filter((c) => c[0].param === 'delayModOn')
-    expect(calls[calls.length - 1][0].value).toBe(0)
+    const { container } = render(Effects, { props: { delayOn: 1, delayModOn: 1, onchange } })
+    await fireEvent.click(container.querySelectorAll('.toggle-btn')[1])
+    expect(onchange).toHaveBeenCalledWith({ param: 'delayModOn', value: 0 })
   })
 
-  it('delayModOn resets to 0 and dispatches when reset counter increments', async () => {
-    const onchange = vi.fn()
-    const { container, rerender } = render(Effects, { props: { onchange, reset: 0 } })
-    const btn = container.querySelectorAll('.toggle-btn')[1]
-    await fireEvent.click(btn)
-    expect(btn.classList.contains('active')).toBe(true)
-    await rerender({ onchange, reset: 1 })
-    const calls = onchange.mock.calls.filter((c) => c[0].param === 'delayModOn')
-    expect(calls[calls.length - 1][0].value).toBe(0)
-    expect(btn.classList.contains('active')).toBe(false)
+  it('MOD toggle reflects the delayModOn prop (active when 1)', () => {
+    const { container } = render(Effects, { props: { delayOn: 1, delayModOn: 1 } })
+    expect(container.querySelectorAll('.toggle-btn')[1].classList.contains('active')).toBe(true)
   })
 })
 
@@ -138,20 +124,16 @@ describe('Effects — reverb toggle', () => {
     expect(onchange).toHaveBeenCalledWith({ param: 'reverbOn', value: 1 })
   })
 
-  it('second click on reverb toggle dispatches reverbOn = 0', async () => {
+  it('clicking while reverbOn is 1 dispatches reverbOn = 0', async () => {
     const onchange = vi.fn()
-    const { container } = render(Effects, { props: { onchange } })
-    const btn = container.querySelectorAll('.toggle-btn')[2]
-    await fireEvent.click(btn)
-    await fireEvent.click(btn)
-    const calls = onchange.mock.calls.filter((c) => c[0].param === 'reverbOn')
-    expect(calls[calls.length - 1][0].value).toBe(0)
+    const { container } = render(Effects, { props: { reverbOn: 1, onchange } })
+    await fireEvent.click(container.querySelectorAll('.toggle-btn')[2])
+    expect(onchange).toHaveBeenCalledWith({ param: 'reverbOn', value: 0 })
   })
 
-  it('reverb toggle becomes active and shows on after click', async () => {
-    const { container } = render(Effects)
+  it('reverb toggle is active and shows on when reverbOn prop is 1', () => {
+    const { container } = render(Effects, { props: { reverbOn: 1 } })
     const btn = container.querySelectorAll('.toggle-btn')[2]
-    await fireEvent.click(btn)
     expect(btn.classList.contains('active')).toBe(true)
     expect(btn.textContent.trim()).toBe('on')
   })

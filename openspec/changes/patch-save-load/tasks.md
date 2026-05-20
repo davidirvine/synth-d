@@ -3,13 +3,13 @@
 - [x] 1.1 Create `src/state/synth.svelte.js` exporting a runes `$state` store keyed by every in-scope param (all knob params + all switch params), seeded from the existing factory `DEFAULTS` plus switch defaults; export the param-name list and the audio-param set
 - [x] 1.2 Add a single DSP subscriber (`$effect` or setter wrapper) that calls `engine.setParam(name, value)` only for audio params and only for finite values, with a guard preventing redundant/duplicate fires
 - [x] 1.3 Add unit tests for the store: seeding from defaults, that only audio+finite values reach `setParam`, that non-finite/non-audio keys are skipped, and no duplicate fire on equal-value writes
-- [ ] 1.4 Rebind `Knob.svelte` so its `externalValue` is fed from the store; preserve the clamp + spring-animate + not-while-dragging behavior; on user change write the store (not a bare `onchange`)
-- [ ] 1.5 Rebind `Oscillator.svelte` to read/write osc1/2/3 wave, osc1/2/3 range, and osc3 LFO mode from the store; remove its `reset` prop and reset `$effect`
-- [ ] 1.6 Rebind `Filter.svelte` (key track) to the store; remove its `reset` prop and reset `$effect`
-- [ ] 1.7 Rebind `Effects.svelte` (delayOn, delayModOn, reverbOn) to the store; remove its `reset` prop and reset `$effect`
-- [ ] 1.8 Rebind `Mixer.svelte`, `AmpEnv.svelte`, `Modulation.svelte`, `Glide.svelte` to the store; remove any `reset` prop usage
-- [ ] 1.9 Update `App.svelte`: remove `ccExternalValues` and `resetCounter`; route knob/switch `onchange` and MIDI CC input through the store; ensure no MIDI⇄store⇄knob feedback loop (value-equality + not-while-dragging guards)
-- [ ] 1.10 Migrate affected component/unit tests to the store model; run `npx vitest run` until green
+- [x] 1.4 Rebind `Knob.svelte` so its `externalValue` is fed from the store; preserve the clamp + spring-animate + not-while-dragging behavior; on user change write the store (not a bare `onchange`)
+- [x] 1.5 Rebind `Oscillator.svelte` to read/write osc1/2/3 wave, osc1/2/3 range, and osc3 LFO mode from the store; remove its `reset` prop and reset `$effect`
+- [x] 1.6 Rebind `Filter.svelte` (key track) to the store; remove its `reset` prop and reset `$effect`
+- [x] 1.7 Rebind `Effects.svelte` (delayOn, delayModOn, reverbOn) to the store; remove its `reset` prop and reset `$effect`
+- [x] 1.8 Rebind `Mixer.svelte`, `AmpEnv.svelte`, `Modulation.svelte`, `Glide.svelte` to the store; remove any `reset` prop usage
+- [x] 1.9 Update `App.svelte`: remove `ccExternalValues` and `resetCounter`; route knob/switch `onchange` and MIDI CC input through the store; ensure no MIDI⇄store⇄knob feedback loop (value-equality + not-while-dragging guards)
+- [x] 1.10 Migrate affected component/unit tests to the store model; run `npx vitest run` until green
 - [ ] 1.11 Run `npx stryker run` and restore mutation score to ≥85% for changed modules
 - [ ] 1.12 Run `npx playwright test`; confirm power-on/off knob animation, discrete reset, and DSP/UI agreement still pass
 
