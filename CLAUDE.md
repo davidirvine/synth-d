@@ -10,9 +10,11 @@ A spec MUST exist before any implementation begins. This applies to new features
 
 ## Branching
 
-All tasks for a change MUST be implemented on a single branch. Branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name. Branches MUST be created from `main` at the time `/opsx:propose` is invoked.
+All tasks for a change MUST be implemented on a single branch. Branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name.
 
-**REQUIRED: Before creating a branch, prompt the human for the change type (feature or bugfix) and wait for confirmation. Do not create a branch until the human has confirmed the type.**
+`/opsx:propose` does **not** create a branch — it commits the proposal artifacts directly to `main` (see "Spec Driven Design"). The `feature/`|`bugfix/` branch is created from `main` only by `/opsx-apply-wt`, which is also where the human is prompted for the change type.
+
+**REQUIRED: At `/opsx-apply-wt` time, before creating the branch, prompt the human for the change type (feature or bugfix) and wait for confirmation. Do not create the branch until the human has confirmed the type.**
 
 ```
 feature/<change-name>
@@ -25,7 +27,7 @@ Examples:
 - `feature/second-oscillator`
 - `bugfix/fix-filter-cutoff`
 
-Before starting any implementation work the branch MUST exist. If the current branch already has the correct name, proceed. If not, create the branch first. If a branch name conflict exists, halt and ask the human for guidance before doing anything else.
+Before starting any implementation work the worktree branch created by `/opsx-apply-wt` MUST exist. If a branch name conflict exists, halt and ask the human for guidance before doing anything else.
 
 ## Worktree Workflow
 
