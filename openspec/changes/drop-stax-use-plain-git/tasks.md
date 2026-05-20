@@ -31,8 +31,8 @@
 
 ## 5. Clean up memory notes
 
-- [ ] 5.1 Delete `feedback_stax_git.md` and `feedback_stax_trunk_drift.md` from the auto-memory directory
-- [ ] 5.2 Remove their index lines from `MEMORY.md`
+- [x] 5.1 Delete `feedback_stax_git.md` and `feedback_stax_trunk_drift.md` from the auto-memory directory
+- [x] 5.2 Remove their index lines from `MEMORY.md`
 
 ## 6. Verify
 
