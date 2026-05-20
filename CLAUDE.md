@@ -8,7 +8,7 @@
 
 A spec MUST exist before any implementation begins. This applies to new features, changes to existing features, and bug fixes without exception. Do not write any code until a spec has been created and approved via the OpenSpec workflow.
 
-`/opsx:propose` commits the generated proposal artifacts directly to `main` as a single commit with the message `chore(openspec): propose <change-name>`. The `chore` type is required so the proposal produces no release version bump. Proposing creates no branch — the `feature/`|`bugfix/` branch is created later by `/opsx-apply-wt` (see "Branching").
+`/opsx:propose` creates the proposal artifacts on a dedicated `proposal/<change-name>` branch cut from `main` and commits them as a single commit with the message `chore(openspec): propose <change-name>` (the `chore` type is required so the proposal produces no release version bump). It creates no implementation branch — the `feature/`|`bugfix/` branch is created later by `/opsx-apply-wt` (see "Branching"). The proposal merges to `main` only after the design-review gate passes (see "Code review with roborev"): once the design review is clean, fast-forward merge `proposal/<change-name>` into `main` with plain `git` — no PR — and delete the proposal branch. If `main` has advanced since the branch was cut, rebase the proposal branch onto `main` before the fast-forward.
 
 ## Branching
 
