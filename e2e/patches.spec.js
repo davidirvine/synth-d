@@ -117,9 +117,10 @@ test.describe('Patch save/load', () => {
 
       // Save under a name.
       await page.locator('.patch-control .trigger').click()
+      // Type lower-case to exercise normalization; the stored/listed name is upper-cased.
       await page.locator('.name-input').fill('my-sound')
       await page.locator('.save-btn').click()
-      await expect(page.locator('.patch-load', { hasText: 'my-sound' })).toBeVisible()
+      await expect(page.locator('.patch-load', { hasText: 'MY-SOUND' })).toBeVisible()
 
       // Reload — the patch persists in localStorage; the synth boots to factory
       // defaults until a patch is applied.
@@ -131,7 +132,7 @@ test.describe('Patch save/load', () => {
 
       // Load the saved patch — tweaked params are restored.
       await page.locator('.patch-control .trigger').click()
-      await page.locator('.patch-load', { hasText: 'my-sound' }).click()
+      await page.locator('.patch-load', { hasText: 'MY-SOUND' }).click()
       await expect(page.locator('.glide-btn')).toContainText('on')
       await expect(page.locator('.noise-btn', { hasText: 'pink' })).toHaveClass(/active/)
     })
