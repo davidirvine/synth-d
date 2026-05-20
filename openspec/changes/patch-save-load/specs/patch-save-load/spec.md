@@ -12,7 +12,7 @@ A patch SHALL capture the complete *sound* of the synth: every continuous knob p
 #### Scenario: Patch includes all switch parameters
 
 - **WHEN** a patch is saved
-- **THEN** the saved data includes a value for every discrete parameter: the three oscillator waveform selections, the three oscillator ranges, OSC3 LFO mode, key track, delay on/off, delay-mod on/off, and reverb on/off
+- **THEN** the saved data includes a value for every discrete parameter: the three oscillator waveform selections, the three oscillator ranges, OSC3 LFO mode, the mixer noise colour, key track, the amp decay/release lock, the three modulation routing toggles, glide on/off, delay on/off, delay-mod on/off, and reverb on/off
 
 #### Scenario: Patch excludes performance and controller state
 
