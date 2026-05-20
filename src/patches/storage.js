@@ -170,9 +170,12 @@ export function deletePatch(name) {
   const clean = validateName(name)
   if (clean === null) return false
 
-  safeRemove(SLOT_PREFIX + clean)
+  // Update the index first; only remove the slot if that succeeds. A failed
+  // index write then leaves the patch fully intact rather than producing a
+  // phantom entry that lists but cannot load (symmetric with savePatch).
   const index = readIndex()
   const next = index.filter((n) => n !== clean)
-  if (next.length !== index.length) writeIndex(next)
+  if (next.length !== index.length && !writeIndex(next)) return false
+  safeRemove(SLOT_PREFIX + clean)
   return true
 }

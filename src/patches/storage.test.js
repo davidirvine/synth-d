@@ -241,6 +241,20 @@ describe('storage — failures are non-fatal', () => {
     expect(loadPatch('lead')).toBeNull()
   })
 
+  it('deletePatch returns false and keeps the patch when the index write fails', () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    const realSet = Storage.prototype.setItem
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
+      if (key === 'synth-d:patches') throw new DOMException('quota', 'QuotaExceededError')
+      return realSet.call(this, key, value)
+    })
+    expect(deletePatch('lead')).toBe(false)
+    vi.restoreAllMocks()
+    // The patch must remain fully intact (no phantom index/orphaned slot).
+    expect(listPatches()).toEqual(['lead'])
+    expect(loadPatch('lead')).not.toBeNull()
+  })
+
   it('deletePatch does not throw when removeItem throws', () => {
     vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
       throw new Error('unavailable')

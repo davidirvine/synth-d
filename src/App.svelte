@@ -223,6 +223,9 @@
 
   /** @param {{ param: string, value: number }} e */
   function onModWheelChange(e) {
+    // Keep the external value in sync with the wheel's position so a later CC 1
+    // carrying this same value still registers as a change and re-renders.
+    modWheelExternal = e.value
     setParam(e.param, e.value)
   }
 
