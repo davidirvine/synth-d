@@ -351,7 +351,7 @@
       <span class="version-label">{versionLabel}</span>
     </div>
     <div class="header-right">
-      <PatchControl />
+      <PatchControl {powered} />
       <MidiStatus
         status={midiStatus}
         devices={midiDevices}

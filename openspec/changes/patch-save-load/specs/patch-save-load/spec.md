@@ -21,7 +21,12 @@ A patch SHALL capture the complete *sound* of the synth: every continuous knob p
 
 ### Requirement: User can save the current sound as a named patch
 
-The system SHALL let the user save the current synth state under a name they choose. The name SHALL be trimmed of surrounding whitespace; an empty or whitespace-only name SHALL be rejected and SHALL NOT create a patch. Saving under a name that does not yet exist SHALL create a new patch. Saving under the name of the **currently active patch** SHALL update that patch in place WITHOUT a confirmation (the active patch is the user's own working patch). Saving under the name of a **different** existing patch SHALL require an inline confirmation before overwriting it.
+The system SHALL let the user save the current synth state under a name they choose. Saving captures the live sound, so the save action and the name field SHALL be disabled while the synth is powered off. The name SHALL be trimmed of surrounding whitespace; an empty or whitespace-only name SHALL be rejected and SHALL NOT create a patch. Saving under a name that does not yet exist SHALL create a new patch. Saving under the name of the **currently active patch** SHALL update that patch in place WITHOUT a confirmation (the active patch is the user's own working patch). Saving under the name of a **different** existing patch SHALL require an inline confirmation before overwriting it.
+
+#### Scenario: Saving is disabled while powered off
+
+- **WHEN** the synth is powered off and the patch popover is open
+- **THEN** the name field and the save action are disabled, while listing, loading, renaming, and deleting remain available
 
 #### Scenario: Save a new patch
 
@@ -135,7 +140,7 @@ The patch controls SHALL be presented as a control in the header, alongside the 
 #### Scenario: Patch control is usable while powered off
 
 - **WHEN** the synth is powered off
-- **THEN** the patch control in the header is still operable and patches can be listed, loaded, saved, and deleted
+- **THEN** the patch control in the header is still operable and patches can be listed, loaded, renamed, and deleted (saving is disabled while powered off)
 
 #### Scenario: Active patch is marked in the list
 

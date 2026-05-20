@@ -16,38 +16,47 @@ test.describe('Patch save/load', () => {
     await expect(page.getByText('no patches saved yet')).toBeVisible()
   })
 
-  test('saving while powered off adds the patch to the list', async ({ page }) => {
+  test('save controls are disabled while powered off', async ({ page }) => {
     await page.goto('/')
     await page.locator('.patch-control .trigger').click()
-    await page.locator('.name-input').fill('off-patch')
-    await page.locator('.save-btn').click()
-    await expect(page.locator('.patch-load', { hasText: 'off-patch' })).toBeVisible()
+    await expect(page.locator('.name-input')).toBeDisabled()
+    await expect(page.locator('.save-btn')).toBeDisabled()
   })
 
+  // Seed two patches so list operations (rename/delete) can be exercised while
+  // powered off, where saving is disabled.
+  async function seedPatches(/** @type {import('@playwright/test').Page} */ page) {
+    await page.addInitScript(() => {
+      localStorage.setItem('synth-d:patches', JSON.stringify(['ONE', 'TWO']))
+      localStorage.setItem(
+        'synth-d:patch:ONE',
+        JSON.stringify({ name: 'ONE', version: 1, params: { cutoff: 1000 } })
+      )
+      localStorage.setItem(
+        'synth-d:patch:TWO',
+        JSON.stringify({ name: 'TWO', version: 1, params: { cutoff: 2000 } })
+      )
+    })
+  }
+
   test('rename a saved patch from the list', async ({ page }) => {
+    await seedPatches(page)
     await page.goto('/')
     await page.locator('.patch-control .trigger').click()
-    await page.locator('.name-input').fill('FIRST')
-    await page.locator('.save-btn').click()
-    await expect(page.locator('.patch-load', { hasText: 'FIRST' })).toBeVisible()
+    await expect(page.locator('.patch-load', { hasText: 'ONE' })).toBeVisible()
 
-    await page.locator('[aria-label="rename FIRST"]').click()
+    await page.locator('[aria-label="rename ONE"]').click()
     await page.locator('.rename-input').fill('RENAMED')
     await page.locator('[aria-label="confirm rename"]').click()
 
     await expect(page.locator('.patch-load', { hasText: 'RENAMED' })).toBeVisible()
-    await expect(page.locator('.patch-load', { hasText: 'FIRST' })).toHaveCount(0)
+    await expect(page.locator('.patch-load', { hasText: 'ONE' })).toHaveCount(0)
   })
 
   test('deleting a patch removes it from the list', async ({ page }) => {
+    await seedPatches(page)
     await page.goto('/')
     await page.locator('.patch-control .trigger').click()
-    await page.locator('.name-input').fill('one')
-    await page.locator('.save-btn').click()
-    await expect(page.locator('.patch-load', { hasText: 'ONE' })).toBeVisible()
-    // Save a second so the popover/list clearly stays open after one delete.
-    await page.locator('.name-input').fill('two')
-    await page.locator('.save-btn').click()
     await expect(page.locator('.patch-row')).toHaveCount(2)
 
     await page.locator('[aria-label="delete ONE"]').click()

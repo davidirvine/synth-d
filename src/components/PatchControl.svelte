@@ -18,6 +18,9 @@
     MAX_NAME_LENGTH,
   } from '../patches/storage.js'
 
+  /** @type {{ powered?: boolean }} */
+  let { powered = false } = $props()
+
   let open = $state(false)
   let rootEl = $state(/** @type {HTMLElement | null} */ (null))
   let patches = $state(/** @type {string[]} */ ([]))
@@ -39,7 +42,7 @@
     return cur !== base
   })
 
-  const displayName = $derived(activePatch.name ?? 'init')
+  const displayName = $derived(activePatch.name ?? 'DEFAULT')
 
   function refresh() {
     patches = listPatches()
@@ -327,6 +330,7 @@
           maxlength={MAX_NAME_LENGTH}
           placeholder="patch name"
           aria-label="patch name"
+          disabled={!powered}
           bind:value={nameInput}
           oninput={onNameInput}
         />
@@ -339,7 +343,7 @@
             >
           </span>
         {:else}
-          <button class="save-btn" onclick={handleSave}>SAVE</button>
+          <button class="save-btn" onclick={handleSave} disabled={!powered}>SAVE</button>
         {/if}
       </div>
 
@@ -541,8 +545,14 @@
     cursor: pointer;
   }
 
-  .save-btn:hover {
+  .save-btn:hover:not(:disabled) {
     background: #4a3424;
+  }
+
+  .save-btn:disabled,
+  .name-input:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 
   .error {

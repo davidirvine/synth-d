@@ -51,3 +51,8 @@
 - [x] 6.4 PatchControl: add a per-row rename affordance (`✎`) that flips the row name to an inline input with ✓/✕; on an existing different name show an inline overwrite confirm; update the active patch's displayed name when it is the one renamed
 - [x] 6.5 Add component tests: update-in-place (no confirm, clears dirty), rename to new name, rename overwrite-confirm, rename validation, rename the active patch updates the trigger name, no `window.prompt`/`confirm`
 - [x] 6.6 Bring `renamePatch` under the Stryker mutate set ≥85%; run `npx vitest run` and `npx playwright test` green
+
+## 7. Powered-off save lock + label polish
+
+- [x] 7.1 Pass `powered` into `PatchControl`; disable the name field and SAVE while powered off (load/rename/delete stay enabled); rename the no-patch label from `init` to `DEFAULT`
+- [x] 7.2 Update component tests (DEFAULT label, save/name disabled when off, enabled when on) and the patch E2Es (seed patches via storage; assert save controls disabled while off)

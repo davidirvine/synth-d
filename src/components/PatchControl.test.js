@@ -28,9 +28,31 @@ async function typeName(container, value) {
 }
 
 describe('PatchControl — trigger and empty state', () => {
-  it('shows the active patch name (init when none loaded)', () => {
+  it('shows the active patch name (DEFAULT when none loaded)', () => {
     const { container } = render(PatchControl)
-    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('init')
+    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe(
+      'DEFAULT'
+    )
+  })
+
+  it('disables the name field and SAVE while powered off, enables them when on', async () => {
+    const off = render(PatchControl, { props: { powered: false } })
+    await openPopover(off.container)
+    expect(
+      /** @type {HTMLInputElement} */ (off.container.querySelector('.name-input')).disabled
+    ).toBe(true)
+    expect(
+      /** @type {HTMLButtonElement} */ (off.container.querySelector('.save-btn')).disabled
+    ).toBe(true)
+
+    const on = render(PatchControl, { props: { powered: true } })
+    await openPopover(on.container)
+    expect(
+      /** @type {HTMLInputElement} */ (on.container.querySelector('.name-input')).disabled
+    ).toBe(false)
+    expect(
+      /** @type {HTMLButtonElement} */ (on.container.querySelector('.save-btn')).disabled
+    ).toBe(false)
   })
 
   it('shows an empty-state message when no patches exist', async () => {
@@ -316,7 +338,9 @@ describe('PatchControl — delete', () => {
     expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('LEAD')
     await fireEvent.click(getByLabelText('delete LEAD'))
     await fireEvent.click(getByLabelText('confirm delete'))
-    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('init')
+    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe(
+      'DEFAULT'
+    )
   })
 })
 
