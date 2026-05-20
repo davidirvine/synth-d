@@ -1,4 +1,10 @@
-## ADDED Requirements
+# Version Display
+
+## Purpose
+
+Defines the version label shown beneath the SYNTH-D title, including its build-time version/branch injection and its text styling.
+
+## Requirements
 
 ### Requirement: Version label is shown beneath the SYNTH-D title
 A version label SHALL appear directly below the SYNTH-D title in the header. Its text style SHALL match the "filter contour" sub-label in `Filter.svelte`: `font-size: 9px`, `color: #666`, `text-transform: uppercase`, `letter-spacing: 0.1em`.

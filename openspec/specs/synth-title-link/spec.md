@@ -1,4 +1,10 @@
-## ADDED Requirements
+# Synth Title Link
+
+## Purpose
+
+Defines the SYNTH-D header title being rendered as a hyperlink to the project's GitHub repository, without changing its visual appearance.
+
+## Requirements
 
 ### Requirement: SYNTH-D title is a hyperlink to the GitHub repository
 The SYNTH-D header label SHALL be rendered as an anchor element (`<a>`) that opens `https://github.com/davidirvine/synth-d` in a new browser tab when clicked. The visual appearance (font, color, weight, letter-spacing) SHALL be identical to the current plain title.
