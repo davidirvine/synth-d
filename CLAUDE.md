@@ -54,6 +54,10 @@ reviews run automatically in the background.
 - Commit often so reviews stay scoped and contextual
 - Configuration lives in `.roborev.toml` at the repo root
 
+### Proposal design-review gate
+
+A proposal MUST pass a roborev **design review** before it merges to `main` — the same "review passes cleanly before merge" posture that governs code. After `/opsx:propose` commits the artifacts to the `proposal/<change-name>` branch, run a roborev design review on that branch (the `/roborev-design-review-branch` skill) and resolve every finding until it passes cleanly. Only then fast-forward merge the proposal to `main` and delete the proposal branch. Do not merge a proposal while design-review findings remain open.
+
 ## Committing Changes
 
 EVERY individual task step (e.g., 1.1, 1.2, 2.1) MUST be committed immediately after it is complete. Do not batch multiple steps into a single commit. Do not begin the next step until the commit for the current step has been made.
