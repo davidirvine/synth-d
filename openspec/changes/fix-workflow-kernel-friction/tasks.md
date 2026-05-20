@@ -13,7 +13,7 @@
 
 ## 4. #6 — Add a human-approval step before a proposal merges to main
 
-- [ ] 4.1 In `CLAUDE.md` "Spec Driven Design" (proposal-merge prose) and the "Proposal design-review gate" subsection, add an explicit human-approval step: after the design review passes cleanly, present the result and wait for explicit human approval before the `proposal/<change-name>` branch fast-forward merges to `main`. Run prettier on `CLAUDE.md`.
+- [x] 4.1 In `CLAUDE.md` "Spec Driven Design" (proposal-merge prose) and the "Proposal design-review gate" subsection, add an explicit human-approval step: after the design review passes cleanly, present the result and wait for explicit human approval before the `proposal/<change-name>` branch fast-forward merges to `main`. Run prettier on `CLAUDE.md`.
 
 ## 5. Verification
 

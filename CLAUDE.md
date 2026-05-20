@@ -8,7 +8,7 @@
 
 A spec MUST exist before any implementation begins. This applies to new features, changes to existing features, and bug fixes without exception. Do not write any code until a spec has been created and approved via the OpenSpec workflow.
 
-`/opsx:propose` creates the proposal artifacts on a dedicated `proposal/<change-name>` branch cut from `main` and commits them as a single commit with the message `chore(openspec): propose <change-name>` (the `chore` type is required so the proposal produces no release version bump). It creates no implementation branch — the `feature/`|`bugfix/` branch is created later by `/opsx-apply-wt` (see "Branching"). The proposal merges to `main` only after the design-review gate passes (see "Code review with roborev"): once the design review is clean, fast-forward merge `proposal/<change-name>` into `main` with plain `git` — no PR — and delete the proposal branch. If `main` has advanced since the branch was cut, rebase the proposal branch onto `main` before the fast-forward.
+`/opsx:propose` creates the proposal artifacts on a dedicated `proposal/<change-name>` branch cut from `main` and commits them as a single commit with the message `chore(openspec): propose <change-name>` (the `chore` type is required so the proposal produces no release version bump). It creates no implementation branch — the `feature/`|`bugfix/` branch is created later by `/opsx-apply-wt` (see "Branching"). The proposal merges to `main` only after the design-review gate passes (see "Code review with roborev") **and** the human has explicitly approved the merge: once the design review is clean, present the result to the human and wait for explicit approval — a clean review alone does not trigger the merge. After approval, fast-forward merge `proposal/<change-name>` into `main` with plain `git` — no PR — and delete the proposal branch. If `main` has advanced since the branch was cut, rebase the proposal branch onto `main` before the fast-forward.
 
 ## Branching
 
@@ -55,7 +55,7 @@ This repo uses roborev for code review. Reviews are invoked **explicitly** at th
 
 ### Proposal design-review gate
 
-A proposal MUST pass a roborev **design review** before it merges to `main` — the same "review passes cleanly before merge" posture that governs code. After `/opsx:propose` commits the artifacts to the `proposal/<change-name>` branch, run a roborev design review on that branch (the `/roborev-design-review-branch` skill) and resolve every finding until it passes cleanly. Only then fast-forward merge the proposal to `main` and delete the proposal branch. Do not merge a proposal while design-review findings remain open.
+A proposal MUST pass a roborev **design review** before it merges to `main` — the same "review passes cleanly before merge" posture that governs code. After `/opsx:propose` commits the artifacts to the `proposal/<change-name>` branch, run a roborev design review on that branch (the `/roborev-design-review-branch` skill) and resolve every finding until it passes cleanly. Then present the clean review result to the human and **wait for explicit human approval** before merging — mirroring the implementation gate, a clean review alone does not authorize the merge to `main`. Only after the human approves, fast-forward merge the proposal to `main` and delete the proposal branch. Do not merge a proposal while design-review findings remain open, and do not merge a proposal the human has not approved.
 
 ## Committing Changes
 
