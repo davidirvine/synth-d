@@ -924,8 +924,25 @@ describe('App — power-on applies the active patch', () => {
     await waitFor(() => {
       expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBe(true)
     })
-    /** @type {any} */ ;(setParam).mockClear()
+    /** @type {any} */
+    setParam.mockClear()
     await fireEvent.click(btn) // on again
     await waitFor(() => expect(lastCall('cutoff')).toBe(8000))
+  })
+
+  it('powering on with no patch loaded does not mark the patch dirty', async () => {
+    const { container } = render(App)
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('button[aria-label]')))
+    await waitFor(() => {
+      expect(/** @type {HTMLElement} */ (container.querySelector('main')).inert).toBeFalsy()
+    })
+    // Let knob externalValue effects settle (e.g. the drLock-locked release knob
+    // echoing decay → ampRelease). The factory default must be self-consistent so
+    // no spurious dirty marker appears.
+    await new Promise((r) => setTimeout(r, 50))
+    expect(container.querySelector('.patch-control .dirty')).toBeNull()
+    expect(
+      /** @type {Element} */ (container.querySelector('.patch-control .patch-name')).textContent
+    ).toBe('DEFAULT')
   })
 })

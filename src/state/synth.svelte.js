@@ -37,7 +37,10 @@ const CONTINUOUS_DEFAULTS = {
   ampAttack: 0.01,
   ampDecay: 0.5,
   ampSustain: 0.7,
-  ampRelease: 0.3,
+  // Matches ampDecay: the decay/release lock (drLock) defaults on, slaving
+  // release to decay, so the factory default release must equal decay or the
+  // active patch reads as dirty the instant the synth powers on.
+  ampRelease: 0.5,
   // Master
   masterVol: 0.75,
   // Modulation

@@ -104,7 +104,7 @@
       label="release"
       min={0.001}
       max={8}
-      default={0.3}
+      default={0.5}
       scale="log"
       unit="s"
       disabled={drLock === 1}
