@@ -505,7 +505,7 @@
   .save-row {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 10px;
     border-top: 1px solid #333;
     padding-top: 6px;
   }
