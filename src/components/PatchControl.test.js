@@ -53,12 +53,12 @@ describe('PatchControl — trigger and empty state', () => {
   })
 
   it('a press inside the popover (on a self-removing control) does not close it', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const { container } = render(PatchControl)
     await openPopover(container)
     // Starting a rename swaps the row out for an input; the popover must stay open.
     await fireEvent.click(
-      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+      /** @type {Element} */ (container.querySelector('[aria-label="rename LEAD"]'))
     )
     expect(container.querySelector('.popover')).not.toBeNull()
     expect(container.querySelector('.rename-input')).not.toBeNull()
@@ -77,19 +77,19 @@ describe('PatchControl — save', () => {
   it('saves a new patch from the current state', async () => {
     const { container } = render(PatchControl)
     await openPopover(container)
-    await typeName(container, 'lead')
+    await typeName(container, 'LEAD')
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
-    expect(listPatches()).toContain('lead')
+    expect(listPatches()).toContain('LEAD')
   })
 
   it('normalizes the name field to the trimmed name after a successful save', async () => {
     const { container } = render(PatchControl)
     await openPopover(container)
-    await typeName(container, '  pad  ')
+    await typeName(container, '  PAD  ')
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
-    expect(listPatches()).toEqual(['pad'])
+    expect(listPatches()).toEqual(['PAD'])
     expect(/** @type {HTMLInputElement} */ (container.querySelector('.name-input')).value).toBe(
-      'pad'
+      'PAD'
     )
   })
 
@@ -103,39 +103,39 @@ describe('PatchControl — save', () => {
   })
 
   it('saving over an existing name requires inline confirmation', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const { container, getByText, getByLabelText } = render(PatchControl)
     await openPopover(container)
-    await typeName(container, 'lead')
+    await typeName(container, 'LEAD')
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
     // Inline overwrite confirm is shown; nothing written yet beyond the original.
     expect(getByText(/overwrite/i)).toBeTruthy()
     await fireEvent.click(getByLabelText('confirm overwrite'))
     // Still exactly one entry (overwrite, not duplicate).
-    expect(listPatches()).toEqual(['lead'])
+    expect(listPatches()).toEqual(['LEAD'])
   })
 
   it('canceling the overwrite confirm does not write', async () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 1111 })
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 1111 })
     const { container, getByLabelText } = render(PatchControl)
     // Change the live state so a save would differ from the stored slot.
     writeParam('cutoff', 9999)
     await openPopover(container)
-    await typeName(container, 'lead')
+    await typeName(container, 'LEAD')
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
     await fireEvent.click(getByLabelText('cancel overwrite'))
     const { loadPatch } = await import('../patches/storage.js')
-    expect(loadPatch('lead')?.params.cutoff).toBe(1111)
+    expect(loadPatch('LEAD')?.params.cutoff).toBe(1111)
   })
 })
 
 describe('PatchControl — update in place', () => {
   it('saving the active patch by its own name updates it with no overwrite confirm', async () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 1000 })
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 1000 })
     const { container, getByText } = render(PatchControl)
     // Load it so it becomes the active patch (popover stays open), then tweak.
     await openPopover(container)
-    await fireEvent.click(getByText('lead'))
+    await fireEvent.click(getByText('LEAD'))
     writeParam('cutoff', 5000)
     await Promise.resolve()
     expect(container.querySelector('.dirty')).not.toBeNull()
@@ -145,8 +145,8 @@ describe('PatchControl — update in place', () => {
     // No overwrite confirmation was shown.
     expect(container.querySelector('.confirm')).toBeNull()
     const { loadPatch } = await import('../patches/storage.js')
-    expect(loadPatch('lead')?.params.cutoff).toBe(5000)
-    expect(listPatches()).toEqual(['lead'])
+    expect(loadPatch('LEAD')?.params.cutoff).toBe(5000)
+    expect(listPatches()).toEqual(['LEAD'])
     await Promise.resolve()
     expect(container.querySelector('.dirty')).toBeNull()
   })
@@ -154,50 +154,50 @@ describe('PatchControl — update in place', () => {
 
 describe('PatchControl — rename', () => {
   it('renames a patch to a new name', async () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 8000 })
     const { container } = render(PatchControl)
     await openPopover(container)
     await fireEvent.click(
-      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+      /** @type {Element} */ (container.querySelector('[aria-label="rename LEAD"]'))
     )
     await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
-      target: { value: 'lead2' },
+      target: { value: 'LEAD2' },
     })
     await fireEvent.click(
       /** @type {Element} */ (container.querySelector('[aria-label="confirm rename"]'))
     )
-    expect(listPatches()).toEqual(['lead2'])
+    expect(listPatches()).toEqual(['LEAD2'])
   })
 
   it('renaming onto a different existing name requires an inline confirm', async () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
-    savePatch('pad', { ...PARAM_DEFAULTS, cutoff: 1000 })
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('PAD', { ...PARAM_DEFAULTS, cutoff: 1000 })
     const { container, getByText } = render(PatchControl)
     await openPopover(container)
     await fireEvent.click(
-      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+      /** @type {Element} */ (container.querySelector('[aria-label="rename LEAD"]'))
     )
     await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
-      target: { value: 'pad' },
+      target: { value: 'PAD' },
     })
     await fireEvent.click(
       /** @type {Element} */ (container.querySelector('[aria-label="confirm rename"]'))
     )
-    // Inline overwrite confirm shown; nothing renamed yet.
+    // Inline overwrite confirm shown; nothing RENAMED yet.
     expect(getByText(/overwrite/i)).toBeTruthy()
-    expect(listPatches()).toEqual(['lead', 'pad'])
+    expect(listPatches()).toEqual(['LEAD', 'PAD'])
     await fireEvent.click(
       /** @type {Element} */ (container.querySelector('[aria-label="confirm rename overwrite"]'))
     )
-    expect(listPatches()).toEqual(['pad'])
+    expect(listPatches()).toEqual(['PAD'])
   })
 
   it('an empty rename shows "name required" and changes nothing', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const { container, getByText } = render(PatchControl)
     await openPopover(container)
     await fireEvent.click(
-      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+      /** @type {Element} */ (container.querySelector('[aria-label="rename LEAD"]'))
     )
     await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
       target: { value: '   ' },
@@ -206,99 +206,99 @@ describe('PatchControl — rename', () => {
       /** @type {Element} */ (container.querySelector('[aria-label="confirm rename"]'))
     )
     expect(getByText('name required')).toBeTruthy()
-    expect(listPatches()).toEqual(['lead'])
+    expect(listPatches()).toEqual(['LEAD'])
   })
 
   it('canceling a rename leaves the patch unchanged', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const { container } = render(PatchControl)
     await openPopover(container)
     await fireEvent.click(
-      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+      /** @type {Element} */ (container.querySelector('[aria-label="rename LEAD"]'))
     )
     await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
-      target: { value: 'lead2' },
+      target: { value: 'LEAD2' },
     })
     await fireEvent.click(
       /** @type {Element} */ (container.querySelector('[aria-label="cancel rename"]'))
     )
-    expect(listPatches()).toEqual(['lead'])
+    expect(listPatches()).toEqual(['LEAD'])
   })
 
   it('renaming the active patch updates the trigger name', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const { container, getByText } = render(PatchControl)
     await openPopover(container)
-    await fireEvent.click(getByText('lead')) // make active
-    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('lead')
+    await fireEvent.click(getByText('LEAD')) // make active
+    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('LEAD')
     await fireEvent.click(
-      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+      /** @type {Element} */ (container.querySelector('[aria-label="rename LEAD"]'))
     )
     await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
-      target: { value: 'lead2' },
+      target: { value: 'LEAD2' },
     })
     await fireEvent.click(
       /** @type {Element} */ (container.querySelector('[aria-label="confirm rename"]'))
     )
     expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe(
-      'lead2'
+      'LEAD2'
     )
   })
 })
 
 describe('PatchControl — load', () => {
   it('loading a patch applies its params to the store and marks it active', async () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000, osc1Wave: 3 })
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 8000, osc1Wave: 3 })
     const { container, getByText } = render(PatchControl)
     await openPopover(container)
-    await fireEvent.click(getByText('lead'))
+    await fireEvent.click(getByText('LEAD'))
     expect(synthParams.cutoff).toBe(8000)
     expect(synthParams.osc1Wave).toBe(3)
-    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('lead')
+    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('LEAD')
   })
 
   it('the active patch is marked in the list', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
-    savePatch('pad', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
+    savePatch('PAD', PARAM_DEFAULTS)
     const { container, getByText } = render(PatchControl)
     await openPopover(container)
-    await fireEvent.click(getByText('pad'))
+    await fireEvent.click(getByText('PAD'))
     const rows = container.querySelectorAll('.patch-row')
     const activeRow = /** @type {Element} */ (container.querySelector('.patch-row.active'))
     expect(rows.length).toBe(2)
-    expect(activeRow.textContent).toContain('pad')
+    expect(activeRow.textContent).toContain('PAD')
     expect(activeRow.querySelector('.marker')?.textContent).toBe('▸')
   })
 })
 
 describe('PatchControl — delete', () => {
   it('delete requires inline confirmation (never one click)', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const { container, getByLabelText } = render(PatchControl)
     await openPopover(container)
-    await fireEvent.click(getByLabelText('delete lead'))
+    await fireEvent.click(getByLabelText('delete LEAD'))
     // Still present until confirmed.
-    expect(listPatches()).toEqual(['lead'])
+    expect(listPatches()).toEqual(['LEAD'])
     await fireEvent.click(getByLabelText('confirm delete'))
     expect(listPatches()).toEqual([])
   })
 
   it('canceling delete leaves the patch intact', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const { container, getByLabelText } = render(PatchControl)
     await openPopover(container)
-    await fireEvent.click(getByLabelText('delete lead'))
+    await fireEvent.click(getByLabelText('delete LEAD'))
     await fireEvent.click(getByLabelText('cancel delete'))
-    expect(listPatches()).toEqual(['lead'])
+    expect(listPatches()).toEqual(['LEAD'])
   })
 
   it('deleting the active patch clears its name from the trigger', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const { container, getByText, getByLabelText } = render(PatchControl)
     await openPopover(container)
-    await fireEvent.click(getByText('lead'))
-    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('lead')
-    await fireEvent.click(getByLabelText('delete lead'))
+    await fireEvent.click(getByText('LEAD'))
+    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('LEAD')
+    await fireEvent.click(getByLabelText('delete LEAD'))
     await fireEvent.click(getByLabelText('confirm delete'))
     expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('init')
   })
@@ -321,29 +321,29 @@ describe('PatchControl — dirty marker', () => {
     const { container } = render(PatchControl)
     writeParam('cutoff', 5000)
     await openPopover(container)
-    await typeName(container, 'lead')
+    await typeName(container, 'LEAD')
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
     await Promise.resolve()
     expect(container.querySelector('.dirty')).toBeNull()
   })
 
   it('loading clears the dirty marker', async () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 8000 })
     const { container, getByText } = render(PatchControl)
     writeParam('cutoff', 5000)
     await openPopover(container)
-    await fireEvent.click(getByText('lead'))
+    await fireEvent.click(getByText('LEAD'))
     await Promise.resolve()
     expect(container.querySelector('.dirty')).toBeNull()
   })
 
-  it('loading a partial patch (missing keys) is not falsely dirty', async () => {
+  it('loading a PARTIAL patch (missing keys) is not falsely dirty', async () => {
     // A patch from before a param existed (or with non-finite values dropped):
-    // savePatch stores only the provided in-scope keys, so the slot is partial.
-    savePatch('old', { cutoff: 8000 })
+    // savePatch stores only the provided in-scope keys, so the slot is PARTIAL.
+    savePatch('OLD', { cutoff: 8000 })
     const { container, getByText } = render(PatchControl)
     await openPopover(container)
-    await fireEvent.click(getByText('old'))
+    await fireEvent.click(getByText('OLD'))
     await Promise.resolve()
     expect(synthParams.cutoff).toBe(8000)
     // Missing params fell back to defaults, and the baseline has every key, so
@@ -354,23 +354,23 @@ describe('PatchControl — dirty marker', () => {
 
 describe('PatchControl — no OS dialogs', () => {
   it('never calls window.prompt or window.confirm for naming/overwrite/delete', async () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const promptSpy = vi.spyOn(window, 'prompt')
     const confirmSpy = vi.spyOn(window, 'confirm')
     const { container, getByLabelText } = render(PatchControl)
     await openPopover(container)
     // overwrite flow
-    await typeName(container, 'lead')
+    await typeName(container, 'LEAD')
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
     await fireEvent.click(getByLabelText('confirm overwrite'))
     // rename flow
-    await fireEvent.click(getByLabelText('rename lead'))
+    await fireEvent.click(getByLabelText('rename LEAD'))
     await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
-      target: { value: 'lead2' },
+      target: { value: 'LEAD2' },
     })
     await fireEvent.click(getByLabelText('confirm rename'))
     // delete flow
-    await fireEvent.click(getByLabelText('delete lead2'))
+    await fireEvent.click(getByLabelText('delete LEAD2'))
     await fireEvent.click(getByLabelText('confirm delete'))
     expect(promptSpy).not.toHaveBeenCalled()
     expect(confirmSpy).not.toHaveBeenCalled()

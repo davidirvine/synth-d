@@ -27,16 +27,16 @@ test.describe('Patch save/load', () => {
   test('rename a saved patch from the list', async ({ page }) => {
     await page.goto('/')
     await page.locator('.patch-control .trigger').click()
-    await page.locator('.name-input').fill('first')
+    await page.locator('.name-input').fill('FIRST')
     await page.locator('.save-btn').click()
-    await expect(page.locator('.patch-load', { hasText: 'first' })).toBeVisible()
+    await expect(page.locator('.patch-load', { hasText: 'FIRST' })).toBeVisible()
 
-    await page.locator('[aria-label="rename first"]').click()
-    await page.locator('.rename-input').fill('renamed')
+    await page.locator('[aria-label="rename FIRST"]').click()
+    await page.locator('.rename-input').fill('RENAMED')
     await page.locator('[aria-label="confirm rename"]').click()
 
-    await expect(page.locator('.patch-load', { hasText: 'renamed' })).toBeVisible()
-    await expect(page.locator('.patch-load', { hasText: 'first' })).toHaveCount(0)
+    await expect(page.locator('.patch-load', { hasText: 'RENAMED' })).toBeVisible()
+    await expect(page.locator('.patch-load', { hasText: 'FIRST' })).toHaveCount(0)
   })
 
   test.describe('powered round-trip (requires WASM)', () => {

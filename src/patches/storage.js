@@ -53,9 +53,11 @@ function safeRemove(key) {
 
 /**
  * Validate and normalize a patch name: trim surrounding whitespace, reject
- * empty/whitespace-only, and cap the length. Returns the cleaned name, or null
- * if invalid. A name that collides with an existing patch is NOT an error here —
- * the caller routes that through an overwrite confirmation.
+ * empty/whitespace-only, upper-case it (patch names are always all caps), and
+ * cap the length. Returns the cleaned name, or null if invalid. A name that
+ * collides with an existing patch is NOT an error here — the caller routes that
+ * through an overwrite confirmation. Upper-casing also means names that differ
+ * only by case resolve to the same patch.
  * @param {unknown} name
  * @returns {string | null}
  */
@@ -63,7 +65,7 @@ export function validateName(name) {
   if (typeof name !== 'string') return null
   const trimmed = name.trim()
   if (trimmed.length === 0) return null
-  return trimmed.slice(0, MAX_NAME_LENGTH)
+  return trimmed.toUpperCase().slice(0, MAX_NAME_LENGTH)
 }
 
 /** @returns {string[]} */

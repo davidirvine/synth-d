@@ -291,6 +291,7 @@
                 <button
                   class="patch-rename"
                   onclick={() => startRename(name)}
+                  title="Rename patch"
                   aria-label={`rename ${name}`}>✎</button
                 >
                 {#if confirmingDeleteName === name}
@@ -309,7 +310,8 @@
                   <button
                     class="patch-delete"
                     onclick={() => requestDelete(name)}
-                    aria-label={`delete ${name}`}>⌫</button
+                    title="Delete patch"
+                    aria-label={`delete ${name}`}>🗑</button
                   >
                 {/if}
               {/if}
@@ -464,6 +466,7 @@
     border: 1px solid #c87941;
     border-radius: 2px;
     padding: 2px 4px;
+    text-transform: uppercase;
   }
 
   .patch-rename,
@@ -517,6 +520,7 @@
     border: 1px solid #444;
     border-radius: 2px;
     padding: 3px 5px;
+    text-transform: uppercase;
   }
 
   .save-btn {

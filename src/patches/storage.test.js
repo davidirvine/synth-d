@@ -18,7 +18,12 @@ beforeEach(() => {
 
 describe('storage — name validation', () => {
   it('trims surrounding whitespace', () => {
-    expect(validateName('  lead  ')).toBe('lead')
+    expect(validateName('  LEAD  ')).toBe('LEAD')
+  })
+
+  it('upper-cases the name (patch names are always all caps)', () => {
+    expect(validateName('lead')).toBe('LEAD')
+    expect(validateName('  MixEd cAse  ')).toBe('MIXED CASE')
   })
 
   it('rejects empty and whitespace-only names', () => {
@@ -42,55 +47,55 @@ describe('storage — name validation', () => {
 describe('storage — round-trip', () => {
   it('save → list → load → delete', () => {
     const params = { ...PARAM_DEFAULTS, cutoff: 8000, osc1Wave: 3 }
-    const res = savePatch('lead', params)
-    expect(res).toEqual({ ok: true, name: 'lead' })
+    const res = savePatch('LEAD', params)
+    expect(res).toEqual({ ok: true, name: 'LEAD' })
 
-    expect(listPatches()).toEqual(['lead'])
+    expect(listPatches()).toEqual(['LEAD'])
 
-    const loaded = loadPatch('lead')
-    expect(loaded?.name).toBe('lead')
+    const loaded = loadPatch('LEAD')
+    expect(loaded?.name).toBe('LEAD')
     expect(loaded?.version).toBe(PATCH_VERSION)
     expect(loaded?.params.cutoff).toBe(8000)
     expect(loaded?.params.osc1Wave).toBe(3)
 
-    expect(deletePatch('lead')).toBe(true)
+    expect(deletePatch('LEAD')).toBe(true)
     expect(listPatches()).toEqual([])
-    expect(loadPatch('lead')).toBeNull()
+    expect(loadPatch('LEAD')).toBeNull()
   })
 
   it('save trims the name before using it as the slot key', () => {
-    savePatch('  pad  ', PARAM_DEFAULTS)
-    expect(listPatches()).toEqual(['pad'])
-    expect(loadPatch('pad')).not.toBeNull()
+    savePatch('  PAD  ', PARAM_DEFAULTS)
+    expect(listPatches()).toEqual(['PAD'])
+    expect(loadPatch('PAD')).not.toBeNull()
     // The trimmed name resolves the same slot.
-    expect(loadPatch('  pad  ')).not.toBeNull()
+    expect(loadPatch('  PAD  ')).not.toBeNull()
   })
 
   it('keeps the index consistent across multiple saves and a delete', () => {
-    savePatch('a', PARAM_DEFAULTS)
-    savePatch('b', PARAM_DEFAULTS)
-    savePatch('c', PARAM_DEFAULTS)
-    expect(listPatches()).toEqual(['a', 'b', 'c'])
+    savePatch('A', PARAM_DEFAULTS)
+    savePatch('B', PARAM_DEFAULTS)
+    savePatch('C', PARAM_DEFAULTS)
+    expect(listPatches()).toEqual(['A', 'B', 'C'])
 
-    deletePatch('b')
-    expect(listPatches()).toEqual(['a', 'c'])
-    expect(loadPatch('b')).toBeNull()
-    expect(loadPatch('a')).not.toBeNull()
-    expect(loadPatch('c')).not.toBeNull()
+    deletePatch('B')
+    expect(listPatches()).toEqual(['A', 'C'])
+    expect(loadPatch('B')).toBeNull()
+    expect(loadPatch('A')).not.toBeNull()
+    expect(loadPatch('C')).not.toBeNull()
   })
 
   it('overwriting an existing name does not duplicate the index entry', () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 1000 })
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 2000 })
-    expect(listPatches()).toEqual(['lead'])
-    expect(loadPatch('lead')?.params.cutoff).toBe(2000)
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 1000 })
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 2000 })
+    expect(listPatches()).toEqual(['LEAD'])
+    expect(loadPatch('LEAD')?.params.cutoff).toBe(2000)
   })
 })
 
 describe('storage — excluded params', () => {
   it('does not serialize params outside the in-scope set (e.g. modWheel)', () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, modWheel: 0.9, register: 21, notAParam: 5 })
-    const loaded = loadPatch('lead')
+    savePatch('LEAD', { ...PARAM_DEFAULTS, modWheel: 0.9, register: 21, notAParam: 5 })
+    const loaded = loadPatch('LEAD')
     expect(loaded?.params).not.toHaveProperty('modWheel')
     expect(loaded?.params).not.toHaveProperty('register')
     expect(loaded?.params).not.toHaveProperty('notAParam')
@@ -98,109 +103,109 @@ describe('storage — excluded params', () => {
   })
 
   it('skips non-finite param values', () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: NaN })
-    const loaded = loadPatch('lead')
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: NaN })
+    const loaded = loadPatch('LEAD')
     expect(loaded?.params).not.toHaveProperty('cutoff')
   })
 })
 
 describe('storage — corrupt / missing slots', () => {
   it('a corrupt slot reads as absent', () => {
-    savePatch('lead', PARAM_DEFAULTS)
-    localStorage.setItem('synth-d:patch:lead', '{ not valid json')
-    expect(loadPatch('lead')).toBeNull()
+    savePatch('LEAD', PARAM_DEFAULTS)
+    localStorage.setItem('synth-d:patch:LEAD', '{ not valid json')
+    expect(loadPatch('LEAD')).toBeNull()
   })
 
   it('a missing slot reads as absent even if named in a corrupt index', () => {
     localStorage.setItem('synth-d:patches', 'not json either')
     // Corrupt index → treated as empty.
     expect(listPatches()).toEqual([])
-    expect(loadPatch('ghost')).toBeNull()
+    expect(loadPatch('GHOST')).toBeNull()
   })
 })
 
 describe('storage — renamePatch', () => {
   it('renames to a new name: listed and loadable under the new name only', () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
-    savePatch('pad', PARAM_DEFAULTS)
-    const res = renamePatch('lead', 'lead2')
-    expect(res).toEqual({ ok: true, name: 'lead2' })
-    // Order preserved: 'lead' position now holds 'lead2'.
-    expect(listPatches()).toEqual(['lead2', 'pad'])
-    expect(loadPatch('lead')).toBeNull()
-    expect(loadPatch('lead2')?.params.cutoff).toBe(8000)
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('PAD', PARAM_DEFAULTS)
+    const res = renamePatch('LEAD', 'LEAD2')
+    expect(res).toEqual({ ok: true, name: 'LEAD2' })
+    // Order preserved: 'LEAD' position now holds 'LEAD2'.
+    expect(listPatches()).toEqual(['LEAD2', 'PAD'])
+    expect(loadPatch('LEAD')).toBeNull()
+    expect(loadPatch('LEAD2')?.params.cutoff).toBe(8000)
   })
 
   it('updates the stored envelope name', () => {
-    savePatch('lead', PARAM_DEFAULTS)
-    renamePatch('lead', 'lead2')
-    const env = JSON.parse(/** @type {string} */ (localStorage.getItem('synth-d:patch:lead2')))
-    expect(env.name).toBe('lead2')
+    savePatch('LEAD', PARAM_DEFAULTS)
+    renamePatch('LEAD', 'LEAD2')
+    const env = JSON.parse(/** @type {string} */ (localStorage.getItem('synth-d:patch:LEAD2')))
+    expect(env.name).toBe('LEAD2')
   })
 
   it('trims the new name', () => {
-    savePatch('lead', PARAM_DEFAULTS)
-    expect(renamePatch('lead', '  lead2  ')).toEqual({ ok: true, name: 'lead2' })
-    expect(listPatches()).toEqual(['lead2'])
+    savePatch('LEAD', PARAM_DEFAULTS)
+    expect(renamePatch('LEAD', '  LEAD2  ')).toEqual({ ok: true, name: 'LEAD2' })
+    expect(listPatches()).toEqual(['LEAD2'])
   })
 
   it('a no-op rename (same name) succeeds and changes nothing', () => {
-    savePatch('lead', PARAM_DEFAULTS)
-    expect(renamePatch('lead', 'lead')).toEqual({ ok: true, name: 'lead' })
-    expect(listPatches()).toEqual(['lead'])
-    expect(loadPatch('lead')).not.toBeNull()
+    savePatch('LEAD', PARAM_DEFAULTS)
+    expect(renamePatch('LEAD', 'LEAD')).toEqual({ ok: true, name: 'LEAD' })
+    expect(listPatches()).toEqual(['LEAD'])
+    expect(loadPatch('LEAD')).not.toBeNull()
   })
 
   it('rejects an invalid new name', () => {
-    savePatch('lead', PARAM_DEFAULTS)
-    expect(renamePatch('lead', '   ')).toEqual({ ok: false, error: 'invalid-name' })
-    expect(listPatches()).toEqual(['lead'])
+    savePatch('LEAD', PARAM_DEFAULTS)
+    expect(renamePatch('LEAD', '   ')).toEqual({ ok: false, error: 'invalid-name' })
+    expect(listPatches()).toEqual(['LEAD'])
   })
 
   it('returns not-found when the source patch is missing', () => {
-    expect(renamePatch('ghost', 'whatever')).toEqual({ ok: false, error: 'not-found' })
+    expect(renamePatch('GHOST', 'whatever')).toEqual({ ok: false, error: 'not-found' })
   })
 
   it('renaming onto a different existing name overwrites it (no duplicate index entry)', () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
-    savePatch('pad', { ...PARAM_DEFAULTS, cutoff: 1000 })
-    const res = renamePatch('lead', 'pad')
-    expect(res).toEqual({ ok: true, name: 'pad' })
-    expect(listPatches()).toEqual(['pad'])
-    // 'pad' now holds lead's params.
-    expect(loadPatch('pad')?.params.cutoff).toBe(8000)
-    expect(loadPatch('lead')).toBeNull()
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('PAD', { ...PARAM_DEFAULTS, cutoff: 1000 })
+    const res = renamePatch('LEAD', 'PAD')
+    expect(res).toEqual({ ok: true, name: 'PAD' })
+    expect(listPatches()).toEqual(['PAD'])
+    // 'PAD' now holds LEAD's params.
+    expect(loadPatch('PAD')?.params.cutoff).toBe(8000)
+    expect(loadPatch('LEAD')).toBeNull()
   })
 
   it('leaves everything intact when the index write fails', () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const realSet = Storage.prototype.setItem
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
       if (key === 'synth-d:patches') throw new DOMException('quota', 'QuotaExceededError')
       return realSet.call(this, key, value)
     })
-    expect(renamePatch('lead', 'lead2')).toEqual({ ok: false, error: 'storage-unavailable' })
+    expect(renamePatch('LEAD', 'LEAD2')).toEqual({ ok: false, error: 'storage-unavailable' })
     vi.restoreAllMocks()
-    expect(localStorage.getItem('synth-d:patch:lead2')).toBeNull()
-    expect(listPatches()).toEqual(['lead'])
-    expect(loadPatch('lead')).not.toBeNull()
+    expect(localStorage.getItem('synth-d:patch:LEAD2')).toBeNull()
+    expect(listPatches()).toEqual(['LEAD'])
+    expect(loadPatch('LEAD')).not.toBeNull()
   })
 
   it('does not destroy the overwritten target when the slot write fails', () => {
-    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
-    savePatch('pad', { ...PARAM_DEFAULTS, cutoff: 1000 })
+    savePatch('LEAD', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('PAD', { ...PARAM_DEFAULTS, cutoff: 1000 })
     const realSet = Storage.prototype.setItem
     // Allow the index write but fail the destination slot write.
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
-      if (key === 'synth-d:patch:pad') throw new DOMException('quota', 'QuotaExceededError')
+      if (key === 'synth-d:patch:PAD') throw new DOMException('quota', 'QuotaExceededError')
       return realSet.call(this, key, value)
     })
-    expect(renamePatch('lead', 'pad')).toEqual({ ok: false, error: 'storage-unavailable' })
+    expect(renamePatch('LEAD', 'PAD')).toEqual({ ok: false, error: 'storage-unavailable' })
     vi.restoreAllMocks()
     // Index restored and both patches intact with their original data.
-    expect(listPatches()).toEqual(['lead', 'pad'])
-    expect(loadPatch('lead')?.params.cutoff).toBe(8000)
-    expect(loadPatch('pad')?.params.cutoff).toBe(1000)
+    expect(listPatches()).toEqual(['LEAD', 'PAD'])
+    expect(loadPatch('LEAD')?.params.cutoff).toBe(8000)
+    expect(loadPatch('PAD')?.params.cutoff).toBe(1000)
   })
 })
 
@@ -212,8 +217,8 @@ describe('storage — invalid names on load/delete', () => {
 
   it('deletePatch returns false for an invalid name and true for a valid one', () => {
     expect(deletePatch('   ')).toBe(false)
-    savePatch('lead', PARAM_DEFAULTS)
-    expect(deletePatch('lead')).toBe(true)
+    savePatch('LEAD', PARAM_DEFAULTS)
+    expect(deletePatch('LEAD')).toBe(true)
   })
 })
 
@@ -226,8 +231,8 @@ describe('storage — malformed slot envelopes read as absent', () => {
     ['an object whose params is null', '{"params":null}'],
     ['an object whose params is a string', '{"params":"nope"}'],
   ])('returns null when the slot is %s', (_desc, raw) => {
-    localStorage.setItem('synth-d:patch:lead', raw)
-    expect(loadPatch('lead')).toBeNull()
+    localStorage.setItem('synth-d:patch:LEAD', raw)
+    expect(loadPatch('LEAD')).toBeNull()
   })
 })
 
@@ -240,47 +245,47 @@ describe('storage — index integrity', () => {
 
 describe('storage — exact serialized slot contents', () => {
   it('the stored slot contains only the provided in-scope finite params', () => {
-    // Pass a partial params object with one extra key and one non-finite value.
-    savePatch('lead', { cutoff: 500, masterVol: NaN, modWheel: 0.9 })
-    const env = JSON.parse(/** @type {string} */ (localStorage.getItem('synth-d:patch:lead')))
+    // Pass a PARTIAL params object with one extra key and one non-finite value.
+    savePatch('LEAD', { cutoff: 500, masterVol: NaN, modWheel: 0.9 })
+    const env = JSON.parse(/** @type {string} */ (localStorage.getItem('synth-d:patch:LEAD')))
     expect(env.params).toEqual({ cutoff: 500 })
-    expect(env.name).toBe('lead')
+    expect(env.name).toBe('LEAD')
     expect(env.version).toBe(PATCH_VERSION)
   })
 })
 
 describe('storage — load returns exactly the stored in-scope params', () => {
-  it('does not pad the result with absent param names', () => {
+  it('does not PAD the result with absent param names', () => {
     localStorage.setItem(
-      'synth-d:patch:partial',
-      JSON.stringify({ name: 'partial', version: 1, params: { cutoff: 100, osc1Wave: 2 } })
+      'synth-d:patch:PARTIAL',
+      JSON.stringify({ name: 'PARTIAL', version: 1, params: { cutoff: 100, osc1Wave: 2 } })
     )
-    const loaded = loadPatch('partial')
+    const loaded = loadPatch('PARTIAL')
     expect(loaded?.params).toEqual({ cutoff: 100, osc1Wave: 2 })
   })
 
   it('drops non-finite values present in a stored slot', () => {
     localStorage.setItem(
-      'synth-d:patch:weird',
-      JSON.stringify({ name: 'weird', version: 1, params: { cutoff: 100, resonance: null } })
+      'synth-d:patch:WEIRD',
+      JSON.stringify({ name: 'WEIRD', version: 1, params: { cutoff: 100, resonance: null } })
     )
-    expect(loadPatch('weird')?.params).toEqual({ cutoff: 100 })
+    expect(loadPatch('WEIRD')?.params).toEqual({ cutoff: 100 })
   })
 })
 
 describe('storage — envelope version', () => {
   it('preserves a numeric version and falls back to PATCH_VERSION otherwise', () => {
     localStorage.setItem(
-      'synth-d:patch:numbered',
-      JSON.stringify({ name: 'numbered', version: 7, params: { cutoff: 100 } })
+      'synth-d:patch:NUMBERED',
+      JSON.stringify({ name: 'NUMBERED', version: 7, params: { cutoff: 100 } })
     )
-    expect(loadPatch('numbered')?.version).toBe(7)
+    expect(loadPatch('NUMBERED')?.version).toBe(7)
 
     localStorage.setItem(
-      'synth-d:patch:stringy',
-      JSON.stringify({ name: 'stringy', version: 'v2', params: { cutoff: 100 } })
+      'synth-d:patch:STRINGY',
+      JSON.stringify({ name: 'STRINGY', version: 'v2', params: { cutoff: 100 } })
     )
-    expect(loadPatch('stringy')?.version).toBe(PATCH_VERSION)
+    expect(loadPatch('STRINGY')?.version).toBe(PATCH_VERSION)
   })
 })
 
@@ -293,8 +298,8 @@ describe('storage — failures are non-fatal', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new DOMException('quota', 'QuotaExceededError')
     })
-    expect(() => savePatch('lead', PARAM_DEFAULTS)).not.toThrow()
-    expect(savePatch('lead', PARAM_DEFAULTS)).toEqual({ ok: false, error: 'storage-unavailable' })
+    expect(() => savePatch('LEAD', PARAM_DEFAULTS)).not.toThrow()
+    expect(savePatch('LEAD', PARAM_DEFAULTS)).toEqual({ ok: false, error: 'storage-unavailable' })
   })
 
   it('rolls back the slot when the index write fails (no orphaned slot)', () => {
@@ -303,11 +308,11 @@ describe('storage — failures are non-fatal', () => {
       if (key === 'synth-d:patches') throw new DOMException('quota', 'QuotaExceededError')
       return realSet.call(this, key, value)
     })
-    const res = savePatch('lead', PARAM_DEFAULTS)
+    const res = savePatch('LEAD', PARAM_DEFAULTS)
     expect(res).toEqual({ ok: false, error: 'storage-unavailable' })
     vi.restoreAllMocks()
     // The slot must not linger unreferenced by the index.
-    expect(localStorage.getItem('synth-d:patch:lead')).toBeNull()
+    expect(localStorage.getItem('synth-d:patch:LEAD')).toBeNull()
     expect(listPatches()).toEqual([])
   })
 
@@ -323,28 +328,28 @@ describe('storage — failures are non-fatal', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('unavailable')
     })
-    expect(() => loadPatch('lead')).not.toThrow()
-    expect(loadPatch('lead')).toBeNull()
+    expect(() => loadPatch('LEAD')).not.toThrow()
+    expect(loadPatch('LEAD')).toBeNull()
   })
 
   it('deletePatch returns false and keeps the patch when the index write fails', () => {
-    savePatch('lead', PARAM_DEFAULTS)
+    savePatch('LEAD', PARAM_DEFAULTS)
     const realSet = Storage.prototype.setItem
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
       if (key === 'synth-d:patches') throw new DOMException('quota', 'QuotaExceededError')
       return realSet.call(this, key, value)
     })
-    expect(deletePatch('lead')).toBe(false)
+    expect(deletePatch('LEAD')).toBe(false)
     vi.restoreAllMocks()
     // The patch must remain fully intact (no phantom index/orphaned slot).
-    expect(listPatches()).toEqual(['lead'])
-    expect(loadPatch('lead')).not.toBeNull()
+    expect(listPatches()).toEqual(['LEAD'])
+    expect(loadPatch('LEAD')).not.toBeNull()
   })
 
   it('deletePatch does not throw when removeItem throws', () => {
     vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
       throw new Error('unavailable')
     })
-    expect(() => deletePatch('lead')).not.toThrow()
+    expect(() => deletePatch('LEAD')).not.toThrow()
   })
 })
