@@ -30,7 +30,7 @@ Examples:
 - `feature/second-oscillator`
 - `bugfix/fix-filter-cutoff`
 
-Before starting any implementation work the worktree branch created by `/opsx-apply-wt` MUST exist. If a branch name conflict exists, halt and ask the human for guidance before doing anything else.
+Before starting any implementation work, confirm you are inside the worktree that `/opsx-apply-wt` created, checked out on its `feature/`|`bugfix/` branch. Never create or switch to that branch in the `main` checkout — branch creation belongs to `/opsx-apply-wt` alone (its script owns the "branch already exists" preflight). If the expected worktree or branch is missing, halt and ask the human rather than creating it yourself.
 
 ## Worktree Workflow
 
