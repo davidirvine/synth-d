@@ -27,6 +27,18 @@ test.describe('Patch save/load', () => {
   test.describe('powered round-trip (requires WASM)', () => {
     test.skip(!wasmBuilt, 'Requires WASM build: npm run faust:build')
 
+    test('typing in the patch name field does not trigger keyboard notes', async ({ page }) => {
+      await page.goto('/')
+      await page.getByRole('button', { name: /power/i }).click()
+      await expect(page.locator('.synth')).not.toHaveClass(/dimmed/, { timeout: 5000 })
+
+      await page.locator('.patch-control .trigger').click()
+      // "asdf" maps to QWERTY note keys; typing them in the field must not play.
+      await page.locator('.name-input').fill('asdf')
+      await expect(page.locator('.name-input')).toHaveValue('asdf')
+      expect(await page.locator('.white-key.active, .black-key.active').count()).toBe(0)
+    })
+
     test('power on → tweak → save → reload → load restores the tweaked params', async ({
       page,
     }) => {
