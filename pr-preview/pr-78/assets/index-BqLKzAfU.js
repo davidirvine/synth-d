@@ -12004,10 +12004,41 @@ function Effects($$anchor, $$props) {
 	var node = child(div_2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.assignedCc ?? null);
+		Knob(node, {
+			label: "mix",
+			min: 0,
+			max: 1,
+			default: .3,
+			scale: "linear",
+			get disabled() {
+				return get($0);
+			},
+			get externalValue() {
+				return get($1);
+			},
+			get learningMidi() {
+				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
+			},
+			onchange: (e) => $$props.onchange?.({
+				param: "delayMix",
+				value: e.value
+			}),
+			oncontextmenu: () => $$props.onknobcontextmenu?.("delayMix")
+		});
+	}
+	var node_1 = sibling(node, 2);
+	{
+		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.assignedCc ?? null);
-		Knob(node, {
+		Knob(node_1, {
 			label: "time",
 			min: .01,
 			max: 2,
@@ -12033,13 +12064,13 @@ function Effects($$anchor, $$props) {
 			oncontextmenu: () => $$props.onknobcontextmenu?.("delayTime")
 		});
 	}
-	var node_1 = sibling(node, 2);
+	var node_2 = sibling(node_1, 2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.assignedCc ?? null);
-		Knob(node_1, {
+		Knob(node_2, {
 			label: "feedback",
 			min: 0,
 			max: .9,
@@ -12062,37 +12093,6 @@ function Effects($$anchor, $$props) {
 				value: e.value
 			}),
 			oncontextmenu: () => $$props.onknobcontextmenu?.("delayFeedback")
-		});
-	}
-	var node_2 = sibling(node_1, 2);
-	{
-		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.externalValue);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.learningMidi ?? false);
-		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.assignedCc ?? null);
-		Knob(node_2, {
-			label: "mix",
-			min: 0,
-			max: 1,
-			default: .3,
-			scale: "linear",
-			get disabled() {
-				return get($0);
-			},
-			get externalValue() {
-				return get($1);
-			},
-			get learningMidi() {
-				return get($2);
-			},
-			get assignedCc() {
-				return get($3);
-			},
-			onchange: (e) => $$props.onchange?.({
-				param: "delayMix",
-				value: e.value
-			}),
-			oncontextmenu: () => $$props.onknobcontextmenu?.("delayMix")
 		});
 	}
 	reset(div_2);
