@@ -847,6 +847,213 @@ body {
     max-width: 130px;
   }
 
+  .patch-control.svelte-skeerl {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .trigger.svelte-skeerl {
+    font-family: monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    border-radius: 2px;
+    padding: 3px 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .trigger.svelte-skeerl:hover {
+    color: #e8dcc8;
+  }
+
+  .patch-name.svelte-skeerl {
+    color: #c87941;
+    text-transform: uppercase;
+  }
+
+  .dirty.svelte-skeerl {
+    color: #c87941;
+    margin-left: 1px;
+  }
+
+  .popover.svelte-skeerl {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 10;
+    min-width: 200px;
+    background: #1c1c1c;
+    border: 1px solid #444;
+    border-radius: 2px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .empty.svelte-skeerl {
+    font-family: monospace;
+    font-size: 10px;
+    color: #666;
+    margin: 0;
+    padding: 4px 0;
+    text-align: center;
+  }
+
+  .patch-list.svelte-skeerl {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .patch-row.svelte-skeerl {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: space-between;
+  }
+
+  .patch-load.svelte-skeerl {
+    flex: 1;
+    text-align: left;
+    font-family: monospace;
+    font-size: 11px;
+    background: transparent;
+    color: #e8dcc8;
+    border: none;
+    padding: 3px 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .patch-row.active.svelte-skeerl .patch-load:where(.svelte-skeerl) {
+    color: #c87941;
+  }
+
+  .patch-load.svelte-skeerl:hover {
+    background: #2a2a2a;
+  }
+
+  .marker.svelte-skeerl {
+    display: inline-block;
+    width: 0.9em;
+    color: #c87941;
+  }
+
+  .rename-input.svelte-skeerl {
+    flex: 1;
+    min-width: 0;
+    font-family: monospace;
+    font-size: 11px;
+    background: #2a2a2a;
+    color: #e8dcc8;
+    border: 1px solid #c87941;
+    border-radius: 2px;
+    padding: 2px 4px;
+    text-transform: uppercase;
+  }
+
+  .patch-rename.svelte-skeerl,
+  .patch-delete.svelte-skeerl,
+  .confirm-btn.svelte-skeerl {
+    font-family: monospace;
+    font-size: 11px;
+    background: #2a2a2a;
+    color: #888;
+    border: 1px solid #444;
+    border-radius: 2px;
+    padding: 1px 5px;
+    cursor: pointer;
+  }
+
+  .patch-delete.svelte-skeerl:hover {
+    color: #c8413a;
+    border-color: #c8413a;
+  }
+
+  .patch-rename.svelte-skeerl:hover {
+    color: #c87941;
+    border-color: #c87941;
+  }
+
+  .confirm.svelte-skeerl {
+    font-family: monospace;
+    font-size: 10px;
+    color: #c87941;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+
+  .save-row.svelte-skeerl {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid #333;
+    padding-top: 6px;
+  }
+
+  .name-input.svelte-skeerl {
+    flex: 1;
+    min-width: 0;
+    font-family: monospace;
+    font-size: 11px;
+    background: #2a2a2a;
+    color: #e8dcc8;
+    border: 1px solid #444;
+    border-radius: 2px;
+    padding: 3px 5px;
+    text-transform: uppercase;
+  }
+
+  .name-input.svelte-skeerl::placeholder {
+    color: #666;
+    /* Placeholder is descriptive text, not an entered name — keep it as-is. */
+    text-transform: none;
+  }
+
+  .save-btn.svelte-skeerl {
+    font-family: monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    background: #3a2a1a;
+    color: #c87941;
+    border: 1px solid #c87941;
+    border-radius: 2px;
+    padding: 3px 8px;
+    cursor: pointer;
+  }
+
+  .save-btn.svelte-skeerl:hover:not(:disabled) {
+    background: #4a3424;
+  }
+
+  .save-btn.svelte-skeerl:disabled,
+  .name-input.svelte-skeerl:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .error.svelte-skeerl {
+    font-family: monospace;
+    font-size: 10px;
+    color: #c8413a;
+    margin: 0;
+  }
+
   .panel.svelte-1pr5o9o {
     background: #1c1c1c;
     border: 1px solid #333;
@@ -891,6 +1098,15 @@ body {
     align-items: center;
     gap: 12px;
     margin-left: auto;
+  }
+
+  /* Stack the MIDI status and patch control vertically, right-aligned, so the
+     patch button sits under the MIDI indicator row. */
+  .status-stack.svelte-1n46o8q {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
   }
 
   .github-link.svelte-1n46o8q {

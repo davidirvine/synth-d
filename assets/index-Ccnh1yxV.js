@@ -85,7 +85,8 @@ var EFFECT_OFFSCREEN = 1 << 25;
 /**
 * Tells that we marked this derived and its reactions as visited during the "mark as (maybe) dirty"-phase.
 * Will be lifted during execution of the derived and during checking its dirty state (both are necessary
-* because a derived might be checked but not executed).
+* because a derived might be checked but not executed). This is a pure performance optimization flag and
+* should not be used for any other purpose!
 */
 var WAS_MARKED = 65536;
 var REACTION_IS_UPDATING = 1 << 21;
@@ -95,6 +96,11 @@ var STATE_SYMBOL = Symbol("$state");
 var LEGACY_PROPS = Symbol("legacy props");
 var LOADING_ATTR_SYMBOL = Symbol("");
 var PROXY_PATH_SYMBOL = Symbol("proxy path");
+var ATTRIBUTES_CACHE = Symbol("attributes");
+var CLASS_CACHE = Symbol("class");
+var STYLE_CACHE = Symbol("style");
+var TEXT_CACHE = Symbol("text");
+var FORM_RESET_HANDLER = Symbol("form reset");
 /** An anchor might change, via this symbol on the original anchor we can tell HMR about the updated anchor */
 var HMR_ANCHOR = Symbol("hmr anchor");
 /** allow users to ignore aborted signal errors if `reason.name === 'StaleReactionError` */
@@ -141,6 +147,17 @@ function async_derived_orphan() {
 		error.name = "Svelte error";
 		throw error;
 	} else throw new Error(`https://svelte.dev/e/async_derived_orphan`);
+}
+/**
+* Using `bind:value` together with a checkbox input is not allowed. Use `bind:checked` instead
+* @returns {never}
+*/
+function bind_invalid_checkbox_value() {
+	if (dev_fallback_default) {
+		const error = /* @__PURE__ */ new Error(`bind_invalid_checkbox_value\nUsing \`bind:value\` together with a checkbox input is not allowed. Use \`bind:checked\` instead\nhttps://svelte.dev/e/bind_invalid_checkbox_value`);
+		error.name = "Svelte error";
+		throw error;
+	} else throw new Error(`https://svelte.dev/e/bind_invalid_checkbox_value`);
 }
 /**
 * A derived value cannot reference itself recursively
@@ -298,7 +315,7 @@ function svelte_boundary_reset_onerror() {
 //#endregion
 //#region node_modules/svelte/src/constants.js
 var HYDRATION_ERROR = {};
-var UNINITIALIZED = Symbol();
+var UNINITIALIZED = Symbol("uninitialized");
 var FILENAME = Symbol("filename");
 var NAMESPACE_HTML = "http://www.w3.org/1999/xhtml";
 //#endregion
@@ -653,6 +670,12 @@ function queue_micro_task(fn) {
 	}
 	micro_tasks.push(fn);
 }
+/**
+* Synchronously run any queued tasks.
+*/
+function flush_tasks() {
+	while (micro_tasks.length > 0) run_micro_tasks();
+}
 //#endregion
 //#region node_modules/svelte/src/internal/client/error-handling.js
 /** @import { Derived, Effect } from '#client' */
@@ -890,7 +913,7 @@ var legacy_is_updating_store = false;
 * runes mode, and skip `binding_property_non_reactive` validation
 */
 var is_store_binding = false;
-var IS_UNMOUNTED = Symbol();
+var IS_UNMOUNTED = Symbol("unmounted");
 /**
 * Gets the current value of a store. If the store isn't subscribed to yet, it will create a proxy
 * signal that will be updated when the store is. The store references container is needed to
@@ -965,10 +988,17 @@ function capture_store_binding(fn) {
 //#region node_modules/svelte/src/internal/client/reactivity/batch.js
 /** @import { Fork } from 'svelte' */
 /** @import { Derived, Effect, Reaction, Source, Value } from '#client' */
-/** @type {Set<Batch>} */
-var batches = /* @__PURE__ */ new Set();
+/** @type {Batch | null} */
+var first_batch = null;
+/** @type {Batch | null} */
+var last_batch = null;
 /** @type {Batch | null} */
 var current_batch = null;
+/**
+* This is needed to avoid overwriting inputs
+* @type {Batch | null}
+*/
+var previous_batch = null;
 /**
 * When time travelling (i.e. working in one batch, while other batches
 * still have ongoing work), we ignore the real values of affected
@@ -996,10 +1026,20 @@ var collected_effects = null;
 */
 var legacy_updates = null;
 var flush_count = 0;
-var source_stacks = dev_fallback_default ? /* @__PURE__ */ new Set() : null;
+/** @type {Set<Value>} */
+var source_stacks = /* @__PURE__ */ new Set();
 var uid = 1;
 var Batch = class Batch {
 	id = uid++;
+	/** True as soon as `#process` was called */
+	#started = false;
+	linked = true;
+	/** @type {Batch | null} */
+	#prev = null;
+	/** @type {Batch | null} */
+	#next = null;
+	/** @type {Map<Effect, ReturnType<typeof deferred<any>>>} */
+	async_deriveds = /* @__PURE__ */ new Map();
 	/**
 	* The current values of any signals that are updated in this batch.
 	* Tuple format: [value, is_derived] (note: is_derived is false for deriveds, too, if they were overridden via assignment)
@@ -1013,6 +1053,12 @@ var Batch = class Batch {
 	* @type {Map<Value, any>}
 	*/
 	previous = /* @__PURE__ */ new Map();
+	/**
+	* Async effects which this batch doesn't take into account anymore when calculating blockers,
+	* as it has a value for it already.
+	* @type {Set<Effect>}
+	*/
+	unblocked = /* @__PURE__ */ new Set();
 	/**
 	* When the batch is committed (and the DOM is updated), we need to remove old branches
 	* and append new ones by calling the functions added inside (if/each/key/etc) blocks
@@ -1030,10 +1076,9 @@ var Batch = class Batch {
 	*/
 	#fork_commit_callbacks = /* @__PURE__ */ new Set();
 	/**
-	* Async effects that are currently in flight
-	* @type {Map<Effect, number>}
+	* The number of async effects that are currently in flight
 	*/
-	#pending = /* @__PURE__ */ new Map();
+	#pending = 0;
 	/**
 	* Async effects that are currently in flight, _not_ inside a pending boundary
 	* @type {Map<Effect, number>}
@@ -1080,15 +1125,11 @@ var Batch = class Batch {
 	#unskipped_branches = /* @__PURE__ */ new Set();
 	is_fork = false;
 	#decrement_queued = false;
-	/** @type {Set<Batch>} */
-	#blockers = /* @__PURE__ */ new Set();
 	#is_deferred() {
-		return this.is_fork || this.#blocking_pending.size > 0;
-	}
-	#is_blocked() {
-		for (const batch of this.#blockers) for (const effect of batch.#blocking_pending.keys()) {
-			var skipped = false;
+		if (this.is_fork) return true;
+		for (const effect of this.#blocking_pending.keys()) {
 			var e = effect;
+			var skipped = false;
 			while (e.parent !== null) {
 				if (this.#skipped_branches.has(e)) {
 					skipped = true;
@@ -1133,10 +1174,12 @@ var Batch = class Batch {
 		this.#unskipped_branches.add(effect);
 	}
 	#process() {
+		this.#started = true;
 		if (flush_count++ > 1e3) {
-			batches.delete(this);
+			this.#unlink();
 			infinite_loop_guard();
 		}
+		if (dev_fallback_default) for (const value of this.current.keys()) source_stacks.add(value);
 		if (!this.#is_deferred()) {
 			for (const e of this.#dirty_effects) {
 				this.#maybe_dirty_effects.delete(e);
@@ -1173,33 +1216,43 @@ var Batch = class Batch {
 		}
 		collected_effects = null;
 		legacy_updates = null;
-		if (this.#is_deferred() || this.#is_blocked()) {
+		if (this.#is_deferred()) {
 			this.#defer_effects(render_effects);
 			this.#defer_effects(effects);
 			for (const [e, t] of this.#skipped_branches) reset_branch(e, t);
-		} else {
-			if (this.#pending.size === 0) batches.delete(this);
-			this.#dirty_effects.clear();
-			this.#maybe_dirty_effects.clear();
-			for (const fn of this.#commit_callbacks) fn(this);
-			this.#commit_callbacks.clear();
-			this;
-			flush_queued_effects(render_effects);
-			flush_queued_effects(effects);
-			this.#deferred?.resolve();
+			if (updates.length > 0)
+ /** @type {Batch} */ current_batch.#process();
+			return;
 		}
+		const earlier_batch = this.#find_earlier_batch();
+		if (earlier_batch) {
+			earlier_batch.#merge(this);
+			return;
+		}
+		this.#dirty_effects.clear();
+		this.#maybe_dirty_effects.clear();
+		for (const fn of this.#commit_callbacks) fn(this);
+		this.#commit_callbacks.clear();
+		previous_batch = this;
+		flush_queued_effects(render_effects);
+		flush_queued_effects(effects);
+		previous_batch = null;
+		this.#deferred?.resolve();
 		var next_batch = current_batch;
+		if (this.linked && this.#pending === 0) this.#unlink();
+		if (async_mode_flag && !this.linked) {
+			this.#commit();
+			current_batch = next_batch;
+		}
 		if (this.#roots.length > 0) {
-			const batch = next_batch ??= this;
+			if (next_batch === null) {
+				next_batch = this;
+				this.#link();
+			}
+			const batch = next_batch;
 			batch.#roots.push(...this.#roots.filter((r) => !batch.#roots.includes(r)));
 		}
-		if (next_batch !== null) {
-			batches.add(next_batch);
-			if (dev_fallback_default) for (const source of this.current.keys())
- /** @type {Set<Source>} */ source_stacks.add(source);
-			next_batch.#process();
-		}
-		if (async_mode_flag && !batches.has(this)) this.#commit();
+		if (next_batch !== null) next_batch.#process();
 	}
 	/**
 	* Traverse the effect tree, executing effects or stashing
@@ -1238,6 +1291,58 @@ var Batch = class Batch {
 			}
 		}
 	}
+	#find_earlier_batch() {
+		var batch = this.#prev;
+		while (batch !== null) {
+			if (!batch.is_fork) {
+				for (const [value, [, is_derived]] of this.current) if (batch.current.has(value) && !is_derived) return batch;
+			}
+			batch = batch.#prev;
+		}
+		return null;
+	}
+	/**
+	* @param {Batch} batch
+	*/
+	#merge(batch) {
+		for (const [source, value] of batch.current) {
+			if (!this.previous.has(source) && batch.previous.has(source)) this.previous.set(source, batch.previous.get(source));
+			this.current.set(source, value);
+		}
+		for (const [effect, deferred] of batch.async_deriveds) {
+			const d = this.async_deriveds.get(effect);
+			if (d) deferred.promise.then(d.resolve);
+		}
+		/**
+		* mark all effects that depend on `batch.current`, except the
+		* async effects that we just resolved (TODO unless they depend
+		* on values in this batch that are NOT in the later batch?).
+		* Through this we also will populate the correct #skipped_branches,
+		* oncommit callbacks etc, so we don't need to merge them separately.
+		* @param {Value} value
+		*/
+		const mark = (value) => {
+			var reactions = value.reactions;
+			if (reactions === null) return;
+			for (const reaction of reactions) {
+				var flags = reaction.f;
+				if ((flags & 2) !== 0) mark(reaction);
+				else {
+					var effect = reaction;
+					if (flags & 4194320 && !this.async_deriveds.has(effect)) {
+						this.#maybe_dirty_effects.delete(effect);
+						set_signal_status(effect, DIRTY);
+						this.schedule(effect);
+					}
+				}
+			}
+		};
+		for (const source of this.current.keys()) mark(source);
+		this.oncommit(() => batch.discard());
+		batch.#unlink();
+		current_batch = this;
+		this.#process();
+	}
 	/**
 	* @param {Effect[]} effects
 	*/
@@ -1267,8 +1372,8 @@ var Batch = class Batch {
 		batch_values = null;
 	}
 	flush() {
-		var source_stacks = dev_fallback_default ? /* @__PURE__ */ new Set() : null;
 		try {
+			if (dev_fallback_default) source_stacks.clear();
 			is_processing = true;
 			current_batch = this;
 			this.#process();
@@ -1288,7 +1393,7 @@ var Batch = class Batch {
 		for (const fn of this.#discard_callbacks) fn(this);
 		this.#discard_callbacks.clear();
 		this.#fork_commit_callbacks.clear();
-		batches.delete(this);
+		this.#unlink();
 	}
 	/**
 	* @param {Effect} effect
@@ -1297,7 +1402,8 @@ var Batch = class Batch {
 		this.#new_effects.push(effect);
 	}
 	#commit() {
-		for (const batch of batches) {
+		this.#unlink();
+		for (let batch = first_batch; batch !== null; batch = batch.#next) {
 			var is_earlier = batch.id < this.id;
 			/** @type {Source[]} */
 			var sources = [];
@@ -1309,6 +1415,11 @@ var Batch = class Batch {
 				}
 				sources.push(source);
 			}
+			if (is_earlier) for (const [effect, deferred] of this.async_deriveds) {
+				const d = batch.async_deriveds.get(effect);
+				if (d) deferred.promise.then(d.resolve);
+			}
+			if (!batch.#started) continue;
 			var others = [...batch.current.keys()].filter((s) => !this.current.has(s));
 			if (others.length === 0) {
 				if (is_earlier) batch.discard();
@@ -1325,11 +1436,13 @@ var Batch = class Batch {
 				var checked = /* @__PURE__ */ new Map();
 				for (var source of sources) mark_effects(source, others, marked, checked);
 				checked = /* @__PURE__ */ new Map();
-				var current_unequal = [...batch.current.keys()].filter((c) => this.current.has(c) ? this.current.get(c)[0] !== c : true);
-				for (const effect of this.#new_effects) if ((effect.f & 155648) === 0 && depends_on(effect, current_unequal, checked)) if ((effect.f & 4194320) !== 0) {
-					set_signal_status(effect, DIRTY);
-					batch.schedule(effect);
-				} else batch.#dirty_effects.add(effect);
+				var current_unequal = [...batch.current.keys()].filter((c) => this.current.has(c) ? this.current.get(c)[0] !== c.v : true);
+				if (current_unequal.length > 0) {
+					for (const effect of this.#new_effects) if ((effect.f & 155648) === 0 && depends_on(effect, current_unequal, checked)) if ((effect.f & 4194320) !== 0) {
+						set_signal_status(effect, DIRTY);
+						batch.schedule(effect);
+					} else batch.#dirty_effects.add(effect);
+				}
 				if (batch.#roots.length > 0) {
 					batch.apply();
 					for (var root of batch.#roots) batch.#traverse(root, [], []);
@@ -1338,21 +1451,13 @@ var Batch = class Batch {
 				batch.deactivate();
 			}
 		}
-		for (const batch of batches) if (batch.#blockers.has(this)) {
-			batch.#blockers.delete(this);
-			if (batch.#blockers.size === 0 && !batch.#is_deferred()) {
-				batch.activate();
-				batch.#process();
-			}
-		}
 	}
 	/**
 	* @param {boolean} blocking
 	* @param {Effect} effect
 	*/
 	increment(blocking, effect) {
-		let pending_count = this.#pending.get(effect) ?? 0;
-		this.#pending.set(effect, pending_count + 1);
+		this.#pending += 1;
 		if (blocking) {
 			let blocking_pending_count = this.#blocking_pending.get(effect) ?? 0;
 			this.#blocking_pending.set(effect, blocking_pending_count + 1);
@@ -1361,22 +1466,19 @@ var Batch = class Batch {
 	/**
 	* @param {boolean} blocking
 	* @param {Effect} effect
-	* @param {boolean} skip - whether to skip updates (because this is triggered by a stale reaction)
 	*/
-	decrement(blocking, effect, skip) {
-		let pending_count = this.#pending.get(effect) ?? 0;
-		if (pending_count === 1) this.#pending.delete(effect);
-		else this.#pending.set(effect, pending_count - 1);
+	decrement(blocking, effect) {
+		this.#pending -= 1;
 		if (blocking) {
 			let blocking_pending_count = this.#blocking_pending.get(effect) ?? 0;
 			if (blocking_pending_count === 1) this.#blocking_pending.delete(effect);
 			else this.#blocking_pending.set(effect, blocking_pending_count - 1);
 		}
-		if (this.#decrement_queued || skip) return;
+		if (this.#decrement_queued) return;
 		this.#decrement_queued = true;
 		queue_micro_task(() => {
 			this.#decrement_queued = false;
-			this.flush();
+			if (this.linked) this.flush();
 		});
 	}
 	/**
@@ -1411,34 +1513,33 @@ var Batch = class Batch {
 	static ensure() {
 		if (current_batch === null) {
 			const batch = current_batch = new Batch();
-			if (!is_processing) {
-				batches.add(current_batch);
-				if (!is_flushing_sync) queue_micro_task(() => {
-					if (current_batch !== batch) return;
-					batch.flush();
-				});
-			}
+			batch.#link();
+			if (!is_processing && !is_flushing_sync) queue_micro_task(() => {
+				if (!batch.#started) batch.flush();
+			});
 		}
 		return current_batch;
 	}
 	apply() {
-		if (!async_mode_flag || !this.is_fork && batches.size === 1) {
+		if (!async_mode_flag || !this.is_fork && this.#prev === null && this.#next === null) {
 			batch_values = null;
 			return;
 		}
 		batch_values = /* @__PURE__ */ new Map();
 		for (const [source, [value]] of this.current) batch_values.set(source, value);
-		for (const batch of batches) {
+		for (let batch = first_batch; batch !== null; batch = batch.#next) {
 			if (batch === this || batch.is_fork) continue;
 			var intersects = false;
-			var differs = false;
 			if (batch.id < this.id) for (const [source, [, is_derived]] of batch.current) {
 				if (is_derived) continue;
-				intersects ||= this.current.has(source);
-				differs ||= !this.current.has(source);
+				if (this.current.has(source)) {
+					intersects = true;
+					break;
+				}
 			}
-			if (intersects && differs) this.#blockers.add(batch);
-			else for (const [source, previous] of batch.previous) if (!batch_values.has(source)) batch_values.set(source, previous);
+			if (!intersects) {
+				for (const [source, previous] of batch.previous) if (!batch_values.has(source)) batch_values.set(source, previous);
+			}
 		}
 	}
 	/**
@@ -1466,7 +1567,49 @@ var Batch = class Batch {
 		}
 		this.#roots.push(e);
 	}
+	#link() {
+		if (last_batch === null) first_batch = last_batch = this;
+		else {
+			last_batch.#next = this;
+			this.#prev = last_batch;
+		}
+		last_batch = this;
+	}
+	#unlink() {
+		var prev = this.#prev;
+		var next = this.#next;
+		if (prev === null) first_batch = next;
+		else prev.#next = next;
+		if (next === null) last_batch = prev;
+		else next.#prev = prev;
+		this.linked = false;
+	}
 };
+/**
+* Synchronously flush any pending updates.
+* Returns void if no callback is provided, otherwise returns the result of calling the callback.
+* @template [T=void]
+* @param {(() => T) | undefined} [fn]
+* @returns {T}
+*/
+function flushSync(fn) {
+	var was_flushing_sync = is_flushing_sync;
+	is_flushing_sync = true;
+	try {
+		var result;
+		if (fn) {
+			if (current_batch !== null && !current_batch.is_fork) current_batch.flush();
+			result = fn();
+		}
+		while (true) {
+			flush_tasks();
+			if (current_batch === null) return result;
+			current_batch.flush();
+		}
+	} finally {
+		is_flushing_sync = was_flushing_sync;
+	}
+}
 function infinite_loop_guard() {
 	if (dev_fallback_default) {
 		var updates = /* @__PURE__ */ new Map();
@@ -1687,9 +1830,9 @@ function createSubscriber(start) {
 /** @import { Effect, Source, TemplateNode, } from '#client' */
 /**
 * @typedef {{
-* 	 onerror?: (error: unknown, reset: () => void) => void;
-*   failed?: (anchor: Node, error: () => unknown, reset: () => () => void) => void;
-*   pending?: (anchor: Node) => void;
+* 	 onerror?: ((error: unknown, reset: () => void) => void) | null;
+*   failed?: ((anchor: Node, error: () => unknown, reset: () => () => void) => void) | null;
+*   pending?: ((anchor: Node) => void) | null;
 * }} BoundaryProps
 */
 var flags = EFFECT_TRANSPARENT | EFFECT_PRESERVED;
@@ -2046,21 +2189,22 @@ function flatten(blockers, sync, async, fn) {
 	var blocker_promise = pending.length === 1 ? pending[0].promise : pending.length > 1 ? Promise.all(pending.map((b) => b.promise)) : null;
 	/** @param {Value[]} values */
 	function finish(values) {
+		if ((parent.f & 16384) !== 0) return;
 		restore();
 		try {
 			fn(values);
 		} catch (error) {
-			if ((parent.f & 16384) === 0) invoke_error_boundary(error, parent);
+			invoke_error_boundary(error, parent);
 		}
 		unset_context();
 	}
+	var decrement_pending = increment_pending();
 	if (async.length === 0) {
-		/** @type {Promise<any>} */ blocker_promise.then(() => finish(sync.map(d)));
+		/** @type {Promise<any>} */ blocker_promise.then(() => finish(sync.map(d))).finally(decrement_pending);
 		return;
 	}
-	var decrement_pending = increment_pending();
 	function run() {
-		Promise.all(async.map((expression) => /* @__PURE__ */ async_derived(expression))).then((result) => finish([...sync.map(d), ...result])).catch((error) => invoke_error_boundary(error, parent)).finally(() => decrement_pending());
+		Promise.all(async.map((expression) => /* @__PURE__ */ async_derived(expression))).then((result) => finish([...sync.map(d), ...result])).catch((error) => invoke_error_boundary(error, parent)).finally(decrement_pending);
 	}
 	if (blocker_promise) blocker_promise.then(() => {
 		restore();
@@ -2114,9 +2258,9 @@ function increment_pending() {
 	var blocking = boundary.is_rendered();
 	boundary.update_pending_count(1, batch);
 	batch.increment(blocking, effect);
-	return (skip = false) => {
+	return () => {
 		boundary.update_pending_count(-1, batch);
-		batch.decrement(blocking, effect, skip);
+		batch.decrement(blocking, effect);
 	};
 }
 //#endregion
@@ -2162,6 +2306,7 @@ function derived(fn) {
 	if (dev_fallback_default && tracing_mode_flag) signal.created = get_error("created at");
 	return signal;
 }
+var OBSOLETE = Symbol("obsolete");
 /**
 * @template V
 * @param {() => V | Promise<V>} fn
@@ -2175,10 +2320,10 @@ function async_derived(fn, label, location) {
 	if (parent === null) async_derived_orphan();
 	var promise = void 0;
 	var signal = source(UNINITIALIZED);
-	if (dev_fallback_default) signal.label = label;
+	if (dev_fallback_default) signal.label = label ?? fn.toString();
 	var should_suspend = !active_reaction;
-	/** @type {Map<Batch, ReturnType<typeof deferred<V>>>} */
-	var deferreds = /* @__PURE__ */ new Map();
+	/** @type {Set<ReturnType<typeof deferred<V>>>} */
+	var deferreds = /* @__PURE__ */ new Set();
 	async_effect(() => {
 		var effect = active_effect;
 		if (dev_fallback_default) reactivity_loss_tracker = {
@@ -2190,7 +2335,9 @@ function async_derived(fn, label, location) {
 		var d = deferred();
 		promise = d.promise;
 		try {
-			Promise.resolve(fn()).then(d.resolve, d.reject).finally(unset_context);
+			Promise.resolve(fn()).then(d.resolve, (e) => {
+				if (e !== STALE_REACTION) d.reject(e);
+			}).finally(unset_context);
 		} catch (error) {
 			d.reject(error);
 			unset_context();
@@ -2205,14 +2352,10 @@ function async_derived(fn, label, location) {
 		var batch = current_batch;
 		if (should_suspend) {
 			if ((effect.f & 32768) !== 0) var decrement_pending = increment_pending();
-			if (parent.b.is_rendered()) {
-				deferreds.get(batch)?.reject(STALE_REACTION);
-				deferreds.delete(batch);
-			} else {
-				for (const d of deferreds.values()) d.reject(STALE_REACTION);
-				deferreds.clear();
-			}
-			deferreds.set(batch, d);
+			if (parent.b.is_rendered()) batch.async_deriveds.get(effect)?.reject(OBSOLETE);
+			else for (const d of deferreds.values()) d.reject(OBSOLETE);
+			deferreds.add(d);
+			batch.async_deriveds.set(effect, d);
 		}
 		/**
 		* @param {any} value
@@ -2220,8 +2363,9 @@ function async_derived(fn, label, location) {
 		*/
 		const handler = (value, error = void 0) => {
 			if (dev_fallback_default) reactivity_loss_tracker = null;
-			if (decrement_pending) decrement_pending(error === STALE_REACTION);
-			if (error === STALE_REACTION || (effect.f & 16384) !== 0) return;
+			decrement_pending?.();
+			deferreds.delete(d);
+			if (error === OBSOLETE) return;
 			batch.activate();
 			if (error) {
 				signal.f |= ERROR_VALUE;
@@ -2229,15 +2373,10 @@ function async_derived(fn, label, location) {
 			} else {
 				if ((signal.f & 8388608) !== 0) signal.f ^= ERROR_VALUE;
 				internal_set(signal, value);
-				for (const [b, d] of deferreds) {
-					deferreds.delete(b);
-					if (b === batch) break;
-					d.reject(STALE_REACTION);
-				}
 				if (dev_fallback_default && location !== void 0) {
 					recent_async_deriveds.add(signal);
 					setTimeout(() => {
-						if (recent_async_deriveds.has(signal)) {
+						if (recent_async_deriveds.has(signal) && (effect.f & 16384) === 0) {
 							await_waterfall(signal.label, location);
 							recent_async_deriveds.delete(signal);
 						}
@@ -2249,7 +2388,7 @@ function async_derived(fn, label, location) {
 		d.promise.then(handler, (e) => handler(null, e || "unknown"));
 	});
 	teardown(() => {
-		for (const d of deferreds.values()) d.reject(STALE_REACTION);
+		for (const d of deferreds) d.reject(OBSOLETE);
 	});
 	if (dev_fallback_default) signal.f |= ASYNC;
 	return new Promise((fulfil) => {
@@ -2312,7 +2451,7 @@ function execute_derived(derived) {
 	var value;
 	var prev_active_effect = active_effect;
 	var parent = derived.parent;
-	if (!is_destroying_effect && parent !== null && (parent.f & 24576) !== 0) {
+	if (!is_destroying_effect && parent !== null && derived.v !== UNINITIALIZED && (parent.f & 24576) !== 0) {
 		derived_inert();
 		return derived.v;
 	}
@@ -2349,8 +2488,10 @@ function update_derived(derived) {
 	if (!derived.equals(value)) {
 		derived.wv = increment_write_version();
 		if (!current_batch?.is_fork || derived.deps === null) {
-			if (current_batch !== null) current_batch.capture(derived, value, true);
-			else derived.v = value;
+			if (current_batch !== null) {
+				current_batch.capture(derived, value, true);
+				previous_batch?.capture(derived, value, true);
+			} else derived.v = value;
 			if (derived.deps === null) {
 				set_signal_status(derived, CLEAN);
 				return;
@@ -2370,7 +2511,7 @@ function freeze_derived_effects(derived) {
 	for (const e of derived.effects) if (e.teardown || e.ac) {
 		e.teardown?.();
 		e.ac?.abort(STALE_REACTION);
-		e.teardown = noop;
+		if (e.fn !== null) e.teardown = noop;
 		e.ac = null;
 		remove_reactions(e, 0);
 		destroy_effect_children(e);
@@ -2381,12 +2522,12 @@ function freeze_derived_effects(derived) {
 */
 function unfreeze_derived_effects(derived) {
 	if (derived.effects === null) return;
-	for (const e of derived.effects) if (e.teardown) update_effect(e);
+	for (const e of derived.effects) if (e.teardown && e.fn !== null) update_effect(e);
 }
 //#endregion
 //#region node_modules/svelte/src/internal/client/reactivity/sources.js
 /** @import { Derived, Effect, Source, Value } from '#client' */
-/** @type {Set<any>} */
+/** @type {Set<Effect>} */
 var eager_effects = /* @__PURE__ */ new Set();
 /** @type {Map<Source, any>} */
 var old_values = /* @__PURE__ */ new Map();
@@ -2515,7 +2656,13 @@ function flush_eager_effects() {
 	eager_effects_deferred = false;
 	for (const effect of eager_effects) {
 		if ((effect.f & 1024) !== 0) set_signal_status(effect, MAYBE_DIRTY);
-		if (is_dirty(effect)) update_effect(effect);
+		let dirty;
+		try {
+			dirty = is_dirty(effect);
+		} catch {
+			dirty = true;
+		}
+		if (dirty) update_effect(effect);
 	}
 	eager_effects.clear();
 }
@@ -2553,17 +2700,14 @@ function mark_reactions(signal, status, updated_during_traversal) {
 		var reaction = reactions[i];
 		var flags = reaction.f;
 		if (!runes && reaction === active_effect) continue;
-		if (dev_fallback_default && (flags & 131072) !== 0) {
-			eager_effects.add(reaction);
-			continue;
-		}
 		var not_dirty = (flags & DIRTY) === 0;
 		if (not_dirty) set_signal_status(reaction, status);
-		if ((flags & 2) !== 0) {
+		if ((flags & 131072) !== 0) eager_effects.add(reaction);
+		else if ((flags & 2) !== 0) {
 			var derived = reaction;
 			batch_values?.delete(derived);
 			if ((flags & 65536) === 0) {
-				if (flags & 512) reaction.f |= WAS_MARKED;
+				if (flags & 512 && (active_effect === null || (active_effect.f & 2097152) === 0)) reaction.f |= WAS_MARKED;
 				mark_reactions(derived, MAYBE_DIRTY, updated_during_traversal);
 			}
 		} else if (not_dirty) {
@@ -2885,13 +3029,13 @@ function init_operations() {
 	first_child_getter = get_descriptor(node_prototype, "firstChild").get;
 	next_sibling_getter = get_descriptor(node_prototype, "nextSibling").get;
 	if (is_extensible(element_prototype)) {
-		element_prototype.__click = void 0;
-		element_prototype.__className = void 0;
-		element_prototype.__attributes = null;
-		element_prototype.__style = void 0;
+		/** @type {any} */ element_prototype[CLASS_CACHE] = void 0;
+		/** @type {any} */ element_prototype[ATTRIBUTES_CACHE] = null;
+		/** @type {any} */ element_prototype[STYLE_CACHE] = void 0;
 		element_prototype.__e = void 0;
 	}
-	if (is_extensible(text_prototype)) text_prototype.__t = void 0;
+	if (is_extensible(text_prototype))
+ /** @type {any} */ text_prototype[TEXT_CACHE] = void 0;
 	if (dev_fallback_default) {
 		element_prototype.__svelte_meta = null;
 		init_array_prototype_warnings();
@@ -2940,6 +3084,29 @@ function child(node, is_text) {
 	if (is_text) merge_text_nodes(child);
 	set_hydrate_node(child);
 	return child;
+}
+/**
+* Don't mark this as side-effect-free, hydration needs to walk all nodes
+* @param {TemplateNode} node
+* @param {boolean} [is_text]
+* @returns {TemplateNode | null}
+*/
+function first_child(node, is_text = false) {
+	if (!hydrating) {
+		var first = /* @__PURE__ */ get_first_child(node);
+		if (first instanceof Comment && first.data === "") return /* @__PURE__ */ get_next_sibling(first);
+		return first;
+	}
+	if (is_text) {
+		if (hydrate_node?.nodeType !== 3) {
+			var text = create_text();
+			hydrate_node?.before(text);
+			set_hydrate_node(text);
+			return text;
+		}
+		merge_text_nodes(hydrate_node);
+	}
+	return hydrate_node;
 }
 /**
 * Don't mark this as side-effect-free, hydration needs to walk all nodes
@@ -3014,6 +3181,20 @@ function merge_text_nodes(text) {
 	}
 }
 //#endregion
+//#region node_modules/svelte/src/internal/client/dom/elements/misc.js
+var listening_to_form_reset = false;
+function add_form_reset_listener() {
+	if (!listening_to_form_reset) {
+		listening_to_form_reset = true;
+		document.addEventListener("reset", (evt) => {
+			Promise.resolve().then(() => {
+				if (!evt.defaultPrevented) for (const e of evt.target.elements)
+ /** @type {any} */ e[FORM_RESET_HANDLER]?.();
+			});
+		}, { capture: true });
+	}
+}
+//#endregion
 //#region node_modules/svelte/src/internal/client/dom/elements/bindings/shared.js
 /**
 * @template T
@@ -3030,6 +3211,26 @@ function without_reactive_context(fn) {
 		set_active_reaction(previous_reaction);
 		set_active_effect(previous_effect);
 	}
+}
+/**
+* Listen to the given event, and then instantiate a global form reset listener if not already done,
+* to notify all bindings when the form is reset
+* @param {HTMLElement} element
+* @param {string} event
+* @param {(is_reset?: true) => void} handler
+* @param {(is_reset?: true) => void} [on_reset]
+*/
+function listen_to_event_and_reset_event(element, event, handler, on_reset = handler) {
+	element.addEventListener(event, () => without_reactive_context(handler));
+	const prev = element[FORM_RESET_HANDLER];
+	if (prev)
+ /** @type {any} */ element[FORM_RESET_HANDLER] = () => {
+		prev();
+		on_reset(true);
+	};
+	else
+ /** @type {any} */ element[FORM_RESET_HANDLER] = () => on_reset(true);
+	add_form_reset_listener();
 }
 //#endregion
 //#region node_modules/svelte/src/internal/client/reactivity/effects.js
@@ -3672,6 +3873,18 @@ function update_effect(effect) {
 	}
 }
 /**
+* Returns a promise that resolves once any pending state changes have been applied.
+* @returns {Promise<void>}
+*/
+async function tick() {
+	if (async_mode_flag) return new Promise((f) => {
+		requestAnimationFrame(() => f());
+		setTimeout(() => f());
+	});
+	await Promise.resolve();
+	flushSync();
+}
+/**
 * @template V
 * @param {Value<V>} signal
 * @returns {V}
@@ -4088,8 +4301,8 @@ function append(anchor, dom) {
 */
 function set_text(text, value) {
 	var str = value == null ? "" : typeof value === "object" ? `${value}` : value;
-	if (str !== (text.__t ??= text.nodeValue)) {
-		text.__t = str;
+	if (str !== (text[TEXT_CACHE] ??= text.nodeValue)) {
+		/** @type {any} */ text[TEXT_CACHE] = str;
 		text.nodeValue = `${str}`;
 	}
 }
@@ -4989,13 +5202,13 @@ function to_style(value, styles) {
 * @returns {Record<string, boolean> | undefined}
 */
 function set_class(dom, is_html, value, hash, prev_classes, next_classes) {
-	var prev = dom.__className;
+	var prev = dom[CLASS_CACHE];
 	if (hydrating || prev !== value || prev === void 0) {
 		var next_class_name = to_class(value, hash, next_classes);
 		if (!hydrating || next_class_name !== dom.getAttribute("class")) if (next_class_name == null) dom.removeAttribute("class");
 		else if (is_html) dom.className = next_class_name;
 		else dom.setAttribute("class", next_class_name);
-		dom.__className = value;
+		/** @type {any} */ dom[CLASS_CACHE] = value;
 	} else if (next_classes && prev_classes !== next_classes) for (var key in next_classes) {
 		var is_present = !!next_classes[key];
 		if (prev_classes == null || is_present !== !!prev_classes[key]) dom.classList.toggle(key, is_present);
@@ -5024,12 +5237,12 @@ function update_styles(dom, prev = {}, next, priority) {
 * @param {Record<string, any> | [Record<string, any>, Record<string, any>]} [next_styles]
 */
 function set_style(dom, value, prev_styles, next_styles) {
-	var prev = dom.__style;
+	var prev = dom[STYLE_CACHE];
 	if (hydrating || prev !== value) {
 		var next_style_attr = to_style(value, next_styles);
 		if (!hydrating || next_style_attr !== dom.getAttribute("style")) if (next_style_attr == null) dom.removeAttribute("style");
 		else dom.style.cssText = next_style_attr;
-		dom.__style = value;
+		/** @type {any} */ dom[STYLE_CACHE] = value;
 	} else if (next_styles) if (Array.isArray(next_styles)) {
 		update_styles(dom, prev_styles?.[0], next_styles[0]);
 		update_styles(dom, prev_styles?.[1], next_styles[1], "important");
@@ -5092,6 +5305,33 @@ var IS_CUSTOM_ELEMENT = Symbol("is custom element");
 var IS_HTML = Symbol("is html");
 var LINK_TAG = IS_XHTML ? "link" : "LINK";
 /**
+* The value/checked attribute in the template actually corresponds to the defaultValue property, so we need
+* to remove it upon hydration to avoid a bug when someone resets the form value.
+* @param {HTMLInputElement} input
+* @returns {void}
+*/
+function remove_input_defaults(input) {
+	if (!hydrating) return;
+	var already_removed = false;
+	var remove_defaults = () => {
+		if (already_removed) return;
+		already_removed = true;
+		if (input.hasAttribute("value")) {
+			var value = input.value;
+			set_attribute(input, "value", null);
+			input.value = value;
+		}
+		if (input.hasAttribute("checked")) {
+			var checked = input.checked;
+			set_attribute(input, "checked", null);
+			input.checked = checked;
+		}
+	};
+	/** @type {any} */ input[FORM_RESET_HANDLER] = remove_defaults;
+	queue_micro_task(remove_defaults);
+	add_form_reset_listener();
+}
+/**
 * @param {Element} element
 * @param {string} attribute
 * @param {string | null} value
@@ -5117,7 +5357,7 @@ function set_attribute(element, attribute, value, skip_warning) {
 * @param {Element} element
 */
 function get_attributes(element) {
-	return element.__attributes ??= {
+	return element[ATTRIBUTES_CACHE] ??= {
 		[IS_CUSTOM_ELEMENT]: element.nodeName.includes("-"),
 		[IS_HTML]: element.namespaceURI === NAMESPACE_HTML
 	};
@@ -5135,7 +5375,7 @@ function get_setters(element) {
 	var element_proto = Element.prototype;
 	while (element_proto !== proto) {
 		descriptors = get_descriptors(proto);
-		for (var key in descriptors) if (descriptors[key].set) setters.push(key);
+		for (var key in descriptors) if (descriptors[key].set && key !== "innerHTML" && key !== "textContent" && key !== "innerText") setters.push(key);
 		proto = get_prototype_of(proto);
 	}
 	return setters;
@@ -5175,6 +5415,71 @@ function srcset_url_equal(element, srcset) {
 	return urls.length === element_urls.length && urls.every(([url, width], i) => width === element_urls[i][1] && (src_url_equal(element_urls[i][0], url) || src_url_equal(url, element_urls[i][0])));
 }
 //#endregion
+//#region node_modules/svelte/src/internal/client/dom/elements/bindings/input.js
+/** @import { Batch } from '../../../reactivity/batch.js' */
+/**
+* @param {HTMLInputElement} input
+* @param {() => unknown} get
+* @param {(value: unknown) => void} set
+* @returns {void}
+*/
+function bind_value(input, get, set = get) {
+	var batches = /* @__PURE__ */ new WeakSet();
+	listen_to_event_and_reset_event(input, "input", async (is_reset) => {
+		if (dev_fallback_default && input.type === "checkbox") bind_invalid_checkbox_value();
+		/** @type {any} */
+		var value = is_reset ? input.defaultValue : input.value;
+		value = is_numberlike_input(input) ? to_number(value) : value;
+		set(value);
+		if (current_batch !== null) batches.add(current_batch);
+		await tick();
+		if (value !== (value = get())) {
+			var start = input.selectionStart;
+			var end = input.selectionEnd;
+			var length = input.value.length;
+			input.value = value ?? "";
+			if (end !== null) {
+				var new_length = input.value.length;
+				if (start === end && end === length && new_length > length) {
+					input.selectionStart = new_length;
+					input.selectionEnd = new_length;
+				} else {
+					input.selectionStart = start;
+					input.selectionEnd = Math.min(end, new_length);
+				}
+			}
+		}
+	});
+	if (hydrating && input.defaultValue !== input.value || untrack(get) == null && input.value) {
+		set(is_numberlike_input(input) ? to_number(input.value) : input.value);
+		if (current_batch !== null) batches.add(current_batch);
+	}
+	render_effect(() => {
+		if (dev_fallback_default && input.type === "checkbox") bind_invalid_checkbox_value();
+		var value = get();
+		if (input === document.activeElement) {
+			var batch = async_mode_flag ? previous_batch : current_batch;
+			if (batches.has(batch)) return;
+		}
+		if (is_numberlike_input(input) && value === to_number(input.value)) return;
+		if (input.type === "date" && !value && !input.value) return;
+		if (value !== input.value) input.value = value ?? "";
+	});
+}
+/**
+* @param {HTMLInputElement} input
+*/
+function is_numberlike_input(input) {
+	var type = input.type;
+	return type === "number" || type === "range";
+}
+/**
+* @param {string} value
+*/
+function to_number(value) {
+	return value === "" ? null : +value;
+}
+//#endregion
 //#region node_modules/svelte/src/internal/client/dom/elements/bindings/this.js
 /** @import { ComponentContext, Effect } from '#client' */
 /**
@@ -5205,7 +5510,7 @@ function bind_this(element_or_component = {}, update, get_value, get_parts) {
 			old_parts = parts;
 			parts = get_parts?.() || [];
 			untrack(() => {
-				if (element_or_component !== get_value(...parts)) {
+				if (!is_bound_this(get_value(...parts), element_or_component)) {
 					update(element_or_component, ...parts);
 					if (old_parts && is_bound_this(get_value(...old_parts), element_or_component)) update(null, ...old_parts);
 				}
@@ -5228,7 +5533,7 @@ function bind_this(element_or_component = {}, update, get_value, get_parts) {
 }
 //#endregion
 //#region node_modules/svelte/src/internal/client/reactivity/props.js
-/** @import { Effect, Source } from './types.js' */
+/** @import { Derived, Effect, Source } from './types.js' */
 /**
 * This function is responsible for synchronizing a possibly bound prop with the inner component state.
 * It is used whenever the compiler sees that the component writes to the prop, or when it has a default prop_value.
@@ -5245,7 +5550,12 @@ function prop(props, key, flags, fallback) {
 	var lazy = (flags & 16) !== 0;
 	var fallback_value = fallback;
 	var fallback_dirty = true;
+	var fallback_signal = void 0;
 	var get_fallback = () => {
+		if (lazy && runes) {
+			fallback_signal ??= /* @__PURE__ */ derived(fallback);
+			return get(fallback_signal);
+		}
 		if (fallback_dirty) {
 			fallback_dirty = false;
 			fallback_value = lazy ? untrack(fallback) : fallback;
@@ -10134,9 +10444,29 @@ function getOutputPeak() {
 	return outputPeakValue;
 }
 //#endregion
-//#region src/audio/midi.js
-var BEND_SEMITONES = 2;
+//#region src/audio/pitchbend.js
 var BEND_CENTER = 8192;
+/**
+* Convert a 14-bit raw pitchbend value to a signed semitone offset.
+*
+* @param {number} raw 0–16383 (14-bit MSB|LSB)
+* @returns {number} semitones in the closed interval [-BEND_SEMITONES, +BEND_SEMITONES]
+*/
+function parseBend(raw) {
+	return (raw - BEND_CENTER) / BEND_CENTER * 2;
+}
+/**
+* Apply a semitone bend to a base note frequency.
+*
+* @param {number} noteFreq Hz
+* @param {number} bendSemitones signed semitone offset (e.g. from `parseBend`)
+* @returns {number} bent frequency in Hz
+*/
+function bentFreq(noteFreq, bendSemitones) {
+	return noteFreq * Math.pow(2, bendSemitones / 12);
+}
+//#endregion
+//#region src/audio/midi.js
 var MidiManager = class {
 	/** @type {MIDIAccess | null} */
 	#access = null;
@@ -10264,13 +10594,12 @@ var MidiManager = class {
 	}
 	/** @param {number} raw */
 	_pitchBend(raw) {
-		const normalized = (raw - BEND_CENTER) / BEND_CENTER;
-		this.#bendValue = normalized * BEND_SEMITONES;
+		this.#bendValue = parseBend(raw);
 		if (this.#lastNote !== null && this.#activeNotes.has(this.#lastNote)) this._onPitchBend(this._bentFreq(this.#lastNote));
 	}
 	/** @param {number} note */
 	_bentFreq(note) {
-		return midiToFreq(note) * Math.pow(2, this.#bendValue / 12);
+		return bentFreq(midiToFreq(note), this.#bendValue);
 	}
 };
 //#endregion
@@ -10679,12 +11008,12 @@ function tweened(value, defaults = {}) {
 }
 //#endregion
 //#region src/components/Knob.svelte
-var root_1$3 = /* @__PURE__ */ from_svg(`<circle class="learn-ring svelte-1wmwmfc" fill="none" stroke-width="2"></circle>`);
-var root_2$3 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
-var root_3$2 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
-var root_4$1 = /* @__PURE__ */ from_html(`<span class="interval-indicator svelte-1wmwmfc"> </span>`);
-var root_5 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> </span>`);
-var root$15 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <!> <span> </span> <!></div>`);
+var root_1$4 = /* @__PURE__ */ from_svg(`<circle class="learn-ring svelte-1wmwmfc" fill="none" stroke-width="2"></circle>`);
+var root_2$4 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
+var root_3$3 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
+var root_4$2 = /* @__PURE__ */ from_html(`<span class="interval-indicator svelte-1wmwmfc"> </span>`);
+var root_5$1 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> </span>`);
+var root$16 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <!> <span> </span> <!></div>`);
 function Knob($$anchor, $$props) {
 	push($$props, true);
 	const $animPos = () => store_get(animPos, "$animPos", $$stores);
@@ -10822,7 +11151,7 @@ function Knob($$anchor, $$props) {
 		e.preventDefault();
 		$$props.oncontextmenu?.();
 	}
-	var div = root$15();
+	var div = root$16();
 	let classes;
 	var span = child(div);
 	let classes_1;
@@ -10832,7 +11161,7 @@ function Knob($$anchor, $$props) {
 	var svg = child(div_1);
 	var node = child(svg);
 	var consequent = ($$anchor) => {
-		var circle = root_1$3();
+		var circle = root_1$4();
 		set_attribute(circle, "cx", CX);
 		set_attribute(circle, "cy", CY);
 		set_attribute(circle, "r", R + 4);
@@ -10844,7 +11173,7 @@ function Knob($$anchor, $$props) {
 	var path = sibling(node);
 	var node_1 = sibling(path);
 	var consequent_1 = ($$anchor) => {
-		var path_1 = root_2$3();
+		var path_1 = root_2$4();
 		template_effect(() => set_attribute(path_1, "d", get(activePath)));
 		append($$anchor, path_1);
 	};
@@ -10859,7 +11188,7 @@ function Knob($$anchor, $$props) {
 	set_attribute(line, "y1", CY);
 	each(sibling(line), 17, ticks, (tick) => tick.label, ($$anchor, tick) => {
 		const xy = /* @__PURE__ */ user_derived(() => tickXY(get(tick)));
-		var text_1 = root_3$2();
+		var text_1 = root_3$3();
 		var text_2 = child(text_1, true);
 		reset(text_1);
 		template_effect(() => {
@@ -10874,7 +11203,7 @@ function Knob($$anchor, $$props) {
 	var node_3 = sibling(div_1, 2);
 	var consequent_2 = ($$anchor) => {
 		const interval = /* @__PURE__ */ user_derived(() => detectInterval(get(value)));
-		var span_1 = root_4$1();
+		var span_1 = root_4$2();
 		var text_3 = child(span_1, true);
 		reset(span_1);
 		template_effect(() => set_text(text_3, get(interval) ?? "\xA0"));
@@ -10889,7 +11218,7 @@ function Knob($$anchor, $$props) {
 	reset(span_2);
 	var node_4 = sibling(span_2, 2);
 	var consequent_3 = ($$anchor) => {
-		var span_3 = root_5();
+		var span_3 = root_5$1();
 		var text_5 = child(span_3);
 		reset(span_3);
 		template_effect(() => set_text(text_5, `CC ${assignedCc() ?? ""}`));
@@ -10927,19 +11256,25 @@ delegate([
 ]);
 //#endregion
 //#region src/components/Oscillator.svelte
-var root_1$2 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root_2$2 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root_3$1 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root$14 = /* @__PURE__ */ from_html(`<div class="panel svelte-19bkkl2"><span class="panel-label svelte-19bkkl2">oscillator bank</span> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 1</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 2</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 3</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!> <button>lfo</button> <!></div></div></div>`);
+var root_1$3 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root_2$3 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root_3$2 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root$15 = /* @__PURE__ */ from_html(`<div class="panel svelte-19bkkl2"><span class="panel-label svelte-19bkkl2">oscillator bank</span> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 1</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 2</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 3</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!> <button>lfo</button> <!></div></div></div>`);
 function Oscillator($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number,
+	osc1Wave?: number,
+	osc2Wave?: number,
+	osc3Wave?: number,
+	osc1Range?: number,
+	osc2Range?: number,
+	osc3Range?: number,
+	osc3LfoMode?: number,
 	}} */
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$7 = prop($$props, "reset", 3, 0);
+	let midiState = prop($$props, "midiState", 19, () => ({})), osc1Wave = prop($$props, "osc1Wave", 3, 0), osc2Wave = prop($$props, "osc2Wave", 3, 0), osc3Wave = prop($$props, "osc3Wave", 3, 0), osc1Range = prop($$props, "osc1Range", 3, 0), osc2Range = prop($$props, "osc2Range", 3, 0), osc3Range = prop($$props, "osc3Range", 3, 0), osc3LfoMode = prop($$props, "osc3LfoMode", 3, 0);
 	const WAVEFORMS = [
 		"tri",
 		"rev-saw",
@@ -10948,24 +11283,13 @@ function Oscillator($$anchor, $$props) {
 		"wide",
 		"narrow"
 	];
-	let osc1Wave = /* @__PURE__ */ state(0);
-	let osc1Range = /* @__PURE__ */ state(0);
-	let osc2Wave = /* @__PURE__ */ state(0);
-	let osc2Range = /* @__PURE__ */ state(0);
-	let osc3Wave = /* @__PURE__ */ state(0);
-	let osc3Range = /* @__PURE__ */ state(0);
-	let osc3LfoMode = /* @__PURE__ */ state(0);
 	/**
 	* @param {number} osc
 	* @param {number} i
 	*/
 	function selectWave(osc, i) {
-		const param = `osc${osc}Wave`;
-		if (osc === 1) set(osc1Wave, i, true);
-		else if (osc === 2) set(osc2Wave, i, true);
-		else set(osc3Wave, i, true);
 		$$props.onchange?.({
-			param,
+			param: `osc${osc}Wave`,
 			value: i
 		});
 	}
@@ -10974,75 +11298,30 @@ function Oscillator($$anchor, $$props) {
 	* @param {number} delta
 	*/
 	function stepRange(osc, delta) {
-		const current = osc === 1 ? get(osc1Range) : osc === 2 ? get(osc2Range) : get(osc3Range);
+		const current = osc === 1 ? osc1Range() : osc === 2 ? osc2Range() : osc3Range();
 		const next = Math.max(-2, Math.min(2, current + delta));
 		if (next === current) return;
-		const param = `osc${osc}Range`;
-		if (osc === 1) set(osc1Range, next, true);
-		else if (osc === 2) set(osc2Range, next, true);
-		else set(osc3Range, next, true);
 		$$props.onchange?.({
-			param,
+			param: `osc${osc}Range`,
 			value: next
 		});
 	}
 	function toggleLfoMode() {
-		set(osc3LfoMode, get(osc3LfoMode) === 0 ? 1 : 0, true);
 		$$props.onchange?.({
 			param: "osc3LfoMode",
-			value: get(osc3LfoMode)
+			value: osc3LfoMode() === 0 ? 1 : 0
 		});
 	}
-	user_effect(() => {
-		if (reset$7() === 0) return;
-		set(osc1Wave, 0);
-		set(osc2Wave, 0);
-		set(osc3Wave, 0);
-		set(osc1Range, 0);
-		set(osc2Range, 0);
-		set(osc3Range, 0);
-		set(osc3LfoMode, 0);
-		untrack(() => {
-			$$props.onchange?.({
-				param: "osc1Wave",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "osc2Wave",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "osc3Wave",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "osc1Range",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "osc2Range",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "osc3Range",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "osc3LfoMode",
-				value: 0
-			});
-		});
-	});
-	var div = root$14();
+	var div = root$15();
 	var div_1 = sibling(child(div), 2);
 	var div_2 = sibling(child(div_1), 2);
 	each(div_2, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button = root_1$2();
+		var button = root_1$3();
 		let classes;
 		var text = child(button, true);
 		reset(button);
 		template_effect(() => {
-			classes = set_class(button, 1, "wave-btn svelte-19bkkl2", null, classes, { active: get(osc1Wave) === i });
+			classes = set_class(button, 1, "wave-btn svelte-19bkkl2", null, classes, { active: osc1Wave() === i });
 			set_text(text, get(name));
 		});
 		delegated("click", button, () => selectWave(1, i));
@@ -11060,12 +11339,12 @@ function Oscillator($$anchor, $$props) {
 	var div_4 = sibling(div_1, 2);
 	var div_5 = sibling(child(div_4), 2);
 	each(div_5, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button_3 = root_2$2();
+		var button_3 = root_2$3();
 		let classes_1;
 		var text_2 = child(button_3, true);
 		reset(button_3);
 		template_effect(() => {
-			classes_1 = set_class(button_3, 1, "wave-btn svelte-19bkkl2", null, classes_1, { active: get(osc2Wave) === i });
+			classes_1 = set_class(button_3, 1, "wave-btn svelte-19bkkl2", null, classes_1, { active: osc2Wave() === i });
 			set_text(text_2, get(name));
 		});
 		delegated("click", button_3, () => selectWave(2, i));
@@ -11114,12 +11393,12 @@ function Oscillator($$anchor, $$props) {
 	var div_7 = sibling(div_4, 2);
 	var div_8 = sibling(child(div_7), 2);
 	each(div_8, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button_6 = root_3$1();
+		var button_6 = root_3$2();
 		let classes_2;
 		var text_4 = child(button_6, true);
 		reset(button_6);
 		template_effect(() => {
-			classes_2 = set_class(button_6, 1, "wave-btn svelte-19bkkl2", null, classes_2, { active: get(osc3Wave) === i });
+			classes_2 = set_class(button_6, 1, "wave-btn svelte-19bkkl2", null, classes_2, { active: osc3Wave() === i });
 			set_text(text_4, get(name));
 		});
 		delegated("click", button_6, () => selectWave(3, i));
@@ -11134,7 +11413,7 @@ function Oscillator($$anchor, $$props) {
 	var button_8 = sibling(span_2, 2);
 	var node_1 = sibling(button_8, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(osc3LfoMode) === 1);
+		let $0 = /* @__PURE__ */ user_derived(() => osc3LfoMode() === 1);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.osc3Detune?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.osc3Detune?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.osc3Detune?.assignedCc ?? null);
@@ -11171,7 +11450,7 @@ function Oscillator($$anchor, $$props) {
 	let classes_3;
 	var node_2 = sibling(button_9, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(osc3LfoMode) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => osc3LfoMode() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.osc3LfoRate?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.osc3LfoRate?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.osc3LfoRate?.assignedCc ?? null);
@@ -11205,13 +11484,13 @@ function Oscillator($$anchor, $$props) {
 	reset(div_7);
 	reset(div);
 	template_effect(() => {
-		set_text(text_1, `${get(osc1Range) > 0 ? "+" : ""}${get(osc1Range) ?? ""}`);
-		set_text(text_3, `${get(osc2Range) > 0 ? "+" : ""}${get(osc2Range) ?? ""}`);
-		button_7.disabled = get(osc3LfoMode) === 1;
-		set_text(text_5, `${get(osc3Range) > 0 ? "+" : ""}${get(osc3Range) ?? ""}`);
-		button_8.disabled = get(osc3LfoMode) === 1;
-		classes_3 = set_class(button_9, 1, "lfo-btn svelte-19bkkl2", null, classes_3, { active: get(osc3LfoMode) === 1 });
-		set_attribute(button_9, "aria-pressed", get(osc3LfoMode) === 1);
+		set_text(text_1, `${osc1Range() > 0 ? "+" : ""}${osc1Range() ?? ""}`);
+		set_text(text_3, `${osc2Range() > 0 ? "+" : ""}${osc2Range() ?? ""}`);
+		button_7.disabled = osc3LfoMode() === 1;
+		set_text(text_5, `${osc3Range() > 0 ? "+" : ""}${osc3Range() ?? ""}`);
+		button_8.disabled = osc3LfoMode() === 1;
+		classes_3 = set_class(button_9, 1, "lfo-btn svelte-19bkkl2", null, classes_3, { active: osc3LfoMode() === 1 });
+		set_attribute(button_9, "aria-pressed", osc3LfoMode() === 1);
 	});
 	delegated("click", button_1, () => stepRange(1, -1));
 	delegated("click", button_2, () => stepRange(1, 1));
@@ -11226,7 +11505,7 @@ function Oscillator($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/LevelLed.svelte
-var root$13 = /* @__PURE__ */ from_html(`<div class="level-led svelte-1hlnysh"></div>`);
+var root$14 = /* @__PURE__ */ from_html(`<div class="level-led svelte-1hlnysh"></div>`);
 function LevelLed($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{ getPeak?: () => number, powered?: boolean }} */
@@ -11280,7 +11559,7 @@ function LevelLed($$anchor, $$props) {
 		cancelAnimationFrame(rafHandle);
 		clearTimeout(latchHandle);
 	});
-	var div = root$13();
+	var div = root$14();
 	let styles;
 	template_effect(() => styles = set_style(div, "", styles, { "--led-color": get(color) }));
 	append($$anchor, div);
@@ -11288,37 +11567,27 @@ function LevelLed($$anchor, $$props) {
 }
 //#endregion
 //#region src/components/Mixer.svelte
-var root$12 = /* @__PURE__ */ from_html(`<div class="panel svelte-gq0xe5"><div class="panel-header svelte-gq0xe5"><span class="panel-label svelte-gq0xe5">mixer</span> <!></div> <div class="mixer-col svelte-gq0xe5"><!> <!> <!> <div class="section-divider svelte-gq0xe5"></div> <div class="noise-row svelte-gq0xe5"><!> <div class="noise-type-row svelte-gq0xe5"><button>wht</button> <button>pink</button></div></div></div></div>`);
+var root$13 = /* @__PURE__ */ from_html(`<div class="panel svelte-gq0xe5"><div class="panel-header svelte-gq0xe5"><span class="panel-label svelte-gq0xe5">mixer</span> <!></div> <div class="mixer-col svelte-gq0xe5"><!> <!> <!> <div class="section-divider svelte-gq0xe5"></div> <div class="noise-row svelte-gq0xe5"><!> <div class="noise-type-row svelte-gq0xe5"><button>wht</button> <button>pink</button></div></div></div></div>`);
 function Mixer($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number,
+	noiseType?: number,
 	getPeak?: () => number,
 	powered?: boolean,
 	}} */
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$6 = prop($$props, "reset", 3, 0), getPeak = prop($$props, "getPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
-	let noiseType = /* @__PURE__ */ state(0);
+	let midiState = prop($$props, "midiState", 19, () => ({})), noiseType = prop($$props, "noiseType", 3, 0), getPeak = prop($$props, "getPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
 	/** @param {number} t */
 	function selectNoiseType(t) {
-		if (t === get(noiseType)) return;
-		set(noiseType, t, true);
+		if (t === noiseType()) return;
 		$$props.onchange?.({
 			param: "noiseType",
-			value: get(noiseType)
+			value: t
 		});
 	}
-	user_effect(() => {
-		if (reset$6() === 0) return;
-		set(noiseType, 0);
-		untrack(() => $$props.onchange?.({
-			param: "noiseType",
-			value: 0
-		}));
-	});
-	var div = root$12();
+	var div = root$13();
 	var div_1 = child(div);
 	LevelLed(sibling(child(div_1), 2), {
 		get getPeak() {
@@ -11449,8 +11718,8 @@ function Mixer($$anchor, $$props) {
 	reset(div_2);
 	reset(div);
 	template_effect(() => {
-		classes = set_class(button, 1, "noise-btn svelte-gq0xe5", null, classes, { active: get(noiseType) === 0 });
-		classes_1 = set_class(button_1, 1, "noise-btn svelte-gq0xe5", null, classes_1, { active: get(noiseType) === 1 });
+		classes = set_class(button, 1, "noise-btn svelte-gq0xe5", null, classes, { active: noiseType() === 0 });
+		classes_1 = set_class(button_1, 1, "noise-btn svelte-gq0xe5", null, classes_1, { active: noiseType() === 1 });
 	});
 	delegated("click", button, () => selectNoiseType(0));
 	delegated("click", button_1, () => selectNoiseType(1));
@@ -11460,33 +11729,23 @@ function Mixer($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Filter.svelte
-var root$11 = /* @__PURE__ */ from_html(`<div class="panel svelte-xeds7y"><span class="panel-label svelte-xeds7y">filter</span> <div class="knob-row centered svelte-xeds7y"><!> <!> <div class="key-track-col svelte-xeds7y"><div class="key-track-btn-wrap svelte-xeds7y"><button>KEY TRACK</button></div></div></div> <div class="section-divider svelte-xeds7y"></div> <div class="contour-header svelte-xeds7y"><span class="sub-label svelte-xeds7y">filter contour</span></div> <div class="knob-row svelte-xeds7y"><!> <!> <!> <!> <!></div></div>`);
+var root$12 = /* @__PURE__ */ from_html(`<div class="panel svelte-xeds7y"><span class="panel-label svelte-xeds7y">filter</span> <div class="knob-row centered svelte-xeds7y"><!> <!> <div class="key-track-col svelte-xeds7y"><div class="key-track-btn-wrap svelte-xeds7y"><button>KEY TRACK</button></div></div></div> <div class="section-divider svelte-xeds7y"></div> <div class="contour-header svelte-xeds7y"><span class="sub-label svelte-xeds7y">filter contour</span></div> <div class="knob-row svelte-xeds7y"><!> <!> <!> <!> <!></div></div>`);
 function Filter($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number,
+	keyTrack?: number,
 	}} */
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$5 = prop($$props, "reset", 3, 0);
-	let keyTrackOn = /* @__PURE__ */ state(0);
+	let midiState = prop($$props, "midiState", 19, () => ({})), keyTrack = prop($$props, "keyTrack", 3, 0);
 	function toggleKeyTrack() {
-		set(keyTrackOn, get(keyTrackOn) === 0 ? 1 : 0, true);
 		$$props.onchange?.({
 			param: "keyTrack",
-			value: get(keyTrackOn)
+			value: keyTrack() === 0 ? 1 : 0
 		});
 	}
-	user_effect(() => {
-		if (reset$5() === 0) return;
-		set(keyTrackOn, 0);
-		untrack(() => $$props.onchange?.({
-			param: "keyTrack",
-			value: 0
-		}));
-	});
-	var div = root$11();
+	var div = root$12();
 	var div_1 = sibling(child(div), 2);
 	var node = child(div_1);
 	{
@@ -11693,8 +11952,8 @@ function Filter($$anchor, $$props) {
 	reset(div_4);
 	reset(div);
 	template_effect(() => {
-		classes = set_class(button, 1, "toggle-btn svelte-xeds7y", null, classes, { active: get(keyTrackOn) === 1 });
-		set_attribute(button, "aria-pressed", get(keyTrackOn) === 1);
+		classes = set_class(button, 1, "toggle-btn svelte-xeds7y", null, classes, { active: keyTrack() === 1 });
+		set_attribute(button, "aria-pressed", keyTrack() === 1);
 	});
 	delegated("click", button, toggleKeyTrack);
 	append($$anchor, div);
@@ -11703,61 +11962,37 @@ function Filter($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Effects.svelte
-var root$10 = /* @__PURE__ */ from_html(`<div class="panel svelte-123klp2"><span class="panel-label svelte-123klp2">effects</span> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">delay</span> <button> </button></div> <div class="effects-row svelte-123klp2"><!> <!> <!></div> <div class="mod-row svelte-123klp2"><button>MOD</button> <!> <!></div> <div class="section-divider svelte-123klp2"></div> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">reverb</span> <button> </button></div> <div class="effects-row reverb-row svelte-123klp2"><!> <!> <!> <!></div></div>`);
+var root$11 = /* @__PURE__ */ from_html(`<div class="panel svelte-123klp2"><span class="panel-label svelte-123klp2">effects</span> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">delay</span> <button> </button></div> <div class="effects-row svelte-123klp2"><!> <!> <!></div> <div class="mod-row svelte-123klp2"><button>MOD</button> <!> <!></div> <div class="section-divider svelte-123klp2"></div> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">reverb</span> <button> </button></div> <div class="effects-row reverb-row svelte-123klp2"><!> <!> <!> <!></div></div>`);
 function Effects($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number,
+	delayOn?: number,
+	delayModOn?: number,
+	reverbOn?: number,
 	}} */
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$4 = prop($$props, "reset", 3, 0);
-	let delayOn = /* @__PURE__ */ state(0);
-	let delayModOn = /* @__PURE__ */ state(0);
-	let reverbOn = /* @__PURE__ */ state(0);
+	let midiState = prop($$props, "midiState", 19, () => ({})), delayOn = prop($$props, "delayOn", 3, 0), delayModOn = prop($$props, "delayModOn", 3, 0), reverbOn = prop($$props, "reverbOn", 3, 0);
 	function toggleDelay() {
-		set(delayOn, get(delayOn) === 0 ? 1 : 0, true);
 		$$props.onchange?.({
 			param: "delayOn",
-			value: get(delayOn)
+			value: delayOn() === 0 ? 1 : 0
 		});
 	}
 	function toggleDelayMod() {
-		set(delayModOn, get(delayModOn) === 0 ? 1 : 0, true);
 		$$props.onchange?.({
 			param: "delayModOn",
-			value: get(delayModOn)
+			value: delayModOn() === 0 ? 1 : 0
 		});
 	}
 	function toggleReverb() {
-		set(reverbOn, get(reverbOn) === 0 ? 1 : 0, true);
 		$$props.onchange?.({
 			param: "reverbOn",
-			value: get(reverbOn)
+			value: reverbOn() === 0 ? 1 : 0
 		});
 	}
-	user_effect(() => {
-		if (reset$4() === 0) return;
-		set(delayOn, 0);
-		set(delayModOn, 0);
-		set(reverbOn, 0);
-		untrack(() => {
-			$$props.onchange?.({
-				param: "delayOn",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "delayModOn",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "reverbOn",
-				value: 0
-			});
-		});
-	});
-	var div = root$10();
+	var div = root$11();
 	var div_1 = sibling(child(div), 2);
 	var button = sibling(child(div_1), 2);
 	let classes;
@@ -11767,7 +12002,7 @@ function Effects($$anchor, $$props) {
 	var div_2 = sibling(div_1, 2);
 	var node = child(div_2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.assignedCc ?? null);
@@ -11799,7 +12034,7 @@ function Effects($$anchor, $$props) {
 	}
 	var node_1 = sibling(node, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.assignedCc ?? null);
@@ -11830,7 +12065,7 @@ function Effects($$anchor, $$props) {
 	}
 	var node_2 = sibling(node_1, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.assignedCc ?? null);
@@ -11865,7 +12100,7 @@ function Effects($$anchor, $$props) {
 	let classes_1;
 	var node_3 = sibling(button_1, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0 || get(delayModOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0 || delayModOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayModRate?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayModRate?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayModRate?.assignedCc ?? null);
@@ -11897,7 +12132,7 @@ function Effects($$anchor, $$props) {
 	}
 	var node_4 = sibling(node_3, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(delayOn) === 0 || get(delayModOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0 || delayModOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayModDepth?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayModDepth?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayModDepth?.assignedCc ?? null);
@@ -11937,7 +12172,7 @@ function Effects($$anchor, $$props) {
 	var div_5 = sibling(div_4, 2);
 	var node_5 = child(div_5);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(reverbOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => reverbOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbSend?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbSend?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbSend?.assignedCc ?? null);
@@ -11968,7 +12203,7 @@ function Effects($$anchor, $$props) {
 	}
 	var node_6 = sibling(node_5, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(reverbOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => reverbOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDamp?.assignedCc ?? null);
@@ -12000,7 +12235,7 @@ function Effects($$anchor, $$props) {
 	}
 	var node_7 = sibling(node_6, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(reverbOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => reverbOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDecay?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDecay?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbDecay?.assignedCc ?? null);
@@ -12031,7 +12266,7 @@ function Effects($$anchor, $$props) {
 	}
 	var node_8 = sibling(node_7, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(reverbOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => reverbOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.reverbPreDelay?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.reverbPreDelay?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.reverbPreDelay?.assignedCc ?? null);
@@ -12064,15 +12299,15 @@ function Effects($$anchor, $$props) {
 	reset(div_5);
 	reset(div);
 	template_effect(() => {
-		classes = set_class(button, 1, "toggle-btn svelte-123klp2", null, classes, { active: get(delayOn) === 1 });
-		set_attribute(button, "aria-pressed", get(delayOn) === 1);
-		set_text(text, get(delayOn) === 1 ? "on" : "off");
-		classes_1 = set_class(button_1, 1, "toggle-btn svelte-123klp2", null, classes_1, { active: get(delayModOn) === 1 });
-		set_attribute(button_1, "aria-pressed", get(delayModOn) === 1);
-		button_1.disabled = get(delayOn) === 0;
-		classes_2 = set_class(button_2, 1, "toggle-btn svelte-123klp2", null, classes_2, { active: get(reverbOn) === 1 });
-		set_attribute(button_2, "aria-pressed", get(reverbOn) === 1);
-		set_text(text_1, get(reverbOn) === 1 ? "on" : "off");
+		classes = set_class(button, 1, "toggle-btn svelte-123klp2", null, classes, { active: delayOn() === 1 });
+		set_attribute(button, "aria-pressed", delayOn() === 1);
+		set_text(text, delayOn() === 1 ? "on" : "off");
+		classes_1 = set_class(button_1, 1, "toggle-btn svelte-123klp2", null, classes_1, { active: delayModOn() === 1 });
+		set_attribute(button_1, "aria-pressed", delayModOn() === 1);
+		button_1.disabled = delayOn() === 0;
+		classes_2 = set_class(button_2, 1, "toggle-btn svelte-123klp2", null, classes_2, { active: reverbOn() === 1 });
+		set_attribute(button_2, "aria-pressed", reverbOn() === 1);
+		set_text(text_1, reverbOn() === 1 ? "on" : "off");
 	});
 	delegated("click", button, toggleDelay);
 	delegated("click", button_1, toggleDelayMod);
@@ -12083,36 +12318,26 @@ function Effects($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/AmpEnv.svelte
-var root$9 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
+var root$10 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
 function AmpEnv($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number,
+	drLock?: number,
 	getOutputPeak?: () => number,
 	powered?: boolean,
 	}} */
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$3 = prop($$props, "reset", 3, 0), getOutputPeak = prop($$props, "getOutputPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
-	let drLock = /* @__PURE__ */ state(1);
+	let midiState = prop($$props, "midiState", 19, () => ({})), drLock = prop($$props, "drLock", 3, 1), getOutputPeak = prop($$props, "getOutputPeak", 3, () => 0), powered = prop($$props, "powered", 3, false);
 	let decayValue = /* @__PURE__ */ state(.5);
 	function toggleDrLock() {
-		set(drLock, get(drLock) === 0 ? 1 : 0, true);
 		$$props.onchange?.({
 			param: "drLock",
-			value: get(drLock)
+			value: drLock() === 0 ? 1 : 0
 		});
 	}
-	user_effect(() => {
-		if (reset$3() === 0) return;
-		set(drLock, 1);
-		untrack(() => $$props.onchange?.({
-			param: "drLock",
-			value: 1
-		}));
-	});
-	var div = root$9();
+	var div = root$10();
 	var div_1 = child(div);
 	LevelLed(sibling(child(div_1), 2), {
 		get getPeak() {
@@ -12245,15 +12470,15 @@ function AmpEnv($$anchor, $$props) {
 	}
 	var node_5 = sibling(node_4, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(drLock) === 1);
-		let $1 = /* @__PURE__ */ user_derived(() => get(drLock) === 1 ? get(decayValue) : midiState()?.ampRelease?.externalValue);
+		let $0 = /* @__PURE__ */ user_derived(() => drLock() === 1);
+		let $1 = /* @__PURE__ */ user_derived(() => drLock() === 1 ? get(decayValue) : midiState()?.ampRelease?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.ampRelease?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.ampRelease?.assignedCc ?? null);
 		Knob(node_5, {
 			label: "release",
 			min: .001,
 			max: 8,
-			default: .3,
+			default: .5,
 			scale: "log",
 			unit: "s",
 			get disabled() {
@@ -12278,8 +12503,8 @@ function AmpEnv($$anchor, $$props) {
 	reset(div_4);
 	reset(div);
 	template_effect(() => {
-		classes = set_class(button, 1, "drlock-btn svelte-7n4nfz", null, classes, { active: get(drLock) === 1 });
-		set_attribute(button, "aria-pressed", get(drLock) === 1);
+		classes = set_class(button, 1, "drlock-btn svelte-7n4nfz", null, classes, { active: drLock() === 1 });
+		set_attribute(button, "aria-pressed", drLock() === 1);
 	});
 	delegated("click", button, toggleDrLock);
 	append($$anchor, div);
@@ -12288,61 +12513,33 @@ function AmpEnv($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Modulation.svelte
-var root$8 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div></div></div>`);
+var root$9 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div></div></div>`);
 function Modulation($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number,
+	modToOsc1?: number,
+	modToOsc2?: number,
+	modToFilter?: number,
 	}} */
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$2 = prop($$props, "reset", 3, 0);
-	let modToOsc1 = /* @__PURE__ */ state(0);
-	let modToOsc2 = /* @__PURE__ */ state(0);
-	let modToFilter = /* @__PURE__ */ state(0);
-	user_effect(() => {
-		if (reset$2() === 0) return;
-		set(modToOsc1, 0);
-		set(modToOsc2, 0);
-		set(modToFilter, 0);
-		untrack(() => {
-			$$props.onchange?.({
-				param: "modToOsc1",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "modToOsc2",
-				value: 0
-			});
-			$$props.onchange?.({
-				param: "modToFilter",
-				value: 0
-			});
-		});
-	});
+	let midiState = prop($$props, "midiState", 19, () => ({})), modToOsc1 = prop($$props, "modToOsc1", 3, 0), modToOsc2 = prop($$props, "modToOsc2", 3, 0), modToFilter = prop($$props, "modToFilter", 3, 0);
 	function toggleRoute(param) {
-		if (param === "modToOsc1") {
-			set(modToOsc1, get(modToOsc1) === 0 ? 1 : 0, true);
-			$$props.onchange?.({
-				param,
-				value: get(modToOsc1)
-			});
-		} else if (param === "modToOsc2") {
-			set(modToOsc2, get(modToOsc2) === 0 ? 1 : 0, true);
-			$$props.onchange?.({
-				param,
-				value: get(modToOsc2)
-			});
-		} else if (param === "modToFilter") {
-			set(modToFilter, get(modToFilter) === 0 ? 1 : 0, true);
-			$$props.onchange?.({
-				param,
-				value: get(modToFilter)
-			});
-		}
+		if (param === "modToOsc1") $$props.onchange?.({
+			param,
+			value: modToOsc1() === 0 ? 1 : 0
+		});
+		else if (param === "modToOsc2") $$props.onchange?.({
+			param,
+			value: modToOsc2() === 0 ? 1 : 0
+		});
+		else if (param === "modToFilter") $$props.onchange?.({
+			param,
+			value: modToFilter() === 0 ? 1 : 0
+		});
 	}
-	var div = root$8();
+	var div = root$9();
 	var div_1 = sibling(child(div), 2);
 	var div_2 = child(div_1);
 	var node = child(div_2);
@@ -12393,12 +12590,12 @@ function Modulation($$anchor, $$props) {
 	reset(div_1);
 	reset(div);
 	template_effect(() => {
-		classes = set_class(button, 1, "route-btn svelte-1ddpss2", null, classes, { active: get(modToOsc1) === 1 });
-		set_attribute(button, "aria-pressed", get(modToOsc1) === 1);
-		classes_1 = set_class(button_1, 1, "route-btn svelte-1ddpss2", null, classes_1, { active: get(modToOsc2) === 1 });
-		set_attribute(button_1, "aria-pressed", get(modToOsc2) === 1);
-		classes_2 = set_class(button_2, 1, "route-btn svelte-1ddpss2", null, classes_2, { active: get(modToFilter) === 1 });
-		set_attribute(button_2, "aria-pressed", get(modToFilter) === 1);
+		classes = set_class(button, 1, "route-btn svelte-1ddpss2", null, classes, { active: modToOsc1() === 1 });
+		set_attribute(button, "aria-pressed", modToOsc1() === 1);
+		classes_1 = set_class(button_1, 1, "route-btn svelte-1ddpss2", null, classes_1, { active: modToOsc2() === 1 });
+		set_attribute(button_1, "aria-pressed", modToOsc2() === 1);
+		classes_2 = set_class(button_2, 1, "route-btn svelte-1ddpss2", null, classes_2, { active: modToFilter() === 1 });
+		set_attribute(button_2, "aria-pressed", modToFilter() === 1);
 	});
 	delegated("click", button, () => toggleRoute("modToOsc1"));
 	delegated("click", button_1, () => toggleRoute("modToOsc2"));
@@ -12409,33 +12606,23 @@ function Modulation($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Glide.svelte
-var root$7 = /* @__PURE__ */ from_html(`<div class="panel svelte-oqc131"><span class="panel-label svelte-oqc131">glide</span> <div class="glide-row svelte-oqc131"><button> </button> <!></div></div>`);
+var root$8 = /* @__PURE__ */ from_html(`<div class="panel svelte-oqc131"><span class="panel-label svelte-oqc131">glide</span> <div class="glide-row svelte-oqc131"><button> </button> <!></div></div>`);
 function Glide($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
 	onchange?: (e: { param: string, value: number }) => void,
 	midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
 	onknobcontextmenu?: (param: string) => void,
-	reset?: number,
+	glideOn?: number,
 	}} */
-	let midiState = prop($$props, "midiState", 19, () => ({})), reset$1 = prop($$props, "reset", 3, 0);
-	let glideOn = /* @__PURE__ */ state(0);
+	let midiState = prop($$props, "midiState", 19, () => ({})), glideOn = prop($$props, "glideOn", 3, 0);
 	function toggleGlide() {
-		set(glideOn, get(glideOn) === 0 ? 1 : 0, true);
 		$$props.onchange?.({
 			param: "glideOn",
-			value: get(glideOn)
+			value: glideOn() === 0 ? 1 : 0
 		});
 	}
-	user_effect(() => {
-		if (reset$1() === 0) return;
-		set(glideOn, 0);
-		untrack(() => $$props.onchange?.({
-			param: "glideOn",
-			value: 0
-		}));
-	});
-	var div = root$7();
+	var div = root$8();
 	var div_1 = sibling(child(div), 2);
 	var button = child(div_1);
 	let classes;
@@ -12443,7 +12630,7 @@ function Glide($$anchor, $$props) {
 	reset(button);
 	var node = sibling(button, 2);
 	{
-		let $0 = /* @__PURE__ */ user_derived(() => get(glideOn) === 0);
+		let $0 = /* @__PURE__ */ user_derived(() => glideOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.glideRate?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.glideRate?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.glideRate?.assignedCc ?? null);
@@ -12476,9 +12663,9 @@ function Glide($$anchor, $$props) {
 	reset(div_1);
 	reset(div);
 	template_effect(() => {
-		classes = set_class(button, 1, "glide-btn svelte-oqc131", null, classes, { active: get(glideOn) === 1 });
-		set_attribute(button, "aria-pressed", get(glideOn) === 1);
-		set_text(text, get(glideOn) === 1 ? "on" : "off");
+		classes = set_class(button, 1, "glide-btn svelte-oqc131", null, classes, { active: glideOn() === 1 });
+		set_attribute(button, "aria-pressed", glideOn() === 1);
+		set_text(text, glideOn() === 1 ? "on" : "off");
 	});
 	delegated("click", button, toggleGlide);
 	append($$anchor, div);
@@ -12487,11 +12674,11 @@ function Glide($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Keyboard.svelte
-var root_1$1 = /* @__PURE__ */ from_svg(`<rect></rect>`);
-var root_2$1 = /* @__PURE__ */ from_svg(`<rect></rect>`);
-var root_3 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label svelte-1dlz8xf"> </text>`);
-var root_4 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label-black svelte-1dlz8xf"> </text>`);
-var root$6 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><rect fill="#333"></rect><!><!><!><!></svg></div>`);
+var root_1$2 = /* @__PURE__ */ from_svg(`<rect></rect>`);
+var root_2$2 = /* @__PURE__ */ from_svg(`<rect></rect>`);
+var root_3$1 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label svelte-1dlz8xf"> </text>`);
+var root_4$1 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label-black svelte-1dlz8xf"> </text>`);
+var root$7 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><rect fill="#333"></rect><!><!><!><!></svg></div>`);
 function Keyboard($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12576,8 +12763,15 @@ function Keyboard($$anchor, $$props) {
 	triggerNote(_triggerNote);
 	releaseNote(_releaseNote);
 	releaseAll(_releaseAll);
+	/** @param {EventTarget | null} target */
+	function isEditableTarget(target) {
+		if (!(target instanceof HTMLElement)) return false;
+		const tag = target.tagName;
+		return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
+	}
 	function onKeyDown(e) {
 		if (e.repeat) return;
+		if (isEditableTarget(e.target)) return;
 		const midi = QWERTY_MAP[e.key];
 		if (midi === void 0) return;
 		if (pressedQwerty.has(e.key)) return;
@@ -12585,6 +12779,7 @@ function Keyboard($$anchor, $$props) {
 		_triggerNote(midi);
 	}
 	function onKeyUp(e) {
+		if (isEditableTarget(e.target)) return;
 		const midi = QWERTY_MAP[e.key];
 		if (midi === void 0) return;
 		pressedQwerty.delete(e.key);
@@ -12598,7 +12793,7 @@ function Keyboard($$anchor, $$props) {
 		window.removeEventListener("keydown", onKeyDown);
 		window.removeEventListener("keyup", onKeyUp);
 	});
-	var div = root$6();
+	var div = root$7();
 	var svg = child(div);
 	set_attribute(svg, "height", WHITE_H + RAIL_H + 2);
 	var rect = child(svg);
@@ -12607,7 +12802,7 @@ function Keyboard($$anchor, $$props) {
 	set_attribute(rect, "height", RAIL_H);
 	var node = sibling(rect);
 	each(node, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
-		var rect_1 = root_1$1();
+		var rect_1 = root_1$2();
 		set_attribute(rect_1, "y", RAIL_H);
 		set_attribute(rect_1, "width", WHITE_W - 2);
 		set_attribute(rect_1, "height", WHITE_H);
@@ -12624,7 +12819,7 @@ function Keyboard($$anchor, $$props) {
 	});
 	var node_1 = sibling(node);
 	each(node_1, 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
-		var rect_2 = root_2$1();
+		var rect_2 = root_2$2();
 		set_attribute(rect_2, "y", RAIL_H);
 		set_attribute(rect_2, "width", BLACK_W);
 		set_attribute(rect_2, "height", BLACK_H);
@@ -12641,7 +12836,7 @@ function Keyboard($$anchor, $$props) {
 	});
 	var node_2 = sibling(node_1);
 	each(node_2, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
-		var text = root_3();
+		var text = root_3$1();
 		set_attribute(text, "y", RAIL_H + WHITE_H - 5);
 		var text_1 = child(text, true);
 		reset(text);
@@ -12652,7 +12847,7 @@ function Keyboard($$anchor, $$props) {
 		append($$anchor, text);
 	});
 	each(sibling(node_2), 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
-		var text_2 = root_4();
+		var text_2 = root_4$1();
 		set_attribute(text_2, "y", RAIL_H + BLACK_H - 4);
 		var text_3 = child(text_2, true);
 		reset(text_2);
@@ -12674,7 +12869,7 @@ function Keyboard($$anchor, $$props) {
 delegate(["pointerdown", "pointerup"]);
 //#endregion
 //#region src/components/RegisterPanel.svelte
-var root$5 = /* @__PURE__ */ from_html(`<div class="panel svelte-pygl9d"><span class="panel-label svelte-pygl9d">keyboard range</span> <div class="btn-col svelte-pygl9d"><button>Oct ▲</button> <button>Oct ▼</button></div></div>`);
+var root$6 = /* @__PURE__ */ from_html(`<div class="panel svelte-pygl9d"><span class="panel-label svelte-pygl9d">keyboard range</span> <div class="btn-col svelte-pygl9d"><button>Oct ▲</button> <button>Oct ▼</button></div></div>`);
 function RegisterPanel($$anchor, $$props) {
 	/** @type {{
 	ondown?: () => void,
@@ -12682,7 +12877,7 @@ function RegisterPanel($$anchor, $$props) {
 	activeRegister?: 'bottom' | 'top' | 'mid',
 	}} */
 	let activeRegister = prop($$props, "activeRegister", 3, "mid");
-	var div = root$5();
+	var div = root$6();
 	var div_1 = sibling(child(div), 2);
 	var button = child(div_1);
 	let classes;
@@ -12707,7 +12902,7 @@ function RegisterPanel($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/WheelPanel.svelte
-var root$4 = /* @__PURE__ */ from_html(`<div class="panel svelte-i6yfjl"><span class="panel-label svelte-i6yfjl">wheel</span> <div class="wheel-container svelte-i6yfjl"><div class="wheel-track svelte-i6yfjl" role="slider" aria-label="mod wheel"><div class="wheel-fill svelte-i6yfjl"></div></div></div></div>`);
+var root$5 = /* @__PURE__ */ from_html(`<div class="panel svelte-i6yfjl"><span class="panel-label svelte-i6yfjl">wheel</span> <div class="wheel-container svelte-i6yfjl"><div class="wheel-track svelte-i6yfjl" role="slider" aria-label="mod wheel"><div class="wheel-fill svelte-i6yfjl"></div></div></div></div>`);
 function WheelPanel($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12774,7 +12969,7 @@ function WheelPanel($$anchor, $$props) {
 			});
 		}
 	}
-	var div = root$4();
+	var div = root$5();
 	var div_1 = sibling(child(div), 2);
 	var div_2 = child(div_1);
 	set_attribute(div_2, "tabindex", 0);
@@ -12804,12 +12999,12 @@ delegate([
 ]);
 //#endregion
 //#region src/components/PowerButton.svelte
-var root$3 = /* @__PURE__ */ from_html(`<div class="power-wrap svelte-z2dg21"><button type="button"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke-linecap="round" stroke-width="2" aria-hidden="true"><line x1="10" y1="2" x2="10" y2="8"></line><path d="M 14.5 4.6 A 7 7 0 1 1 5.5 4.6"></path></svg></button></div>`);
+var root$4 = /* @__PURE__ */ from_html(`<div class="power-wrap svelte-z2dg21"><button type="button"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke-linecap="round" stroke-width="2" aria-hidden="true"><line x1="10" y1="2" x2="10" y2="8"></line><path d="M 14.5 4.6 A 7 7 0 1 1 5.5 4.6"></path></svg></button></div>`);
 function PowerButton($$anchor, $$props) {
 	/** @type {{ powered: boolean, loading: boolean, ontoggle: () => void }} */
 	let powered = prop($$props, "powered", 3, false), loading = prop($$props, "loading", 3, false);
 	const status = /* @__PURE__ */ user_derived(() => loading() ? "loading" : powered() ? "on" : "off");
-	var div = root$3();
+	var div = root$4();
 	var button = child(div);
 	let classes;
 	var svg = child(button);
@@ -12830,9 +13025,9 @@ function PowerButton($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/MidiStatus.svelte
-var root_2 = /* @__PURE__ */ from_html(`<option> </option>`);
-var root_1 = /* @__PURE__ */ from_html(`<select class="device-select svelte-1w0iv8d"></select>`);
-var root$2 = /* @__PURE__ */ from_html(`<div class="midi-status svelte-1w0iv8d"><span></span> <span class="label svelte-1w0iv8d">MIDI</span> <!></div>`);
+var root_2$1 = /* @__PURE__ */ from_html(`<option> </option>`);
+var root_1$1 = /* @__PURE__ */ from_html(`<select class="device-select svelte-1w0iv8d"></select>`);
+var root$3 = /* @__PURE__ */ from_html(`<div class="midi-status svelte-1w0iv8d"><span></span> <span class="label svelte-1w0iv8d">MIDI</span> <!></div>`);
 function MidiStatus($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12842,14 +13037,14 @@ function MidiStatus($$anchor, $$props) {
 	ondevicechange?: (id: string) => void,
 	}} */
 	let status = prop($$props, "status", 3, "unavailable"), devices = prop($$props, "devices", 19, () => []), selectedDeviceId = prop($$props, "selectedDeviceId", 3, null);
-	var div = root$2();
+	var div = root$3();
 	var span = child(div);
 	let classes;
 	var node = sibling(span, 4);
 	var consequent = ($$anchor) => {
-		var select = root_1();
+		var select = root_1$1();
 		each(select, 21, devices, (device) => device.id, ($$anchor, device) => {
-			var option = root_2();
+			var option = root_2$1();
 			var text = child(option, true);
 			reset(option);
 			var option_value = {};
@@ -12881,6 +13076,758 @@ function MidiStatus($$anchor, $$props) {
 	pop();
 }
 delegate(["change"]);
+//#endregion
+//#region src/state/synth.svelte.js
+var CONTINUOUS_DEFAULTS = {
+	osc2Detune: 0,
+	osc3Detune: 0,
+	osc3LfoRate: 1,
+	osc1Level: .75,
+	osc2Level: 0,
+	osc3Level: 0,
+	noiseLevel: 0,
+	cutoff: 2e3,
+	resonance: .3,
+	filterAttack: .01,
+	filterDecay: .3,
+	filterSustain: .5,
+	filterRelease: .3,
+	filterEnvAmt: 0,
+	ampAttack: .01,
+	ampDecay: .5,
+	ampSustain: .7,
+	ampRelease: .5,
+	masterVol: .75,
+	modMix: 0,
+	glideRate: .2,
+	delayTime: .3,
+	delayFeedback: .3,
+	delayMix: .3,
+	delayModRate: .5,
+	delayModDepth: 0,
+	reverbSend: .3,
+	reverbDamp: .5,
+	reverbDecay: .5,
+	reverbPreDelay: .015
+};
+var SWITCH_DEFAULTS = {
+	osc1Wave: 0,
+	osc2Wave: 0,
+	osc3Wave: 0,
+	osc1Range: 0,
+	osc2Range: 0,
+	osc3Range: 0,
+	osc3LfoMode: 0,
+	keyTrack: 0,
+	noiseType: 0,
+	drLock: 1,
+	modToOsc1: 0,
+	modToOsc2: 0,
+	modToFilter: 0,
+	glideOn: 0,
+	delayOn: 0,
+	delayModOn: 0,
+	reverbOn: 0
+};
+var PARAM_DEFAULTS = Object.freeze({
+	...CONTINUOUS_DEFAULTS,
+	...SWITCH_DEFAULTS
+});
+var PARAM_NAMES = Object.freeze(Object.keys(PARAM_DEFAULTS));
+var AUDIO_PARAMS = Object.freeze(new Set(PARAM_NAMES));
+var synthParams = proxy({ ...PARAM_DEFAULTS });
+var activePatch = proxy({
+	name: null,
+	params: { ...PARAM_DEFAULTS }
+});
+function setActivePatch(name, params) {
+	activePatch.name = name;
+	activePatch.params = { ...params };
+}
+/**
+* Write a single parameter to the store and forward it to the DSP.
+*
+* Contract: forwarding goes through engine.setParam, which is a safe no-op when
+* the AudioWorklet node has not been created (i.e. while powered off). Callers
+* (interactions, MIDI, patch loads) may therefore write at any time; DSP calls
+* made before power-on simply do nothing, and the values are (re)sent when the
+* active patch is applied on power-on.
+* @param {string} name parameter name
+* @param {number} value new value
+* @param {boolean} [force] when true, call setParam even if the value is unchanged
+*/
+function writeParam(name, value, force = false) {
+	if (!AUDIO_PARAMS.has(name)) return;
+	if (!Number.isFinite(value)) return;
+	const changed = synthParams[name] !== value;
+	if (changed) synthParams[name] = value;
+	if (changed || force) setParam(name, value);
+}
+/**
+* Apply a full or partial set of parameter values to the store at once. Used to
+* apply the active patch on power-on and to load a patch. Unknown keys in the
+* input are ignored by writeParam.
+* @param {Record<string, number>} params
+* @param {boolean} [force] forwarded to writeParam (defaults true: power-on/load
+*   must (re)send every parameter to the freshly created DSP node)
+*/
+function applyParams(params, force = true) {
+	for (const name of PARAM_NAMES) if (name in params) writeParam(name, params[name], force);
+}
+/**
+* Seed the store state to factory defaults WITHOUT touching the DSP. Used at
+* App initialisation (the worklet isn't created yet, so there is nothing to
+* drive) and to give a clean baseline in tests, where the store is a singleton.
+*/
+function resetParams() {
+	for (const name of PARAM_NAMES) synthParams[name] = PARAM_DEFAULTS[name];
+}
+/**
+* Snapshot the in-scope parameter values as a plain object, suitable for
+* serializing into a patch. Only PARAM_NAMES are included.
+* @returns {Record<string, number>}
+*/
+function serializeParams() {
+	/** @type {Record<string, number>} */
+	const out = {};
+	for (const name of PARAM_NAMES) out[name] = synthParams[name];
+	return out;
+}
+//#endregion
+//#region src/patches/storage.js
+var NS = "synth-d:";
+var INDEX_KEY = NS + "patches";
+var SLOT_PREFIX = NS + "patch:";
+/** @param {string} key @returns {string | null} */
+function safeGet(key) {
+	try {
+		return localStorage.getItem(key);
+	} catch {
+		return null;
+	}
+}
+/** @param {string} key @param {string} value @returns {boolean} success */
+function safeSet(key, value) {
+	try {
+		localStorage.setItem(key, value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+/** @param {string} key */
+function safeRemove(key) {
+	try {
+		localStorage.removeItem(key);
+	} catch {}
+}
+/**
+* Validate and normalize a patch name: trim surrounding whitespace, reject
+* empty/whitespace-only, upper-case it (patch names are always all caps), and
+* cap the length. Returns the cleaned name, or null if invalid. A name that
+* collides with an existing patch is NOT an error here — the caller routes that
+* through an overwrite confirmation. Upper-casing also means names that differ
+* only by case resolve to the same patch.
+* @param {unknown} name
+* @returns {string | null}
+*/
+function validateName(name) {
+	if (typeof name !== "string") return null;
+	const trimmed = name.trim();
+	if (trimmed.length === 0) return null;
+	return trimmed.toUpperCase().slice(0, 24);
+}
+/** @returns {string[]} */
+function readIndex() {
+	const raw = safeGet(INDEX_KEY);
+	if (!raw) return [];
+	try {
+		const arr = JSON.parse(raw);
+		return Array.isArray(arr) ? arr.filter((n) => typeof n === "string") : [];
+	} catch {
+		return [];
+	}
+}
+/** @param {string[]} names */
+function writeIndex(names) {
+	return safeSet(INDEX_KEY, JSON.stringify(names));
+}
+/**
+* Migrate any legacy patch whose name is not already upper-case to its
+* upper-cased name (patch names are now always all caps). Rewrites the slot
+* under the upper-cased key (updating the envelope name) and the index entry,
+* de-duplicating if an upper-cased twin already exists. Idempotent: when every
+* name is already upper-case it does nothing. Runs as part of listPatches so the
+* UI (which lists before any load/delete/rename) always operates on canonical
+* upper-case names.
+*/
+function migrateLegacyNames() {
+	const index = readIndex();
+	/** @type {string[]} */
+	const nextIndex = [];
+	const seen = /* @__PURE__ */ new Set();
+	let changed = false;
+	for (const name of index) {
+		const upper = name.toUpperCase();
+		if (upper === name) {
+			if (!seen.has(upper)) {
+				nextIndex.push(name);
+				seen.add(upper);
+			}
+			continue;
+		}
+		changed = true;
+		const raw = safeGet(SLOT_PREFIX + name);
+		if (raw !== null && !seen.has(upper)) {
+			let payload = raw;
+			try {
+				const env = JSON.parse(raw);
+				if (env && typeof env === "object") {
+					env.name = upper;
+					payload = JSON.stringify(env);
+				}
+			} catch {}
+			safeSet(SLOT_PREFIX + upper, payload);
+			nextIndex.push(upper);
+			seen.add(upper);
+		}
+		safeRemove(SLOT_PREFIX + name);
+	}
+	if (changed) writeIndex(nextIndex);
+}
+/**
+* List the names of all saved patches (the index is the authority). Legacy
+* non-upper-case names are migrated to upper-case first.
+* @returns {string[]}
+*/
+function listPatches() {
+	migrateLegacyNames();
+	return readIndex();
+}
+/**
+* Save the current params as a named patch. Only in-scope params (PARAM_NAMES)
+* are serialized; anything else in `params` (e.g. modWheel) is excluded. A name
+* collision overwrites the existing slot. Storage failures are non-fatal.
+* @param {string} name
+* @param {Record<string, number>} params
+* @returns {{ ok: true, name: string } | { ok: false, error: 'invalid-name' | 'storage-unavailable' }}
+*/
+function savePatch(name, params) {
+	const clean = validateName(name);
+	if (clean === null) return {
+		ok: false,
+		error: "invalid-name"
+	};
+	/** @type {Record<string, number>} */
+	const filtered = {};
+	for (const p of PARAM_NAMES) if (p in params && Number.isFinite(params[p])) filtered[p] = params[p];
+	const envelope = {
+		name: clean,
+		version: 1,
+		params: filtered
+	};
+	if (!safeSet(SLOT_PREFIX + clean, JSON.stringify(envelope))) return {
+		ok: false,
+		error: "storage-unavailable"
+	};
+	const index = readIndex();
+	if (!index.includes(clean)) {
+		index.push(clean);
+		if (!writeIndex(index)) {
+			safeRemove(SLOT_PREFIX + clean);
+			return {
+				ok: false,
+				error: "storage-unavailable"
+			};
+		}
+	}
+	return {
+		ok: true,
+		name: clean
+	};
+}
+/**
+* Load a saved patch. Returns the envelope with params filtered to in-scope
+* names, or null if the name is invalid or the slot is missing/corrupt.
+* @param {string} name
+* @returns {{ name: string, version: number, params: Record<string, number> } | null}
+*/
+function loadPatch(name) {
+	const clean = validateName(name);
+	if (clean === null) return null;
+	const raw = safeGet(SLOT_PREFIX + clean);
+	if (!raw) return null;
+	try {
+		const env = JSON.parse(raw);
+		if (!env || typeof env !== "object" || typeof env.params !== "object" || env.params === null) return null;
+		/** @type {Record<string, number>} */
+		const params = {};
+		for (const p of PARAM_NAMES) if (p in env.params && Number.isFinite(env.params[p])) params[p] = env.params[p];
+		return {
+			name: clean,
+			version: typeof env.version === "number" ? env.version : 1,
+			params
+		};
+	} catch {
+		return null;
+	}
+}
+/**
+* Delete a saved patch: remove its slot and drop it from the index.
+* @param {string} name
+* @returns {boolean} true unless the name was invalid
+*/
+function deletePatch(name) {
+	const clean = validateName(name);
+	if (clean === null) return false;
+	const index = readIndex();
+	const next = index.filter((n) => n !== clean);
+	if (next.length !== index.length && !writeIndex(next)) return false;
+	safeRemove(SLOT_PREFIX + clean);
+	return true;
+}
+/**
+* Rename a saved patch in place, keeping its stored params. The new name is
+* validated like a save name. The index entry is replaced at its original
+* position. If the new name matches a different existing patch, that patch is
+* overwritten (the caller is responsible for confirming the clash). Storage
+* failures are non-fatal and roll back the new slot.
+* @param {string} oldName
+* @param {string} newName
+* @returns {{ ok: true, name: string } | { ok: false, error: 'invalid-name' | 'not-found' | 'storage-unavailable' }}
+*/
+function renamePatch(oldName, newName) {
+	const from = validateName(oldName);
+	const to = validateName(newName);
+	if (from === null || to === null) return {
+		ok: false,
+		error: "invalid-name"
+	};
+	if (from === to) return {
+		ok: true,
+		name: to
+	};
+	const patch = loadPatch(from);
+	if (!patch) return {
+		ok: false,
+		error: "not-found"
+	};
+	const index = readIndex();
+	/** @type {string[]} */
+	const next = [];
+	for (const n of index) if (n === from) next.push(to);
+	else if (n === to) continue;
+	else next.push(n);
+	if (!next.includes(to)) next.push(to);
+	if (!writeIndex(next)) return {
+		ok: false,
+		error: "storage-unavailable"
+	};
+	const envelope = {
+		name: to,
+		version: 1,
+		params: patch.params
+	};
+	if (!safeSet(SLOT_PREFIX + to, JSON.stringify(envelope))) {
+		writeIndex(index);
+		return {
+			ok: false,
+			error: "storage-unavailable"
+		};
+	}
+	safeRemove(SLOT_PREFIX + from);
+	return {
+		ok: true,
+		name: to
+	};
+}
+//#endregion
+//#region src/components/PatchControl.svelte
+var root_1 = /* @__PURE__ */ from_html(`<span class="dirty svelte-skeerl" aria-label="unsaved changes">*</span>`);
+var root_3 = /* @__PURE__ */ from_html(`<p class="empty svelte-skeerl">no patches saved yet</p>`);
+var root_7 = /* @__PURE__ */ from_html(`<span class="confirm svelte-skeerl"> <button class="confirm-btn svelte-skeerl" aria-label="confirm rename overwrite">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel rename">✕</button></span>`);
+var root_8 = /* @__PURE__ */ from_html(`<button class="confirm-btn svelte-skeerl" aria-label="confirm rename">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel rename">✕</button>`, 1);
+var root_6 = /* @__PURE__ */ from_html(`<input class="rename-input svelte-skeerl" type="text"/> <!>`, 1);
+var root_10 = /* @__PURE__ */ from_html(`<span class="confirm svelte-skeerl">delete? <button class="confirm-btn svelte-skeerl" aria-label="confirm delete">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel delete">✕</button></span>`);
+var root_11 = /* @__PURE__ */ from_html(`<button class="patch-delete svelte-skeerl" title="Delete patch">✕</button>`);
+var root_9 = /* @__PURE__ */ from_html(`<button class="patch-load svelte-skeerl" title="Load patch"><span class="marker svelte-skeerl"> </span> </button> <button class="patch-rename svelte-skeerl" title="Rename patch">✎</button> <!>`, 1);
+var root_5 = /* @__PURE__ */ from_html(`<li><!></li>`);
+var root_4 = /* @__PURE__ */ from_html(`<ul class="patch-list svelte-skeerl"></ul>`);
+var root_12 = /* @__PURE__ */ from_html(`<span class="confirm svelte-skeerl"> <button class="confirm-btn svelte-skeerl" aria-label="confirm overwrite">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel overwrite">✕</button></span>`);
+var root_13 = /* @__PURE__ */ from_html(`<button class="save-btn svelte-skeerl">SAVE</button>`);
+var root_14 = /* @__PURE__ */ from_html(`<p class="error svelte-skeerl" role="alert"> </p>`);
+var root_2 = /* @__PURE__ */ from_html(`<div class="popover svelte-skeerl" role="dialog" aria-label="Patches"><!> <div class="save-row svelte-skeerl"><input class="name-input svelte-skeerl" type="text" placeholder="patch name" aria-label="patch name"/> <!></div> <!></div>`);
+var root$2 = /* @__PURE__ */ from_html(`<div class="patch-control svelte-skeerl"><button class="trigger svelte-skeerl" aria-haspopup="true" title="Patches">PATCH: <span class="patch-name svelte-skeerl"> </span><!></button> <!></div>`);
+function PatchControl($$anchor, $$props) {
+	push($$props, true);
+	/** @type {{ powered?: boolean }} */
+	let powered = prop($$props, "powered", 3, false);
+	let open = /* @__PURE__ */ state(false);
+	let rootEl = /* @__PURE__ */ state(
+		/** @type {HTMLElement | null} */
+		null
+	);
+	let patches = /* @__PURE__ */ state(proxy(
+		/** @type {string[]} */
+		[]
+	));
+	let nameInput = /* @__PURE__ */ state("");
+	let confirmingOverwrite = /* @__PURE__ */ state(false);
+	let confirmingDeleteName = /* @__PURE__ */ state(
+		/** @type {string | null} */
+		null
+	);
+	let renamingName = /* @__PURE__ */ state(
+		/** @type {string | null} */
+		null
+	);
+	let renameInput = /* @__PURE__ */ state("");
+	let confirmingRenameOverwrite = /* @__PURE__ */ state(false);
+	let error = /* @__PURE__ */ state("");
+	const dirty = /* @__PURE__ */ user_derived(() => {
+		return PARAM_NAMES.map((p) => synthParams[p]).join("|") !== PARAM_NAMES.map((p) => activePatch.params[p]).join("|");
+	});
+	const displayName = /* @__PURE__ */ user_derived(() => activePatch.name ?? "DEFAULT");
+	function refresh() {
+		set(patches, listPatches(), true);
+	}
+	function toggleOpen() {
+		set(open, !get(open));
+		if (get(open)) {
+			refresh();
+			set(nameInput, activePatch.name ?? "", true);
+			set(error, "");
+			set(confirmingOverwrite, false);
+			set(confirmingDeleteName, null);
+			set(renamingName, null);
+			set(confirmingRenameOverwrite, false);
+		}
+	}
+	function onNameInput() {
+		set(confirmingOverwrite, false);
+		set(error, "");
+	}
+	/** @param {string} name */
+	function handleLoad(name) {
+		const patch = loadPatch(name);
+		if (!patch) {
+			set(error, `could not load "${name}"`);
+			return;
+		}
+		const params = {
+			...PARAM_DEFAULTS,
+			...patch.params
+		};
+		setActivePatch(patch.name, params);
+		applyParams(params, false);
+		set(nameInput, patch.name, true);
+		set(confirmingDeleteName, null);
+		set(renamingName, null);
+		set(confirmingRenameOverwrite, false);
+		set(confirmingOverwrite, false);
+		set(error, "");
+	}
+	function doSave() {
+		const snapshot = serializeParams();
+		const res = savePatch(get(nameInput), snapshot);
+		if (!res.ok) {
+			set(error, res.error === "invalid-name" ? "name required" : "storage unavailable", true);
+			return;
+		}
+		setActivePatch(res.name, snapshot);
+		set(nameInput, res.name, true);
+		set(confirmingOverwrite, false);
+		refresh();
+	}
+	function handleSave() {
+		const clean = validateName(get(nameInput));
+		if (clean === null) {
+			set(error, "name required");
+			return;
+		}
+		if (clean !== activePatch.name && get(patches).includes(clean) && !get(confirmingOverwrite)) {
+			set(confirmingOverwrite, true);
+			return;
+		}
+		doSave();
+	}
+	function cancelOverwrite() {
+		set(confirmingOverwrite, false);
+	}
+	/** @param {KeyboardEvent} e */
+	function onNameKeydown(e) {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			handleSave();
+		}
+	}
+	/** @param {string} name */
+	function requestDelete(name) {
+		set(confirmingDeleteName, name, true);
+	}
+	function cancelDelete() {
+		set(confirmingDeleteName, null);
+	}
+	/** @param {string} name */
+	function confirmDelete(name) {
+		deletePatch(name);
+		if (name === activePatch.name) setActivePatch(null, activePatch.params);
+		set(confirmingDeleteName, null);
+		refresh();
+	}
+	/** @param {string} name */
+	function startRename(name) {
+		set(renamingName, name, true);
+		set(renameInput, name, true);
+		set(confirmingRenameOverwrite, false);
+		set(confirmingDeleteName, null);
+		set(error, "");
+	}
+	function cancelRename() {
+		set(renamingName, null);
+		set(confirmingRenameOverwrite, false);
+	}
+	function onRenameInput() {
+		set(confirmingRenameOverwrite, false);
+		set(error, "");
+	}
+	/** @param {KeyboardEvent} e */
+	function onRenameKeydown(e) {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			handleRename();
+		}
+	}
+	function handleRename() {
+		const clean = validateName(get(renameInput));
+		if (clean === null) {
+			set(error, "name required");
+			return;
+		}
+		if (clean === get(renamingName)) {
+			cancelRename();
+			return;
+		}
+		if (get(patches).includes(clean) && !get(confirmingRenameOverwrite)) {
+			set(confirmingRenameOverwrite, true);
+			return;
+		}
+		doRename();
+	}
+	function doRename() {
+		const from = get(renamingName);
+		const res = renamePatch(
+			/** @type {string} */
+			from,
+			get(renameInput)
+		);
+		if (!res.ok) {
+			set(error, res.error === "invalid-name" ? "name required" : res.error === "not-found" ? "patch not found" : "storage unavailable", true);
+			return;
+		}
+		if (from === activePatch.name) {
+			setActivePatch(res.name, activePatch.params);
+			if (get(nameInput) === from) set(nameInput, res.name, true);
+		}
+		set(renamingName, null);
+		set(confirmingRenameOverwrite, false);
+		set(confirmingDeleteName, null);
+		refresh();
+	}
+	/** @param {KeyboardEvent} e */
+	function onKeyDown(e) {
+		if (e.key === "Escape" && get(open)) {
+			e.stopPropagation();
+			set(open, false);
+		}
+	}
+	/** @param {PointerEvent} e */
+	function onWindowPointerDown(e) {
+		if (get(open) && get(rootEl) && e.target instanceof Node && !get(rootEl).contains(e.target)) set(open, false);
+	}
+	var div = root$2();
+	event("keydown", $window, onKeyDown);
+	event("pointerdown", $window, onWindowPointerDown);
+	var button = child(div);
+	var span = sibling(child(button));
+	var text = child(span, true);
+	reset(span);
+	var node = sibling(span);
+	var consequent = ($$anchor) => {
+		append($$anchor, root_1());
+	};
+	if_block(node, ($$render) => {
+		if (get(dirty)) $$render(consequent);
+	});
+	reset(button);
+	var node_1 = sibling(button, 2);
+	var consequent_7 = ($$anchor) => {
+		var div_1 = root_2();
+		var node_2 = child(div_1);
+		var consequent_1 = ($$anchor) => {
+			append($$anchor, root_3());
+		};
+		var alternate_3 = ($$anchor) => {
+			var ul = root_4();
+			each(ul, 20, () => get(patches), (name) => name, ($$anchor, name) => {
+				var li = root_5();
+				let classes;
+				var node_3 = child(li);
+				var consequent_3 = ($$anchor) => {
+					var fragment = root_6();
+					var input = first_child(fragment);
+					remove_input_defaults(input);
+					var node_4 = sibling(input, 2);
+					var consequent_2 = ($$anchor) => {
+						var span_2 = root_7();
+						var text_1 = child(span_2);
+						var button_1 = sibling(text_1);
+						var button_2 = sibling(button_1, 2);
+						reset(span_2);
+						template_effect(($0) => set_text(text_1, `overwrite ${$0 ?? ""}? `), [() => validateName(get(renameInput)) ?? ""]);
+						delegated("click", button_1, doRename);
+						delegated("click", button_2, cancelRename);
+						append($$anchor, span_2);
+					};
+					var alternate = ($$anchor) => {
+						var fragment_1 = root_8();
+						var button_3 = first_child(fragment_1);
+						var button_4 = sibling(button_3, 2);
+						delegated("click", button_3, handleRename);
+						delegated("click", button_4, cancelRename);
+						append($$anchor, fragment_1);
+					};
+					if_block(node_4, ($$render) => {
+						if (get(confirmingRenameOverwrite)) $$render(consequent_2);
+						else $$render(alternate, -1);
+					});
+					template_effect(() => {
+						set_attribute(input, "maxlength", 24);
+						set_attribute(input, "aria-label", `rename ${name}`);
+					});
+					delegated("input", input, onRenameInput);
+					delegated("keydown", input, onRenameKeydown);
+					bind_value(input, () => get(renameInput), ($$value) => set(renameInput, $$value));
+					append($$anchor, fragment);
+				};
+				var alternate_2 = ($$anchor) => {
+					var fragment_2 = root_9();
+					var button_5 = first_child(fragment_2);
+					var span_3 = child(button_5);
+					var text_2 = child(span_3, true);
+					reset(span_3);
+					var text_3 = sibling(span_3, 1, true);
+					reset(button_5);
+					var button_6 = sibling(button_5, 2);
+					var node_5 = sibling(button_6, 2);
+					var consequent_4 = ($$anchor) => {
+						var span_4 = root_10();
+						var button_7 = sibling(child(span_4));
+						var button_8 = sibling(button_7, 2);
+						reset(span_4);
+						delegated("click", button_7, () => confirmDelete(name));
+						delegated("click", button_8, cancelDelete);
+						append($$anchor, span_4);
+					};
+					var alternate_1 = ($$anchor) => {
+						var button_9 = root_11();
+						template_effect(() => set_attribute(button_9, "aria-label", `delete ${name}`));
+						delegated("click", button_9, () => requestDelete(name));
+						append($$anchor, button_9);
+					};
+					if_block(node_5, ($$render) => {
+						if (get(confirmingDeleteName) === name) $$render(consequent_4);
+						else $$render(alternate_1, -1);
+					});
+					template_effect(() => {
+						set_text(text_2, name === activePatch.name ? "▸" : " ");
+						set_text(text_3, name);
+						set_attribute(button_6, "aria-label", `rename ${name}`);
+					});
+					delegated("click", button_5, () => handleLoad(name));
+					delegated("click", button_6, () => startRename(name));
+					append($$anchor, fragment_2);
+				};
+				if_block(node_3, ($$render) => {
+					if (get(renamingName) === name) $$render(consequent_3);
+					else $$render(alternate_2, -1);
+				});
+				reset(li);
+				template_effect(() => classes = set_class(li, 1, "patch-row svelte-skeerl", null, classes, { active: name === activePatch.name }));
+				append($$anchor, li);
+			});
+			reset(ul);
+			append($$anchor, ul);
+		};
+		if_block(node_2, ($$render) => {
+			if (get(patches).length === 0) $$render(consequent_1);
+			else $$render(alternate_3, -1);
+		});
+		var div_2 = sibling(node_2, 2);
+		var input_1 = child(div_2);
+		remove_input_defaults(input_1);
+		var node_6 = sibling(input_1, 2);
+		var consequent_5 = ($$anchor) => {
+			var span_5 = root_12();
+			var text_4 = child(span_5);
+			var button_10 = sibling(text_4);
+			var button_11 = sibling(button_10, 2);
+			reset(span_5);
+			template_effect(($0) => set_text(text_4, `overwrite ${$0 ?? ""}? `), [() => validateName(get(nameInput)) ?? ""]);
+			delegated("click", button_10, doSave);
+			delegated("click", button_11, cancelOverwrite);
+			append($$anchor, span_5);
+		};
+		var alternate_4 = ($$anchor) => {
+			var button_12 = root_13();
+			template_effect(() => button_12.disabled = !powered());
+			delegated("click", button_12, handleSave);
+			append($$anchor, button_12);
+		};
+		if_block(node_6, ($$render) => {
+			if (get(confirmingOverwrite)) $$render(consequent_5);
+			else $$render(alternate_4, -1);
+		});
+		reset(div_2);
+		var node_7 = sibling(div_2, 2);
+		var consequent_6 = ($$anchor) => {
+			var p_2 = root_14();
+			var text_5 = child(p_2, true);
+			reset(p_2);
+			template_effect(() => set_text(text_5, get(error)));
+			append($$anchor, p_2);
+		};
+		if_block(node_7, ($$render) => {
+			if (get(error)) $$render(consequent_6);
+		});
+		reset(div_1);
+		template_effect(() => {
+			set_attribute(input_1, "maxlength", 24);
+			input_1.disabled = !powered();
+		});
+		delegated("input", input_1, onNameInput);
+		delegated("keydown", input_1, onNameKeydown);
+		bind_value(input_1, () => get(nameInput), ($$value) => set(nameInput, $$value));
+		append($$anchor, div_1);
+	};
+	if_block(node_1, ($$render) => {
+		if (get(open)) $$render(consequent_7);
+	});
+	reset(div);
+	bind_this(div, ($$value) => set(rootEl, $$value), () => get(rootEl));
+	template_effect(() => {
+		set_attribute(button, "aria-expanded", get(open));
+		set_text(text, get(displayName));
+	});
+	delegated("click", button, toggleOpen);
+	append($$anchor, div);
+	pop();
+}
+delegate([
+	"click",
+	"input",
+	"keydown"
+]);
 //#endregion
 //#region src/components/Scope.svelte
 var root$1 = /* @__PURE__ */ from_html(`<div class="panel svelte-1pr5o9o"><span class="panel-label svelte-1pr5o9o">OSCILLOSCOPE</span> <div class="scope-body svelte-1pr5o9o"><canvas style="display: block; width: 100%; height: 80px; background: #1c1c1c;"></canvas></div></div>`);
@@ -13121,44 +14068,14 @@ var BIPOLAR_PARAMS = new Set([
 function powerOffValue(p) {
 	return BIPOLAR_PARAMS.has(p) ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2 : KNOB_PARAMS[p].min;
 }
-var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header class="header svelte-1n46o8q"><a class="github-link svelte-1n46o8q" href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a> <div class="title-block svelte-1n46o8q"><span class="title svelte-1n46o8q">SYNTH-D</span> <span class="version-label svelte-1n46o8q"> </span></div> <div class="header-right svelte-1n46o8q"><!> <!></div></header> <main class="svelte-1n46o8q"><div><div class="panels svelte-1n46o8q"><!> <!> <div class="filter-output-grid svelte-1n46o8q"><!> <!> <div class="effects-col svelte-1n46o8q"><!></div> <div class="panel-row svelte-1n46o8q"><!> <!></div> <!></div></div> <div class="keyboard-row svelte-1n46o8q"><!> <!> <!></div></div></main></div>`);
+var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header class="header svelte-1n46o8q"><a class="github-link svelte-1n46o8q" href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a> <div class="title-block svelte-1n46o8q"><span class="title svelte-1n46o8q">SYNTH-D</span> <span class="version-label svelte-1n46o8q"> </span></div> <div class="header-right svelte-1n46o8q"><div class="status-stack svelte-1n46o8q"><!> <!></div> <!></div></header> <main class="svelte-1n46o8q"><div><div class="panels svelte-1n46o8q"><!> <!> <div class="filter-output-grid svelte-1n46o8q"><!> <!> <div class="effects-col svelte-1n46o8q"><!></div> <div class="panel-row svelte-1n46o8q"><!> <!></div> <!></div></div> <div class="keyboard-row svelte-1n46o8q"><!> <!> <!></div></div></main></div>`);
 function App($$anchor, $$props) {
 	push($$props, true);
 	const branch = "main";
-	const versionLabel = branch === "main" ? `v1.4.1` : `v1.4.1 (${branch})`;
-	const DEFAULTS = {
-		osc2Detune: 0,
-		osc3Detune: 0,
-		osc3LfoRate: 1,
-		osc1Level: .75,
-		osc2Level: 0,
-		osc3Level: 0,
-		noiseLevel: 0,
-		cutoff: 2e3,
-		resonance: .3,
-		filterAttack: .01,
-		filterDecay: .3,
-		filterSustain: .5,
-		filterRelease: .3,
-		filterEnvAmt: 0,
-		ampAttack: .01,
-		ampDecay: .5,
-		ampSustain: .7,
-		ampRelease: .3,
-		masterVol: .75,
-		modMix: 0,
-		modWheel: .5,
-		glideRate: .2,
-		delayTime: .3,
-		delayFeedback: .3,
-		delayMix: .3,
-		delayModRate: .5,
-		delayModDepth: 0,
-		reverbSend: .3,
-		reverbDamp: .5,
-		reverbDecay: .5,
-		reverbPreDelay: .015
-	};
+	const versionLabel = branch === "main" ? `v1.5.0` : `v1.5.0 (${branch})`;
+	const MOD_WHEEL_DEFAULT = .5;
+	resetParams();
+	setActivePatch(null, PARAM_DEFAULTS);
 	let keyboardBase = /* @__PURE__ */ state(36);
 	const activeRegister = /* @__PURE__ */ user_derived(() => get(keyboardBase) === 21 ? "bottom" : get(keyboardBase) === 48 ? "top" : "mid");
 	let powered = /* @__PURE__ */ state(false);
@@ -13167,7 +14084,6 @@ function App($$anchor, $$props) {
 		/** @type {AnalyserNode | null} */
 		null
 	);
-	let resetCounter = /* @__PURE__ */ state(0);
 	let midiStatus = /* @__PURE__ */ state(
 		/** @type {'unavailable'|'connected'|'active'} */
 		"unavailable"
@@ -13185,10 +14101,7 @@ function App($$anchor, $$props) {
 		null
 	);
 	let midiActiveNotes = /* @__PURE__ */ state(0);
-	let ccExternalValues = /* @__PURE__ */ state(proxy(
-		/** @type {Record<string,number|undefined>} */
-		Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)]))
-	));
+	let modWheelExternal = /* @__PURE__ */ state(proxy(powerOffValue("modWheel")));
 	const midiCcMap = new MidiCcMap();
 	const midiManager = new MidiManager({
 		onNoteOn: (note, freq) => {
@@ -13216,21 +14129,16 @@ function App($$anchor, $$props) {
 			}
 			if (cc === 1) {
 				const scaled = value / 127;
-				set(ccExternalValues, {
-					...get(ccExternalValues),
-					modWheel: scaled
-				}, true);
+				set(modWheelExternal, scaled);
 				setParam("modWheel", scaled);
 				return;
 			}
+			if (!get(powered)) return;
 			const mapping = midiCcMap.resolve(cc);
 			if (!mapping) return;
 			const scaled = midiCcMap.scale(cc, value);
 			if (scaled === null) return;
-			set(ccExternalValues, {
-				...get(ccExternalValues),
-				[mapping.param]: scaled
-			}, true);
+			writeParam(mapping.param, scaled);
 		},
 		onStatusChange: (status) => {
 			set(midiStatus, status, true);
@@ -13255,20 +14163,18 @@ function App($$anchor, $$props) {
 	async function handleToggle() {
 		if (get(powered)) {
 			get(keyboardReleaseAll)?.();
-			midiManager.destroy();
 			await powerOff();
 			set(powered, false);
-			set(midiStatus, "unavailable");
-			set(ccExternalValues, Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)])), true);
+			set(modWheelExternal, powerOffValue("modWheel"), true);
 		} else {
 			set(loading, true);
 			try {
 				await powerOn();
 				set(analyser, getAnalyser(), true);
 				set(powered, true);
-				set(ccExternalValues, { ...DEFAULTS }, true);
-				update(resetCounter);
-				await midiManager.connect();
+				applyParams(activePatch.params, true);
+				set(modWheelExternal, MOD_WHEEL_DEFAULT);
+				setParam("modWheel", MOD_WHEEL_DEFAULT);
 			} catch (err) {
 				console.error("Power on failed:", err);
 			} finally {
@@ -13278,11 +14184,14 @@ function App($$anchor, $$props) {
 	}
 	/** @param {{ param: string, value: number }} e */
 	function onParamChange(e) {
+		if (!get(powered)) return;
+		writeParam(e.param, e.value);
+	}
+	/** @param {{ param: string, value: number }} e */
+	function onModWheelChange(e) {
+		if (!get(powered)) return;
+		set(modWheelExternal, e.value, true);
 		setParam(e.param, e.value);
-		if (e.param in get(ccExternalValues) && get(ccExternalValues)[e.param] !== e.value) set(ccExternalValues, {
-			...get(ccExternalValues),
-			[e.param]: e.value
-		}, true);
 	}
 	/** @param {Array<{ param: string, value: number }>} messages */
 	function onKeyboardNote(messages) {
@@ -13296,7 +14205,10 @@ function App($$anchor, $$props) {
 	function onKeyDown(e) {
 		if (e.key === "Escape" && get(learningParam) !== null) set(learningParam, null);
 	}
-	onMount(() => window.addEventListener("keydown", onKeyDown));
+	onMount(() => {
+		window.addEventListener("keydown", onKeyDown);
+		midiManager.connect();
+	});
 	onDestroy(() => {
 		window.removeEventListener("keydown", onKeyDown);
 		midiManager.destroy();
@@ -13304,14 +14216,14 @@ function App($$anchor, $$props) {
 	/** @param {...string} params */
 	function midiStateFor(...params) {
 		return Object.fromEntries(params.map((p) => [p, {
-			externalValue: get(ccExternalValues)[p],
+			externalValue: get(powered) ? synthParams[p] : powerOffValue(p),
 			learningMidi: get(learningParam) === p,
 			assignedCc: midiCcMap.getAssignedCc(p)
 		}]));
 	}
 	let oscMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("osc2Detune", "osc3Detune", "osc3LfoRate"));
 	let mixerMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("osc1Level", "osc2Level", "osc3Level", "noiseLevel"));
-	let filterMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("cutoff", "resonance", "keyTrack", "filterAttack", "filterDecay", "filterSustain", "filterRelease", "filterEnvAmt"));
+	let filterMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("cutoff", "resonance", "filterAttack", "filterDecay", "filterSustain", "filterRelease", "filterEnvAmt"));
 	let ampEnvMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("ampAttack", "ampDecay", "ampSustain", "ampRelease", "masterVol"));
 	let modMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("modMix"));
 	let glideMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("glideRate"));
@@ -13324,7 +14236,8 @@ function App($$anchor, $$props) {
 	reset(span);
 	reset(div_1);
 	var div_2 = sibling(div_1, 2);
-	var node = child(div_2);
+	var div_3 = child(div_2);
+	var node = child(div_3);
 	MidiStatus(node, {
 		get status() {
 			return get(midiStatus);
@@ -13340,7 +14253,11 @@ function App($$anchor, $$props) {
 			midiManager.selectDevice(id);
 		}
 	});
-	PowerButton(sibling(node, 2), {
+	PatchControl(sibling(node, 2), { get powered() {
+		return get(powered);
+	} });
+	reset(div_3);
+	PowerButton(sibling(div_3, 2), {
 		get powered() {
 			return get(powered);
 		},
@@ -13352,29 +14269,47 @@ function App($$anchor, $$props) {
 	reset(div_2);
 	reset(header);
 	var main = sibling(header, 2);
-	var div_3 = child(main);
+	var div_4 = child(main);
 	let classes;
-	var div_4 = child(div_3);
-	var node_2 = child(div_4);
-	Oscillator(node_2, {
+	var div_5 = child(div_4);
+	var node_3 = child(div_5);
+	Oscillator(node_3, {
 		onchange: onParamChange,
 		get midiState() {
 			return get(oscMidiState);
 		},
 		onknobcontextmenu: onKnobContextMenu,
-		get reset() {
-			return get(resetCounter);
+		get osc1Wave() {
+			return synthParams.osc1Wave;
+		},
+		get osc2Wave() {
+			return synthParams.osc2Wave;
+		},
+		get osc3Wave() {
+			return synthParams.osc3Wave;
+		},
+		get osc1Range() {
+			return synthParams.osc1Range;
+		},
+		get osc2Range() {
+			return synthParams.osc2Range;
+		},
+		get osc3Range() {
+			return synthParams.osc3Range;
+		},
+		get osc3LfoMode() {
+			return synthParams.osc3LfoMode;
 		}
 	});
-	var node_3 = sibling(node_2, 2);
-	Mixer(node_3, {
+	var node_4 = sibling(node_3, 2);
+	Mixer(node_4, {
 		onchange: onParamChange,
 		get midiState() {
 			return get(mixerMidiState);
 		},
 		onknobcontextmenu: onKnobContextMenu,
-		get reset() {
-			return get(resetCounter);
+		get noiseType() {
+			return synthParams.noiseType;
 		},
 		get getPeak() {
 			return getMixerPeak;
@@ -13383,27 +14318,27 @@ function App($$anchor, $$props) {
 			return get(powered);
 		}
 	});
-	var div_5 = sibling(node_3, 2);
-	var node_4 = child(div_5);
-	Filter(node_4, {
+	var div_6 = sibling(node_4, 2);
+	var node_5 = child(div_6);
+	Filter(node_5, {
 		onchange: onParamChange,
 		get midiState() {
 			return get(filterMidiState);
 		},
 		onknobcontextmenu: onKnobContextMenu,
-		get reset() {
-			return get(resetCounter);
+		get keyTrack() {
+			return synthParams.keyTrack;
 		}
 	});
-	var node_5 = sibling(node_4, 2);
-	AmpEnv(node_5, {
+	var node_6 = sibling(node_5, 2);
+	AmpEnv(node_6, {
 		onchange: onParamChange,
 		get midiState() {
 			return get(ampEnvMidiState);
 		},
 		onknobcontextmenu: onKnobContextMenu,
-		get reset() {
-			return get(resetCounter);
+		get drLock() {
+			return synthParams.drLock;
 		},
 		get getOutputPeak() {
 			return getOutputPeak;
@@ -13412,42 +14347,54 @@ function App($$anchor, $$props) {
 			return get(powered);
 		}
 	});
-	var div_6 = sibling(node_5, 2);
-	Effects(child(div_6), {
+	var div_7 = sibling(node_6, 2);
+	Effects(child(div_7), {
 		onchange: onParamChange,
 		get midiState() {
 			return get(effectsMidiState);
 		},
 		onknobcontextmenu: onKnobContextMenu,
-		get reset() {
-			return get(resetCounter);
+		get delayOn() {
+			return synthParams.delayOn;
+		},
+		get delayModOn() {
+			return synthParams.delayModOn;
+		},
+		get reverbOn() {
+			return synthParams.reverbOn;
 		}
 	});
-	reset(div_6);
-	var div_7 = sibling(div_6, 2);
-	var node_7 = child(div_7);
-	Modulation(node_7, {
+	reset(div_7);
+	var div_8 = sibling(div_7, 2);
+	var node_8 = child(div_8);
+	Modulation(node_8, {
 		onchange: onParamChange,
 		get midiState() {
 			return get(modMidiState);
 		},
 		onknobcontextmenu: onKnobContextMenu,
-		get reset() {
-			return get(resetCounter);
+		get modToOsc1() {
+			return synthParams.modToOsc1;
+		},
+		get modToOsc2() {
+			return synthParams.modToOsc2;
+		},
+		get modToFilter() {
+			return synthParams.modToFilter;
 		}
 	});
-	Glide(sibling(node_7, 2), {
+	Glide(sibling(node_8, 2), {
 		onchange: onParamChange,
 		get midiState() {
 			return get(glideMidiState);
 		},
 		onknobcontextmenu: onKnobContextMenu,
-		get reset() {
-			return get(resetCounter);
+		get glideOn() {
+			return synthParams.glideOn;
 		}
 	});
-	reset(div_7);
-	Scope(sibling(div_7, 2), {
+	reset(div_8);
+	Scope(sibling(div_8, 2), {
 		get analyser() {
 			return get(analyser);
 		},
@@ -13455,18 +14402,18 @@ function App($$anchor, $$props) {
 			return get(powered);
 		}
 	});
+	reset(div_6);
 	reset(div_5);
-	reset(div_4);
-	var div_8 = sibling(div_4, 2);
-	var node_10 = child(div_8);
-	WheelPanel(node_10, {
+	var div_9 = sibling(div_5, 2);
+	var node_11 = child(div_9);
+	WheelPanel(node_11, {
 		get externalValue() {
-			return get(ccExternalValues).modWheel;
+			return get(modWheelExternal);
 		},
-		onchange: onParamChange
+		onchange: onModWheelChange
 	});
-	var node_11 = sibling(node_10, 2);
-	Keyboard(node_11, {
+	var node_12 = sibling(node_11, 2);
+	Keyboard(node_12, {
 		onnote: onKeyboardNote,
 		get baseMidi() {
 			return get(keyboardBase);
@@ -13490,21 +14437,21 @@ function App($$anchor, $$props) {
 			set(keyboardReleaseAll, $$value, true);
 		}
 	});
-	RegisterPanel(sibling(node_11, 2), {
+	RegisterPanel(sibling(node_12, 2), {
 		ondown: () => set(keyboardBase, 21),
 		onup: () => set(keyboardBase, 48),
 		get activeRegister() {
 			return get(activeRegister);
 		}
 	});
-	reset(div_8);
-	reset(div_3);
+	reset(div_9);
+	reset(div_4);
 	reset(main);
 	reset(div);
 	template_effect(() => {
 		set_text(text, versionLabel);
 		main.inert = !get(powered) || void 0;
-		classes = set_class(div_3, 1, "synth svelte-1n46o8q", null, classes, { dimmed: !get(powered) });
+		classes = set_class(div_4, 1, "synth svelte-1n46o8q", null, classes, { dimmed: !get(powered) });
 	});
 	append($$anchor, div);
 	pop();
