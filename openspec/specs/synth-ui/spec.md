@@ -234,10 +234,8 @@ In the Effects panel, each section's on/off toggle button SHALL appear on the sa
 #### Scenario: Knob rows contain only knobs
 
 - **WHEN** the Effects panel is rendered
-- **THEN** the delay knob row contains only the time, feedback, and mix knobs (no toggle button)
+- **THEN** the delay knob row contains only the mix, time, and feedback knobs (no toggle button)
 - **AND** the reverb knob row contains only the mix, tone, decay, and pre-delay knobs (no toggle button)
-
----
 
 ### Requirement: All on/off toggle switches use the active green color
 

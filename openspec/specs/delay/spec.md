@@ -73,7 +73,7 @@ The system SHALL implement a tape-delay-modelled feedback delay stage in `faust/
 
 ### Requirement: Combined Effects panel with DELAY and REVERB sub-sections
 
-The system SHALL provide an `Effects.svelte` component that hosts both the delay and reverb controls in a single panel. The outer panel label SHALL read "EFFECTS". A sub-label "DELAY" SHALL appear above the delay controls: an on/off toggle (amber active style, grey inactive) and three `Knob` components labelled `time`, `feedback`, and `mix`. A `section-divider` line SHALL visually separate the two sub-sections. A sub-label "REVERB" SHALL appear above the reverb controls: an on/off toggle and four `Knob` components labelled `mix`, `LPF`, `decay`, and `pre-delay`. The sub-label style SHALL match the `AmpEnv.svelte` "loudness contour" label. The component SHALL accept `onchange`, `midiState`, and `onknobcontextmenu` props. The `delayTime`, `delayFeedback`, `delayMix`, `reverbMix`, `reverbDecay`, `reverbTone` (the `LPF` knob), and `reverbPreDelay` knobs SHALL all participate in the MIDI CC learn workflow. `delayOn` and `reverbOn` are not MIDI-learnable. For reverb knob parameter names, defaults, and scenarios, see `openspec/specs/reverb/spec.md`.
+The system SHALL provide an `Effects.svelte` component that hosts both the delay and reverb controls in a single panel. The outer panel label SHALL read "EFFECTS". A sub-label "DELAY" SHALL appear above the delay controls: an on/off toggle (amber active style, grey inactive) and three `Knob` components labelled `mix`, `time`, and `feedback`, in that left-to-right order. A `section-divider` line SHALL visually separate the two sub-sections. A sub-label "REVERB" SHALL appear above the reverb controls: an on/off toggle and four `Knob` components labelled `mix`, `LPF`, `decay`, and `pre-delay`. The sub-label style SHALL match the `AmpEnv.svelte` "loudness contour" label. The component SHALL accept `onchange`, `midiState`, and `onknobcontextmenu` props. The `delayTime`, `delayFeedback`, `delayMix`, `reverbMix`, `reverbDecay`, `reverbTone` (the `LPF` knob), and `reverbPreDelay` knobs SHALL all participate in the MIDI CC learn workflow. `delayOn` and `reverbOn` are not MIDI-learnable. For reverb knob parameter names, defaults, and scenarios, see `openspec/specs/reverb/spec.md`.
 
 #### Scenario: Toggle defaults to off
 
@@ -90,6 +90,11 @@ The system SHALL provide an `Effects.svelte` component that hosts both the delay
 - **WHEN** the on/off toggle is clicked from the on state
 - **THEN** `onchange` is called with `{ param: 'delayOn', value: 0 }`
 
+#### Scenario: Mix knob is the leftmost delay knob
+
+- **WHEN** the Delay panel is rendered
+- **THEN** the delay knob row presents the knobs in left-to-right order `mix`, `time`, `feedback`
+
 #### Scenario: Time knob defaults to 0.3 s
 
 - **WHEN** the Delay panel is rendered with no external state
@@ -103,14 +108,12 @@ The system SHALL provide an `Effects.svelte` component that hosts both the delay
 #### Scenario: MIDI learn context menu triggers for each knob
 
 - **WHEN** the user right-clicks any of the three delay knobs
-- **THEN** `onknobcontextmenu` is called with the corresponding param name (`delayTime`, `delayFeedback`, or `delayMix`)
+- **THEN** `onknobcontextmenu` is called with the corresponding param name (`delayMix`, `delayTime`, or `delayFeedback`)
 
 #### Scenario: External MIDI value updates knob display
 
 - **WHEN** `midiState.delayTime.externalValue` is updated by an incoming CC message
 - **THEN** the time knob reflects the new value visually
-
----
 
 ### Requirement: Delay parameters registered in MIDI CC map
 
@@ -193,7 +196,7 @@ The system SHALL provide a sinusoidal LFO that modulates the delay read position
 
 ### Requirement: Delay modulation controls on a dedicated second row in the Effects panel
 
-The Effects panel delay sub-section SHALL contain two rows. The first row is unchanged: `time`, `feedback`, `mix` knobs. A second row SHALL appear immediately below it containing a **MOD** on/off toggle button followed by two `Knob` components: **rate** (param `delayModRate`, range 0.1–10 Hz, default 0.5, log scale, unit "Hz") and **depth** (param `delayModDepth`, range 0–0.025 s, default 0, linear scale, unit "s"). The MOD toggle SHALL use the same visual style as the existing delay and reverb on/off toggles (amber active, grey inactive). `delayModOn` is not MIDI-learnable. Both knobs SHALL participate in the MIDI CC learn workflow.
+The Effects panel delay sub-section SHALL contain two rows. The first row contains the `mix`, `time`, `feedback` knobs (in that left-to-right order). A second row SHALL appear immediately below it containing a **MOD** on/off toggle button followed by two `Knob` components: **rate** (param `delayModRate`, range 0.1–10 Hz, default 0.5, log scale, unit "Hz") and **depth** (param `delayModDepth`, range 0–0.025 s, default 0, linear scale, unit "s"). The MOD toggle SHALL use the same visual style as the existing delay and reverb on/off toggles (amber active, grey inactive). `delayModOn` is not MIDI-learnable. Both knobs SHALL participate in the MIDI CC learn workflow.
 
 #### Scenario: MOD toggle defaults to off
 
