@@ -103,7 +103,7 @@ This project uses a spec-driven, AI-assisted development workflow:
 
 - **OpenSpec** — every change starts with a spec proposal (`/opsx:propose`). Implementation only begins after the spec is approved.
 - **roborev** — an AI code review daemon runs after every commit. Open findings are addressed with `/roborev-fix` before a section can be closed.
-- **stax** — all branch management and PR creation goes through `stax`. A single PR is opened per feature/bugfix branch when the entire change is complete.
+- **git + gh** — branch management uses plain `git`; PRs are created and managed with the `gh` CLI. A single PR is opened per feature/bugfix branch when the entire change is complete.
 - **Husky hooks** — pre-commit (lint/format) and post-commit (roborev review trigger) run automatically.
 
 See [CLAUDE.md](CLAUDE.md) for the full mandatory workflow rules.
@@ -126,6 +126,6 @@ See [CLAUDE.md](CLAUDE.md) for the full mandatory workflow rules.
 | Linting                | ESLint + `eslint-plugin-svelte`     |
 | Formatting             | Prettier + `prettier-plugin-svelte` |
 | Git hooks              | Husky                               |
-| Branch / PR management | stax                                |
+| Branch / PR management | git + `gh` CLI                      |
 | Code review            | roborev                             |
 | Change workflow        | OpenSpec                            |
