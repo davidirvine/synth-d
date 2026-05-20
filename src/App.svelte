@@ -81,56 +81,34 @@
   import WheelPanel from './components/WheelPanel.svelte'
   import PowerButton from './components/PowerButton.svelte'
   import MidiStatus from './components/MidiStatus.svelte'
+  import PatchControl from './components/PatchControl.svelte'
   import Scope from './components/Scope.svelte'
+  import {
+    synthParams,
+    writeParam,
+    applyParams,
+    resetParams,
+    setActivePatch,
+    activePatch,
+    PARAM_DEFAULTS,
+  } from './state/synth.svelte.js'
 
   const branch = __GIT_BRANCH__
   const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
 
-  // Covers every continuous param that flows through ccExternalValues → Knob externalValue.
-  // keyTrack is intentionally excluded: it is a toggle button, not a Knob, so it receives
-  // no externalValue. It is reset to 0 by Filter.svelte's reset $effect instead.
-  const DEFAULTS = {
-    // Oscillators
-    osc2Detune: 0,
-    osc3Detune: 0,
-    osc3LfoRate: 1,
-    // Mixer
-    osc1Level: 0.75,
-    osc2Level: 0,
-    osc3Level: 0,
-    noiseLevel: 0,
-    // Filter
-    cutoff: 2000,
-    resonance: 0.3,
-    filterAttack: 0.01,
-    filterDecay: 0.3,
-    filterSustain: 0.5,
-    filterRelease: 0.3,
-    filterEnvAmt: 0,
-    // Amp envelope
-    ampAttack: 0.01,
-    ampDecay: 0.5,
-    ampSustain: 0.7,
-    ampRelease: 0.3,
-    // Master
-    masterVol: 0.75,
-    // Modulation
-    modMix: 0,
-    modWheel: 0.5,
-    // Glide
-    glideRate: 0.2,
-    // Delay
-    delayTime: 0.3,
-    delayFeedback: 0.3,
-    delayMix: 0.3,
-    delayModRate: 0.5,
-    delayModDepth: 0,
-    // Reverb
-    reverbSend: 0.3,
-    reverbDamp: 0.5,
-    reverbDecay: 0.5,
-    reverbPreDelay: 0.015,
-  }
+  // The mod-wheel is controller state, not part of the synth store/patch. Its
+  // power-on value is its own default; power-off returns it to rest like a knob.
+  const MOD_WHEEL_DEFAULT = 0.5
+
+  // Seed the store to factory defaults for this App instance. On page load this
+  // shows factory defaults (knobs sit at their power-off rest positions until
+  // power-on) and the active patch is the (unsaved) factory defaults. The store
+  // is a module singleton, so this also gives tests a clean baseline. No DSP
+  // writes happen here — the worklet isn't created yet.
+  // NOTE for tests: this runs at instantiation, so a test that wants a specific
+  // active patch must call setActivePatch AFTER render(App), not before.
+  resetParams()
+  setActivePatch(null, PARAM_DEFAULTS)
 
   let keyboardBase = $state(36)
   const activeRegister = $derived(
@@ -140,7 +118,6 @@
   let powered = $state(false)
   let loading = $state(false)
   let analyser = $state(/** @type {AnalyserNode | null} */ (null))
-  let resetCounter = $state(0)
 
   // MIDI state
   let midiStatus = $state(/** @type {'unavailable'|'connected'|'active'} */ ('unavailable'))
@@ -149,13 +126,9 @@
   let learningParam = $state(/** @type {string|null} */ (null))
   let midiActiveNotes = $state(0)
 
-  // Per-param external values driven by incoming CC messages.
-  // Initialised at power-off targets: min for non-bipolar, midpoint for bipolar.
-  let ccExternalValues = $state(
-    /** @type {Record<string,number|undefined>} */ (
-      Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)]))
-    )
-  )
+  // Mod-wheel external (programmatic) value: drives the wheel on power
+  // transitions and incoming CC 1. Initialised at the power-off rest position.
+  let modWheelExternal = $state(powerOffValue('modWheel'))
 
   const midiCcMap = new MidiCcMap()
 
@@ -183,18 +156,24 @@
           return
         }
       }
-      // CC 1 always routes to modWheel
+      // CC 1 always routes to modWheel (controller state, not the store). It
+      // fires regardless of power state; setParam is a safe no-op while off.
       if (cc === 1) {
         const scaled = value / 127
-        ccExternalValues = { ...ccExternalValues, modWheel: scaled }
+        modWheelExternal = scaled
         setParam('modWheel', scaled)
         return
       }
+      // While powered off the synth is reset to the active patch on power-on,
+      // so a store write here would be discarded — skip it, matching the
+      // `!powered` guard in onParamChange.
+      if (!powered) return
       const mapping = midiCcMap.resolve(cc)
       if (!mapping) return
       const scaled = midiCcMap.scale(cc, value)
       if (scaled === null) return
-      ccExternalValues = { ...ccExternalValues, [mapping.param]: scaled }
+      // MIDI CC writes the store, which drives both the DSP and the knob.
+      writeParam(mapping.param, scaled)
     },
     onStatusChange: (/** @type {'unavailable'|'connected'|'active'} */ status) => {
       midiStatus = status
@@ -217,15 +196,21 @@
       keyboardReleaseAll?.()
       await powerOff()
       powered = false
-      ccExternalValues = Object.fromEntries(Object.keys(DEFAULTS).map((p) => [p, powerOffValue(p)]))
+      modWheelExternal = powerOffValue('modWheel')
     } else {
       loading = true
       try {
         await powerOn()
         analyser = getAnalyser()
         powered = true
-        ccExternalValues = { ...DEFAULTS }
-        resetCounter++
+        // Apply the active patch to the store, which drives both UI and DSP.
+        // The active patch is the most recently loaded patch, or the factory
+        // defaults when none has been loaded. `force` re-sends every param to
+        // the freshly created worklet node so the DSP and UI agree from the
+        // first sample.
+        applyParams(activePatch.params, true)
+        modWheelExternal = MOD_WHEEL_DEFAULT
+        setParam('modWheel', MOD_WHEEL_DEFAULT)
       } catch (err) {
         console.error('Power on failed:', err)
       } finally {
@@ -236,10 +221,22 @@
 
   /** @param {{ param: string, value: number }} e */
   function onParamChange(e) {
+    // Only user interaction while powered should write the store. When powered
+    // off, the knobs' externalValue animates to rest positions, which fires
+    // their onchange — that must NOT be written back to the store.
+    if (!powered) return
+    writeParam(e.param, e.value)
+  }
+
+  /** @param {{ param: string, value: number }} e */
+  function onModWheelChange(e) {
+    // Guard on power state to match onParamChange: only act on real user
+    // interaction while powered.
+    if (!powered) return
+    // Keep the external value in sync with the wheel's position so a later CC 1
+    // carrying this same value still registers as a change and re-renders.
+    modWheelExternal = e.value
     setParam(e.param, e.value)
-    if (e.param in ccExternalValues && ccExternalValues[e.param] !== e.value) {
-      ccExternalValues = { ...ccExternalValues, [e.param]: e.value }
-    }
   }
 
   /** @param {Array<{ param: string, value: number }>} messages */
@@ -281,7 +278,9 @@
       params.map((p) => [
         p,
         {
-          externalValue: ccExternalValues[p],
+          // The store feeds each knob's externalValue while powered; when
+          // powered off, knobs sit at their power-off rest positions.
+          externalValue: powered ? synthParams[p] : powerOffValue(p),
           learningMidi: learningParam === p,
           assignedCc: midiCcMap.getAssignedCc(p),
         },
@@ -297,7 +296,6 @@
     midiStateFor(
       'cutoff',
       'resonance',
-      'keyTrack',
       'filterAttack',
       'filterDecay',
       'filterSustain',
@@ -356,15 +354,18 @@
       <span class="version-label">{versionLabel}</span>
     </div>
     <div class="header-right">
-      <MidiStatus
-        status={midiStatus}
-        devices={midiDevices}
-        {selectedDeviceId}
-        ondevicechange={(id) => {
-          selectedDeviceId = id
-          midiManager.selectDevice(id)
-        }}
-      />
+      <div class="status-stack">
+        <MidiStatus
+          status={midiStatus}
+          devices={midiDevices}
+          {selectedDeviceId}
+          ondevicechange={(id) => {
+            selectedDeviceId = id
+            midiManager.selectDevice(id)
+          }}
+        />
+        <PatchControl {powered} />
+      </div>
       <PowerButton {powered} {loading} ontoggle={handleToggle} />
     </div>
   </header>
@@ -376,13 +377,19 @@
           onchange={onParamChange}
           midiState={oscMidiState}
           onknobcontextmenu={onKnobContextMenu}
-          reset={resetCounter}
+          osc1Wave={synthParams.osc1Wave}
+          osc2Wave={synthParams.osc2Wave}
+          osc3Wave={synthParams.osc3Wave}
+          osc1Range={synthParams.osc1Range}
+          osc2Range={synthParams.osc2Range}
+          osc3Range={synthParams.osc3Range}
+          osc3LfoMode={synthParams.osc3LfoMode}
         />
         <Mixer
           onchange={onParamChange}
           midiState={mixerMidiState}
           onknobcontextmenu={onKnobContextMenu}
-          reset={resetCounter}
+          noiseType={synthParams.noiseType}
           getPeak={getMixerPeak}
           {powered}
         />
@@ -391,13 +398,13 @@
             onchange={onParamChange}
             midiState={filterMidiState}
             onknobcontextmenu={onKnobContextMenu}
-            reset={resetCounter}
+            keyTrack={synthParams.keyTrack}
           />
           <AmpEnv
             onchange={onParamChange}
             midiState={ampEnvMidiState}
             onknobcontextmenu={onKnobContextMenu}
-            reset={resetCounter}
+            drLock={synthParams.drLock}
             {getOutputPeak}
             {powered}
           />
@@ -406,7 +413,9 @@
               onchange={onParamChange}
               midiState={effectsMidiState}
               onknobcontextmenu={onKnobContextMenu}
-              reset={resetCounter}
+              delayOn={synthParams.delayOn}
+              delayModOn={synthParams.delayModOn}
+              reverbOn={synthParams.reverbOn}
             />
           </div>
           <div class="panel-row">
@@ -414,20 +423,22 @@
               onchange={onParamChange}
               midiState={modMidiState}
               onknobcontextmenu={onKnobContextMenu}
-              reset={resetCounter}
+              modToOsc1={synthParams.modToOsc1}
+              modToOsc2={synthParams.modToOsc2}
+              modToFilter={synthParams.modToFilter}
             />
             <Glide
               onchange={onParamChange}
               midiState={glideMidiState}
               onknobcontextmenu={onKnobContextMenu}
-              reset={resetCounter}
+              glideOn={synthParams.glideOn}
             />
           </div>
           <Scope {analyser} {powered} />
         </div>
       </div>
       <div class="keyboard-row">
-        <WheelPanel externalValue={ccExternalValues.modWheel} onchange={onParamChange} />
+        <WheelPanel externalValue={modWheelExternal} onchange={onModWheelChange} />
         <Keyboard
           onnote={onKeyboardNote}
           bind:triggerNote={keyboardTriggerNote}
@@ -469,6 +480,15 @@
     align-items: center;
     gap: 12px;
     margin-left: auto;
+  }
+
+  /* Stack the MIDI status and patch control vertically, right-aligned, so the
+     patch button sits under the MIDI indicator row. */
+  .status-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
   }
 
   .github-link {

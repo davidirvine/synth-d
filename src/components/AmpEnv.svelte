@@ -1,5 +1,4 @@
 <script>
-  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
   import LevelLed from './LevelLed.svelte'
 
@@ -7,7 +6,7 @@
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number,
+    drLock?: number,
     getOutputPeak?: () => number,
     powered?: boolean,
   }} */
@@ -15,24 +14,16 @@
     onchange,
     midiState = {},
     onknobcontextmenu,
-    reset = 0,
+    drLock = 1,
     getOutputPeak = () => 0,
     powered = false,
   } = $props()
 
-  let drLock = $state(1)
   let decayValue = $state(0.5)
 
   function toggleDrLock() {
-    drLock = drLock === 0 ? 1 : 0
-    onchange?.({ param: 'drLock', value: drLock })
+    onchange?.({ param: 'drLock', value: drLock === 0 ? 1 : 0 })
   }
-
-  $effect(() => {
-    if (reset === 0) return
-    drLock = 1
-    untrack(() => onchange?.({ param: 'drLock', value: 1 }))
-  })
 </script>
 
 <div class="panel">
@@ -113,7 +104,7 @@
       label="release"
       min={0.001}
       max={8}
-      default={0.3}
+      default={0.5}
       scale="log"
       unit="s"
       disabled={drLock === 1}

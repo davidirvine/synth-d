@@ -5,7 +5,7 @@ import { join } from 'path'
 // Evaluated at import time; restart the test process after faust:build to pick up a new WASM file.
 // Also skipped in CI: headless Chromium has no audio hardware so AudioContext/AudioWorklet cannot
 // complete initialisation.
-const wasmBuilt = !process.env.CI && existsSync(join(process.cwd(), 'public', 'synth.wasm'))
+const wasmBuilt = !process.env.CI && existsSync(join(process.cwd(), 'public', 'dsp-module.wasm'))
 
 test.describe('Subtractive Synth', () => {
   test('app loads with power button and panels dimmed', async ({ page }) => {

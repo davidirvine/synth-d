@@ -223,3 +223,23 @@ describe('Keyboard — releaseAll clears highlights and writes gate=0', () => {
     expect(messages.filter((m) => m.param === 'gate' && m.value === 0).length).toBe(1)
   })
 })
+
+describe('Keyboard — ignores typing in editable fields', () => {
+  it('does not trigger a note when keydown originates from an input', async () => {
+    const onnote = vi.fn()
+    render(Keyboard, { props: { onnote } })
+    const input = document.createElement('input')
+    document.body.appendChild(input)
+    input.focus()
+    await fireEvent.keyDown(input, { key: 'z' })
+    expect(onnote).not.toHaveBeenCalled()
+    document.body.removeChild(input)
+  })
+
+  it('still triggers a note for a window-level keydown (no editable target)', async () => {
+    const onnote = vi.fn()
+    render(Keyboard, { props: { onnote } })
+    await fireEvent.keyDown(window, { key: 'z' })
+    expect(onnote).toHaveBeenCalled()
+  })
+})

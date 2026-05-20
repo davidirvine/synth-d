@@ -67,7 +67,7 @@ A `PatchControl.svelte` in the header (sibling to `MidiStatus`/`PowerButton`, ou
 
 **Dirty tracking:** dirty = serialized current in-scope state ≠ the saved slot for the active patch (string compare). Drives the `*` marker.
 
-**Name validation:** trim; reject empty/whitespace-only; cap ~40 chars; a collision is not an error — it routes through the overwrite confirm.
+**Name validation:** trim; reject empty/whitespace-only; cap ~24 chars; a collision is not an error — it routes through the overwrite confirm.
 
 **Load while dirty:** loads immediately and discards unsaved tweaks (the `*` already signaled them). No confirm in this change; revisit if it proves painful.
 
@@ -82,6 +82,19 @@ A `PatchControl.svelte` in the header (sibling to `MidiStatus`/`PowerButton`, ou
 ## Migration Plan
 
 No data migration (net-new persistence). Rollout is internal: land the store refactor section first (no user-visible change, all tests green), then power-on-applies-active-patch, then persistence, then UI, then E2E. The patch envelope carries a `version` field so future schema changes can migrate old slots. Rollback = revert the branch; no persisted data depends on it for the synth to function (absence of patches = factory defaults).
+
+## Refinements during implementation
+
+These decisions were made while building the feature and are reflected in the specs:
+
+- **All-caps names.** Patch names are normalized to upper-case in `validateName` and capped at 24 chars, so they are stored, listed, and displayed consistently and names differing only by case resolve to the same patch. Patches persisted under an earlier non-upper-case name are migrated to upper-case lazily when the list is read (so they stay operable). The name/rename inputs render upper-case via CSS.
+- **Save requires power.** The name field and SAVE are disabled while powered off (saving captures the live sound); listing, loading, renaming, and deleting remain available off. The no-patch trigger label is `DEFAULT`.
+- **In-place update vs overwrite.** Saving the active patch's own name updates it silently; a different existing name routes through the inline overwrite confirm. Rename uses the same overwrite-confirm idiom.
+- **Keyboard submit + note guard.** Enter in the name field saves; Enter in the rename field confirms. The QWERTY-to-note handler ignores keystrokes whose target is an editable field, so typing a name never plays notes.
+- **Delete affordance.** Per-row delete uses an `✕` glyph (sized to match the rename `✎`) with a tooltip, behind the inline confirm.
+- **Click-outside close** is detected on `pointerdown` (not `click`) so an in-popover control that re-renders and detaches its own target (rename/delete confirm) does not falsely close the popover.
+- **Factory default consistency.** `ampRelease` defaults to `0.5` to equal `ampDecay`, because the decay/release lock defaults on and slaves release to decay; otherwise the active patch read as dirty the instant the synth powered on.
+- **Header placement.** The patch control is stacked under the MIDI status, right-aligned, with the power button to the right.
 
 ## Open Questions
 

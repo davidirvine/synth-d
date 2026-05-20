@@ -94,8 +94,18 @@
   // eslint-disable-next-line no-useless-assignment
   releaseAll = _releaseAll
 
+  // Don't treat typing in a text field (e.g. the patch name input) as QWERTY
+  // note input.
+  /** @param {EventTarget | null} target */
+  function isEditableTarget(target) {
+    if (!(target instanceof HTMLElement)) return false
+    const tag = target.tagName
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable
+  }
+
   function onKeyDown(/** @type {KeyboardEvent} */ e) {
     if (e.repeat) return
+    if (isEditableTarget(e.target)) return
     const midi = QWERTY_MAP[e.key]
     if (midi === undefined) return
     if (pressedQwerty.has(e.key)) return
@@ -104,6 +114,7 @@
   }
 
   function onKeyUp(/** @type {KeyboardEvent} */ e) {
+    if (isEditableTarget(e.target)) return
     const midi = QWERTY_MAP[e.key]
     if (midi === undefined) return
     pressedQwerty.delete(e.key)

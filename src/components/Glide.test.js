@@ -34,30 +34,18 @@ describe('Glide — toggle', () => {
     expect(onchange).toHaveBeenCalledWith({ param: 'glideOn', value: 1 })
   })
 
-  it('button becomes active after click', async () => {
-    const { container } = render(Glide)
-    await fireEvent.click(/** @type {Element} */ (container.querySelector('.glide-btn')))
-    expect(
-      /** @type {Element} */ (container.querySelector('.glide-btn')).classList.contains('active')
-    ).toBe(true)
-  })
-
-  it('button shows on after click', async () => {
-    const { container } = render(Glide)
-    await fireEvent.click(/** @type {Element} */ (container.querySelector('.glide-btn')))
-    expect(/** @type {Element} */ (container.querySelector('.glide-btn')).textContent.trim()).toBe(
-      'on'
-    )
-  })
-
-  it('second click emits glideOn 0', async () => {
-    const onchange = vi.fn()
-    const { container } = render(Glide, { props: { onchange } })
+  it('button is active and shows on when glideOn prop is 1', () => {
+    const { container } = render(Glide, { props: { glideOn: 1 } })
     const btn = /** @type {Element} */ (container.querySelector('.glide-btn'))
-    await fireEvent.click(btn)
-    await fireEvent.click(btn)
-    const calls = onchange.mock.calls.filter((c) => c[0].param === 'glideOn')
-    expect(calls[calls.length - 1][0].value).toBe(0)
+    expect(btn.classList.contains('active')).toBe(true)
+    expect(btn.textContent.trim()).toBe('on')
+  })
+
+  it('clicking while glideOn is 1 emits glideOn 0', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Glide, { props: { glideOn: 1, onchange } })
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('.glide-btn')))
+    expect(onchange).toHaveBeenCalledWith({ param: 'glideOn', value: 0 })
   })
 })
 
@@ -78,9 +66,8 @@ describe('Glide — rate knob', () => {
     ).toBe(true)
   })
 
-  it('rate knob is enabled after glide is toggled on', async () => {
-    const { container } = render(Glide)
-    await fireEvent.click(/** @type {Element} */ (container.querySelector('.glide-btn')))
+  it('rate knob is enabled when glideOn prop is 1', () => {
+    const { container } = render(Glide, { props: { glideOn: 1 } })
     expect(
       /** @type {Element} */ (container.querySelector('.knob-wrap')).classList.contains('disabled')
     ).toBe(false)

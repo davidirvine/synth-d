@@ -1,5 +1,4 @@
 <script>
-  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
   import LevelLed from './LevelLed.svelte'
 
@@ -7,7 +6,7 @@
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number,
+    noiseType?: number,
     getPeak?: () => number,
     powered?: boolean,
   }} */
@@ -15,25 +14,16 @@
     onchange,
     midiState = {},
     onknobcontextmenu,
-    reset = 0,
+    noiseType = 0,
     getPeak = () => 0,
     powered = false,
   } = $props()
 
-  let noiseType = $state(0)
-
   /** @param {number} t */
   function selectNoiseType(t) {
     if (t === noiseType) return
-    noiseType = t
-    onchange?.({ param: 'noiseType', value: noiseType })
+    onchange?.({ param: 'noiseType', value: t })
   }
-
-  $effect(() => {
-    if (reset === 0) return
-    noiseType = 0
-    untrack(() => onchange?.({ param: 'noiseType', value: 0 }))
-  })
 </script>
 
 <div class="panel">

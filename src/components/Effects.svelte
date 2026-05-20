@@ -1,45 +1,34 @@
 <script>
-  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
   /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number,
+    delayOn?: number,
+    delayModOn?: number,
+    reverbOn?: number,
   }} */
-  let { onchange, midiState = {}, onknobcontextmenu, reset = 0 } = $props()
-
-  let delayOn = $state(0)
-  let delayModOn = $state(0)
-  let reverbOn = $state(0)
+  let {
+    onchange,
+    midiState = {},
+    onknobcontextmenu,
+    delayOn = 0,
+    delayModOn = 0,
+    reverbOn = 0,
+  } = $props()
 
   function toggleDelay() {
-    delayOn = delayOn === 0 ? 1 : 0
-    onchange?.({ param: 'delayOn', value: delayOn })
+    onchange?.({ param: 'delayOn', value: delayOn === 0 ? 1 : 0 })
   }
 
   function toggleDelayMod() {
-    delayModOn = delayModOn === 0 ? 1 : 0
-    onchange?.({ param: 'delayModOn', value: delayModOn })
+    onchange?.({ param: 'delayModOn', value: delayModOn === 0 ? 1 : 0 })
   }
 
   function toggleReverb() {
-    reverbOn = reverbOn === 0 ? 1 : 0
-    onchange?.({ param: 'reverbOn', value: reverbOn })
+    onchange?.({ param: 'reverbOn', value: reverbOn === 0 ? 1 : 0 })
   }
-
-  $effect(() => {
-    if (reset === 0) return
-    delayOn = 0
-    delayModOn = 0
-    reverbOn = 0
-    untrack(() => {
-      onchange?.({ param: 'delayOn', value: 0 })
-      onchange?.({ param: 'delayModOn', value: 0 })
-      onchange?.({ param: 'reverbOn', value: 0 })
-    })
-  })
 </script>
 
 <div class="panel">

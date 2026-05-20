@@ -76,16 +76,21 @@ describe('Oscillator — octave range', () => {
     expect(onchange).toHaveBeenCalledWith({ param: 'osc2Range', value: -1 })
   })
 
-  it('range clamps at +2', async () => {
+  it('clicking + on OSC 1 with range already +2 emits nothing (clamped)', async () => {
     const onchange = vi.fn()
-    const { container } = render(Oscillator, { props: { onchange } })
+    const { container } = render(Oscillator, { props: { osc1Range: 2, onchange } })
     const sections = container.querySelectorAll('.osc-section')
     const plusBtn = sections[0].querySelectorAll('.step-btn')[1]
     await fireEvent.click(plusBtn)
-    await fireEvent.click(plusBtn)
-    await fireEvent.click(plusBtn)
-    const calls = onchange.mock.calls.map((c) => c[0].value)
-    expect(Math.max(...calls)).toBe(2)
+    expect(onchange).not.toHaveBeenCalled()
+  })
+
+  it('clicking + on OSC 1 with range +1 emits osc1Range 2', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Oscillator, { props: { osc1Range: 1, onchange } })
+    const sections = container.querySelectorAll('.osc-section')
+    await fireEvent.click(sections[0].querySelectorAll('.step-btn')[1])
+    expect(onchange).toHaveBeenCalledWith({ param: 'osc1Range', value: 2 })
   })
 })
 
@@ -126,15 +131,12 @@ describe('Oscillator — LFO mode', () => {
     expect(onchange).toHaveBeenCalledWith({ param: 'osc3LfoMode', value: 1 })
   })
 
-  it('clicking LFO button twice toggles back to 0', async () => {
+  it('clicking LFO button while osc3LfoMode is 1 emits 0', async () => {
     const onchange = vi.fn()
-    const { container } = render(Oscillator, { props: { onchange } })
+    const { container } = render(Oscillator, { props: { osc3LfoMode: 1, onchange } })
     const sections = container.querySelectorAll('.osc-section')
-    const lfoBtn = /** @type {Element} */ (sections[2].querySelector('.lfo-btn'))
-    await fireEvent.click(lfoBtn)
-    await fireEvent.click(lfoBtn)
-    const calls = onchange.mock.calls.filter((c) => c[0].param === 'osc3LfoMode')
-    expect(calls[calls.length - 1][0].value).toBe(0)
+    await fireEvent.click(/** @type {Element} */ (sections[2].querySelector('.lfo-btn')))
+    expect(onchange).toHaveBeenCalledWith({ param: 'osc3LfoMode', value: 0 })
   })
 
   it('renders LFO rate knob in OSC 3 section', () => {
@@ -153,20 +155,18 @@ describe('Oscillator — LFO mode', () => {
     expect(rateWrap.classList.contains('disabled')).toBe(true)
   })
 
-  it('LFO rate knob is enabled when LFO mode is on', async () => {
-    const { container } = render(Oscillator)
+  it('LFO rate knob is enabled when osc3LfoMode prop is 1', () => {
+    const { container } = render(Oscillator, { props: { osc3LfoMode: 1 } })
     const sections = container.querySelectorAll('.osc-section')
-    await fireEvent.click(/** @type {Element} */ (sections[2].querySelector('.lfo-btn')))
     const rateWrap = /** @type {Element} */ (
       sections[2].querySelector('.range-row')
     ).querySelectorAll('.knob-wrap')[1]
     expect(rateWrap.classList.contains('disabled')).toBe(false)
   })
 
-  it('OSC 3 range − button is disabled when LFO mode is on', async () => {
-    const { container } = render(Oscillator)
+  it('OSC 3 range − button is disabled when osc3LfoMode prop is 1', () => {
+    const { container } = render(Oscillator, { props: { osc3LfoMode: 1 } })
     const sections = container.querySelectorAll('.osc-section')
-    await fireEvent.click(/** @type {Element} */ (sections[2].querySelector('.lfo-btn')))
     // buttons[0] = '−', buttons[1] = '+'
     const buttons = /** @type {Element} */ (
       sections[2].querySelector('.range-row')
@@ -184,10 +184,9 @@ describe('Oscillator — LFO mode', () => {
     expect(/** @type {HTMLButtonElement} */ (buttons[0]).disabled).toBe(false)
   })
 
-  it('OSC 3 range + button is disabled when LFO mode is on', async () => {
-    const { container } = render(Oscillator)
+  it('OSC 3 range + button is disabled when osc3LfoMode prop is 1', () => {
+    const { container } = render(Oscillator, { props: { osc3LfoMode: 1 } })
     const sections = container.querySelectorAll('.osc-section')
-    await fireEvent.click(/** @type {Element} */ (sections[2].querySelector('.lfo-btn')))
     // buttons[0] = '−', buttons[1] = '+'
     const buttons = /** @type {Element} */ (
       sections[2].querySelector('.range-row')
@@ -205,10 +204,9 @@ describe('Oscillator — LFO mode', () => {
     expect(/** @type {HTMLButtonElement} */ (buttons[1]).disabled).toBe(false)
   })
 
-  it('OSC 3 detune knob-wrap has disabled class when LFO mode is on', async () => {
-    const { container } = render(Oscillator)
+  it('OSC 3 detune knob-wrap has disabled class when osc3LfoMode prop is 1', () => {
+    const { container } = render(Oscillator, { props: { osc3LfoMode: 1 } })
     const sections = container.querySelectorAll('.osc-section')
-    await fireEvent.click(/** @type {Element} */ (sections[2].querySelector('.lfo-btn')))
     // knob-wrap[0] = detune, knob-wrap[1] = LFO rate
     const detuneWrap = /** @type {Element} */ (
       sections[2].querySelector('.range-row')
@@ -227,43 +225,30 @@ describe('Oscillator — LFO mode', () => {
   })
 })
 
-describe('Oscillator — reset prop', () => {
-  it('incrementing reset fires onchange for all wave and range params with value 0', async () => {
-    const onchange = vi.fn()
-    const { rerender } = render(Oscillator, { props: { onchange, reset: 0 } })
-    await rerender({ onchange, reset: 1 })
-    const params = onchange.mock.calls.map((c) => c[0].param)
-    ;[
-      'osc1Wave',
-      'osc2Wave',
-      'osc3Wave',
-      'osc1Range',
-      'osc2Range',
-      'osc3Range',
-      'osc3LfoMode',
-    ].forEach((p) => expect(params).toContain(p))
-    onchange.mock.calls.forEach((c) => expect(c[0].value).toBe(0))
-  })
-
-  it('wave buttons return to first (tri) after reset', async () => {
-    const onchange = vi.fn()
-    const { container, rerender } = render(Oscillator, { props: { onchange, reset: 0 } })
+describe('Oscillator — controlled wave/range props', () => {
+  it('reflects the active waveform from props', () => {
+    const { container } = render(Oscillator, { props: { osc1Wave: 2, osc2Wave: 3 } })
     const sections = container.querySelectorAll('.osc-section')
-    await fireEvent.click(sections[0].querySelectorAll('.wave-btn')[2])
-    await rerender({ onchange, reset: 1 })
     const osc1Btns = sections[0].querySelectorAll('.wave-btn')
-    expect(osc1Btns[0].classList.contains('active')).toBe(true)
-    expect(osc1Btns[2].classList.contains('active')).toBe(false)
+    expect(osc1Btns[2].classList.contains('active')).toBe(true)
+    expect(osc1Btns[0].classList.contains('active')).toBe(false)
+    const osc2Btns = sections[1].querySelectorAll('.wave-btn')
+    expect(osc2Btns[3].classList.contains('active')).toBe(true)
   })
 
-  it('incrementing reset twice fires both resets', async () => {
-    const onchange = vi.fn()
-    const { rerender } = render(Oscillator, { props: { onchange, reset: 0 } })
-    await rerender({ onchange, reset: 1 })
-    await rerender({ onchange, reset: 2 })
-    const waveCalls = onchange.mock.calls.filter((c) =>
-      ['osc1Wave', 'osc2Wave', 'osc3Wave'].includes(c[0].param)
-    )
-    expect(waveCalls.length).toBe(6)
+  it('reflects the range values from props', () => {
+    const { container } = render(Oscillator, { props: { osc1Range: -2, osc2Range: 1 } })
+    const rangeVals = container.querySelectorAll('.range-val')
+    expect(rangeVals[0].textContent).toBe('-2')
+    expect(rangeVals[1].textContent).toBe('+1')
+  })
+
+  it('wave buttons reflect a reset to defaults (all back to tri) via props', () => {
+    const { container } = render(Oscillator, { props: { osc1Wave: 0, osc2Wave: 0, osc3Wave: 0 } })
+    const sections = container.querySelectorAll('.osc-section')
+    sections.forEach((section) => {
+      const btns = section.querySelectorAll('.wave-btn')
+      expect(btns[0].classList.contains('active')).toBe(true)
+    })
   })
 })

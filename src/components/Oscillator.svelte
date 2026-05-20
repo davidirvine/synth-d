@@ -1,35 +1,39 @@
 <script>
-  import { untrack } from 'svelte'
   import Knob from './Knob.svelte'
 
   /** @type {{
     onchange?: (e: { param: string, value: number }) => void,
     midiState?: { [key: string]: { externalValue?: number, learningMidi?: boolean, assignedCc?: number | null } },
     onknobcontextmenu?: (param: string) => void,
-    reset?: number,
+    osc1Wave?: number,
+    osc2Wave?: number,
+    osc3Wave?: number,
+    osc1Range?: number,
+    osc2Range?: number,
+    osc3Range?: number,
+    osc3LfoMode?: number,
   }} */
-  let { onchange, midiState = {}, onknobcontextmenu, reset = 0 } = $props()
+  let {
+    onchange,
+    midiState = {},
+    onknobcontextmenu,
+    osc1Wave = 0,
+    osc2Wave = 0,
+    osc3Wave = 0,
+    osc1Range = 0,
+    osc2Range = 0,
+    osc3Range = 0,
+    osc3LfoMode = 0,
+  } = $props()
 
   const WAVEFORMS = ['tri', 'rev-saw', 'saw', 'sq', 'wide', 'narrow']
-
-  let osc1Wave = $state(0)
-  let osc1Range = $state(0)
-  let osc2Wave = $state(0)
-  let osc2Range = $state(0)
-  let osc3Wave = $state(0)
-  let osc3Range = $state(0)
-  let osc3LfoMode = $state(0)
 
   /**
    * @param {number} osc
    * @param {number} i
    */
   function selectWave(osc, i) {
-    const param = `osc${osc}Wave`
-    if (osc === 1) osc1Wave = i
-    else if (osc === 2) osc2Wave = i
-    else osc3Wave = i
-    onchange?.({ param, value: i })
+    onchange?.({ param: `osc${osc}Wave`, value: i })
   }
 
   /**
@@ -40,37 +44,12 @@
     const current = osc === 1 ? osc1Range : osc === 2 ? osc2Range : osc3Range
     const next = Math.max(-2, Math.min(2, current + delta))
     if (next === current) return
-    const param = `osc${osc}Range`
-    if (osc === 1) osc1Range = next
-    else if (osc === 2) osc2Range = next
-    else osc3Range = next
-    onchange?.({ param, value: next })
+    onchange?.({ param: `osc${osc}Range`, value: next })
   }
 
   function toggleLfoMode() {
-    osc3LfoMode = osc3LfoMode === 0 ? 1 : 0
-    onchange?.({ param: 'osc3LfoMode', value: osc3LfoMode })
+    onchange?.({ param: 'osc3LfoMode', value: osc3LfoMode === 0 ? 1 : 0 })
   }
-
-  $effect(() => {
-    if (reset === 0) return
-    osc1Wave = 0
-    osc2Wave = 0
-    osc3Wave = 0
-    osc1Range = 0
-    osc2Range = 0
-    osc3Range = 0
-    osc3LfoMode = 0
-    untrack(() => {
-      onchange?.({ param: 'osc1Wave', value: 0 })
-      onchange?.({ param: 'osc2Wave', value: 0 })
-      onchange?.({ param: 'osc3Wave', value: 0 })
-      onchange?.({ param: 'osc1Range', value: 0 })
-      onchange?.({ param: 'osc2Range', value: 0 })
-      onchange?.({ param: 'osc3Range', value: 0 })
-      onchange?.({ param: 'osc3LfoMode', value: 0 })
-    })
-  })
 </script>
 
 <div class="panel">
