@@ -1,4 +1,10 @@
-## ADDED Requirements
+# README Live Link
+
+## Purpose
+
+Defines the centered live-demo link shown at the top of the README, immediately after the title, pointing to the deployed synth.
+
+## Requirements
 
 ### Requirement: README displays a centered link to the live synth at the top of the page
 The README SHALL include a centered Markdown link to `https://davidirvine.github.io/synth-d/` positioned immediately after the `# SYNTH-D` heading, before the project description. The link SHALL be rendered centered using an HTML `<p align="center">` block.
