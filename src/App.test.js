@@ -950,3 +950,50 @@ describe('App — power-on applies the active patch', () => {
     ).toBe('DEFAULT')
   })
 })
+
+describe('App — header brand glyph', () => {
+  it('renders the favicon glyph inline in the header, with no background rect', () => {
+    const { container } = render(App)
+    const svg = /** @type {SVGElement | null} */ (
+      container.querySelector('.header .header-glyph svg')
+    )
+    expect(svg).not.toBeNull()
+    // The single favicon path is inlined; the favicon's <rect> background is not.
+    expect(svg?.querySelector('path')).not.toBeNull()
+    expect(svg?.querySelector('rect')).toBeNull()
+  })
+
+  it('fills the glyph purple via the SVG fill attribute', () => {
+    const { container } = render(App)
+    const svg = /** @type {SVGElement} */ (container.querySelector('.header .header-glyph svg'))
+    // Fill is set as an attribute (matching the GitHub-icon precedent), not via CSS.
+    // The purple glow itself is a CSS filter, verified at the human visual gate
+    // (jsdom computes no layout and does not inject Svelte scoped CSS).
+    expect(svg.getAttribute('fill')).toBe('#a64dff')
+  })
+
+  it('marks the glyph decorative for assistive technology', () => {
+    const { container } = render(App)
+    const glyph = /** @type {HTMLElement} */ (container.querySelector('.header .header-glyph'))
+    // aria-hidden on the wrapper hides the whole glyph subtree from assistive
+    // technology, so the inner <svg> needs no redundant aria-hidden of its own.
+    expect(glyph.getAttribute('aria-hidden')).toBe('true')
+    // Decorative, not interactive: not wrapped in a link or any interactive element.
+    expect(glyph.closest('a')).toBeNull()
+    expect(glyph.closest('button')).toBeNull()
+  })
+
+  it('renders the .header-glyph positioning hook in the header', () => {
+    const { container } = render(App)
+    const glyph = /** @type {HTMLElement | null} */ (
+      container.querySelector('.header .header-glyph')
+    )
+    // jsdom does not compute layout, and under vitest Svelte's scoped component
+    // CSS is not injected into the DOM at all, so the rendered position cannot be
+    // asserted here. The .header-glyph element is the hook carrying the absolute
+    // centering and pointer-events: none rules; assert it exists in the header.
+    // Rendered centering/sizing is verified at the human visual gate (and was
+    // confirmed empirically during sizing verification, task 2.2).
+    expect(glyph).not.toBeNull()
+  })
+})
