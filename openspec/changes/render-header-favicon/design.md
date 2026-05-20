@@ -12,7 +12,7 @@ The header already establishes the pattern for inline brand SVGs: the GitHub ico
 
 - Render the glyph (path only, no background rect) centered in the header.
 - Style it as a low-contrast `#2a2a2a` mark on the `#1c1c1c` bar.
-- Match its height to the right-hand `.status-stack` (MIDI LED row + 6px gap + PATCH button).
+- Render it at a fixed 55px square, centered vertically in the header bar.
 - Keep it decorative — no new link, no assistive-tech announcement.
 
 **Non-Goals:**
@@ -35,8 +35,8 @@ The left and right header groups have unequal widths, so a plain flex child cann
 
 Because the glyph sits over the header center, it also carries `pointer-events: none` so it never intercepts a click aimed at the header (e.g. the title). This makes the spec's "nothing happens on click" literally true rather than relying on the absence of a click handler.
 
-**Derive height from the header content row, not a hardcoded pixel value.**
-The header padding is `12px 20px 12px 8px` — asymmetric horizontally (8px left, 20px right) but with equal 12px top and bottom. With `align-items: center` and the glyph absolutely positioned with `top: 12px; bottom: 12px` pinned to those equal vertical values, the glyph's box spans the header content height — which the `.status-stack` defines as the tallest right-side element. For top/bottom pinning to define the size, the positioned element must NOT carry an explicit `height` (it stays `auto`), and the inner `<svg>` takes `height: 100%` to fill the derived box. The glyph therefore auto-matches the stack height (~38px today) and stays matched if the stack's contents change, avoiding a magic number. The SVG `viewBox` is square (256×256), so width tracks height and the glyph stays square. A hardcoded `height: 38px` is the acceptable fallback if pinning proves awkward.
+**Fixed 55px square, centered in both axes.**
+The glyph is sized to an explicit `width: 55px; height: 55px` and centered with `top: 50%; left: 50%; transform: translate(-50%, -50%)`. At 55px it is larger than the header content row (~38px, the status-stack height) but still fits inside the ~63px header bar, so vertically centering it keeps the whole glyph visible — it neither clips against the top of the window nor grows the header. The SVG `viewBox` is square (256×256) and the inner `<svg>` fills its box (`width: 100%; height: 100%`), so the glyph stays square. An earlier revision derived the height from the status stack via top/bottom padding pinning; that was superseded by this explicit 55px size at the human's request.
 
 **Decorative semantics: `aria-hidden="true"` (and empty `alt` if ever an `<img>`).**
 The glyph conveys no information beyond the already-present title and GitHub link, and adds no interaction, so it is hidden from assistive tech to avoid a redundant/empty announcement.
@@ -45,5 +45,4 @@ The glyph conveys no information beyond the already-present title and GitHub lin
 
 - **Glyph path drifts from `public/favicon.svg`** → The inlined path is a copy; a future favicon redesign won't propagate. Mitigation: copy the path verbatim now and note in the spec that the two share the same artwork; the glyph is decorative, so minor drift is cosmetic, not functional.
 - **Absolute element overlaps side content at narrow widths** → Mitigation: none needed — the synth grid forces a wide fixed header with ample empty center; there is no responsive/narrow case in scope.
-- **Power button taller than the status stack would change the derived height** → Mitigation: if the pinned-padding height ever exceeds the intended `.status-stack` height, fall back to an explicit height matching the stack; verified visually at the human gate.
-- **Glyph height couples to `.header`'s vertical padding** → The `top: 12px; bottom: 12px` values must stay in sync with `.header`'s vertical padding (`12px` top/bottom today); a future padding change silently resizes the glyph. Mitigation: keep the values matched (a shared CSS custom property would make the coupling explicit if the padding is ever parameterized), and the human visual gate catches any mismatch.
+- **Fixed 55px could overflow the header if the bar ever shrinks** → The 55px glyph fits within the ~63px header bar today; if the header's height is ever reduced below ~55px, the glyph would clip against the bar. Mitigation: 55px is comfortably within the current bar, and the human visual gate catches any future mismatch.

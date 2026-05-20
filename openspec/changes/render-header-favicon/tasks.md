@@ -14,7 +14,7 @@ Done as a single step so there is no known-broken intermediate commit: the glyph
 
 ## 2. Size the glyph
 
-- [x] 2.1 Size the glyph to match the `.status-stack` height by pinning `top: 12px; bottom: 12px` on the positioned element (the header's symmetric vertical padding) so its box height derives from the content row. Do NOT set an explicit `height` on the positioned wrapper — top/bottom pinning defines it; set `height: 100%` on the inner `<svg>` to fill that box. Keep the `viewBox` square so width tracks height. Use an explicit height matching the stack only as a fallback if pinning is awkward.
+- [x] 2.1 Size the glyph to a fixed 55px square (`width: 55px; height: 55px`) and center it in both axes (`top: 50%; left: 50%; transform: translate(-50%, -50%)`). Keep the `viewBox` square and let the inner `<svg>` fill its box (`width: 100%; height: 100%`) so the glyph stays square. 55px fits within the header bar, so it must not grow the header.
 - [x] 2.2 Verify the glyph does not grow the header height (compare `.header`'s computed height in the dev server before vs. after the change — it must be unchanged) and does not shift the GitHub icon, title block, version label, status stack, or power button.
 
 ## 3. Quality gate

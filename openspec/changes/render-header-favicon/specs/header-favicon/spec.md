@@ -31,18 +31,18 @@ The glyph SHALL be positioned at the horizontal center of the full header width,
 - **WHEN** the header is rendered with the glyph present
 - **THEN** the positions of the GitHub icon, title block, version label, status stack, and power button are unchanged from before the glyph was added
 
-### Requirement: Glyph height matches the status stack
+### Requirement: Glyph is rendered at a fixed 55px square
 
-The glyph SHALL be sized so its height matches the full height of the right-hand status stack (the MIDI status row, the gap, and the PATCH button together). The glyph SHALL remain square (its width tracking its height). The glyph SHALL NOT increase the header's height.
+The glyph SHALL be rendered as a 55px square (55px wide by 55px tall), centered vertically within the header bar. The glyph SHALL remain square (its width equal to its height). The glyph SHALL NOT increase the header's height — the 55px glyph fits within the existing header bar.
 
-#### Scenario: Glyph height equals the status stack height
+#### Scenario: Glyph is 55px square
 
 - **WHEN** the header is rendered
-- **THEN** the glyph's rendered height equals the height of the status stack (MIDI status row + gap + PATCH button)
+- **THEN** the glyph's rendered size is 55px wide by 55px tall
 
 #### Scenario: Glyph does not grow the header
 
-- **WHEN** the glyph is rendered at the status-stack height
+- **WHEN** the glyph is rendered at 55px square
 - **THEN** the header's overall height is unchanged from before the glyph was added
 
 ### Requirement: Glyph is a low-contrast mark

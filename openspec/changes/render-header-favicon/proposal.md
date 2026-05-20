@@ -7,7 +7,7 @@ The SYNTH-D favicon glyph appears only as the browser-tab icon today; the app he
 - Render the favicon glyph inline in the center of the app header, sourced from the same `ø`/phi path as `public/favicon.svg`.
 - Strip the favicon's black rounded-rect background — render the glyph **only**, with no badge.
 - Fill the glyph `#2a2a2a` so it reads as a quiet, low-contrast mark on the `#1c1c1c` header bar (deliberately understated, not a hard badge).
-- Size the glyph to match the full height of the right-hand `.status-stack` (the MIDI LED row + gap + PATCH button), preferring a height derived from the header content row over a hardcoded pixel value.
+- Size the glyph to a fixed 55px square, centered vertically within the header bar (it fits within the existing bar, so it does not grow the header).
 - Center the glyph horizontally across the full header width, independent of the asymmetric left (GitHub icon + title) and right (status stack + power button) content.
 - Mark the glyph as decorative for assistive technology — the existing GitHub icon link already carries the brand hyperlink, so the glyph adds no new interaction.
 

@@ -496,21 +496,20 @@
   .header-glyph {
     position: absolute;
     left: 50%;
-    /* Pin to the header's symmetric 12px top/bottom padding so the box height
-       derives from the content row (the tallest right-side element, the status
-       stack) rather than a magic number. No explicit height: top/bottom pinning
-       defines it; the inner <svg> fills it. */
-    top: 12px;
-    bottom: 12px;
-    transform: translateX(-50%);
+    top: 50%;
+    /* Fixed 55px square, centered in both axes. Absolutely positioned so it
+       neither grows the header (55px fits within the ~63px bar) nor shifts the
+       side content. */
+    width: 55px;
+    height: 55px;
+    transform: translate(-50%, -50%);
     pointer-events: none;
   }
 
-  /* Square viewBox: width tracks the pinned height, keeping the glyph square. */
   .header-glyph svg {
     display: block;
+    width: 100%;
     height: 100%;
-    width: auto;
   }
 
   .header-right {
