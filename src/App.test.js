@@ -238,6 +238,10 @@ describe('powerOffValue', () => {
     expect(powerOffValue('modMix')).toBe(0.5)
   })
 
+  it('returns centre 0 for filterEnvAmt (bipolar, min=-10000 max=10000), not min', () => {
+    expect(powerOffValue('filterEnvAmt')).toBe(0)
+  })
+
   it('returns min for osc1Level (non-bipolar, min=0)', () => {
     expect(powerOffValue('osc1Level')).toBe(0)
   })
