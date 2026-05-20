@@ -47,7 +47,7 @@
 
 - [x] 6.1 Add `renamePatch(oldName, newName)` to `src/patches/storage.js`: validate the new name, move the slot, update the index in place (preserving order), no-op when the slot is missing; report invalid-name / storage-unavailable; collisions are the caller's decision
 - [x] 6.2 Unit-test `renamePatch`: happy path (listed/loadable under new name, gone under old), invalid new name, missing source, name unchanged, and that the slot envelope's stored name updates
-- [ ] 6.3 PatchControl: make SAVE context-aware — saving the active patch's own name updates it in place with no confirm; a new name creates; a different existing name shows the inline overwrite confirm
-- [ ] 6.4 PatchControl: add a per-row rename affordance (`✎`) that flips the row name to an inline input with ✓/✕; on an existing different name show an inline overwrite confirm; update the active patch's displayed name when it is the one renamed
-- [ ] 6.5 Add component tests: update-in-place (no confirm, clears dirty), rename to new name, rename overwrite-confirm, rename validation, rename the active patch updates the trigger name, no `window.prompt`/`confirm`
-- [ ] 6.6 Bring `renamePatch` under the Stryker mutate set ≥85%; run `npx vitest run` and `npx playwright test` green
+- [x] 6.3 PatchControl: make SAVE context-aware — saving the active patch's own name updates it in place with no confirm; a new name creates; a different existing name shows the inline overwrite confirm
+- [x] 6.4 PatchControl: add a per-row rename affordance (`✎`) that flips the row name to an inline input with ✓/✕; on an existing different name show an inline overwrite confirm; update the active patch's displayed name when it is the one renamed
+- [x] 6.5 Add component tests: update-in-place (no confirm, clears dirty), rename to new name, rename overwrite-confirm, rename validation, rename the active patch updates the trigger name, no `window.prompt`/`confirm`
+- [x] 6.6 Bring `renamePatch` under the Stryker mutate set ≥85%; run `npx vitest run` and `npx playwright test` green

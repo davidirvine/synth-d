@@ -24,6 +24,21 @@ test.describe('Patch save/load', () => {
     await expect(page.locator('.patch-load', { hasText: 'off-patch' })).toBeVisible()
   })
 
+  test('rename a saved patch from the list', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('.patch-control .trigger').click()
+    await page.locator('.name-input').fill('first')
+    await page.locator('.save-btn').click()
+    await expect(page.locator('.patch-load', { hasText: 'first' })).toBeVisible()
+
+    await page.locator('[aria-label="rename first"]').click()
+    await page.locator('.rename-input').fill('renamed')
+    await page.locator('[aria-label="confirm rename"]').click()
+
+    await expect(page.locator('.patch-load', { hasText: 'renamed' })).toBeVisible()
+    await expect(page.locator('.patch-load', { hasText: 'first' })).toHaveCount(0)
+  })
+
   test.describe('powered round-trip (requires WASM)', () => {
     test.skip(!wasmBuilt, 'Requires WASM build: npm run faust:build')
 

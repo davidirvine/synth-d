@@ -13,6 +13,7 @@
     savePatch,
     loadPatch,
     deletePatch,
+    renamePatch,
     validateName,
     MAX_NAME_LENGTH,
   } from '../patches/storage.js'
@@ -23,6 +24,9 @@
   let nameInput = $state('')
   let confirmingOverwrite = $state(false)
   let confirmingDeleteName = $state(/** @type {string | null} */ (null))
+  let renamingName = $state(/** @type {string | null} */ (null))
+  let renameInput = $state('')
+  let confirmingRenameOverwrite = $state(false)
   let error = $state('')
 
   // Dirty = the live in-scope state differs from the active patch's saved
@@ -49,6 +53,8 @@
       error = ''
       confirmingOverwrite = false
       confirmingDeleteName = null
+      renamingName = null
+      confirmingRenameOverwrite = false
     }
   }
 
@@ -106,8 +112,9 @@
       error = 'name required'
       return
     }
-    // Saving under an existing name requires an inline overwrite confirm first.
-    if (patches.includes(clean) && !confirmingOverwrite) {
+    // Saving the active patch's own name updates it in place — no confirm.
+    // Saving onto a different existing patch requires an inline overwrite confirm.
+    if (clean !== activePatch.name && patches.includes(clean) && !confirmingOverwrite) {
       confirmingOverwrite = true
       return
     }
@@ -138,6 +145,68 @@
     refresh()
   }
 
+  /** @param {string} name */
+  function startRename(name) {
+    renamingName = name
+    renameInput = name
+    confirmingRenameOverwrite = false
+    confirmingDeleteName = null
+    error = ''
+  }
+
+  function cancelRename() {
+    renamingName = null
+    confirmingRenameOverwrite = false
+  }
+
+  function onRenameInput() {
+    // Editing the name drops any pending overwrite confirm.
+    confirmingRenameOverwrite = false
+    error = ''
+  }
+
+  function handleRename() {
+    const clean = validateName(renameInput)
+    if (clean === null) {
+      error = 'name required'
+      return
+    }
+    if (clean === renamingName) {
+      // Unchanged — just close the inline editor.
+      cancelRename()
+      return
+    }
+    // Renaming onto a different existing patch requires an inline confirm.
+    if (patches.includes(clean) && !confirmingRenameOverwrite) {
+      confirmingRenameOverwrite = true
+      return
+    }
+    doRename()
+  }
+
+  function doRename() {
+    const from = renamingName
+    const res = renamePatch(/** @type {string} */ (from), renameInput)
+    if (!res.ok) {
+      error =
+        res.error === 'invalid-name'
+          ? 'name required'
+          : res.error === 'not-found'
+            ? 'patch not found'
+            : 'storage unavailable'
+      return
+    }
+    // If the active patch was renamed, update its displayed name (params and
+    // dirty state are unchanged — rename touches the saved slot, not live state).
+    if (from === activePatch.name) {
+      setActivePatch(res.name, activePatch.params)
+      if (nameInput === from) nameInput = res.name
+    }
+    renamingName = null
+    confirmingRenameOverwrite = false
+    refresh()
+  }
+
   /** @param {KeyboardEvent} e */
   function onKeyDown(e) {
     if (e.key === 'Escape' && open) {
@@ -148,17 +217,20 @@
     }
   }
 
-  /** @param {MouseEvent} e */
-  function onWindowClick(e) {
-    // Close the popover on any click outside the control. The trigger's own
-    // click is inside rootEl, so toggling still works.
+  /** @param {PointerEvent} e */
+  function onWindowPointerDown(e) {
+    // Close the popover on a press outside the control. We use pointerdown (not
+    // click) so the check runs before any in-popover handler re-renders and
+    // detaches its own target — a detached target is not contained by rootEl and
+    // would otherwise be misread as an outside click. The trigger's own press is
+    // inside rootEl, so toggling still works.
     if (open && rootEl && e.target instanceof Node && !rootEl.contains(e.target)) {
       open = false
     }
   }
 </script>
 
-<svelte:window onkeydown={onKeyDown} onclick={onWindowClick} />
+<svelte:window onkeydown={onKeyDown} onpointerdown={onWindowPointerDown} />
 
 <div class="patch-control" bind:this={rootEl}>
   <button
@@ -182,27 +254,63 @@
         <ul class="patch-list">
           {#each patches as name (name)}
             <li class="patch-row" class:active={name === activePatch.name}>
-              <button class="patch-load" onclick={() => handleLoad(name)} title="Load patch">
-                <span class="marker">{name === activePatch.name ? '▸' : ' '}</span>{name}
-              </button>
-              {#if confirmingDeleteName === name}
-                <span class="confirm">
-                  delete?
-                  <button
-                    class="confirm-btn"
-                    onclick={() => confirmDelete(name)}
-                    aria-label="confirm delete">✓</button
+              {#if renamingName === name}
+                <input
+                  class="rename-input"
+                  type="text"
+                  maxlength={MAX_NAME_LENGTH}
+                  aria-label={`rename ${name}`}
+                  bind:value={renameInput}
+                  oninput={onRenameInput}
+                />
+                {#if confirmingRenameOverwrite}
+                  <span class="confirm">
+                    overwrite {validateName(renameInput)}?
+                    <button
+                      class="confirm-btn"
+                      onclick={doRename}
+                      aria-label="confirm rename overwrite">✓</button
+                    >
+                    <button class="confirm-btn" onclick={cancelRename} aria-label="cancel rename"
+                      >✕</button
+                    >
+                  </span>
+                {:else}
+                  <button class="confirm-btn" onclick={handleRename} aria-label="confirm rename"
+                    >✓</button
                   >
-                  <button class="confirm-btn" onclick={cancelDelete} aria-label="cancel delete"
+                  <button class="confirm-btn" onclick={cancelRename} aria-label="cancel rename"
                     >✕</button
                   >
-                </span>
+                {/if}
               {:else}
+                <button class="patch-load" onclick={() => handleLoad(name)} title="Load patch">
+                  <span class="marker">{name === activePatch.name ? '▸' : ' '}</span>{name}
+                </button>
                 <button
-                  class="patch-delete"
-                  onclick={() => requestDelete(name)}
-                  aria-label={`delete ${name}`}>⌫</button
+                  class="patch-rename"
+                  onclick={() => startRename(name)}
+                  aria-label={`rename ${name}`}>✎</button
                 >
+                {#if confirmingDeleteName === name}
+                  <span class="confirm">
+                    delete?
+                    <button
+                      class="confirm-btn"
+                      onclick={() => confirmDelete(name)}
+                      aria-label="confirm delete">✓</button
+                    >
+                    <button class="confirm-btn" onclick={cancelDelete} aria-label="cancel delete"
+                      >✕</button
+                    >
+                  </span>
+                {:else}
+                  <button
+                    class="patch-delete"
+                    onclick={() => requestDelete(name)}
+                    aria-label={`delete ${name}`}>⌫</button
+                  >
+                {/if}
               {/if}
             </li>
           {/each}
@@ -345,6 +453,19 @@
     color: #c87941;
   }
 
+  .rename-input {
+    flex: 1;
+    min-width: 0;
+    font-family: monospace;
+    font-size: 11px;
+    background: #2a2a2a;
+    color: #e8dcc8;
+    border: 1px solid #c87941;
+    border-radius: 2px;
+    padding: 2px 4px;
+  }
+
+  .patch-rename,
   .patch-delete,
   .confirm-btn {
     font-family: monospace;
@@ -360,6 +481,11 @@
   .patch-delete:hover {
     color: #c8413a;
     border-color: #c8413a;
+  }
+
+  .patch-rename:hover {
+    color: #c87941;
+    border-color: #c87941;
   }
 
   .confirm {

@@ -44,12 +44,24 @@ describe('PatchControl — trigger and empty state', () => {
     expect(container.querySelector('.popover')).toBeNull()
   })
 
-  it('closes the popover on a click outside the control', async () => {
+  it('closes the popover on a press outside the control', async () => {
     const { container } = render(PatchControl)
     await openPopover(container)
     expect(container.querySelector('.popover')).not.toBeNull()
-    await fireEvent.click(document.body)
+    await fireEvent.pointerDown(document.body)
     expect(container.querySelector('.popover')).toBeNull()
+  })
+
+  it('a press inside the popover (on a self-removing control) does not close it', async () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    // Starting a rename swaps the row out for an input; the popover must stay open.
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+    )
+    expect(container.querySelector('.popover')).not.toBeNull()
+    expect(container.querySelector('.rename-input')).not.toBeNull()
   })
 
   it('closes the popover on Escape', async () => {
@@ -114,6 +126,123 @@ describe('PatchControl — save', () => {
     await fireEvent.click(getByLabelText('cancel overwrite'))
     const { loadPatch } = await import('../patches/storage.js')
     expect(loadPatch('lead')?.params.cutoff).toBe(1111)
+  })
+})
+
+describe('PatchControl — update in place', () => {
+  it('saving the active patch by its own name updates it with no overwrite confirm', async () => {
+    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 1000 })
+    const { container, getByText } = render(PatchControl)
+    // Load it so it becomes the active patch (popover stays open), then tweak.
+    await openPopover(container)
+    await fireEvent.click(getByText('lead'))
+    writeParam('cutoff', 5000)
+    await Promise.resolve()
+    expect(container.querySelector('.dirty')).not.toBeNull()
+
+    // SAVE under the same (active) name — should update silently, no confirm.
+    await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
+    // No overwrite confirmation was shown.
+    expect(container.querySelector('.confirm')).toBeNull()
+    const { loadPatch } = await import('../patches/storage.js')
+    expect(loadPatch('lead')?.params.cutoff).toBe(5000)
+    expect(listPatches()).toEqual(['lead'])
+    await Promise.resolve()
+    expect(container.querySelector('.dirty')).toBeNull()
+  })
+})
+
+describe('PatchControl — rename', () => {
+  it('renames a patch to a new name', async () => {
+    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+    )
+    await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
+      target: { value: 'lead2' },
+    })
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="confirm rename"]'))
+    )
+    expect(listPatches()).toEqual(['lead2'])
+  })
+
+  it('renaming onto a different existing name requires an inline confirm', async () => {
+    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('pad', { ...PARAM_DEFAULTS, cutoff: 1000 })
+    const { container, getByText } = render(PatchControl)
+    await openPopover(container)
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+    )
+    await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
+      target: { value: 'pad' },
+    })
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="confirm rename"]'))
+    )
+    // Inline overwrite confirm shown; nothing renamed yet.
+    expect(getByText(/overwrite/i)).toBeTruthy()
+    expect(listPatches()).toEqual(['lead', 'pad'])
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="confirm rename overwrite"]'))
+    )
+    expect(listPatches()).toEqual(['pad'])
+  })
+
+  it('an empty rename shows "name required" and changes nothing', async () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    const { container, getByText } = render(PatchControl)
+    await openPopover(container)
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+    )
+    await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
+      target: { value: '   ' },
+    })
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="confirm rename"]'))
+    )
+    expect(getByText('name required')).toBeTruthy()
+    expect(listPatches()).toEqual(['lead'])
+  })
+
+  it('canceling a rename leaves the patch unchanged', async () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+    )
+    await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
+      target: { value: 'lead2' },
+    })
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="cancel rename"]'))
+    )
+    expect(listPatches()).toEqual(['lead'])
+  })
+
+  it('renaming the active patch updates the trigger name', async () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    const { container, getByText } = render(PatchControl)
+    await openPopover(container)
+    await fireEvent.click(getByText('lead')) // make active
+    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe('lead')
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="rename lead"]'))
+    )
+    await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
+      target: { value: 'lead2' },
+    })
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="confirm rename"]'))
+    )
+    expect(/** @type {Element} */ (container.querySelector('.patch-name')).textContent).toBe(
+      'lead2'
+    )
   })
 })
 
@@ -234,8 +363,14 @@ describe('PatchControl — no OS dialogs', () => {
     await typeName(container, 'lead')
     await fireEvent.click(/** @type {Element} */ (container.querySelector('.save-btn')))
     await fireEvent.click(getByLabelText('confirm overwrite'))
+    // rename flow
+    await fireEvent.click(getByLabelText('rename lead'))
+    await fireEvent.input(/** @type {Element} */ (container.querySelector('.rename-input')), {
+      target: { value: 'lead2' },
+    })
+    await fireEvent.click(getByLabelText('confirm rename'))
     // delete flow
-    await fireEvent.click(getByLabelText('delete lead'))
+    await fireEvent.click(getByLabelText('delete lead2'))
     await fireEvent.click(getByLabelText('confirm delete'))
     expect(promptSpy).not.toHaveBeenCalled()
     expect(confirmSpy).not.toHaveBeenCalled()
