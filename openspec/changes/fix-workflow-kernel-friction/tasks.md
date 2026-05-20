@@ -15,7 +15,11 @@
 
 - [x] 4.1 In `CLAUDE.md` "Spec Driven Design" (proposal-merge prose) and the "Proposal design-review gate" subsection, add an explicit human-approval step: after the design review passes cleanly, present the result and wait for explicit human approval before the `proposal/<change-name>` branch fast-forward merges to `main`. Run prettier on `CLAUDE.md`.
 
-## 5. Verification
+## 5. #7 — Add `/opsx:verify` as the first end-of-implementation gate step
 
-- [x] 5.1 Run `openspec validate fix-workflow-kernel-friction` and confirm it passes.
-- [x] 5.2 Confirm `CLAUDE.md` is consistent with the `pr-workflow`, `commit-review-cycle`, and `conventional-commits` deltas via grep-verifiable checks: (a) the roborev section no longer claims automatic per-commit review — `grep -in "run automatically\|fires and queues\|automatically in the background" CLAUDE.md` returns nothing; (b) `grep -n "rebase -i" CLAUDE.md` returns nothing; (c) the Conventional Commits section ties the release bump to the PR title, not per-commit types; (d) the proposal/Spec-Driven-Design section includes an explicit human-approval step before the fast-forward merge to `main`. Then re-read the affected sections to confirm the prose reads coherently.
+- [ ] 5.1 In `CLAUDE.md` "Implementation Completion", add `/opsx:verify <change-name>` as the first step of the "End-of-implementation workflow" (a hard gate that halts on an artifact↔implementation mismatch, before tests / `roborev status` / `roborev refine` / human approval), and add a matching item to the "implementation is NOT complete until ALL of the following are true" list. Run prettier on `CLAUDE.md`.
+
+## 6. Verification
+
+- [ ] 6.1 Run `openspec validate fix-workflow-kernel-friction` and confirm it passes (including the new `implementation-completion-gate` delta).
+- [ ] 6.2 Confirm `CLAUDE.md` is consistent with the `pr-workflow`, `commit-review-cycle`, `conventional-commits`, and `implementation-completion-gate` deltas via grep-verifiable checks: (a) the roborev section no longer claims automatic per-commit review — `grep -in "run automatically\|fires and queues\|automatically in the background" CLAUDE.md` returns nothing; (b) `grep -n "rebase -i" CLAUDE.md` returns only the prohibition; (c) the Conventional Commits section ties the release bump to the PR title, not per-commit types; (d) the proposal/Spec-Driven-Design section includes an explicit human-approval step before the fast-forward merge to `main`; (e) the "End-of-implementation workflow" lists `/opsx:verify` as step 1 as a hard gate. Then re-read the affected sections to confirm the prose reads coherently.
