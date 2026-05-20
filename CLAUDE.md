@@ -137,7 +137,7 @@ When addressing comments left by a human reviewer on the feature PR:
 
 1. Make response commits on the feature branch. Worktree-branch commits are not auto-queued, so any roborev review of a response commit is invoked explicitly (`roborev review`) when needed — there is no reliance on an automatic post-commit review
 2. Human reviews the response commits and any roborev findings directly — `roborev refine` is **not** run during feedback cycles
-3. On human approval, squash+force-push: `git rebase -i` to squash, then `git push --force-with-lease` to push
+3. On human approval, squash non-interactively and force-push: `git reset --soft "$(git merge-base HEAD main)"` then a single `git commit`, then `git push --force-with-lease`. Do not use `git rebase -i` (interactive git is unsupported in the agent harness). The squash commit message MUST be the PR title (a valid Conventional Commit), since GitHub squash-merges the branch and the PR title is the release-parse input
 
 ## Project-specific rules
 

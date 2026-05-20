@@ -9,7 +9,7 @@
 
 ## 3. #3 — Replace interactive squash with a non-interactive one
 
-- [ ] 3.1 In `CLAUDE.md` PR-feedback step 3, replace `git rebase -i` with a non-interactive squash (`git reset --soft "$(git merge-base HEAD main)"` then a single `git commit`), keeping `git push --force-with-lease`, and specify that the squash commit message is the PR title (a valid Conventional Commit). Run prettier on `CLAUDE.md`.
+- [x] 3.1 In `CLAUDE.md` PR-feedback step 3, replace `git rebase -i` with a non-interactive squash (`git reset --soft "$(git merge-base HEAD main)"` then a single `git commit`), keeping `git push --force-with-lease`, and specify that the squash commit message is the PR title (a valid Conventional Commit). Run prettier on `CLAUDE.md`.
 
 ## 4. #6 — Add a human-approval step before a proposal merges to main
 
