@@ -10,8 +10,8 @@
 - [x] 1.8 Rebind `Mixer.svelte`, `AmpEnv.svelte`, `Modulation.svelte`, `Glide.svelte` to the store; remove any `reset` prop usage
 - [x] 1.9 Update `App.svelte`: remove `ccExternalValues` and `resetCounter`; route knob/switch `onchange` and MIDI CC input through the store; ensure no MIDI⇄store⇄knob feedback loop (value-equality + not-while-dragging guards)
 - [x] 1.10 Migrate affected component/unit tests to the store model; run `npx vitest run` until green
-- [ ] 1.11 Run `npx stryker run` and restore mutation score to ≥85% for changed modules
-- [ ] 1.12 Run `npx playwright test`; confirm power-on/off knob animation, discrete reset, and DSP/UI agreement still pass
+- [x] 1.11 Run `npx stryker run` and restore mutation score to ≥85% for changed modules
+- [x] 1.12 Run `npx playwright test`; confirm power-on/off knob animation, discrete reset, and DSP/UI agreement still pass
 
 ## 2. Power-on applies the active patch
 
@@ -41,4 +41,4 @@
 ## 5. End-to-end verification
 
 - [x] 5.1 Add a Playwright E2E: power on → tweak params → save a named patch → reload page → load the patch → assert params restored
-- [ ] 5.2 Run the full completion-gate suite (`npx vitest run`, `npx stryker run`, `npx playwright test`) and confirm all green
+- [x] 5.2 Run the full completion-gate suite (`npx vitest run`, `npx stryker run`, `npx playwright test`) and confirm all green

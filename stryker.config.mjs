@@ -7,6 +7,8 @@ export default {
     'src/audio/keyboard.js',
     'src/audio/midiCcMap.js',
     'src/audio/pitchbend.js',
+    'src/patches/storage.js',
+    'src/state/synth.svelte.js',
   ],
   vitest: {
     configFile: 'vite.config.js',

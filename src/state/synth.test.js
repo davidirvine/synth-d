@@ -2,13 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setParam } from '../audio/engine.js'
 import {
   synthParams,
+  activePatch,
   PARAM_DEFAULTS,
   PARAM_NAMES,
   AUDIO_PARAMS,
   writeParam,
   applyParams,
   resetToDefaults,
+  resetParams,
   serializeParams,
+  setActivePatch,
 } from './synth.svelte.js'
 
 vi.mock('../audio/engine.js', () => ({
@@ -137,5 +140,40 @@ describe('synth store — resetToDefaults / serializeParams', () => {
     expect(Object.keys(snap).sort()).toEqual([...PARAM_NAMES].sort())
     expect(snap.cutoff).toBe(321)
     expect(snap).not.toHaveProperty('modWheel')
+  })
+
+  it('resetParams restores synthParams to defaults without touching the DSP', () => {
+    synthParams.cutoff = 12345
+    synthParams.osc1Wave = 5
+    resetParams()
+    expect(synthParams.cutoff).toBe(PARAM_DEFAULTS.cutoff)
+    expect(synthParams.osc1Wave).toBe(PARAM_DEFAULTS.osc1Wave)
+    expect(setParamMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('synth store — active patch', () => {
+  it('defaults to factory params with a null name (before any load)', () => {
+    // Placed before any setActivePatch call so it observes the initial state.
+    expect(activePatch.name).toBeNull()
+    expect(activePatch.params.cutoff).toBe(PARAM_DEFAULTS.cutoff)
+    expect(activePatch.params.osc1Wave).toBe(PARAM_DEFAULTS.osc1Wave)
+  })
+
+  it('setActivePatch records the name and a copy of the params', () => {
+    const params = { ...PARAM_DEFAULTS, cutoff: 4321 }
+    setActivePatch('lead', params)
+    expect(activePatch.name).toBe('lead')
+    expect(activePatch.params.cutoff).toBe(4321)
+
+    // The stored params are a copy: mutating the source must not change them.
+    params.cutoff = 9999
+    expect(activePatch.params.cutoff).toBe(4321)
+  })
+
+  it('setActivePatch can clear the name back to null', () => {
+    setActivePatch('lead', PARAM_DEFAULTS)
+    setActivePatch(null, PARAM_DEFAULTS)
+    expect(activePatch.name).toBeNull()
   })
 })

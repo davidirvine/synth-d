@@ -118,6 +118,86 @@ describe('storage — corrupt / missing slots', () => {
   })
 })
 
+describe('storage — invalid names on load/delete', () => {
+  it('loadPatch returns null for an invalid name', () => {
+    expect(loadPatch('   ')).toBeNull()
+    expect(loadPatch('')).toBeNull()
+  })
+
+  it('deletePatch returns false for an invalid name and true for a valid one', () => {
+    expect(deletePatch('   ')).toBe(false)
+    savePatch('lead', PARAM_DEFAULTS)
+    expect(deletePatch('lead')).toBe(true)
+  })
+})
+
+describe('storage — malformed slot envelopes read as absent', () => {
+  it.each([
+    ['a bare number', '123'],
+    ['a JSON array', '[]'],
+    ['null', 'null'],
+    ['an object without params', '{"name":"x","version":1}'],
+    ['an object whose params is null', '{"params":null}'],
+    ['an object whose params is a string', '{"params":"nope"}'],
+  ])('returns null when the slot is %s', (_desc, raw) => {
+    localStorage.setItem('synth-d:patch:lead', raw)
+    expect(loadPatch('lead')).toBeNull()
+  })
+})
+
+describe('storage — index integrity', () => {
+  it('listPatches drops non-string index entries', () => {
+    localStorage.setItem('synth-d:patches', JSON.stringify(['a', 5, null, 'b', { x: 1 }]))
+    expect(listPatches()).toEqual(['a', 'b'])
+  })
+})
+
+describe('storage — exact serialized slot contents', () => {
+  it('the stored slot contains only the provided in-scope finite params', () => {
+    // Pass a partial params object with one extra key and one non-finite value.
+    savePatch('lead', { cutoff: 500, masterVol: NaN, modWheel: 0.9 })
+    const env = JSON.parse(/** @type {string} */ (localStorage.getItem('synth-d:patch:lead')))
+    expect(env.params).toEqual({ cutoff: 500 })
+    expect(env.name).toBe('lead')
+    expect(env.version).toBe(PATCH_VERSION)
+  })
+})
+
+describe('storage — load returns exactly the stored in-scope params', () => {
+  it('does not pad the result with absent param names', () => {
+    localStorage.setItem(
+      'synth-d:patch:partial',
+      JSON.stringify({ name: 'partial', version: 1, params: { cutoff: 100, osc1Wave: 2 } })
+    )
+    const loaded = loadPatch('partial')
+    expect(loaded?.params).toEqual({ cutoff: 100, osc1Wave: 2 })
+  })
+
+  it('drops non-finite values present in a stored slot', () => {
+    localStorage.setItem(
+      'synth-d:patch:weird',
+      JSON.stringify({ name: 'weird', version: 1, params: { cutoff: 100, resonance: null } })
+    )
+    expect(loadPatch('weird')?.params).toEqual({ cutoff: 100 })
+  })
+})
+
+describe('storage — envelope version', () => {
+  it('preserves a numeric version and falls back to PATCH_VERSION otherwise', () => {
+    localStorage.setItem(
+      'synth-d:patch:numbered',
+      JSON.stringify({ name: 'numbered', version: 7, params: { cutoff: 100 } })
+    )
+    expect(loadPatch('numbered')?.version).toBe(7)
+
+    localStorage.setItem(
+      'synth-d:patch:stringy',
+      JSON.stringify({ name: 'stringy', version: 'v2', params: { cutoff: 100 } })
+    )
+    expect(loadPatch('stringy')?.version).toBe(PATCH_VERSION)
+  })
+})
+
 describe('storage — failures are non-fatal', () => {
   afterEach(() => {
     vi.restoreAllMocks()
