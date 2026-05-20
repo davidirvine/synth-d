@@ -204,6 +204,7 @@
     }
     renamingName = null
     confirmingRenameOverwrite = false
+    confirmingDeleteName = null
     refresh()
   }
 
@@ -265,7 +266,7 @@
                 />
                 {#if confirmingRenameOverwrite}
                   <span class="confirm">
-                    overwrite {validateName(renameInput)}?
+                    overwrite {validateName(renameInput) ?? ''}?
                     <button
                       class="confirm-btn"
                       onclick={doRename}
@@ -329,7 +330,7 @@
         />
         {#if confirmingOverwrite}
           <span class="confirm">
-            overwrite {validateName(nameInput)}?
+            overwrite {validateName(nameInput) ?? ''}?
             <button class="confirm-btn" onclick={doSave} aria-label="confirm overwrite">✓</button>
             <button class="confirm-btn" onclick={cancelOverwrite} aria-label="cancel overwrite"
               >✕</button
