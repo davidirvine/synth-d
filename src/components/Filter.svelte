@@ -116,11 +116,12 @@
     />
     <Knob
       label="amount"
-      min={0}
+      min={-10000}
       max={10000}
       default={0}
       scale="linear"
       unit="Hz"
+      bipolar={true}
       externalValue={midiState?.filterEnvAmt?.externalValue}
       learningMidi={midiState?.filterEnvAmt?.learningMidi ?? false}
       assignedCc={midiState?.filterEnvAmt?.assignedCc ?? null}
@@ -210,9 +211,10 @@
   }
 
   /* Reserve fixed width for the filter env amount knob value.
-     Prevents layout shift when the displayed string changes between e.g. "0.00 Hz" and "10.0 kHz". */
+     Prevents layout shift when the displayed string changes between e.g. "0.00 Hz",
+     "10.0 kHz", and the bipolar negative reading "-10.0 kHz" (leading minus sign). */
   .knob-row :global(:last-child .knob-value) {
-    min-width: 5.5em;
+    min-width: 6.5em;
     display: inline-block;
     text-align: center;
   }

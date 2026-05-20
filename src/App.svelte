@@ -20,7 +20,7 @@
     filterDecay: { min: 0.001, max: 4 },
     filterSustain: { min: 0, max: 1 },
     filterRelease: { min: 0.001, max: 8 },
-    filterEnvAmt: { min: 0, max: 10000 },
+    filterEnvAmt: { min: -10000, max: 10000 },
     // Amp env
     ampAttack: { min: 0.001, max: 4 },
     ampDecay: { min: 0.001, max: 4 },
@@ -47,7 +47,7 @@
   }
 
   // Must stay in sync with the `bipolar` prop on each Knob in the UI.
-  export const BIPOLAR_PARAMS = new Set(['osc2Detune', 'osc3Detune', 'modMix'])
+  export const BIPOLAR_PARAMS = new Set(['osc2Detune', 'osc3Detune', 'modMix', 'filterEnvAmt'])
 
   /** @param {string} p */
   export function powerOffValue(p) {
