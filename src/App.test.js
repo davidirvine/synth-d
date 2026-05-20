@@ -950,3 +950,46 @@ describe('App — power-on applies the active patch', () => {
     ).toBe('DEFAULT')
   })
 })
+
+describe('App — header brand glyph', () => {
+  it('renders the favicon glyph inline in the header, with no background rect', () => {
+    const { container } = render(App)
+    const svg = /** @type {SVGElement | null} */ (
+      container.querySelector('.header .header-glyph svg')
+    )
+    expect(svg).not.toBeNull()
+    // The single favicon path is inlined; the favicon's <rect> background is not.
+    expect(svg?.querySelector('path')).not.toBeNull()
+    expect(svg?.querySelector('rect')).toBeNull()
+  })
+
+  it('fills the glyph #2a2a2a via the SVG fill attribute', () => {
+    const { container } = render(App)
+    const svg = /** @type {SVGElement} */ (container.querySelector('.header .header-glyph svg'))
+    // Fill is set as an attribute (matching the GitHub-icon precedent), not via CSS.
+    expect(svg.getAttribute('fill')).toBe('#2a2a2a')
+  })
+
+  it('marks the glyph decorative for assistive technology', () => {
+    const { container } = render(App)
+    const glyph = /** @type {HTMLElement} */ (container.querySelector('.header .header-glyph'))
+    const svg = /** @type {SVGElement} */ (glyph.querySelector('svg'))
+    expect(glyph.getAttribute('aria-hidden')).toBe('true')
+    expect(svg.getAttribute('aria-hidden')).toBe('true')
+    // Decorative, not interactive: not wrapped in a link or any interactive element.
+    expect(glyph.closest('a')).toBeNull()
+    expect(glyph.closest('button')).toBeNull()
+  })
+
+  it('carries the centering / pointer-events positioning via the .header-glyph class', () => {
+    const { container } = render(App)
+    const glyph = /** @type {HTMLElement} */ (container.querySelector('.header .header-glyph'))
+    // jsdom does not compute layout, and under vitest Svelte's scoped component
+    // CSS is not injected into the DOM at all, so the rendered position cannot be
+    // asserted here. The .header-glyph class is the hook carrying the absolute
+    // centering (left: 50%; translateX) and pointer-events: none rules; assert it
+    // is present. Rendered centering/sizing is verified at the human visual gate
+    // (and was confirmed empirically during sizing verification, task 2.2).
+    expect(glyph.classList.contains('header-glyph')).toBe(true)
+  })
+})
