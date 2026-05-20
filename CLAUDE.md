@@ -46,8 +46,7 @@ Do not implement changes directly on `main`. If you find yourself on `main` with
 
 ## Code review with roborev
 
-This repo uses roborev for continuous code review. After each commit,
-reviews run automatically in the background.
+This repo uses roborev for code review. Reviews are invoked **explicitly** at the defined gates — the proposal design review on the `proposal/<change-name>` branch (`/roborev-design-review-branch`), the end-of-implementation `roborev refine`, and ad-hoc `roborev review` / `roborev tui` — not automatically after every commit. Commits on `feature/`/`bugfix/` worktree branches are not auto-queued (the `post-commit` hook is a stub and `core.hooksPath` is shared across worktrees), so do not rely on a review firing on its own; invoke one explicitly when you need it.
 
 - Browse open reviews interactively with `roborev tui`, or list them with `roborev fix --open --list`
 - To address open findings, use the `/roborev-fix` skill
