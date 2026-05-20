@@ -16,7 +16,7 @@ I'll create a change with artifacts:
 - design.md (how)
 - tasks.md (implementation steps)
 
-When ready to implement, run /opsx:apply
+Proposing happens on a dedicated `proposal/<change-name>` branch: I generate the artifacts, commit them as `chore(openspec): propose <name>`, run a roborev design review, and — after your explicit approval — fast-forward-merge the proposal to `main`. The `feature/`|`bugfix/` implementation branch is created later by `/opsx-apply-wt`, not here.
 
 ---
 
@@ -33,8 +33,12 @@ When ready to implement, run /opsx:apply
 
    **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
 
-2. **Create the change directory**
+2. **Create the proposal branch, then the change directory**
+
+   Proposing works on a dedicated short-lived `proposal/<change-name>` branch — NOT a `feature/`|`bugfix/` branch, and NOT `main` directly. Do **not** prompt for the change type (feature vs bugfix) here; that belongs to `/opsx-apply-wt`, which creates the implementation branch later. Cut the branch from an up-to-date `main`, then scaffold:
    ```bash
+   git checkout main
+   git checkout -b "proposal/<name>"
    openspec new change "<name>"
    ```
    This creates a scaffolded change at `openspec/changes/<name>/` with `.openspec.yaml`.
@@ -84,13 +88,31 @@ When ready to implement, run /opsx:apply
    openspec status --change "<name>"
    ```
 
+6. **Commit, design-review, and merge the proposal to `main`**
+
+   The proposal is NOT done when the artifacts are written — it must pass a roborev design review and merge to `main`, mirroring the "review passes cleanly before merge" gate that governs code. Do NOT stop here and tell the user to run `/opsx:apply`.
+
+   a. **Commit the artifacts** as a single commit on the `proposal/<name>` branch. The `chore` type is required so the proposal produces no release version bump:
+      ```bash
+      git add "openspec/changes/<name>"
+      git commit -m "chore(openspec): propose <name>"
+      ```
+   b. **Run a roborev design review** on the branch via the `/roborev-design-review-branch` skill. Resolve every finding until the review passes cleanly.
+   c. **Present the clean review result to the human and WAIT for explicit approval.** A clean review alone does NOT authorize the merge.
+   d. **Only after approval, fast-forward merge to `main` and delete the branch.** If `main` advanced since the branch was cut, rebase the proposal branch onto `main` first:
+      ```bash
+      git checkout main
+      git merge --ff-only "proposal/<name>"
+      git branch -d "proposal/<name>"
+      ```
+
 **Output**
 
-After completing all artifacts, summarize:
+After the proposal has merged to `main`, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions
-- What's ready: "All artifacts created! Ready for implementation."
-- Prompt: "Run `/opsx:apply` or ask me to implement to start working on the tasks."
+- Confirmation that the design review passed and the proposal was fast-forwarded to `main`
+- Next step: "Run `/opsx-apply-wt <name>` from `main` to create the implementation worktree, then `/opsx:apply` inside it."
 
 **Artifact Creation Guidelines**
 
@@ -108,3 +130,6 @@ After completing all artifacts, summarize:
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, ask if user wants to continue it or create a new one
 - Verify each artifact file exists after writing before proceeding to next
+- Work on a `proposal/<change-name>` branch only. Do NOT create a `feature/`|`bugfix/` branch and do NOT prompt for the change type — both belong to `/opsx-apply-wt`
+- The proposal commit MUST use the `chore` type (`chore(openspec): propose <name>`)
+- Do NOT merge the proposal to `main` while design-review findings remain open, and do NOT merge without explicit human approval
