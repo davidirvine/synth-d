@@ -115,6 +115,15 @@ describe('PatchControl — save', () => {
     )
   })
 
+  it('Enter in the name field triggers save', async () => {
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    const input = /** @type {Element} */ (container.querySelector('.name-input'))
+    await fireEvent.input(input, { target: { value: 'LEAD' } })
+    await fireEvent.keyDown(input, { key: 'Enter' })
+    expect(listPatches()).toContain('LEAD')
+  })
+
   it('an empty name shows "name required" and saves nothing', async () => {
     const { container, getByText } = render(PatchControl)
     await openPopover(container)
@@ -188,6 +197,19 @@ describe('PatchControl — rename', () => {
     await fireEvent.click(
       /** @type {Element} */ (container.querySelector('[aria-label="confirm rename"]'))
     )
+    expect(listPatches()).toEqual(['LEAD2'])
+  })
+
+  it('Enter in the rename field confirms the rename', async () => {
+    savePatch('LEAD', PARAM_DEFAULTS)
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="rename LEAD"]'))
+    )
+    const input = /** @type {Element} */ (container.querySelector('.rename-input'))
+    await fireEvent.input(input, { target: { value: 'LEAD2' } })
+    await fireEvent.keyDown(input, { key: 'Enter' })
     expect(listPatches()).toEqual(['LEAD2'])
   })
 

@@ -128,6 +128,14 @@
     confirmingOverwrite = false
   }
 
+  /** @param {KeyboardEvent} e */
+  function onNameKeydown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSave()
+    }
+  }
+
   /** @param {string} name */
   function requestDelete(name) {
     confirmingDeleteName = name
@@ -166,6 +174,14 @@
     // Editing the name drops any pending overwrite confirm.
     confirmingRenameOverwrite = false
     error = ''
+  }
+
+  /** @param {KeyboardEvent} e */
+  function onRenameKeydown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleRename()
+    }
   }
 
   function handleRename() {
@@ -266,6 +282,7 @@
                   aria-label={`rename ${name}`}
                   bind:value={renameInput}
                   oninput={onRenameInput}
+                  onkeydown={onRenameKeydown}
                 />
                 {#if confirmingRenameOverwrite}
                   <span class="confirm">
@@ -333,6 +350,7 @@
           disabled={!powered}
           bind:value={nameInput}
           oninput={onNameInput}
+          onkeydown={onNameKeydown}
         />
         {#if confirmingOverwrite}
           <span class="confirm">
