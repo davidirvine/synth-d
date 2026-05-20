@@ -12,15 +12,16 @@ A spec MUST exist before any implementation begins. This applies to new features
 
 ## Branching
 
-All tasks for a change MUST be implemented on a single branch. Branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name.
+All tasks for a change MUST be implemented on a single branch. Implementation branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name.
 
-`/opsx:propose` does **not** create a branch — it commits the proposal artifacts directly to `main` (see "Spec Driven Design"). The `feature/`|`bugfix/` branch is created from `main` only by `/opsx-apply-wt`, which is also where the human is prompted for the change type.
+`/opsx:propose` does **not** create an implementation branch. It works on a dedicated, short-lived `proposal/<change-name>` branch (a third prefix, separate from `feature/`|`bugfix/`), runs the design-review gate, then merges the proposal to `main` (see "Spec Driven Design"). The `feature/`|`bugfix/` implementation branch is created from `main` only by `/opsx-apply-wt`, which is also where the human is prompted for the change type.
 
-**REQUIRED: At `/opsx-apply-wt` time, before creating the branch, prompt the human for the change type (feature or bugfix) and wait for confirmation. Do not create the branch until the human has confirmed the type.**
+**REQUIRED: At `/opsx-apply-wt` time, before creating the implementation branch, prompt the human for the change type (feature or bugfix) and wait for confirmation. Do not create the branch until the human has confirmed the type.**
 
 ```
-feature/<change-name>
-bugfix/<change-name>
+proposal/<change-name>   # created by /opsx:propose, deleted after it merges to main
+feature/<change-name>    # implementation branch, created by /opsx-apply-wt
+bugfix/<change-name>     # implementation branch, created by /opsx-apply-wt
 ```
 
 Examples:
