@@ -5,7 +5,7 @@
 
 ## 2. #2 — Correct the Conventional Commits rationale
 
-- [ ] 2.1 In `CLAUDE.md` "Conventional Commits", reword the "This is a functional requirement, not a style preference" paragraph so per-commit types are framed as required for review scoping/readability and the release-bump input is the squash-merge PR title (not the per-commit types). Run prettier on `CLAUDE.md`.
+- [x] 2.1 In `CLAUDE.md` "Conventional Commits", reword the "This is a functional requirement, not a style preference" paragraph so per-commit types are framed as required for review scoping/readability and the release-bump input is the squash-merge PR title (not the per-commit types). Run prettier on `CLAUDE.md`.
 
 ## 3. #3 — Replace interactive squash with a non-interactive one
 

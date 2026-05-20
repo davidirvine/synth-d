@@ -80,7 +80,7 @@ Required types and their version-bump effect:
 | `refactor` | Code restructuring with no behaviour change          | none         |
 | `test`     | Adding or updating tests                             | none         |
 
-**This is a functional requirement, not a style preference.** Each feature/bugfix PR is squash-merged to `main`, and the PR title becomes the single commit `release-please` parses for the version bump type. Using the wrong type (or no type) silently breaks the release pipeline.
+**Per-commit types are required for review scoping and history readability** — they keep each roborev review contextual and make the branch history legible. They are NOT the release input: each feature/bugfix branch is squash-merged to `main` as a single PR, and only the PR title becomes the commit on `main` that `release-please` parses for the version bump type. So the load-bearing release decision is the **PR title's** Conventional Commit type, not the individual per-commit types — getting the PR title's type wrong (or omitting it) silently breaks the release pipeline.
 
 ## Implementation Completion
 
