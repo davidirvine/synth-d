@@ -157,6 +157,12 @@ export function setActivePatch(name, params) {
 
 /**
  * Write a single parameter to the store and forward it to the DSP.
+ *
+ * Contract: forwarding goes through engine.setParam, which is a safe no-op when
+ * the AudioWorklet node has not been created (i.e. while powered off). Callers
+ * (interactions, MIDI, patch loads) may therefore write at any time; DSP calls
+ * made before power-on simply do nothing, and the values are (re)sent when the
+ * active patch is applied on power-on.
  * @param {string} name parameter name
  * @param {number} value new value
  * @param {boolean} [force] when true, call setParam even if the value is unchanged

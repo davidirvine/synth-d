@@ -169,6 +169,20 @@ describe('PatchControl — dirty marker', () => {
     await Promise.resolve()
     expect(container.querySelector('.dirty')).toBeNull()
   })
+
+  it('loading a partial patch (missing keys) is not falsely dirty', async () => {
+    // A patch from before a param existed (or with non-finite values dropped):
+    // savePatch stores only the provided in-scope keys, so the slot is partial.
+    savePatch('old', { cutoff: 8000 })
+    const { container, getByText } = render(PatchControl)
+    await openPopover(container)
+    await fireEvent.click(getByText('old'))
+    await Promise.resolve()
+    expect(synthParams.cutoff).toBe(8000)
+    // Missing params fell back to defaults, and the baseline has every key, so
+    // there are no spurious unsaved-change markers.
+    expect(container.querySelector('.dirty')).toBeNull()
+  })
 })
 
 describe('PatchControl — no OS dialogs', () => {

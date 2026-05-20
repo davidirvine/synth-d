@@ -6,6 +6,7 @@
     setActivePatch,
     serializeParams,
     PARAM_NAMES,
+    PARAM_DEFAULTS,
   } from '../state/synth.svelte.js'
   import {
     listPatches,
@@ -63,13 +64,19 @@
       error = `could not load "${name}"`
       return
     }
-    setActivePatch(patch.name, patch.params)
+    // Merge onto factory defaults so a partial patch (a slot from before a param
+    // was added, or one with non-finite values filtered out by loadPatch) still
+    // produces a complete baseline — otherwise missing keys would read as
+    // undefined and falsely report dirty right after load. Missing params reset
+    // to their defaults.
+    const params = { ...PARAM_DEFAULTS, ...patch.params }
+    setActivePatch(patch.name, params)
     // Apply to the store (force=false: only changed params reach the DSP). While
     // powered this drives the DSP immediately; while powered off the worklet
     // doesn't exist yet and the knobs stay at their rest positions, but the store
     // now matches the patch so it is force-reapplied on the next power-on and
     // dirty is cleared.
-    applyParams(patch.params, false)
+    applyParams(params, false)
     nameInput = patch.name
     confirmingDeleteName = null
     error = ''
