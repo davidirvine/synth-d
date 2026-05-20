@@ -97,7 +97,7 @@ The implementation is NOT complete until ALL of the following are true:
 
 When all tasks across all sections are complete:
 
-1. Run `/opsx:verify <change-name>` to confirm the implementation matches the change artifacts. **This is a hard gate:** if verify reports a mismatch between the implementation and the artifacts, halt and resolve it before proceeding — do not run the test suite, `roborev refine`, or request approval while a mismatch is open. A mismatch is not a "human decides whether it blocks" finding; the spec-driven contract must be met first.
+1. Run `/opsx:verify <change-name>` to confirm the implementation matches the change artifacts. **This is a hard gate:** if verify reports a mismatch between the implementation and the artifacts, halt and resolve it before proceeding — do not run the test suite, `roborev refine`, or request approval while a mismatch is open. A mismatch is not a "human decides whether it blocks" finding; the spec-driven contract must be met first. To resolve: if the implementation is wrong, fix the code to match the artifacts; if the artifacts are wrong, update them (proposal/design/specs/tasks) via the normal artifact-update flow; when it is unclear which side is correct, ask the human before changing either.
 2. Confirm all tests pass (the full `STACK.md` test suite)
 3. Run `roborev status` to confirm the daemon is healthy — if it is not running, halt and report the error; do not skip the review gate
 4. Run `roborev refine --max-iterations 3` to resolve all open review findings

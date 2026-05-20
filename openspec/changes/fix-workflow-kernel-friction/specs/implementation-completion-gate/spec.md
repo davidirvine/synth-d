@@ -2,7 +2,7 @@
 
 ### Requirement: /opsx:verify runs first as a hard gate at the end-of-implementation gate
 
-When all tasks across all sections are complete, the system SHALL run `/opsx:verify <change-name>` as the FIRST step of the end-of-implementation gate — before the test suite, `roborev status`, `roborev refine`, and the human-approval checkpoint. `/opsx:verify` SHALL confirm that the implementation matches the change artifacts (proposal, design, specs, tasks). This is a hard gate: if `/opsx:verify` reports that the implementation does not match the artifacts, the system SHALL halt and resolve the mismatch before running tests, `roborev refine`, or requesting human approval. An artifact↔implementation mismatch SHALL NOT be treated as a "human decides whether it blocks" finding.
+When all tasks across all sections are complete, the system SHALL run `/opsx:verify <change-name>` as the FIRST step of the end-of-implementation gate — before the test suite, `roborev status`, `roborev refine`, and the human-approval checkpoint. `/opsx:verify` SHALL confirm that the implementation matches the change artifacts (proposal, design, specs, tasks). This is a hard gate: if `/opsx:verify` reports that the implementation does not match the artifacts, the system SHALL halt and resolve the mismatch before running tests, `roborev refine`, or requesting human approval. An artifact↔implementation mismatch SHALL NOT be treated as a "human decides whether it blocks" finding. To resolve, the system SHALL fix the implementation when the code is wrong, update the artifacts via the normal artifact-update flow when the artifacts are wrong, and ask the human when it is unclear which side is correct.
 
 #### Scenario: Verify runs first when all tasks complete
 
