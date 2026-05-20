@@ -11,7 +11,7 @@ The header already establishes the pattern for inline brand SVGs: the GitHub ico
 **Goals:**
 
 - Render the glyph (path only, no background rect) centered in the header.
-- Style it as a low-contrast `#2a2a2a` mark on the `#1c1c1c` bar.
+- Style it as a glowing purple (`#a64dff`) accent on the `#1c1c1c` bar.
 - Render it at a fixed 55px square, centered vertically in the header bar.
 - Keep it decorative — no new link, no assistive-tech announcement.
 
@@ -27,8 +27,8 @@ The header already establishes the pattern for inline brand SVGs: the GitHub ico
 **Inline the glyph `<path>` rather than `<img src="/favicon.svg">`.**
 Glyph-only + recolor cannot be achieved by pointing an `<img>` at the existing file, because the file includes the black `<rect>` and a fixed white fill. Inlining the single `<path>` (copied verbatim from `public/favicon.svg`, omitting the `<rect>`) lets us drop the background and set `fill` freely. This matches the existing GitHub-icon precedent in the same header. Alternative — a second trimmed SVG asset in `public/` — adds a file to keep in sync with the favicon for no benefit; rejected.
 
-**Fill `#2a2a2a` (one step lighter than the `#1c1c1c` bar).**
-A pure-black glyph on `#1c1c1c` is effectively invisible; `#2a2a2a` reads as a deliberately quiet mark without becoming a hard badge. This is the explicitly chosen low-contrast look, not an accessibility target (the glyph is decorative, so WCAG text-contrast minimums do not apply).
+**Fill purple (`#a64dff`) with a purple glow.**
+The glyph is filled `#a64dff` and carries a layered purple glow via a CSS `filter: drop-shadow(...)` — a tight bright halo plus a softer wider one — so it reads as a luminous accent rather than a quiet mark. The glow is a filter on the rendered glyph shape, so it spills past the 55px box without affecting layout or becoming a badge (no rect, no border). An earlier revision used a deliberately low-contrast `#2a2a2a` fill; that was superseded by this glowing-purple look at the human's request. The glyph remains decorative, so WCAG text-contrast minimums do not apply.
 
 **Center via absolute positioning, not a flex child.**
 The left and right header groups have unequal widths, so a plain flex child cannot sit at the true horizontal center. Wrapping the glyph in `position: absolute; left: 50%; transform: translateX(-50%)` inside a `position: relative` `.header` centers it against the full header width regardless of side content. The element is removed from flow, so it neither shifts the existing groups nor is shifted by them. Alternative — equal-width spacer flex children flanking the glyph — is brittle (must track both side widths) and rejected.

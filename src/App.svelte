@@ -333,7 +333,7 @@
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 256 256"
-        fill="#2a2a2a"
+        fill="#a64dff"
         aria-hidden="true"
       >
         <path
@@ -510,6 +510,10 @@
     display: block;
     width: 100%;
     height: 100%;
+    /* Purple glow: a tight bright halo plus a softer wider one, painted around
+       the glyph shape (filters don't affect layout, so the halo can spill past
+       the 55px box without shifting anything). */
+    filter: drop-shadow(0 0 4px #a64dff) drop-shadow(0 0 12px rgba(166, 77, 255, 0.6));
   }
 
   .header-right {

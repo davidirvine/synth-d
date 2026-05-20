@@ -45,14 +45,19 @@ The glyph SHALL be rendered as a 55px square (55px wide by 55px tall), centered 
 - **WHEN** the glyph is rendered at 55px square
 - **THEN** the header's overall height is unchanged from before the glyph was added
 
-### Requirement: Glyph is a low-contrast mark
+### Requirement: Glyph is a glowing purple mark
 
-The glyph SHALL be filled `#2a2a2a` so it reads as a quiet, low-contrast mark against the `#1c1c1c` header background. The glyph SHALL NOT be rendered as a hard badge (no rounded-rectangle background, no border).
+The glyph SHALL be filled purple (`#a64dff`) and SHALL carry a purple glow so it reads as a luminous accent against the `#1c1c1c` header background. The glow SHALL be rendered as a CSS `filter` (e.g. `drop-shadow`) painted around the glyph shape, not as a badge. The glyph SHALL NOT be rendered as a hard badge (no rounded-rectangle background, no border).
 
 #### Scenario: Glyph fill color
 
 - **WHEN** the header is rendered
-- **THEN** the glyph is filled `#2a2a2a`
+- **THEN** the glyph is filled purple (`#a64dff`)
+
+#### Scenario: Glyph glows
+
+- **WHEN** the header is rendered
+- **THEN** the glyph carries a purple glow around its shape
 
 #### Scenario: No badge styling
 

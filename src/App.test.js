@@ -963,11 +963,13 @@ describe('App — header brand glyph', () => {
     expect(svg?.querySelector('rect')).toBeNull()
   })
 
-  it('fills the glyph #2a2a2a via the SVG fill attribute', () => {
+  it('fills the glyph purple via the SVG fill attribute', () => {
     const { container } = render(App)
     const svg = /** @type {SVGElement} */ (container.querySelector('.header .header-glyph svg'))
     // Fill is set as an attribute (matching the GitHub-icon precedent), not via CSS.
-    expect(svg.getAttribute('fill')).toBe('#2a2a2a')
+    // The purple glow itself is a CSS filter, verified at the human visual gate
+    // (jsdom computes no layout and does not inject Svelte scoped CSS).
+    expect(svg.getAttribute('fill')).toBe('#a64dff')
   })
 
   it('marks the glyph decorative for assistive technology', () => {

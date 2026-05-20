@@ -5,7 +5,7 @@ Done as a single step so there is no known-broken intermediate commit: the glyph
 - [x] 1.1 In `src/App.svelte`, add the centered glyph in a single commit. All of the following land together (the glyph is mispositioned until the CSS is applied, so do not split):
   - [x] Copy the glyph `<path>` verbatim from `public/favicon.svg` (the `fill-rule="evenodd"` path), omitting the `<rect>` background.
   - [x] Add it as an inline `<svg>` in the header with `viewBox="0 0 256 256"` (the source favicon's viewBox — the path coordinates are absolute to it; a wrong/missing viewBox clips or distorts the glyph). DOM position is irrelevant once absolutely positioned.
-  - [x] Set the glyph fill via the SVG `fill="#2a2a2a"` attribute (matching the GitHub-icon precedent, which uses a `fill` attribute), not a CSS class.
+  - [x] Set the glyph fill via the SVG `fill="#a64dff"` attribute (matching the GitHub-icon precedent, which uses a `fill` attribute), not a CSS class, and add a purple glow via a CSS `filter: drop-shadow(...)` on the inner `<svg>`.
   - [x] Mark the `<svg>` `aria-hidden="true"`.
   - [x] Add `pointer-events: none` so it never intercepts header clicks.
   - [x] Ensure it is not wrapped in a link or any interactive element.
