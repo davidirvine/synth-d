@@ -179,3 +179,48 @@ export function deletePatch(name) {
   safeRemove(SLOT_PREFIX + clean)
   return true
 }
+
+/**
+ * Rename a saved patch in place, keeping its stored params. The new name is
+ * validated like a save name. The index entry is replaced at its original
+ * position. If the new name matches a different existing patch, that patch is
+ * overwritten (the caller is responsible for confirming the clash). Storage
+ * failures are non-fatal and roll back the new slot.
+ * @param {string} oldName
+ * @param {string} newName
+ * @returns {{ ok: true, name: string } | { ok: false, error: 'invalid-name' | 'not-found' | 'storage-unavailable' }}
+ */
+export function renamePatch(oldName, newName) {
+  const from = validateName(oldName)
+  const to = validateName(newName)
+  if (from === null || to === null) return { ok: false, error: 'invalid-name' }
+  if (from === to) return { ok: true, name: to }
+
+  const patch = loadPatch(from)
+  if (!patch) return { ok: false, error: 'not-found' }
+
+  // Write the new slot with the renamed envelope.
+  const envelope = { name: to, version: PATCH_VERSION, params: patch.params }
+  if (!safeSet(SLOT_PREFIX + to, JSON.stringify(envelope))) {
+    return { ok: false, error: 'storage-unavailable' }
+  }
+
+  // Replace `from` with `to` at its position; drop any pre-existing `to` entry
+  // (overwrite) so the index has no duplicate. Preserve order otherwise.
+  const index = readIndex()
+  /** @type {string[]} */
+  const next = []
+  for (const n of index) {
+    if (n === from) next.push(to)
+    else if (n === to) continue
+    else next.push(n)
+  }
+  if (!next.includes(to)) next.push(to)
+
+  if (!writeIndex(next)) {
+    safeRemove(SLOT_PREFIX + to) // roll back the orphaned new slot
+    return { ok: false, error: 'storage-unavailable' }
+  }
+  safeRemove(SLOT_PREFIX + from)
+  return { ok: true, name: to }
+}

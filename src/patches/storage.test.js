@@ -4,6 +4,7 @@ import {
   savePatch,
   loadPatch,
   deletePatch,
+  renamePatch,
   validateName,
   PATCH_VERSION,
   MAX_NAME_LENGTH,
@@ -115,6 +116,74 @@ describe('storage — corrupt / missing slots', () => {
     // Corrupt index → treated as empty.
     expect(listPatches()).toEqual([])
     expect(loadPatch('ghost')).toBeNull()
+  })
+})
+
+describe('storage — renamePatch', () => {
+  it('renames to a new name: listed and loadable under the new name only', () => {
+    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('pad', PARAM_DEFAULTS)
+    const res = renamePatch('lead', 'lead2')
+    expect(res).toEqual({ ok: true, name: 'lead2' })
+    // Order preserved: 'lead' position now holds 'lead2'.
+    expect(listPatches()).toEqual(['lead2', 'pad'])
+    expect(loadPatch('lead')).toBeNull()
+    expect(loadPatch('lead2')?.params.cutoff).toBe(8000)
+  })
+
+  it('updates the stored envelope name', () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    renamePatch('lead', 'lead2')
+    const env = JSON.parse(/** @type {string} */ (localStorage.getItem('synth-d:patch:lead2')))
+    expect(env.name).toBe('lead2')
+  })
+
+  it('trims the new name', () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    expect(renamePatch('lead', '  lead2  ')).toEqual({ ok: true, name: 'lead2' })
+    expect(listPatches()).toEqual(['lead2'])
+  })
+
+  it('a no-op rename (same name) succeeds and changes nothing', () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    expect(renamePatch('lead', 'lead')).toEqual({ ok: true, name: 'lead' })
+    expect(listPatches()).toEqual(['lead'])
+    expect(loadPatch('lead')).not.toBeNull()
+  })
+
+  it('rejects an invalid new name', () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    expect(renamePatch('lead', '   ')).toEqual({ ok: false, error: 'invalid-name' })
+    expect(listPatches()).toEqual(['lead'])
+  })
+
+  it('returns not-found when the source patch is missing', () => {
+    expect(renamePatch('ghost', 'whatever')).toEqual({ ok: false, error: 'not-found' })
+  })
+
+  it('renaming onto a different existing name overwrites it (no duplicate index entry)', () => {
+    savePatch('lead', { ...PARAM_DEFAULTS, cutoff: 8000 })
+    savePatch('pad', { ...PARAM_DEFAULTS, cutoff: 1000 })
+    const res = renamePatch('lead', 'pad')
+    expect(res).toEqual({ ok: true, name: 'pad' })
+    expect(listPatches()).toEqual(['pad'])
+    // 'pad' now holds lead's params.
+    expect(loadPatch('pad')?.params.cutoff).toBe(8000)
+    expect(loadPatch('lead')).toBeNull()
+  })
+
+  it('rolls back the new slot when the index write fails', () => {
+    savePatch('lead', PARAM_DEFAULTS)
+    const realSet = Storage.prototype.setItem
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
+      if (key === 'synth-d:patches') throw new DOMException('quota', 'QuotaExceededError')
+      return realSet.call(this, key, value)
+    })
+    expect(renamePatch('lead', 'lead2')).toEqual({ ok: false, error: 'storage-unavailable' })
+    vi.restoreAllMocks()
+    expect(localStorage.getItem('synth-d:patch:lead2')).toBeNull()
+    expect(listPatches()).toEqual(['lead'])
+    expect(loadPatch('lead')).not.toBeNull()
   })
 })
 
