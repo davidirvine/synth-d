@@ -1,6 +1,6 @@
 ## 1. Rewrite workflow rules in CLAUDE.md
 
-- [ ] 1.1 Rewrite the **Pull Requests** section: replace the "All branch creation, rebase, sync, and PR submission MUST use stax … Raw git commands … are FORBIDDEN" mandate with a plain `git` + `gh` workflow; document the one-liner `git push -u origin HEAD && gh pr create --fill --base main` for opening the PR; note `gh` as a required tool
+- [x] 1.1 Rewrite the **Pull Requests** section: replace the "All branch creation, rebase, sync, and PR submission MUST use stax … Raw git commands … are FORBIDDEN" mandate with a plain `git` + `gh` workflow; document the one-liner `git push -u origin HEAD && gh pr create --fill --base main` for opening the PR; note `gh` as a required tool
 - [ ] 1.2 Update the **PR Feedback** subsection: response commits → human review → `git rebase -i` squash → `git push --force-with-lease` (remove `stax ss` and any restack step)
 - [ ] 1.3 Update the **Worktree Workflow** section so no step references stax
 - [ ] 1.4 Grep `CLAUDE.md` and `STACK.md` for any remaining `stax` reference and remove it; confirm `STACK.md` has none

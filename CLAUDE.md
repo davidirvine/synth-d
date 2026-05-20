@@ -99,7 +99,7 @@ If step 3 completes but open findings remain, present the remaining findings to 
 
 ## Pull Requests
 
-> **MANDATORY: All branch creation, rebase, sync, and PR submission MUST use stax. There is a stax skill available. Raw `git` commands for branch management or PR operations are FORBIDDEN. No exceptions.**
+> **Branch creation, rebase, sync, and PR submission use plain `git` and the `gh` CLI. `gh` is a required tool for this workflow — it must be installed and authenticated.**
 
 A single PR is opened per feature/bugfix branch when the entire change is complete. **Do not create per-section PRs.** The end-of-implementation gate (tests + roborev + human approval) runs once before the PR is opened — see "Implementation Completion" above.
 
@@ -120,7 +120,7 @@ Do not open the PR autonomously. Wait for the human to request it.
 When the human requests the PR:
 
 1. Confirm the end-of-implementation gate has passed (tests pass, roborev clean, human approved per "Implementation Completion" above)
-2. Push and create the PR: `stax ss --yes --no-prompt`
+2. Push the branch and open the PR against `main`: `git push -u origin HEAD && gh pr create --fill --base main`
 3. Report the PR URL to the human
 
 ### PR Feedback
