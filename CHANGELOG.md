@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.4.1...subtractive-synth-v1.5.0) (2026-05-20)
+
+
+### Features
+
+* **docs:** split CLAUDE.md into kernel and STACK.md for improved portability ([701e5a4](https://github.com/davidirvine/synth-d/commit/701e5a4555f40a56d5bc73cd88f29320b90b61cb))
+* implement patch save/load functionality with localStorage persistence ([d74dc8b](https://github.com/davidirvine/synth-d/commit/d74dc8bafc7796a7eb8a51a4d784d0f8c6ae8924))
+* **midi:** add test coverage for MIDI features and refactor pitchbend math ([#70](https://github.com/davidirvine/synth-d/issues/70)) ([ec8a393](https://github.com/davidirvine/synth-d/commit/ec8a393b7501a6ac42cc00132c30a5a26b13d429))
+* named patch save/load/rename/delete with central parameter store ([#75](https://github.com/davidirvine/synth-d/issues/75)) ([baf4108](https://github.com/davidirvine/synth-d/commit/baf4108d33d8d77ae2062f036cc14d4019e2c957))
+
+
+### Bug Fixes
+
+* finish trunk migration, split CLAUDE.md kernel, and replace husky with .githooks ([#73](https://github.com/davidirvine/synth-d/issues/73)) ([2b04a3e](https://github.com/davidirvine/synth-d/commit/2b04a3e88fb8292482ac74ec97f34d55964c0c90))
+
 ## [1.4.1](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.4.0...subtractive-synth-v1.4.1) (2026-05-02)
 
 
