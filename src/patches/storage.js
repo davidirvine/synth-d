@@ -21,7 +21,7 @@ const SLOT_PREFIX = NS + 'patch:'
 export const PATCH_VERSION = 1
 
 /** Maximum patch-name length (longer names are capped). */
-export const MAX_NAME_LENGTH = 40
+export const MAX_NAME_LENGTH = 24
 
 /** @param {string} key @returns {string | null} */
 function safeGet(key) {

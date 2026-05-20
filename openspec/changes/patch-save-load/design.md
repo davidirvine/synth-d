@@ -67,7 +67,7 @@ A `PatchControl.svelte` in the header (sibling to `MidiStatus`/`PowerButton`, ou
 
 **Dirty tracking:** dirty = serialized current in-scope state ≠ the saved slot for the active patch (string compare). Drives the `*` marker.
 
-**Name validation:** trim; reject empty/whitespace-only; cap ~40 chars; a collision is not an error — it routes through the overwrite confirm.
+**Name validation:** trim; reject empty/whitespace-only; cap ~24 chars; a collision is not an error — it routes through the overwrite confirm.
 
 **Load while dirty:** loads immediately and discards unsaved tweaks (the `*` already signaled them). No confirm in this change; revisit if it proves painful.
 
