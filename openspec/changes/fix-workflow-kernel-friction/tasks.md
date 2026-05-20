@@ -17,5 +17,5 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Run `openspec validate fix-workflow-kernel-friction` and confirm it passes.
-- [ ] 5.2 Confirm `CLAUDE.md` is consistent with the `pr-workflow`, `commit-review-cycle`, and `conventional-commits` deltas via grep-verifiable checks: (a) the roborev section no longer claims automatic per-commit review — `grep -in "run automatically\|fires and queues\|automatically in the background" CLAUDE.md` returns nothing; (b) `grep -n "rebase -i" CLAUDE.md` returns nothing; (c) the Conventional Commits section ties the release bump to the PR title, not per-commit types; (d) the proposal/Spec-Driven-Design section includes an explicit human-approval step before the fast-forward merge to `main`. Then re-read the affected sections to confirm the prose reads coherently.
+- [x] 5.1 Run `openspec validate fix-workflow-kernel-friction` and confirm it passes.
+- [x] 5.2 Confirm `CLAUDE.md` is consistent with the `pr-workflow`, `commit-review-cycle`, and `conventional-commits` deltas via grep-verifiable checks: (a) the roborev section no longer claims automatic per-commit review — `grep -in "run automatically\|fires and queues\|automatically in the background" CLAUDE.md` returns nothing; (b) `grep -n "rebase -i" CLAUDE.md` returns nothing; (c) the Conventional Commits section ties the release bump to the PR title, not per-commit types; (d) the proposal/Spec-Driven-Design section includes an explicit human-approval step before the fast-forward merge to `main`. Then re-read the affected sections to confirm the prose reads coherently.
