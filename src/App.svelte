@@ -105,6 +105,8 @@
   // power-on) and the active patch is the (unsaved) factory defaults. The store
   // is a module singleton, so this also gives tests a clean baseline. No DSP
   // writes happen here — the worklet isn't created yet.
+  // NOTE for tests: this runs at instantiation, so a test that wants a specific
+  // active patch must call setActivePatch AFTER render(App), not before.
   resetParams()
   setActivePatch(null, PARAM_DEFAULTS)
 
@@ -154,7 +156,8 @@
           return
         }
       }
-      // CC 1 always routes to modWheel (controller state, not the store).
+      // CC 1 always routes to modWheel (controller state, not the store). It
+      // fires regardless of power state; setParam is a safe no-op while off.
       if (cc === 1) {
         const scaled = value / 127
         modWheelExternal = scaled

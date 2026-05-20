@@ -269,6 +269,20 @@ describe('PatchControl — rename', () => {
     expect(listPatches()).toEqual(['LEAD'])
   })
 
+  it('loading a different patch closes a stale rename editor', async () => {
+    savePatch('LEAD', PARAM_DEFAULTS)
+    savePatch('PAD', PARAM_DEFAULTS)
+    const { container, getByText } = render(PatchControl)
+    await openPopover(container)
+    // Start renaming LEAD, then load PAD instead.
+    await fireEvent.click(
+      /** @type {Element} */ (container.querySelector('[aria-label="rename LEAD"]'))
+    )
+    expect(container.querySelector('.rename-input')).not.toBeNull()
+    await fireEvent.click(getByText('PAD'))
+    expect(container.querySelector('.rename-input')).toBeNull()
+  })
+
   it('renaming the active patch updates the trigger name', async () => {
     savePatch('LEAD', PARAM_DEFAULTS)
     const { container, getByText } = render(PatchControl)

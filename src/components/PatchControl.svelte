@@ -88,7 +88,12 @@
     // dirty is cleared.
     applyParams(params, false)
     nameInput = patch.name
+    // Clear any in-progress per-row interaction so a stale rename/confirm editor
+    // doesn't linger on another row after loading.
     confirmingDeleteName = null
+    renamingName = null
+    confirmingRenameOverwrite = false
+    confirmingOverwrite = false
     error = ''
   }
 
