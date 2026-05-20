@@ -36,6 +36,6 @@
 
 ## 6. Verify
 
-- [ ] 6.1 Run `openspec validate drop-stax-use-plain-git --strict` and confirm it passes
-- [ ] 6.2 Confirm the full repo grep for `stax` returns only archived changes / CHANGELOG history
-- [ ] 6.3 Confirm `npx vitest run`, lint/format on edited files, and that no application code changed (chore-only)
+- [x] 6.1 Run `openspec validate drop-stax-use-plain-git --strict` and confirm it passes
+- [x] 6.2 Confirm the full repo grep for `stax` returns only archived changes / CHANGELOG history (plus the change's own artifacts and the archive-deferred `openspec/specs/` deltas)
+- [x] 6.3 Confirm `npx vitest run` (589 passed), lint/format on edited files, and that no application code changed (chore-only — no `src/` changes)
