@@ -351,16 +351,18 @@
       <span class="version-label">{versionLabel}</span>
     </div>
     <div class="header-right">
-      <PatchControl {powered} />
-      <MidiStatus
-        status={midiStatus}
-        devices={midiDevices}
-        {selectedDeviceId}
-        ondevicechange={(id) => {
-          selectedDeviceId = id
-          midiManager.selectDevice(id)
-        }}
-      />
+      <div class="status-stack">
+        <MidiStatus
+          status={midiStatus}
+          devices={midiDevices}
+          {selectedDeviceId}
+          ondevicechange={(id) => {
+            selectedDeviceId = id
+            midiManager.selectDevice(id)
+          }}
+        />
+        <PatchControl {powered} />
+      </div>
       <PowerButton {powered} {loading} ontoggle={handleToggle} />
     </div>
   </header>
@@ -475,6 +477,15 @@
     align-items: center;
     gap: 12px;
     margin-left: auto;
+  }
+
+  /* Stack the MIDI status and patch control vertically, right-aligned, so the
+     patch button sits under the MIDI indicator row. */
+  .status-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
   }
 
   .github-link {
