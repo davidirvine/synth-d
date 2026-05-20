@@ -88,18 +88,20 @@ There are no review or human-verification gates at section boundaries. Proceed s
 
 The implementation is NOT complete until ALL of the following are true:
 
-1. All applicable tests pass (see `STACK.md` for this project's specific test commands)
-2. All roborev reviews on the branch pass
-3. The human has explicitly approved moving forward
+1. `/opsx:verify <change-name>` confirms the implementation matches the change artifacts (proposal, design, specs, tasks)
+2. All applicable tests pass (see `STACK.md` for this project's specific test commands)
+3. All roborev reviews on the branch pass
+4. The human has explicitly approved moving forward
 
 ### End-of-implementation workflow
 
 When all tasks across all sections are complete:
 
-1. Confirm all tests pass (per the list above)
-2. Run `roborev status` to confirm the daemon is healthy — if it is not running, halt and report the error; do not skip the review gate
-3. Run `roborev refine --max-iterations 3` to resolve all open review findings
-4. Present refine results to the human and **wait for explicit human approval** before opening the PR — do not self-approve
+1. Run `/opsx:verify <change-name>` to confirm the implementation matches the change artifacts. **This is a hard gate:** if verify reports a mismatch between the implementation and the artifacts, halt and resolve it before proceeding — do not run the test suite, `roborev refine`, or request approval while a mismatch is open. A mismatch is not a "human decides whether it blocks" finding; the spec-driven contract must be met first.
+2. Confirm all tests pass (the full `STACK.md` test suite)
+3. Run `roborev status` to confirm the daemon is healthy — if it is not running, halt and report the error; do not skip the review gate
+4. Run `roborev refine --max-iterations 3` to resolve all open review findings
+5. Present refine results to the human and **wait for explicit human approval** before opening the PR — do not self-approve
 
 If step 3 completes but open findings remain, present the remaining findings to the human. The human decides whether to run refine again, address findings manually, or explicitly override and proceed. Do not make this decision unilaterally.
 

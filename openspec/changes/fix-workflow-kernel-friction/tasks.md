@@ -17,7 +17,7 @@
 
 ## 5. #7 — Add `/opsx:verify` as the first end-of-implementation gate step
 
-- [ ] 5.1 In `CLAUDE.md` "Implementation Completion", add `/opsx:verify <change-name>` as the first step of the "End-of-implementation workflow" (a hard gate that halts on an artifact↔implementation mismatch, before tests / `roborev status` / `roborev refine` / human approval), and add a matching item to the "implementation is NOT complete until ALL of the following are true" list. Run prettier on `CLAUDE.md`.
+- [x] 5.1 In `CLAUDE.md` "Implementation Completion", add `/opsx:verify <change-name>` as the first step of the "End-of-implementation workflow" (a hard gate that halts on an artifact↔implementation mismatch, before tests / `roborev status` / `roborev refine` / human approval), and add a matching item to the "implementation is NOT complete until ALL of the following are true" list. Run prettier on `CLAUDE.md`.
 
 ## 6. Verification
 
