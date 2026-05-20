@@ -19,6 +19,12 @@
 
 ## 4. Update specs to match the delta
 
+> **Deferred to archive (human decision, 2026-05-20).** Per design.md decisions 1 & 6 and the proposal, the delta is merged into the source-of-truth specs and the capability directories are renamed at archive time via `/opsx:archive` — not during implementation. Pre-applying now would double-apply the deltas at archive and break `openspec validate --strict`. These tasks are completed during the archive step:
+>
+> - 4.1 `openspec/specs/stacked-pr-workflow/` → `openspec/specs/pr-workflow/` (title "PR Workflow"); apply the `stacked-pr-workflow` delta.
+> - 4.2 `openspec/specs/section-review-gate/` → `openspec/specs/implementation-completion-gate/`; apply the `section-review-gate` delta.
+> - 4.3 After archive, grep `openspec/specs/` (excluding archive) for `stax`/`stacked`/`section-review-gate` and fix any cross-references to the renamed capabilities.
+
 - [ ] 4.1 Apply the `stacked-pr-workflow` delta to `openspec/specs/stacked-pr-workflow/spec.md` (remove section-stacked-PR + stax requirements, add plain-git/gh + single-PR requirements, modify the feedback-path and post-rewrite requirements) and rename the spec directory to `openspec/specs/pr-workflow/`, updating the spec title to "PR Workflow"
 - [ ] 4.2 Apply the `section-review-gate` delta to `openspec/specs/section-review-gate/spec.md` (remove "refine runs at section boundaries", add "refine runs once at the end-of-implementation gate", modify the human-checkpoint and daemon-verification requirements) and rename the spec directory to `openspec/specs/implementation-completion-gate/`, updating the spec title accordingly
 - [ ] 4.3 Grep `openspec/specs/` (excluding archive) for `stax`/`stacked`/`section-review-gate` and confirm only intended references remain; update any cross-reference to the renamed `pr-workflow` and `implementation-completion-gate` capabilities
