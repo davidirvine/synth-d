@@ -2,6 +2,27 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/svelte'
 import Effects from './Effects.svelte'
 
+// The delay section is the first .effects-row (reverb uses .effects-row.reverb-row).
+// Locate delay knobs by their label within that row so assertions express intent
+// ("the mix knob dispatches delayMix") and survive future reorders.
+function delayKnobWrap(container, label) {
+  const row = /** @type {Element} */ (container.querySelector('.effects-row:not(.reverb-row)'))
+  const wraps = [...row.querySelectorAll('.knob-wrap')]
+  const wrap = wraps.find((w) => w.querySelector('.knob-label')?.textContent === label)
+  if (!wrap) throw new Error(`delay knob with label "${label}" not found`)
+  return wrap
+}
+const delayKnobHit = (container, label) =>
+  delayKnobWrap(container, label).querySelector('.knob-hit')
+const delayKnobValue = (container, label) =>
+  delayKnobWrap(container, label).querySelector('.knob-value')
+
+// Left-to-right labels of the delay knob row, in DOM (== visual) order.
+function delayKnobLabels(container) {
+  const row = /** @type {Element} */ (container.querySelector('.effects-row:not(.reverb-row)'))
+  return [...row.querySelectorAll('.knob-wrap .knob-label')].map((l) => l.textContent)
+}
+
 describe('Effects — rendering', () => {
   it('renders the panel label', () => {
     const { getByText } = render(Effects)
@@ -140,11 +161,15 @@ describe('Effects — reverb toggle', () => {
 })
 
 describe('Effects — delay knob param names', () => {
+  it('delay knob row is ordered mix, time, feedback left-to-right', () => {
+    const { container } = render(Effects)
+    expect(delayKnobLabels(container)).toEqual(['mix', 'time', 'feedback'])
+  })
+
   it('time knob double-click dispatches delayTime', async () => {
     const onchange = vi.fn()
     const { container } = render(Effects, { props: { onchange } })
-    const hits = container.querySelectorAll('.knob-hit')
-    await fireEvent.dblClick(hits[0])
+    await fireEvent.dblClick(delayKnobHit(container, 'time'))
     const params = onchange.mock.calls.map((c) => c[0].param)
     expect(params).toContain('delayTime')
   })
@@ -152,8 +177,7 @@ describe('Effects — delay knob param names', () => {
   it('feedback knob double-click dispatches delayFeedback', async () => {
     const onchange = vi.fn()
     const { container } = render(Effects, { props: { onchange } })
-    const hits = container.querySelectorAll('.knob-hit')
-    await fireEvent.dblClick(hits[1])
+    await fireEvent.dblClick(delayKnobHit(container, 'feedback'))
     const params = onchange.mock.calls.map((c) => c[0].param)
     expect(params).toContain('delayFeedback')
   })
@@ -161,8 +185,7 @@ describe('Effects — delay knob param names', () => {
   it('delay mix knob double-click dispatches delayMix', async () => {
     const onchange = vi.fn()
     const { container } = render(Effects, { props: { onchange } })
-    const hits = container.querySelectorAll('.knob-hit')
-    await fireEvent.dblClick(hits[2])
+    await fireEvent.dblClick(delayKnobHit(container, 'mix'))
     const params = onchange.mock.calls.map((c) => c[0].param)
     expect(params).toContain('delayMix')
   })
@@ -230,24 +253,21 @@ describe('Effects — onknobcontextmenu', () => {
   it('right-click on time knob calls onknobcontextmenu with delayTime', async () => {
     const onknobcontextmenu = vi.fn()
     const { container } = render(Effects, { props: { onknobcontextmenu } })
-    const hits = container.querySelectorAll('.knob-hit')
-    await fireEvent.contextMenu(hits[0])
+    await fireEvent.contextMenu(delayKnobHit(container, 'time'))
     expect(onknobcontextmenu).toHaveBeenCalledWith('delayTime')
   })
 
   it('right-click on feedback knob calls onknobcontextmenu with delayFeedback', async () => {
     const onknobcontextmenu = vi.fn()
     const { container } = render(Effects, { props: { onknobcontextmenu } })
-    const hits = container.querySelectorAll('.knob-hit')
-    await fireEvent.contextMenu(hits[1])
+    await fireEvent.contextMenu(delayKnobHit(container, 'feedback'))
     expect(onknobcontextmenu).toHaveBeenCalledWith('delayFeedback')
   })
 
   it('right-click on delay mix knob calls onknobcontextmenu with delayMix', async () => {
     const onknobcontextmenu = vi.fn()
     const { container } = render(Effects, { props: { onknobcontextmenu } })
-    const hits = container.querySelectorAll('.knob-hit')
-    await fireEvent.contextMenu(hits[2])
+    await fireEvent.contextMenu(delayKnobHit(container, 'mix'))
     expect(onknobcontextmenu).toHaveBeenCalledWith('delayMix')
   })
 
@@ -357,8 +377,7 @@ describe('Effects — midiState externalValue', () => {
       reverbPreDelay: { externalValue: undefined, learningMidi: false, assignedCc: null },
     }
     const { container } = render(Effects, { props: { midiState } })
-    const knobValues = container.querySelectorAll('.knob-value')
-    expect(knobValues[0].textContent).toBe('600 ms')
+    expect(delayKnobValue(container, 'time').textContent).toBe('600 ms')
   })
 
   it('midiState.reverbSend.externalValue drives reverb send knob display', () => {
@@ -435,8 +454,7 @@ describe('Effects — midiState externalValue', () => {
 describe('Effects — delay time knob props', () => {
   it('delay time knob defaults to 300 ms', () => {
     const { container } = render(Effects)
-    const knobValues = container.querySelectorAll('.knob-value')
-    expect(knobValues[0].textContent).toBe('300 ms')
+    expect(delayKnobValue(container, 'time').textContent).toBe('300 ms')
   })
 
   it('delay time knob accepts externalValue of 2.0 s (max = 2.0)', () => {
@@ -450,15 +468,13 @@ describe('Effects — delay time knob props', () => {
       reverbPreDelay: { externalValue: undefined, learningMidi: false, assignedCc: null },
     }
     const { container } = render(Effects, { props: { midiState } })
-    const knobValues = container.querySelectorAll('.knob-value')
-    expect(knobValues[0].textContent).toBe('2.00 s')
+    expect(delayKnobValue(container, 'time').textContent).toBe('2.00 s')
   })
 
   it('delay time knob double-click resets to 0.3 s default (linear scale, default unchanged)', async () => {
     const onchange = vi.fn()
     const { container } = render(Effects, { props: { onchange } })
-    const hit = container.querySelectorAll('.knob-hit')[0]
-    await fireEvent.dblClick(hit)
+    await fireEvent.dblClick(delayKnobHit(container, 'time'))
     const call = /** @type {any[]} */ (onchange.mock.calls.find((c) => c[0].param === 'delayTime'))
     expect(call[0].value).toBeCloseTo(0.3, 5)
   })

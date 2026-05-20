@@ -47,6 +47,19 @@
   </div>
   <div class="effects-row">
     <Knob
+      label="mix"
+      min={0}
+      max={1}
+      default={0.3}
+      scale="linear"
+      disabled={delayOn === 0}
+      externalValue={midiState?.delayMix?.externalValue}
+      learningMidi={midiState?.delayMix?.learningMidi ?? false}
+      assignedCc={midiState?.delayMix?.assignedCc ?? null}
+      onchange={(e) => onchange?.({ param: 'delayMix', value: e.value })}
+      oncontextmenu={() => onknobcontextmenu?.('delayMix')}
+    />
+    <Knob
       label="time"
       min={0.01}
       max={2.0}
@@ -72,19 +85,6 @@
       assignedCc={midiState?.delayFeedback?.assignedCc ?? null}
       onchange={(e) => onchange?.({ param: 'delayFeedback', value: e.value })}
       oncontextmenu={() => onknobcontextmenu?.('delayFeedback')}
-    />
-    <Knob
-      label="mix"
-      min={0}
-      max={1}
-      default={0.3}
-      scale="linear"
-      disabled={delayOn === 0}
-      externalValue={midiState?.delayMix?.externalValue}
-      learningMidi={midiState?.delayMix?.learningMidi ?? false}
-      assignedCc={midiState?.delayMix?.assignedCc ?? null}
-      onchange={(e) => onchange?.({ param: 'delayMix', value: e.value })}
-      oncontextmenu={() => onknobcontextmenu?.('delayMix')}
     />
   </div>
   <div class="mod-row">
