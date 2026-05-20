@@ -8,15 +8,20 @@
 
 A spec MUST exist before any implementation begins. This applies to new features, changes to existing features, and bug fixes without exception. Do not write any code until a spec has been created and approved via the OpenSpec workflow.
 
+`/opsx:propose` creates the proposal artifacts on a dedicated `proposal/<change-name>` branch cut from `main` and commits them as a single commit with the message `chore(openspec): propose <change-name>` (the `chore` type is required so the proposal produces no release version bump). It creates no implementation branch — the `feature/`|`bugfix/` branch is created later by `/opsx-apply-wt` (see "Branching"). The proposal merges to `main` only after the design-review gate passes (see "Code review with roborev"): once the design review is clean, fast-forward merge `proposal/<change-name>` into `main` with plain `git` — no PR — and delete the proposal branch. If `main` has advanced since the branch was cut, rebase the proposal branch onto `main` before the fast-forward.
+
 ## Branching
 
-All tasks for a change MUST be implemented on a single branch. Branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name. Branches MUST be created from `main` at the time `/opsx:propose` is invoked.
+All tasks for a change MUST be implemented on a single branch. Implementation branch names MUST use either the `feature/` or `bugfix/` prefix followed by the kebab-case change name.
 
-**REQUIRED: Before creating a branch, prompt the human for the change type (feature or bugfix) and wait for confirmation. Do not create a branch until the human has confirmed the type.**
+`/opsx:propose` does **not** create an implementation branch. It works on a dedicated, short-lived `proposal/<change-name>` branch (a third prefix, separate from `feature/`|`bugfix/`), runs the design-review gate, then merges the proposal to `main` (see "Spec Driven Design"). The `feature/`|`bugfix/` implementation branch is created from `main` only by `/opsx-apply-wt`, which is also where the human is prompted for the change type.
+
+**REQUIRED: At `/opsx-apply-wt` time, before creating the implementation branch, prompt the human for the change type (feature or bugfix) and wait for confirmation. Do not create the branch until the human has confirmed the type.**
 
 ```
-feature/<change-name>
-bugfix/<change-name>
+proposal/<change-name>   # created by /opsx:propose, deleted after it merges to main
+feature/<change-name>    # implementation branch, created by /opsx-apply-wt
+bugfix/<change-name>     # implementation branch, created by /opsx-apply-wt
 ```
 
 Examples:
@@ -25,7 +30,7 @@ Examples:
 - `feature/second-oscillator`
 - `bugfix/fix-filter-cutoff`
 
-Before starting any implementation work the branch MUST exist. If the current branch already has the correct name, proceed. If not, create the branch first. If a branch name conflict exists, halt and ask the human for guidance before doing anything else.
+Before starting any implementation work, confirm you are inside the worktree that `/opsx-apply-wt` created, checked out on its `feature/`|`bugfix/` branch. Never create or switch to that branch in the `main` checkout — branch creation belongs to `/opsx-apply-wt` alone (its script owns the "branch already exists" preflight). If the expected worktree or branch is missing, halt and ask the human rather than creating it yourself.
 
 ## Worktree Workflow
 
@@ -48,6 +53,10 @@ reviews run automatically in the background.
 - To address open findings, use the `/roborev-fix` skill
 - Commit often so reviews stay scoped and contextual
 - Configuration lives in `.roborev.toml` at the repo root
+
+### Proposal design-review gate
+
+A proposal MUST pass a roborev **design review** before it merges to `main` — the same "review passes cleanly before merge" posture that governs code. After `/opsx:propose` commits the artifacts to the `proposal/<change-name>` branch, run a roborev design review on that branch (the `/roborev-design-review-branch` skill) and resolve every finding until it passes cleanly. Only then fast-forward merge the proposal to `main` and delete the proposal branch. Do not merge a proposal while design-review findings remain open.
 
 ## Committing Changes
 
