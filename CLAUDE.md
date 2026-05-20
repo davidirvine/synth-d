@@ -8,7 +8,7 @@
 
 A spec MUST exist before any implementation begins. This applies to new features, changes to existing features, and bug fixes without exception. Do not write any code until a spec has been created and approved via the OpenSpec workflow.
 
-`/opsx:propose` creates the proposal artifacts on a dedicated `proposal/<change-name>` branch cut from `main` and commits them as a single commit with the message `chore(openspec): propose <change-name>` (the `chore` type is required so the proposal produces no release version bump). It creates no implementation branch — the `feature/`|`bugfix/` branch is created later by `/opsx-apply-wt` (see "Branching"). The proposal merges to `main` only after the design-review gate passes (see "Code review with roborev"): once the design review is clean, fast-forward merge `proposal/<change-name>` into `main` with plain `git` — no PR — and delete the proposal branch. If `main` has advanced since the branch was cut, rebase the proposal branch onto `main` before the fast-forward.
+`/opsx:propose` creates the proposal artifacts on a dedicated `proposal/<change-name>` branch cut from `main` and commits them as a single commit with the message `chore(openspec): propose <change-name>` (the `chore` type is required so the proposal produces no release version bump). It creates no implementation branch — the `feature/`|`bugfix/` branch is created later by `/opsx-apply-wt` (see "Branching"). The proposal merges to `main` only after the design-review gate passes (see "Code review with roborev") **and** the human has explicitly approved the merge: once the design review is clean, present the result to the human and wait for explicit approval — a clean review alone does not trigger the merge. After approval, fast-forward merge `proposal/<change-name>` into `main` with plain `git` — no PR — and delete the proposal branch. If `main` has advanced since the branch was cut, rebase the proposal branch onto `main` before the fast-forward.
 
 ## Branching
 
@@ -46,8 +46,7 @@ Do not implement changes directly on `main`. If you find yourself on `main` with
 
 ## Code review with roborev
 
-This repo uses roborev for continuous code review. After each commit,
-reviews run automatically in the background.
+This repo uses roborev for code review. Reviews are invoked **explicitly** at the defined gates — the proposal design review on the `proposal/<change-name>` branch (`/roborev-design-review-branch`), the end-of-implementation `roborev refine`, and ad-hoc `roborev review` / `roborev tui` — not automatically after every commit. Commits on `feature/`/`bugfix/` worktree branches are not auto-queued (the `post-commit` hook is a stub and `core.hooksPath` is shared across worktrees), so do not rely on a review firing on its own; invoke one explicitly when you need it.
 
 - Browse open reviews interactively with `roborev tui`, or list them with `roborev fix --open --list`
 - To address open findings, use the `/roborev-fix` skill
@@ -56,7 +55,7 @@ reviews run automatically in the background.
 
 ### Proposal design-review gate
 
-A proposal MUST pass a roborev **design review** before it merges to `main` — the same "review passes cleanly before merge" posture that governs code. After `/opsx:propose` commits the artifacts to the `proposal/<change-name>` branch, run a roborev design review on that branch (the `/roborev-design-review-branch` skill) and resolve every finding until it passes cleanly. Only then fast-forward merge the proposal to `main` and delete the proposal branch. Do not merge a proposal while design-review findings remain open.
+A proposal MUST pass a roborev **design review** before it merges to `main` — the same "review passes cleanly before merge" posture that governs code. After `/opsx:propose` commits the artifacts to the `proposal/<change-name>` branch, run a roborev design review on that branch (the `/roborev-design-review-branch` skill) and resolve every finding until it passes cleanly. Then present the clean review result to the human and **wait for explicit human approval** before merging — mirroring the implementation gate, a clean review alone does not authorize the merge to `main`. Only after the human approves, fast-forward merge the proposal to `main` and delete the proposal branch. Do not merge a proposal while design-review findings remain open, and do not merge a proposal the human has not approved.
 
 ## Committing Changes
 
@@ -81,7 +80,7 @@ Required types and their version-bump effect:
 | `refactor` | Code restructuring with no behaviour change          | none         |
 | `test`     | Adding or updating tests                             | none         |
 
-**This is a functional requirement, not a style preference.** Each feature/bugfix PR is squash-merged to `main`, and the PR title becomes the single commit `release-please` parses for the version bump type. Using the wrong type (or no type) silently breaks the release pipeline.
+**Per-commit types are required for review scoping and history readability** — they keep each roborev review contextual and make the branch history legible. They are NOT the release input: each feature/bugfix branch is squash-merged to `main` as a single PR, and only the PR title becomes the commit on `main` that `release-please` parses for the version bump type. So the load-bearing release decision is the **PR title's** Conventional Commit type, not the individual per-commit types — getting the PR title's type wrong (or omitting it) silently breaks the release pipeline.
 
 ## Implementation Completion
 
@@ -89,20 +88,22 @@ There are no review or human-verification gates at section boundaries. Proceed s
 
 The implementation is NOT complete until ALL of the following are true:
 
-1. All applicable tests pass (see `STACK.md` for this project's specific test commands)
-2. All roborev reviews on the branch pass
-3. The human has explicitly approved moving forward
+1. `/opsx:verify <change-name>` confirms the implementation matches the change artifacts (proposal, design, specs, tasks)
+2. All applicable tests pass (see `STACK.md` for this project's specific test commands)
+3. All roborev reviews on the branch pass
+4. The human has explicitly approved moving forward
 
 ### End-of-implementation workflow
 
 When all tasks across all sections are complete:
 
-1. Confirm all tests pass (per the list above)
-2. Run `roborev status` to confirm the daemon is healthy — if it is not running, halt and report the error; do not skip the review gate
-3. Run `roborev refine --max-iterations 3` to resolve all open review findings
-4. Present refine results to the human and **wait for explicit human approval** before opening the PR — do not self-approve
+1. Run `/opsx:verify <change-name>` to confirm the implementation matches the change artifacts. **This is a hard gate:** if verify reports a mismatch between the implementation and the artifacts, halt and resolve it before proceeding — do not run the test suite, `roborev refine`, or request approval while a mismatch is open. A mismatch is not a "human decides whether it blocks" finding; the spec-driven contract must be met first. To resolve: if the implementation is wrong, fix the code to match the artifacts; if the artifacts are wrong, update them (proposal/design/specs/tasks) via the normal artifact-update flow; when it is unclear which side is correct, ask the human before changing either.
+2. Confirm all tests pass (the full `STACK.md` test suite)
+3. Run `roborev status` to confirm the daemon is healthy — if it is not running, halt and report the error; do not skip the review gate
+4. Run `roborev refine --max-iterations 3` to resolve all open review findings
+5. Present refine results to the human and **wait for explicit human approval** before opening the PR — do not self-approve
 
-If step 3 completes but open findings remain, present the remaining findings to the human. The human decides whether to run refine again, address findings manually, or explicitly override and proceed. Do not make this decision unilaterally.
+If step 4 (`roborev refine`) completes but open findings remain, present the remaining findings to the human. The human decides whether to run refine again, address findings manually, or explicitly override and proceed. Do not make this decision unilaterally.
 
 **Do not create a PR until human approval is granted.** A single PR is opened for the whole feature/bugfix branch — see "Pull Requests" below.
 
@@ -136,9 +137,9 @@ When the human requests the PR:
 
 When addressing comments left by a human reviewer on the feature PR:
 
-1. Make response commits on the feature branch — the roborev post-commit hook fires and queues async reviews as normal
+1. Make response commits on the feature branch. Worktree-branch commits are not auto-queued, so any roborev review of a response commit is invoked explicitly (`roborev review`) when needed — there is no reliance on an automatic post-commit review
 2. Human reviews the response commits and any roborev findings directly — `roborev refine` is **not** run during feedback cycles
-3. On human approval, squash+force-push: `git rebase -i` to squash, then `git push --force-with-lease` to push
+3. On human approval, squash non-interactively and force-push: `git reset --soft "$(git merge-base HEAD main)"` then a single `git commit`, then `git push --force-with-lease`. Do not use `git rebase -i` (interactive git is unsupported in the agent harness). The squash commit message MUST be the PR title (a valid Conventional Commit), since GitHub squash-merges the branch and the PR title is the release-parse input
 
 ## Project-specific rules
 

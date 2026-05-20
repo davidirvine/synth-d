@@ -10,6 +10,7 @@ The workflow kernel (`CLAUDE.md`) and its specs contain four self-contradictory 
 - **#2 (Conventional Commits rationale):** Keep requiring Conventional Commits on every commit, but correct the justification — per-commit types aid review scoping and readability; the release-bump *functional* requirement attaches to the squash-merge PR title, not the individual commits.
 - **#3 (`git rebase -i`):** Replace the interactive squash in PR feedback with a non-interactive squash (soft-reset to the merge-base, then a single commit) before `git push --force-with-lease`, preserving the review-history remap.
 - **#6 (proposal human-approval gate):** Add an explicit human-approval step after a proposal's design review passes cleanly and before the `proposal/<change-name>` branch fast-forward merges to `main`, consistent with the implementation gate.
+- **#7 (`/opsx:verify` as the first end-of-implementation gate step):** Add `/opsx:verify` as the first step of the end-of-implementation gate — before the test suite, `roborev refine`, and human approval — so the implementation is confirmed to match the change artifacts (proposal/design/specs/tasks) before any review or PR work. This is a **hard gate**: if `/opsx:verify` reports the implementation does not match the artifacts, halt and resolve the mismatch before proceeding. Reword `CLAUDE.md`'s "Implementation Completion" section and add an `implementation-completion-gate` delta requirement.
 
 ## Capabilities
 
@@ -22,9 +23,10 @@ The workflow kernel (`CLAUDE.md`) and its specs contain four self-contradictory 
 - `commit-review-cycle`: the "roborev post-commit and post-rewrite hooks are installed" requirement asserts the post-commit hook triggers a review after every commit (false — empty stub; worktree commits not auto-queued), and the roborev-config requirement states `post_commit_review = true` (actual: `"commit"`). Reword both to describe explicit review invocation at the defined gates and match the real config value. (#1)
 - `conventional-commits`: the "All commits MUST follow Conventional Commits format" requirement implies the per-commit type is the load-bearing release input; clarify that per-commit types aid review scoping/readability and the squash-merge PR title is what release-please parses. (#2)
 - `pr-workflow`: the "PR review feedback commits follow a lightweight review path" requirement specifies `git rebase -i` (replace with a non-interactive squash), and the "Proposing reviews the proposal on a branch before merging it to main" requirement has no human-approval step before the fast-forward merge (add one). (#3, #6)
+- `implementation-completion-gate`: the gate currently begins with the test suite and `roborev refine` with no artifact-coherence check; add a requirement that `/opsx:verify` runs first as a hard gate, halting on any mismatch between the implementation and the change artifacts before tests/refine/approval proceed. (#7)
 
 ## Impact
 
-- `CLAUDE.md` — Code-review section, Conventional Commits rationale, PR-feedback squash step, and Spec-Driven-Design/proposal-gate prose reworded. No `STACK.md` change (stack-agnostic kernel rules).
-- `openspec/specs/commit-review-cycle/spec.md`, `openspec/specs/conventional-commits/spec.md`, `openspec/specs/pr-workflow/spec.md` — requirement reword via delta.
+- `CLAUDE.md` — Code-review section, Conventional Commits rationale, PR-feedback squash step, Spec-Driven-Design/proposal-gate prose, and the "Implementation Completion" end-of-implementation gate reworded. No `STACK.md` change (stack-agnostic kernel rules).
+- `openspec/specs/commit-review-cycle/spec.md`, `openspec/specs/conventional-commits/spec.md`, `openspec/specs/pr-workflow/spec.md` — requirement reword via delta. `openspec/specs/implementation-completion-gate/spec.md` — new `/opsx:verify` hard-gate requirement via delta.
 - No change to `.githooks/`, `.roborev.toml`, `scripts/`, or any runtime code. Documentation/spec only.
