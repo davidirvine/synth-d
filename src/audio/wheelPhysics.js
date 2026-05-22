@@ -3,15 +3,17 @@
 // tunable mass-laden feel. Pure math, extracted so Stryker can mutate it
 // without crawling the Svelte component that drives it on requestAnimationFrame.
 //
-// Model (displacement x = value − 0.5, measured from the 0.5 center):
-//   a = (−spring·x − c·v) / mass        c = ζ · 2·√(spring·mass)
-//   v += a · dt
-//   x += v · dt
-//   value = clamp(0.5 + x, 0, 1)
+// Model (displacement x = value − 0.5, measured from the 0.5 center), integrated
+// with semi-implicit (symplectic) Euler — the position update uses the *new*
+// velocity, which is more stable than explicit Euler for oscillators:
+//   a     = (−spring·x − c·v) / mass     c = ζ · 2·√(spring·mass)
+//   v_new = v + a · dt
+//   x_new = x + v_new · dt
+//   value = clamp(0.5 + x_new, 0, 1)
 //
 // ζ (damping *ratio*) keeps the third knob meaningful regardless of mass/spring:
 // ζ<1 overshoots and settles, ζ=1 is critical (no overshoot). dt is clamped to a
-// safe maximum so the explicit-Euler step stays stable on tab-resume / low FPS.
+// safe maximum so the step stays stable on tab-resume / low FPS.
 
 /** The position both wheels rest at and spring back to. */
 export const REST = 0.5

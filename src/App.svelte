@@ -303,11 +303,20 @@
     // safe default. (Today's contract never mixes `freq` and `gate:0` in one
     // batch, so this is a defensive choice, not an observable one.)
     const endsNote = messages.some((m) => m.param === 'gate' && m.value === 0)
-    const freqMsg = messages.findLast((m) => m.param === 'freq')
+    // Last freq in the batch (matches the DSP loop's last-write-wins above),
+    // found with a reverse scan rather than Array.findLast to avoid the ES2023
+    // dependency. Today's batch carries at most one freq.
+    let lastFreq = /** @type {number | null} */ (null)
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].param === 'freq') {
+        lastFreq = messages[i].value
+        break
+      }
+    }
     if (endsNote) {
       currentNoteFreq = null
-    } else if (freqMsg) {
-      currentNoteFreq = freqMsg.value
+    } else if (lastFreq !== null) {
+      currentNoteFreq = lastFreq
     }
   }
 

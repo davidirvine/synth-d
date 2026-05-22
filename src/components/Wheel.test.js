@@ -145,6 +145,28 @@ describe('Wheel — keyboard', () => {
     await fireEvent.keyDown(el, { key: 'ArrowRight' })
     expect(onchange).not.toHaveBeenCalled()
   })
+
+  it('springs back toward 0.5 after the arrow key is released', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { externalValue: 0.5, onchange } })
+    const el = track(container)
+    await fireEvent.keyDown(el, { key: 'ArrowUp' }) // 0.55
+    await fireEvent.keyUp(el, { key: 'ArrowUp' })
+    flushFrames(1000)
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBeCloseTo(0.5, 2)
+  })
+
+  it('does not spring while another arrow key is still held', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { externalValue: 0.5, onchange } })
+    const el = track(container)
+    await fireEvent.keyDown(el, { key: 'ArrowUp' })
+    await fireEvent.keyDown(el, { key: 'ArrowDown' })
+    await fireEvent.keyUp(el, { key: 'ArrowUp' }) // ArrowDown still held → no spring
+    expect(rafMap.size).toBe(0)
+    await fireEvent.keyUp(el, { key: 'ArrowDown' }) // all released → spring starts
+    expect(rafMap.size).toBe(1)
+  })
 })
 
 describe('Wheel — external value cancels spring-back (MIDI vs on-screen)', () => {

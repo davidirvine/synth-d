@@ -4,6 +4,7 @@
   // via the shared damped-harmonic-oscillator integrator. The component is
   // display-agnostic — it emits `onchange({ value })` (matching Knob) and leaves
   // the synth-param mapping and aria value-text formatting to its parent.
+  import { SvelteSet } from 'svelte/reactivity'
   import { REST, stepSpring, isAtRest, DEFAULT_PHYSICS } from '../audio/wheelPhysics.js'
 
   /** @type {{
@@ -130,15 +131,22 @@
     startSpring()
   }
 
+  // Arrow keys currently held. The spring fires only once every arrow is
+  // released, so overlapping presses (e.g. ArrowDown pressed while ArrowUp is
+  // still down) don't start a spring-back that fights the still-held key.
+  const heldArrows = new SvelteSet()
+
   /** @param {KeyboardEvent} e */
   function onKeyDown(e) {
     if (e.key === 'ArrowUp') {
       e.preventDefault()
+      heldArrows.add(e.key)
       cancelSpring()
       value = Math.min(1, value + KEY_STEP)
       onchange?.({ value })
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
+      heldArrows.add(e.key)
       cancelSpring()
       value = Math.max(0, value - KEY_STEP)
       onchange?.({ value })
@@ -149,7 +157,8 @@
   /** @param {KeyboardEvent} e */
   function onKeyUp(e) {
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      startSpring()
+      heldArrows.delete(e.key)
+      if (heldArrows.size === 0) startSpring()
     }
   }
 </script>
