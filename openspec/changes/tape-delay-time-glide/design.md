@@ -43,12 +43,15 @@ A pure rate limiter reaches the target and stops abruptly, leaving a derivative 
 
 ### Decision: Implement the limiter as a clamped integrator (recursive `+~`)
 
-FAUST has no built-in rate limiter. The standard idiom is a one-sample feedback accumulator whose increment toward the target is clamped to `±slewStep`:
+FAUST has no built-in rate limiter. The idiom is a one-sample feedback accumulator whose increment toward the target is clamped to `±slewStep`. In FAUST, `f ~ _` feeds the one-sample-delayed **output** back into `f`'s **first** input, so a two-argument `rateLimit(prev, target)` curried with `~ _` becomes a 1-in/1-out slew driven by `target`:
 
 ```
-rateLimit(step, target) = target : (-) ~ _ : ...   // conceptual
-// concretely: prev + max(-step, min(step, target - prev)) recursively via +~
+slewStep = <tuned constant>;                                  // delay-samples per audio sample
+rateLimit(prev, target) = prev + max(-slewStep, min(slewStep, target - prev));
+tapeTimeSlewed = (delayTime * ma.SR) : (rateLimit ~ _) : si.smoo;
 ```
+
+Here `prev` is the fed-back delayed output and `target` is the incoming `delayTime * ma.SR`; the `max(-slewStep, min(slewStep, …))` clamps the per-sample step. Wiring `~` to the wrong input (e.g. feeding back into `target`) would either pass the target straight through (no slew) or diverge, so the routing above is the load-bearing detail.
 
 `slewStep` is expressed in **delay-samples per audio sample** (a dimensionless slope), so the bend depth is sample-rate-independent in pitch terms. To keep the constant and the slewed quantity in the same units, the rate limiter operates in the **sample domain**: it is applied to `delayTime * ma.SR` (delay length in samples), not to the seconds-valued slider. (Equivalently, a seconds-domain limiter would need `slewStep / ma.SR` — slewing the sample-domain value avoids that conversion and the sample-rate-dependent bug it invites.) `wowLfo` and `modLfo` are then summed on the slewed sample value exactly as today, and the existing `min(maxDelayLen-1, max(1, …))` clamp stays downstream so the read offset can never leave `[1, maxDelayLen-1]`.
 
