@@ -26,15 +26,15 @@ A gear/settings icon button SHALL be present in the top-left of the wheels compo
 
 Each parameter SHALL use the following range, default, and unit:
 
-| Parameter           | Min  | Max | Default | Notes                                                          |
-| ------------------- | ---- | --- | ------- | -------------------------------------------------------------- |
-| Mass                | 0.1  | 5   | 1       | Higher mass returns more slowly                                |
-| Spring strength     | 1    | 50  | 20      | Higher spring returns faster                                   |
-| Damping ratio (ζ)   | 0.05 | 1   | 0.3     | Lower bound >0 (never perpetually undamped); ζ=1 is critical   |
+| Parameter         | Min  | Max | Default | Notes                                                        |
+| ----------------- | ---- | --- | ------- | ------------------------------------------------------------ |
+| Mass              | 0.05 | 5   | 0.1     | Higher mass returns more slowly; min below default for speed |
+| Spring strength   | 1    | 50  | 50      | Higher spring returns faster                                 |
+| Damping ratio (ζ) | 0.05 | 1   | 0.3     | Lower bound >0 (never perpetually undamped); ζ=1 is critical |
 
 #### Scenario: Physics knobs use their defined defaults
 - **WHEN** the wheels load with no saved physics
-- **THEN** each wheel uses mass 1, spring strength 20, and damping ratio 0.3
+- **THEN** each wheel uses mass 0.1, spring strength 50, and damping ratio 0.3
 
 #### Scenario: Gear button opens the physics popup
 - **WHEN** the user activates the gear button in the top-left of the wheels component

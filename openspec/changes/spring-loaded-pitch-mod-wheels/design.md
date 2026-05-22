@@ -80,7 +80,7 @@ An incoming external value — MIDI CC 1 for MOD, MIDI pitch-bend for PITCH — 
 ### Decision: Physics persistence via `synth-d:wheel-physics`
 A single key `synth-d:wheel-physics` (in the `synth-d:` namespace established by `storage.js`) stores `{ mod: {mass, spring, damping}, pitch: {mass, spring, damping} }`. Load validates each field is a finite number in range and falls back to defaults per-field (reusing the validate-and-default resilience pattern from `midiCcMap`), so a partial or corrupt entry never breaks the wheels. Reset writes defaults back.
 
-Parameter ranges (formalized in the `wheel-physics` spec): mass `0.1–5` (default `1`), spring `1–50` (default `20`), damping ratio ζ `0.05–1` (default `0.3`). The ζ lower bound is `>0` so the system can never be perfectly undamped (perpetual oscillation); the default `0.3` is underdamped for a pronounced overshoot-and-settle.
+Parameter ranges (formalized in the `wheel-physics` spec): mass `0.05–5` (default `0.1`), spring `1–50` (default `50`), damping ratio ζ `0.05–1` (default `0.3`). The default is a light mass with a strong spring for a snappy return, underdamped at ζ `0.3` for a pronounced overshoot-and-settle; the mass min sits below the default so the wheel can be tuned even faster. The ζ lower bound is `>0` so the system can never be perfectly undamped (perpetual oscillation). The mass floor (`0.05`) is bounded so that even at maximum spring the worst-case `dt`-clamped step (ω·dt ≈ 1.6 at the 50 ms cap) stays within the symplectic-Euler stability limit.
 
 ## Risks / Trade-offs
 

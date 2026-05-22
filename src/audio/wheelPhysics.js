@@ -29,12 +29,16 @@ export const REST_VELOCITY_EPSILON = 0.001
  * system can never be perfectly undamped (perpetual oscillation).
  */
 export const PHYSICS_RANGES = /** @type {const} */ ({
-  mass: { min: 0.1, max: 5, default: 1 },
-  spring: { min: 1, max: 50, default: 20 },
+  mass: { min: 0.05, max: 5, default: 0.1 },
+  spring: { min: 1, max: 50, default: 50 },
   damping: { min: 0.05, max: 1, default: 0.3 },
 })
 
-/** Default per-wheel physics: underdamped (ζ=0.3) for a pronounced settle. */
+/**
+ * Default per-wheel physics: a light mass with a strong spring for a snappy
+ * return, underdamped (ζ=0.3) so it still overshoots and settles. The mass min
+ * sits below the default so the wheel can be tuned even faster.
+ */
 export const DEFAULT_PHYSICS = /** @type {const} */ ({
   mass: PHYSICS_RANGES.mass.default,
   spring: PHYSICS_RANGES.spring.default,

@@ -82,11 +82,11 @@ describe('wheelPhysicsStore — fallback on missing/partial/corrupt data', () =>
 
   it('accepts boundary values exactly at min and max', () => {
     saveWheelPhysics({
-      mod: { mass: 0.1, spring: 1, damping: 0.05 },
+      mod: { mass: 0.05, spring: 1, damping: 0.05 },
       pitch: { mass: 5, spring: 50, damping: 1 },
     })
     const loaded = loadWheelPhysics()
-    expect(loaded.mod).toEqual({ mass: 0.1, spring: 1, damping: 0.05 })
+    expect(loaded.mod).toEqual({ mass: 0.05, spring: 1, damping: 0.05 })
     expect(loaded.pitch).toEqual({ mass: 5, spring: 50, damping: 1 })
   })
 })
@@ -124,7 +124,7 @@ describe('wheelPhysicsStore — save return value', () => {
 describe('wheelPhysicsStore — per-field range boundaries', () => {
   it('rejects a value just below min and just above max for each field', () => {
     saveWheelPhysics({
-      mod: { mass: 0.1 - 0.0001, spring: 1 - 0.0001, damping: 0.05 - 0.0001 },
+      mod: { mass: 0.05 - 0.0001, spring: 1 - 0.0001, damping: 0.05 - 0.0001 },
       pitch: { mass: 5 + 0.0001, spring: 50 + 0.0001, damping: 1 + 0.0001 },
     })
     expect(loadWheelPhysics().mod).toEqual(DEFAULT_PHYSICS)
