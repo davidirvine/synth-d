@@ -388,9 +388,10 @@ body {
   }
 
   /* Reserve fixed width for the filter env amount knob value.
-     Prevents layout shift when the displayed string changes between e.g. "0.00 Hz" and "10.0 kHz". */
+     Prevents layout shift when the displayed string changes between e.g. "0.00 Hz",
+     "10.0 kHz", and the bipolar negative reading "-10.0 kHz" (leading minus sign). */
   .knob-row.svelte-xeds7y :last-child .knob-value {
-    min-width: 5.5em;
+    min-width: 6.5em;
     display: inline-block;
     text-align: center;
   }
@@ -710,46 +711,147 @@ body {
     border-color: #c87941;
   }
 
-  .panel.svelte-i6yfjl {
+  .wheel.svelte-52kkif {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .wheel-label.svelte-52kkif {
+    font-size: 10px;
+    color: #e8dcc8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+
+  .wheel-track.svelte-52kkif {
+    position: relative;
+    width: 18px;
+    height: 60px;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+
+  .wheel-track.svelte-52kkif:focus-visible {
+    outline: 2px solid #c87941;
+    outline-offset: 2px;
+  }
+
+  .wheel-cursor.svelte-52kkif {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #c87941;
+  }
+
+  .wheels-panel.svelte-1u30a8q {
+    position: relative;
     background: #1c1c1c;
     border: 1px solid #333;
     padding: 10px 12px;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
     flex: 1;
   }
 
-  .panel-label.svelte-i6yfjl {
+  .wheels.svelte-1u30a8q {
+    display: flex;
+    gap: 16px;
+  }
+
+  .gear.svelte-1u30a8q {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+  }
+
+  .gear.svelte-1u30a8q:hover {
+    color: #c87941;
+  }
+
+  .gear.svelte-1u30a8q:focus-visible {
+    outline: 2px solid #c87941;
+    outline-offset: 2px;
+  }
+
+  .popup.svelte-1u30a8q {
+    position: absolute;
+    top: 32px;
+    left: 6px;
+    z-index: 10;
+    max-width: calc(100vw - 24px);
+    background: #1c1c1c;
+    border: 1px solid #444;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .popup.svelte-1u30a8q:focus-visible {
+    outline: 2px solid #c87941;
+    outline-offset: 2px;
+  }
+
+  .section-divider.svelte-1u30a8q {
+    height: 1px;
+    background: #2a2a2a;
+  }
+
+  .physics-group.svelte-1u30a8q {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .group-label.svelte-1u30a8q {
     font-size: 10px;
     color: #e8dcc8;
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
 
-  .wheel-container.svelte-i6yfjl {
+  .knobs.svelte-1u30a8q {
     display: flex;
-    flex: 1;
-    align-items: center;
-    justify-content: center;
+    gap: 10px;
   }
 
-  .wheel-track.svelte-i6yfjl {
-    width: 18px;
-    height: 60px;
+  .reset.svelte-1u30a8q {
+    align-self: flex-start;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #e8dcc8;
     background: #2a2a2a;
     border: 1px solid #444;
-    cursor: ns-resize;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    touch-action: none;
+    padding: 4px 10px;
+    cursor: pointer;
   }
 
-  .wheel-fill.svelte-i6yfjl {
-    background: #c87941;
-    width: 100%;
-    transition: height 0.05s;
+  .reset.svelte-1u30a8q:hover {
+    border-color: #c87941;
+  }
+
+  .reset.svelte-1u30a8q:focus-visible {
+    outline: 2px solid #c87941;
+    outline-offset: 2px;
   }
 
   .power-wrap.svelte-z2dg21 {
@@ -1084,6 +1186,7 @@ body {
   }
 
   .header.svelte-1n46o8q {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -1091,6 +1194,33 @@ body {
     margin: 0 8px;
     background: #1c1c1c;
     border-bottom: 1px solid #333;
+  }
+
+  /* Decorative brand glyph, centered across the full header width regardless of
+     the asymmetric left/right groups. Absolutely positioned so it stays out of
+     the flex flow (neither shifts nor is shifted by the side content) and
+     pointer-events: none so it never intercepts a click aimed at the header. */
+  .header-glyph.svelte-1n46o8q {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    /* Fixed 55px square, centered in both axes. Absolutely positioned so it
+       neither grows the header (55px fits within the ~63px bar) nor shifts the
+       side content. */
+    width: 55px;
+    height: 55px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .header-glyph.svelte-1n46o8q svg:where(.svelte-1n46o8q) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* Purple glow: a tight bright halo plus a softer wider one, painted around
+       the glyph shape (filters don't affect layout, so the halo can spill past
+       the 55px box without shifting anything). */
+    filter: drop-shadow(0 0 4px #a64dff) drop-shadow(0 0 12px rgba(166, 77, 255, 0.6));
   }
 
   .header-right.svelte-1n46o8q {

@@ -10595,7 +10595,7 @@ var MidiManager = class {
 	/** @param {number} raw */
 	_pitchBend(raw) {
 		this.#bendValue = parseBend(raw);
-		if (this.#lastNote !== null && this.#activeNotes.has(this.#lastNote)) this._onPitchBend(this._bentFreq(this.#lastNote));
+		if (this.#lastNote !== null && this.#activeNotes.has(this.#lastNote)) this._onPitchBend(this._bentFreq(this.#lastNote), this.#bendValue);
 	}
 	/** @param {number} note */
 	_bentFreq(note) {
@@ -11008,12 +11008,12 @@ function tweened(value, defaults = {}) {
 }
 //#endregion
 //#region src/components/Knob.svelte
-var root_1$4 = /* @__PURE__ */ from_svg(`<circle class="learn-ring svelte-1wmwmfc" fill="none" stroke-width="2"></circle>`);
-var root_2$4 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
-var root_3$3 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
+var root_1$5 = /* @__PURE__ */ from_svg(`<circle class="learn-ring svelte-1wmwmfc" fill="none" stroke-width="2"></circle>`);
+var root_2$5 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
+var root_3$4 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
 var root_4$2 = /* @__PURE__ */ from_html(`<span class="interval-indicator svelte-1wmwmfc"> </span>`);
 var root_5$1 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> </span>`);
-var root$16 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <!> <span> </span> <!></div>`);
+var root$17 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <!> <span> </span> <!></div>`);
 function Knob($$anchor, $$props) {
 	push($$props, true);
 	const $animPos = () => store_get(animPos, "$animPos", $$stores);
@@ -11151,7 +11151,7 @@ function Knob($$anchor, $$props) {
 		e.preventDefault();
 		$$props.oncontextmenu?.();
 	}
-	var div = root$16();
+	var div = root$17();
 	let classes;
 	var span = child(div);
 	let classes_1;
@@ -11161,7 +11161,7 @@ function Knob($$anchor, $$props) {
 	var svg = child(div_1);
 	var node = child(svg);
 	var consequent = ($$anchor) => {
-		var circle = root_1$4();
+		var circle = root_1$5();
 		set_attribute(circle, "cx", CX);
 		set_attribute(circle, "cy", CY);
 		set_attribute(circle, "r", R + 4);
@@ -11173,7 +11173,7 @@ function Knob($$anchor, $$props) {
 	var path = sibling(node);
 	var node_1 = sibling(path);
 	var consequent_1 = ($$anchor) => {
-		var path_1 = root_2$4();
+		var path_1 = root_2$5();
 		template_effect(() => set_attribute(path_1, "d", get(activePath)));
 		append($$anchor, path_1);
 	};
@@ -11188,7 +11188,7 @@ function Knob($$anchor, $$props) {
 	set_attribute(line, "y1", CY);
 	each(sibling(line), 17, ticks, (tick) => tick.label, ($$anchor, tick) => {
 		const xy = /* @__PURE__ */ user_derived(() => tickXY(get(tick)));
-		var text_1 = root_3$3();
+		var text_1 = root_3$4();
 		var text_2 = child(text_1, true);
 		reset(text_1);
 		template_effect(() => {
@@ -11256,10 +11256,10 @@ delegate([
 ]);
 //#endregion
 //#region src/components/Oscillator.svelte
-var root_1$3 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root_2$3 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root_3$2 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root$15 = /* @__PURE__ */ from_html(`<div class="panel svelte-19bkkl2"><span class="panel-label svelte-19bkkl2">oscillator bank</span> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 1</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 2</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 3</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!> <button>lfo</button> <!></div></div></div>`);
+var root_1$4 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root_2$4 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root_3$3 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root$16 = /* @__PURE__ */ from_html(`<div class="panel svelte-19bkkl2"><span class="panel-label svelte-19bkkl2">oscillator bank</span> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 1</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 2</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 3</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!> <button>lfo</button> <!></div></div></div>`);
 function Oscillator($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -11312,11 +11312,11 @@ function Oscillator($$anchor, $$props) {
 			value: osc3LfoMode() === 0 ? 1 : 0
 		});
 	}
-	var div = root$15();
+	var div = root$16();
 	var div_1 = sibling(child(div), 2);
 	var div_2 = sibling(child(div_1), 2);
 	each(div_2, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button = root_1$3();
+		var button = root_1$4();
 		let classes;
 		var text = child(button, true);
 		reset(button);
@@ -11339,7 +11339,7 @@ function Oscillator($$anchor, $$props) {
 	var div_4 = sibling(div_1, 2);
 	var div_5 = sibling(child(div_4), 2);
 	each(div_5, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button_3 = root_2$3();
+		var button_3 = root_2$4();
 		let classes_1;
 		var text_2 = child(button_3, true);
 		reset(button_3);
@@ -11393,7 +11393,7 @@ function Oscillator($$anchor, $$props) {
 	var div_7 = sibling(div_4, 2);
 	var div_8 = sibling(child(div_7), 2);
 	each(div_8, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button_6 = root_3$2();
+		var button_6 = root_3$3();
 		let classes_2;
 		var text_4 = child(button_6, true);
 		reset(button_6);
@@ -11505,7 +11505,7 @@ function Oscillator($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/LevelLed.svelte
-var root$14 = /* @__PURE__ */ from_html(`<div class="level-led svelte-1hlnysh"></div>`);
+var root$15 = /* @__PURE__ */ from_html(`<div class="level-led svelte-1hlnysh"></div>`);
 function LevelLed($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{ getPeak?: () => number, powered?: boolean }} */
@@ -11559,7 +11559,7 @@ function LevelLed($$anchor, $$props) {
 		cancelAnimationFrame(rafHandle);
 		clearTimeout(latchHandle);
 	});
-	var div = root$14();
+	var div = root$15();
 	let styles;
 	template_effect(() => styles = set_style(div, "", styles, { "--led-color": get(color) }));
 	append($$anchor, div);
@@ -11567,7 +11567,7 @@ function LevelLed($$anchor, $$props) {
 }
 //#endregion
 //#region src/components/Mixer.svelte
-var root$13 = /* @__PURE__ */ from_html(`<div class="panel svelte-gq0xe5"><div class="panel-header svelte-gq0xe5"><span class="panel-label svelte-gq0xe5">mixer</span> <!></div> <div class="mixer-col svelte-gq0xe5"><!> <!> <!> <div class="section-divider svelte-gq0xe5"></div> <div class="noise-row svelte-gq0xe5"><!> <div class="noise-type-row svelte-gq0xe5"><button>wht</button> <button>pink</button></div></div></div></div>`);
+var root$14 = /* @__PURE__ */ from_html(`<div class="panel svelte-gq0xe5"><div class="panel-header svelte-gq0xe5"><span class="panel-label svelte-gq0xe5">mixer</span> <!></div> <div class="mixer-col svelte-gq0xe5"><!> <!> <!> <div class="section-divider svelte-gq0xe5"></div> <div class="noise-row svelte-gq0xe5"><!> <div class="noise-type-row svelte-gq0xe5"><button>wht</button> <button>pink</button></div></div></div></div>`);
 function Mixer($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -11587,7 +11587,7 @@ function Mixer($$anchor, $$props) {
 			value: t
 		});
 	}
-	var div = root$13();
+	var div = root$14();
 	var div_1 = child(div);
 	LevelLed(sibling(child(div_1), 2), {
 		get getPeak() {
@@ -11729,7 +11729,7 @@ function Mixer($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Filter.svelte
-var root$12 = /* @__PURE__ */ from_html(`<div class="panel svelte-xeds7y"><span class="panel-label svelte-xeds7y">filter</span> <div class="knob-row centered svelte-xeds7y"><!> <!> <div class="key-track-col svelte-xeds7y"><div class="key-track-btn-wrap svelte-xeds7y"><button>KEY TRACK</button></div></div></div> <div class="section-divider svelte-xeds7y"></div> <div class="contour-header svelte-xeds7y"><span class="sub-label svelte-xeds7y">filter contour</span></div> <div class="knob-row svelte-xeds7y"><!> <!> <!> <!> <!></div></div>`);
+var root$13 = /* @__PURE__ */ from_html(`<div class="panel svelte-xeds7y"><span class="panel-label svelte-xeds7y">filter</span> <div class="knob-row centered svelte-xeds7y"><!> <!> <div class="key-track-col svelte-xeds7y"><div class="key-track-btn-wrap svelte-xeds7y"><button>KEY TRACK</button></div></div></div> <div class="section-divider svelte-xeds7y"></div> <div class="contour-header svelte-xeds7y"><span class="sub-label svelte-xeds7y">filter contour</span></div> <div class="knob-row svelte-xeds7y"><!> <!> <!> <!> <!></div></div>`);
 function Filter($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -11745,7 +11745,7 @@ function Filter($$anchor, $$props) {
 			value: keyTrack() === 0 ? 1 : 0
 		});
 	}
-	var div = root$12();
+	var div = root$13();
 	var div_1 = sibling(child(div), 2);
 	var node = child(div_1);
 	{
@@ -11928,11 +11928,12 @@ function Filter($$anchor, $$props) {
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.filterEnvAmt?.assignedCc ?? null);
 		Knob(node_6, {
 			label: "amount",
-			min: 0,
+			min: -1e4,
 			max: 1e4,
 			default: 0,
 			scale: "linear",
 			unit: "Hz",
+			bipolar: true,
 			get externalValue() {
 				return get($0);
 			},
@@ -11962,7 +11963,7 @@ function Filter($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Effects.svelte
-var root$11 = /* @__PURE__ */ from_html(`<div class="panel svelte-123klp2"><span class="panel-label svelte-123klp2">effects</span> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">delay</span> <button> </button></div> <div class="effects-row svelte-123klp2"><!> <!> <!></div> <div class="mod-row svelte-123klp2"><button>MOD</button> <!> <!></div> <div class="section-divider svelte-123klp2"></div> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">reverb</span> <button> </button></div> <div class="effects-row reverb-row svelte-123klp2"><!> <!> <!> <!></div></div>`);
+var root$12 = /* @__PURE__ */ from_html(`<div class="panel svelte-123klp2"><span class="panel-label svelte-123klp2">effects</span> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">delay</span> <button> </button></div> <div class="effects-row svelte-123klp2"><!> <!> <!></div> <div class="mod-row svelte-123klp2"><button>MOD</button> <!> <!></div> <div class="section-divider svelte-123klp2"></div> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">reverb</span> <button> </button></div> <div class="effects-row reverb-row svelte-123klp2"><!> <!> <!> <!></div></div>`);
 function Effects($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -11992,7 +11993,7 @@ function Effects($$anchor, $$props) {
 			value: reverbOn() === 0 ? 1 : 0
 		});
 	}
-	var div = root$11();
+	var div = root$12();
 	var div_1 = sibling(child(div), 2);
 	var button = sibling(child(div_1), 2);
 	let classes;
@@ -12003,10 +12004,41 @@ function Effects($$anchor, $$props) {
 	var node = child(div_2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
+		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.externalValue);
+		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.learningMidi ?? false);
+		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.assignedCc ?? null);
+		Knob(node, {
+			label: "mix",
+			min: 0,
+			max: 1,
+			default: .3,
+			scale: "linear",
+			get disabled() {
+				return get($0);
+			},
+			get externalValue() {
+				return get($1);
+			},
+			get learningMidi() {
+				return get($2);
+			},
+			get assignedCc() {
+				return get($3);
+			},
+			onchange: (e) => $$props.onchange?.({
+				param: "delayMix",
+				value: e.value
+			}),
+			oncontextmenu: () => $$props.onknobcontextmenu?.("delayMix")
+		});
+	}
+	var node_1 = sibling(node, 2);
+	{
+		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayTime?.assignedCc ?? null);
-		Knob(node, {
+		Knob(node_1, {
 			label: "time",
 			min: .01,
 			max: 2,
@@ -12032,13 +12064,13 @@ function Effects($$anchor, $$props) {
 			oncontextmenu: () => $$props.onknobcontextmenu?.("delayTime")
 		});
 	}
-	var node_1 = sibling(node, 2);
+	var node_2 = sibling(node_1, 2);
 	{
 		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
 		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.externalValue);
 		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.learningMidi ?? false);
 		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayFeedback?.assignedCc ?? null);
-		Knob(node_1, {
+		Knob(node_2, {
 			label: "feedback",
 			min: 0,
 			max: .9,
@@ -12061,37 +12093,6 @@ function Effects($$anchor, $$props) {
 				value: e.value
 			}),
 			oncontextmenu: () => $$props.onknobcontextmenu?.("delayFeedback")
-		});
-	}
-	var node_2 = sibling(node_1, 2);
-	{
-		let $0 = /* @__PURE__ */ user_derived(() => delayOn() === 0);
-		let $1 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.externalValue);
-		let $2 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.learningMidi ?? false);
-		let $3 = /* @__PURE__ */ user_derived(() => midiState()?.delayMix?.assignedCc ?? null);
-		Knob(node_2, {
-			label: "mix",
-			min: 0,
-			max: 1,
-			default: .3,
-			scale: "linear",
-			get disabled() {
-				return get($0);
-			},
-			get externalValue() {
-				return get($1);
-			},
-			get learningMidi() {
-				return get($2);
-			},
-			get assignedCc() {
-				return get($3);
-			},
-			onchange: (e) => $$props.onchange?.({
-				param: "delayMix",
-				value: e.value
-			}),
-			oncontextmenu: () => $$props.onknobcontextmenu?.("delayMix")
 		});
 	}
 	reset(div_2);
@@ -12318,7 +12319,7 @@ function Effects($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/AmpEnv.svelte
-var root$10 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
+var root$11 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
 function AmpEnv($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12337,7 +12338,7 @@ function AmpEnv($$anchor, $$props) {
 			value: drLock() === 0 ? 1 : 0
 		});
 	}
-	var div = root$10();
+	var div = root$11();
 	var div_1 = child(div);
 	LevelLed(sibling(child(div_1), 2), {
 		get getPeak() {
@@ -12513,7 +12514,7 @@ function AmpEnv($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Modulation.svelte
-var root$9 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div></div></div>`);
+var root$10 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div></div></div>`);
 function Modulation($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12539,7 +12540,7 @@ function Modulation($$anchor, $$props) {
 			value: modToFilter() === 0 ? 1 : 0
 		});
 	}
-	var div = root$9();
+	var div = root$10();
 	var div_1 = sibling(child(div), 2);
 	var div_2 = child(div_1);
 	var node = child(div_2);
@@ -12606,7 +12607,7 @@ function Modulation($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Glide.svelte
-var root$8 = /* @__PURE__ */ from_html(`<div class="panel svelte-oqc131"><span class="panel-label svelte-oqc131">glide</span> <div class="glide-row svelte-oqc131"><button> </button> <!></div></div>`);
+var root$9 = /* @__PURE__ */ from_html(`<div class="panel svelte-oqc131"><span class="panel-label svelte-oqc131">glide</span> <div class="glide-row svelte-oqc131"><button> </button> <!></div></div>`);
 function Glide($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12622,7 +12623,7 @@ function Glide($$anchor, $$props) {
 			value: glideOn() === 0 ? 1 : 0
 		});
 	}
-	var div = root$8();
+	var div = root$9();
 	var div_1 = sibling(child(div), 2);
 	var button = child(div_1);
 	let classes;
@@ -12674,11 +12675,11 @@ function Glide($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Keyboard.svelte
-var root_1$2 = /* @__PURE__ */ from_svg(`<rect></rect>`);
-var root_2$2 = /* @__PURE__ */ from_svg(`<rect></rect>`);
-var root_3$1 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label svelte-1dlz8xf"> </text>`);
+var root_1$3 = /* @__PURE__ */ from_svg(`<rect></rect>`);
+var root_2$3 = /* @__PURE__ */ from_svg(`<rect></rect>`);
+var root_3$2 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label svelte-1dlz8xf"> </text>`);
 var root_4$1 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label-black svelte-1dlz8xf"> </text>`);
-var root$7 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><rect fill="#333"></rect><!><!><!><!></svg></div>`);
+var root$8 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><rect fill="#333"></rect><!><!><!><!></svg></div>`);
 function Keyboard($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12793,7 +12794,7 @@ function Keyboard($$anchor, $$props) {
 		window.removeEventListener("keydown", onKeyDown);
 		window.removeEventListener("keyup", onKeyUp);
 	});
-	var div = root$7();
+	var div = root$8();
 	var svg = child(div);
 	set_attribute(svg, "height", WHITE_H + RAIL_H + 2);
 	var rect = child(svg);
@@ -12802,7 +12803,7 @@ function Keyboard($$anchor, $$props) {
 	set_attribute(rect, "height", RAIL_H);
 	var node = sibling(rect);
 	each(node, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
-		var rect_1 = root_1$2();
+		var rect_1 = root_1$3();
 		set_attribute(rect_1, "y", RAIL_H);
 		set_attribute(rect_1, "width", WHITE_W - 2);
 		set_attribute(rect_1, "height", WHITE_H);
@@ -12819,7 +12820,7 @@ function Keyboard($$anchor, $$props) {
 	});
 	var node_1 = sibling(node);
 	each(node_1, 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
-		var rect_2 = root_2$2();
+		var rect_2 = root_2$3();
 		set_attribute(rect_2, "y", RAIL_H);
 		set_attribute(rect_2, "width", BLACK_W);
 		set_attribute(rect_2, "height", BLACK_H);
@@ -12836,7 +12837,7 @@ function Keyboard($$anchor, $$props) {
 	});
 	var node_2 = sibling(node_1);
 	each(node_2, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
-		var text = root_3$1();
+		var text = root_3$2();
 		set_attribute(text, "y", RAIL_H + WHITE_H - 5);
 		var text_1 = child(text, true);
 		reset(text);
@@ -12869,7 +12870,7 @@ function Keyboard($$anchor, $$props) {
 delegate(["pointerdown", "pointerup"]);
 //#endregion
 //#region src/components/RegisterPanel.svelte
-var root$6 = /* @__PURE__ */ from_html(`<div class="panel svelte-pygl9d"><span class="panel-label svelte-pygl9d">keyboard range</span> <div class="btn-col svelte-pygl9d"><button>Oct ▲</button> <button>Oct ▼</button></div></div>`);
+var root$7 = /* @__PURE__ */ from_html(`<div class="panel svelte-pygl9d"><span class="panel-label svelte-pygl9d">keyboard range</span> <div class="btn-col svelte-pygl9d"><button>Oct ▲</button> <button>Oct ▼</button></div></div>`);
 function RegisterPanel($$anchor, $$props) {
 	/** @type {{
 	ondown?: () => void,
@@ -12877,7 +12878,7 @@ function RegisterPanel($$anchor, $$props) {
 	activeRegister?: 'bottom' | 'top' | 'mid',
 	}} */
 	let activeRegister = prop($$props, "activeRegister", 3, "mid");
-	var div = root$6();
+	var div = root$7();
 	var div_1 = sibling(child(div), 2);
 	var button = child(div_1);
 	let classes;
@@ -12901,93 +12902,215 @@ function RegisterPanel($$anchor, $$props) {
 }
 delegate(["click"]);
 //#endregion
-//#region src/components/WheelPanel.svelte
-var root$5 = /* @__PURE__ */ from_html(`<div class="panel svelte-i6yfjl"><span class="panel-label svelte-i6yfjl">wheel</span> <div class="wheel-container svelte-i6yfjl"><div class="wheel-track svelte-i6yfjl" role="slider" aria-label="mod wheel"><div class="wheel-fill svelte-i6yfjl"></div></div></div></div>`);
-function WheelPanel($$anchor, $$props) {
+//#region src/audio/wheelPhysics.js
+/** The position both wheels rest at and spring back to. */
+var REST = .5;
+/** Maximum integration step (≈ three dropped frames at 60 Hz), in seconds. */
+var MAX_DT = .05;
+/**
+* Allowed range and default for each physics parameter. Ranges bound the
+* discrete Euler step so it cannot go unstable; the ζ lower bound is >0 so the
+* system can never be perfectly undamped (perpetual oscillation).
+*/
+var PHYSICS_RANGES = {
+	mass: {
+		min: .05,
+		max: 5,
+		default: .1
+	},
+	spring: {
+		min: 1,
+		max: 70,
+		default: 50
+	},
+	damping: {
+		min: .05,
+		max: 1,
+		default: .3
+	}
+};
+/**
+* Default per-wheel physics: a light mass with a strong spring for a snappy
+* return, underdamped (ζ=0.3) so it still overshoots and settles. The mass min
+* sits below the default so the wheel can be tuned even faster.
+*/
+var DEFAULT_PHYSICS = {
+	mass: PHYSICS_RANGES.mass.default,
+	spring: PHYSICS_RANGES.spring.default,
+	damping: PHYSICS_RANGES.damping.default
+};
+/** @param {number} v @param {number} min @param {number} max */
+function clamp(v, min, max) {
+	return Math.max(min, Math.min(max, v));
+}
+/**
+* Advance the damped oscillator one step.
+*
+* @param {{ value: number, velocity: number, mass: number, spring: number, dampingRatio: number, dt: number }} state
+* @returns {{ value: number, velocity: number }} the next value/velocity
+*/
+function stepSpring({ value, velocity, mass, spring, dampingRatio, dt }) {
+	const step = clamp(dt, 0, MAX_DT);
+	const c = dampingRatio * 2 * Math.sqrt(spring * mass);
+	const x = value - REST;
+	const nextVelocity = velocity + (-spring * x - c * velocity) / mass * step;
+	const rawValue = REST + (x + nextVelocity * step);
+	const nextValue = clamp(rawValue, 0, 1);
+	return {
+		value: nextValue,
+		velocity: rawValue !== nextValue ? 0 : nextVelocity
+	};
+}
+/**
+* True once the cursor is within a small threshold of REST with negligible
+* velocity — the loop stops here so a settled wheel emits no further frames.
+*
+* @param {number} value
+* @param {number} velocity
+* @returns {boolean}
+*/
+function isAtRest(value, velocity) {
+	return Math.abs(value - .5) < .001 && Math.abs(velocity) < .001;
+}
+//#endregion
+//#region src/components/Wheel.svelte
+var root$6 = /* @__PURE__ */ from_html(`<div class="wheel svelte-52kkif"><span class="wheel-label svelte-52kkif"> </span> <div class="wheel-track svelte-52kkif" role="slider"><div class="wheel-cursor svelte-52kkif"></div></div></div>`);
+function Wheel($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
+	label?: string,
 	externalValue?: number,
-	onchange?: (e: { param: string, value: number }) => void,
+	externalNonce?: number,
+	mass?: number,
+	spring?: number,
+	damping?: number,
+	formatValueText?: (value: number) => string,
+	onchange?: (e: { value: number }) => void,
 	}} */
-	let modWheel = /* @__PURE__ */ state(.5);
+	let label = prop($$props, "label", 3, ""), externalValue = prop($$props, "externalValue", 3, void 0), externalNonce = prop($$props, "externalNonce", 3, 0), mass = prop($$props, "mass", 19, () => DEFAULT_PHYSICS.mass), spring = prop($$props, "spring", 19, () => DEFAULT_PHYSICS.spring), damping = prop($$props, "damping", 19, () => DEFAULT_PHYSICS.damping), formatValueText = prop($$props, "formatValueText", 3, void 0);
+	const TRACK_HEIGHT = 60;
+	const CURSOR_THICKNESS = 4;
+	const KEY_STEP = .05;
+	let value = /* @__PURE__ */ state(proxy(REST));
+	let cursorTop = /* @__PURE__ */ user_derived(() => (1 - get(value)) * (TRACK_HEIGHT - CURSOR_THICKNESS));
+	let dragging = false;
+	let startY = 0;
+	let startVal = REST;
+	let rafId = null;
+	let velocity = 0;
+	let lastTime = 0;
+	function cancelSpring() {
+		if (rafId !== null) {
+			cancelAnimationFrame(rafId);
+			rafId = null;
+		}
+	}
+	/** @param {number} now */
+	function tick(now) {
+		const dt = (now - lastTime) / 1e3;
+		lastTime = now;
+		const next = stepSpring({
+			value: get(value),
+			velocity,
+			mass: mass(),
+			spring: spring(),
+			dampingRatio: damping(),
+			dt
+		});
+		set(value, next.value, true);
+		velocity = next.velocity;
+		if (isAtRest(get(value), velocity)) {
+			set(value, REST, true);
+			velocity = 0;
+			rafId = null;
+			$$props.onchange?.({ value: get(value) });
+			return;
+		}
+		$$props.onchange?.({ value: get(value) });
+		rafId = requestAnimationFrame(tick);
+	}
+	function startSpring() {
+		cancelSpring();
+		velocity = 0;
+		lastTime = performance.now();
+		rafId = requestAnimationFrame(tick);
+	}
 	user_effect(() => {
-		if ($$props.externalValue !== void 0) set(modWheel, $$props.externalValue, true);
+		externalNonce();
+		if (externalValue() !== void 0 && !dragging) {
+			cancelSpring();
+			set(value, externalValue());
+		}
 	});
-	let wheelDragging = /* @__PURE__ */ state(false);
-	let wheelStartY = 0;
-	let wheelStartVal = 0;
+	user_effect(() => () => cancelSpring());
 	/** @param {PointerEvent & { currentTarget: Element }} e */
-	function onWheelPointerDown(e) {
-		set(wheelDragging, true);
-		wheelStartY = e.clientY;
-		wheelStartVal = get(modWheel);
+	function onPointerDown(e) {
+		cancelSpring();
+		dragging = true;
+		startY = e.clientY;
+		startVal = get(value);
 		e.currentTarget.setPointerCapture(e.pointerId);
 	}
 	/** @param {PointerEvent} e */
-	function onWheelPointerMove(e) {
-		if (!get(wheelDragging)) return;
-		const delta = (wheelStartY - e.clientY) / 80;
-		set(modWheel, Math.max(0, Math.min(1, wheelStartVal + delta)), true);
-		$$props.onchange?.({
-			param: "modWheel",
-			value: get(modWheel)
-		});
+	function onPointerMove(e) {
+		if (!dragging) return;
+		const delta = (startY - e.clientY) / 80;
+		set(value, Math.max(0, Math.min(1, startVal + delta)), true);
+		$$props.onchange?.({ value: get(value) });
 	}
-	function onWheelPointerUp() {
-		set(wheelDragging, false);
+	function onPointerUp() {
+		if (!dragging) return;
+		dragging = false;
+		startSpring();
 	}
+	const heldArrows = new SvelteSet();
 	/** @param {KeyboardEvent} e */
-	function onWheelKeyDown(e) {
-		const step = .05;
+	function onKeyDown(e) {
 		if (e.key === "ArrowUp") {
 			e.preventDefault();
-			set(modWheel, Math.min(1, get(modWheel) + step), true);
-			$$props.onchange?.({
-				param: "modWheel",
-				value: get(modWheel)
-			});
+			heldArrows.add(e.key);
+			cancelSpring();
+			set(value, Math.min(1, get(value) + KEY_STEP), true);
+			$$props.onchange?.({ value: get(value) });
 		} else if (e.key === "ArrowDown") {
 			e.preventDefault();
-			set(modWheel, Math.max(0, get(modWheel) - step), true);
-			$$props.onchange?.({
-				param: "modWheel",
-				value: get(modWheel)
-			});
-		} else if (e.key === "Home") {
-			e.preventDefault();
-			set(modWheel, 0);
-			$$props.onchange?.({
-				param: "modWheel",
-				value: get(modWheel)
-			});
-		} else if (e.key === "End") {
-			e.preventDefault();
-			set(modWheel, 1);
-			$$props.onchange?.({
-				param: "modWheel",
-				value: get(modWheel)
-			});
+			heldArrows.add(e.key);
+			cancelSpring();
+			set(value, Math.max(0, get(value) - KEY_STEP), true);
+			$$props.onchange?.({ value: get(value) });
 		}
 	}
-	var div = root$5();
-	var div_1 = sibling(child(div), 2);
+	/** @param {KeyboardEvent} e */
+	function onKeyUp(e) {
+		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+			heldArrows.delete(e.key);
+			if (heldArrows.size === 0) startSpring();
+		}
+	}
+	var div = root$6();
+	var span = child(div);
+	var text = child(span, true);
+	reset(span);
+	var div_1 = sibling(span, 2);
+	set_attribute(div_1, "tabindex", 0);
+	set_attribute(div_1, "aria-valuemin", 0);
+	set_attribute(div_1, "aria-valuemax", 1);
 	var div_2 = child(div_1);
-	set_attribute(div_2, "tabindex", 0);
-	set_attribute(div_2, "aria-valuemin", 0);
-	set_attribute(div_2, "aria-valuemax", 1);
-	var div_3 = child(div_2);
-	reset(div_2);
 	reset(div_1);
 	reset(div);
-	template_effect(() => {
-		set_attribute(div_2, "aria-valuenow", get(modWheel));
-		set_style(div_3, `height: ${get(modWheel) * 100}%`);
-	});
-	delegated("pointerdown", div_2, onWheelPointerDown);
-	delegated("pointermove", div_2, onWheelPointerMove);
-	delegated("pointerup", div_2, onWheelPointerUp);
-	event("pointercancel", div_2, onWheelPointerUp);
-	delegated("keydown", div_2, onWheelKeyDown);
+	template_effect(($0) => {
+		set_text(text, label());
+		set_attribute(div_1, "aria-label", `${label()} wheel`);
+		set_attribute(div_1, "aria-valuenow", get(value));
+		set_attribute(div_1, "aria-valuetext", $0);
+		set_style(div_2, `top: ${get(cursorTop) ?? ""}px`);
+	}, [() => formatValueText() ? formatValueText()(get(value)) : void 0]);
+	delegated("pointerdown", div_1, onPointerDown);
+	delegated("pointermove", div_1, onPointerMove);
+	delegated("pointerup", div_1, onPointerUp);
+	event("pointercancel", div_1, onPointerUp);
+	delegated("keydown", div_1, onKeyDown);
+	delegated("keyup", div_1, onKeyUp);
 	append($$anchor, div);
 	pop();
 }
@@ -12995,8 +13118,325 @@ delegate([
 	"pointerdown",
 	"pointermove",
 	"pointerup",
-	"keydown"
+	"keydown",
+	"keyup"
 ]);
+//#endregion
+//#region src/audio/wheelPhysicsStore.js
+/** localStorage key (in the established `synth-d:` namespace). */
+var STORAGE_KEY = "synth-d:wheel-physics";
+/** The wheels persisted under this key. */
+var WHEELS = ["mod", "pitch"];
+/** Default physics for both wheels (a fresh object per call — never shared). */
+function defaultWheelPhysics() {
+	return {
+		mod: { ...DEFAULT_PHYSICS },
+		pitch: { ...DEFAULT_PHYSICS }
+	};
+}
+/** @param {string} key @returns {string | null} */
+function safeGet$1(key) {
+	try {
+		return localStorage.getItem(key);
+	} catch {
+		return null;
+	}
+}
+/** @param {string} key @param {string} value @returns {boolean} success */
+function safeSet$1(key, value) {
+	try {
+		localStorage.setItem(key, value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+/**
+* Validate one physics field against its range, falling back to the default
+* when missing or out of range. NaN/Infinity fail `Number.isFinite`.
+* @param {unknown} v
+* @param {{ min: number, max: number, default: number }} range
+* @returns {number}
+*/
+function validateField(v, range) {
+	if (typeof v !== "number" || !Number.isFinite(v) || v < range.min || v > range.max) return range.default;
+	return v;
+}
+/**
+* Validate a single wheel's params, falling back per-field to defaults.
+* @param {unknown} raw
+* @returns {{ mass: number, spring: number, damping: number }}
+*/
+function validateWheel(raw) {
+	const w = raw && typeof raw === "object" ? raw : {};
+	return {
+		mass: validateField(w.mass, PHYSICS_RANGES.mass),
+		spring: validateField(w.spring, PHYSICS_RANGES.spring),
+		damping: validateField(w.damping, PHYSICS_RANGES.damping)
+	};
+}
+/**
+* Load both wheels' physics. Absent, partial, or corrupt data resolves to
+* per-field defaults so the wheels always function.
+* @returns {{ mod: { mass: number, spring: number, damping: number }, pitch: { mass: number, spring: number, damping: number } }}
+*/
+function loadWheelPhysics() {
+	const raw = safeGet$1(STORAGE_KEY);
+	/** @type {Record<string, unknown>} */
+	let parsed = {};
+	if (raw) try {
+		const obj = JSON.parse(raw);
+		if (obj && typeof obj === "object") parsed = obj;
+	} catch {}
+	return {
+		mod: validateWheel(parsed.mod),
+		pitch: validateWheel(parsed.pitch)
+	};
+}
+/**
+* Persist both wheels' physics. Each field is validated/clamped through the
+* same path as load, so only in-range numbers are written. Storage failure is
+* non-fatal.
+* @param {{ mod?: unknown, pitch?: unknown }} [physics]
+* @returns {boolean} success
+*/
+function saveWheelPhysics(physics = {}) {
+	/** @type {Record<string, { mass: number, spring: number, damping: number }>} */
+	const clean = {};
+	for (const wheel of WHEELS) clean[wheel] = validateWheel(physics?.[wheel]);
+	return safeSet$1(STORAGE_KEY, JSON.stringify(clean));
+}
+/**
+* Reset both wheels to default physics and persist them.
+* @returns {{ mod: { mass: number, spring: number, damping: number }, pitch: { mass: number, spring: number, damping: number } }}
+*/
+function resetWheelPhysics() {
+	const defaults = defaultWheelPhysics();
+	saveWheelPhysics(defaults);
+	return defaults;
+}
+//#endregion
+//#region src/components/WheelsPanel.svelte
+var root_3$1 = /* @__PURE__ */ from_html(`<div class="section-divider svelte-1u30a8q"></div>`);
+var root_2$2 = /* @__PURE__ */ from_html(`<!> <div class="physics-group svelte-1u30a8q"><span class="group-label svelte-1u30a8q"> </span> <div class="knobs svelte-1u30a8q"><!> <!> <!></div></div>`, 1);
+var root_1$2 = /* @__PURE__ */ from_html(`<div class="popup svelte-1u30a8q" role="dialog" aria-label="wheel physics" tabindex="-1"><!> <button class="reset svelte-1u30a8q">reset</button></div>`);
+var root$5 = /* @__PURE__ */ from_html(`<div class="wheels-panel svelte-1u30a8q"><div class="wheels svelte-1u30a8q"><!> <!></div> <button class="gear svelte-1u30a8q" aria-haspopup="dialog" aria-label="wheel physics settings" title="Wheel physics"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"></path></svg></button> <!></div>`);
+function WheelsPanel($$anchor, $$props) {
+	push($$props, true);
+	/** @type {{
+	modExternalValue?: number,
+	modExternalNonce?: number,
+	pitchExternalValue?: number,
+	pitchExternalNonce?: number,
+	onModChange?: (e: { param: string, value: number }) => void,
+	onPitchChange?: (e: { value: number }) => void,
+	}} */
+	let physics = /* @__PURE__ */ state(proxy(loadWheelPhysics()));
+	let open = /* @__PURE__ */ state(false);
+	let rootEl = /* @__PURE__ */ state(
+		/** @type {HTMLElement | null} */
+		null
+	);
+	let gearEl = /* @__PURE__ */ state(
+		/** @type {HTMLButtonElement | null} */
+		null
+	);
+	let popupEl = /* @__PURE__ */ state(
+		/** @type {HTMLElement | null} */
+		null
+	);
+	/** @param {number} v */
+	function pitchValueText(v) {
+		const semis = (v - .5) * 2 * 2;
+		const rounded = Math.round(semis * 100) / 100;
+		return `${rounded > 0 ? "+" : ""}${rounded} st`;
+	}
+	/** @param {number} v */
+	function modValueText(v) {
+		return `${Math.round(v * 100)}%`;
+	}
+	async function toggleOpen() {
+		set(open, !get(open));
+		if (get(open)) {
+			await tick();
+			get(popupEl)?.focus();
+		}
+	}
+	/**
+	* Update one physics field and persist. Bound to each knob's onchange.
+	* @param {'mod' | 'pitch'} wheel
+	* @param {'mass' | 'spring' | 'damping'} field
+	* @param {number} value
+	*/
+	function updatePhysics(wheel, field, value) {
+		set(physics, {
+			...get(physics),
+			[wheel]: {
+				...get(physics)[wheel],
+				[field]: value
+			}
+		}, true);
+		saveWheelPhysics(get(physics));
+	}
+	function resetPhysics() {
+		set(physics, resetWheelPhysics(), true);
+	}
+	/** @param {KeyboardEvent} e */
+	function onKeyDown(e) {
+		if (e.key === "Escape" && get(open)) {
+			e.stopPropagation();
+			set(open, false);
+			get(gearEl)?.focus();
+		}
+	}
+	/** @param {PointerEvent} e */
+	function onWindowPointerDown(e) {
+		if (get(open) && get(rootEl) && e.target instanceof Node && !get(rootEl).contains(e.target)) set(open, false);
+	}
+	var div = root$5();
+	event("keydown", $window, onKeyDown);
+	event("pointerdown", $window, onWindowPointerDown);
+	var div_1 = child(div);
+	var node = child(div_1);
+	Wheel(node, {
+		label: "MOD",
+		get externalValue() {
+			return $$props.modExternalValue;
+		},
+		get externalNonce() {
+			return $$props.modExternalNonce;
+		},
+		get mass() {
+			return get(physics).mod.mass;
+		},
+		get spring() {
+			return get(physics).mod.spring;
+		},
+		get damping() {
+			return get(physics).mod.damping;
+		},
+		formatValueText: modValueText,
+		onchange: (e) => $$props.onModChange?.({
+			param: "modWheel",
+			value: e.value
+		})
+	});
+	Wheel(sibling(node, 2), {
+		label: "PITCH",
+		get externalValue() {
+			return $$props.pitchExternalValue;
+		},
+		get externalNonce() {
+			return $$props.pitchExternalNonce;
+		},
+		get mass() {
+			return get(physics).pitch.mass;
+		},
+		get spring() {
+			return get(physics).pitch.spring;
+		},
+		get damping() {
+			return get(physics).pitch.damping;
+		},
+		formatValueText: pitchValueText,
+		onchange: (e) => $$props.onPitchChange?.({ value: e.value })
+	});
+	reset(div_1);
+	var button = sibling(div_1, 2);
+	bind_this(button, ($$value) => set(gearEl, $$value), () => get(gearEl));
+	var node_2 = sibling(button, 2);
+	var consequent_1 = ($$anchor) => {
+		var div_2 = root_1$2();
+		var node_3 = child(div_2);
+		each(node_3, 18, () => ["mod", "pitch"], (wheel) => wheel, ($$anchor, wheel, i) => {
+			var fragment = root_2$2();
+			var node_4 = first_child(fragment);
+			var consequent = ($$anchor) => {
+				append($$anchor, root_3$1());
+			};
+			if_block(node_4, ($$render) => {
+				if (get(i) > 0) $$render(consequent);
+			});
+			var div_4 = sibling(node_4, 2);
+			var span = child(div_4);
+			var text = child(span, true);
+			reset(span);
+			var div_5 = sibling(span, 2);
+			var node_5 = child(div_5);
+			Knob(node_5, {
+				label: "MASS",
+				get min() {
+					return PHYSICS_RANGES.mass.min;
+				},
+				get max() {
+					return PHYSICS_RANGES.mass.max;
+				},
+				get default() {
+					return PHYSICS_RANGES.mass.default;
+				},
+				get externalValue() {
+					return get(physics)[wheel].mass;
+				},
+				showArc: false,
+				onchange: (e) => updatePhysics(wheel, "mass", e.value)
+			});
+			var node_6 = sibling(node_5, 2);
+			Knob(node_6, {
+				label: "SPRING",
+				get min() {
+					return PHYSICS_RANGES.spring.min;
+				},
+				get max() {
+					return PHYSICS_RANGES.spring.max;
+				},
+				get default() {
+					return PHYSICS_RANGES.spring.default;
+				},
+				get externalValue() {
+					return get(physics)[wheel].spring;
+				},
+				showArc: false,
+				onchange: (e) => updatePhysics(wheel, "spring", e.value)
+			});
+			Knob(sibling(node_6, 2), {
+				label: "DAMP",
+				get min() {
+					return PHYSICS_RANGES.damping.min;
+				},
+				get max() {
+					return PHYSICS_RANGES.damping.max;
+				},
+				get default() {
+					return PHYSICS_RANGES.damping.default;
+				},
+				get externalValue() {
+					return get(physics)[wheel].damping;
+				},
+				showArc: false,
+				onchange: (e) => updatePhysics(wheel, "damping", e.value)
+			});
+			reset(div_5);
+			reset(div_4);
+			template_effect(() => set_text(text, wheel === "mod" ? "MOD PHYSICS" : "PITCH PHYSICS"));
+			append($$anchor, fragment);
+		});
+		var button_1 = sibling(node_3, 2);
+		reset(div_2);
+		bind_this(div_2, ($$value) => set(popupEl, $$value), () => get(popupEl));
+		delegated("click", button_1, resetPhysics);
+		append($$anchor, div_2);
+	};
+	if_block(node_2, ($$render) => {
+		if (get(open)) $$render(consequent_1);
+	});
+	reset(div);
+	bind_this(div, ($$value) => set(rootEl, $$value), () => get(rootEl));
+	template_effect(() => set_attribute(button, "aria-expanded", get(open)));
+	delegated("click", button, toggleOpen);
+	append($$anchor, div);
+	pop();
+}
+delegate(["click"]);
 //#endregion
 //#region src/components/PowerButton.svelte
 var root$4 = /* @__PURE__ */ from_html(`<div class="power-wrap svelte-z2dg21"><button type="button"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke-linecap="round" stroke-width="2" aria-hidden="true"><line x1="10" y1="2" x2="10" y2="8"></line><path d="M 14.5 4.6 A 7 7 0 1 1 5.5 4.6"></path></svg></button></div>`);
@@ -13988,7 +14428,7 @@ var KNOB_PARAMS = {
 		max: 8
 	},
 	filterEnvAmt: {
-		min: 0,
+		min: -1e4,
 		max: 1e4
 	},
 	ampAttack: {
@@ -14063,17 +14503,18 @@ var KNOB_PARAMS = {
 var BIPOLAR_PARAMS = new Set([
 	"osc2Detune",
 	"osc3Detune",
-	"modMix"
+	"modMix",
+	"filterEnvAmt"
 ]);
 function powerOffValue(p) {
 	return BIPOLAR_PARAMS.has(p) ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2 : KNOB_PARAMS[p].min;
 }
-var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header class="header svelte-1n46o8q"><a class="github-link svelte-1n46o8q" href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a> <div class="title-block svelte-1n46o8q"><span class="title svelte-1n46o8q">SYNTH-D</span> <span class="version-label svelte-1n46o8q"> </span></div> <div class="header-right svelte-1n46o8q"><div class="status-stack svelte-1n46o8q"><!> <!></div> <!></div></header> <main class="svelte-1n46o8q"><div><div class="panels svelte-1n46o8q"><!> <!> <div class="filter-output-grid svelte-1n46o8q"><!> <!> <div class="effects-col svelte-1n46o8q"><!></div> <div class="panel-row svelte-1n46o8q"><!> <!></div> <!></div></div> <div class="keyboard-row svelte-1n46o8q"><!> <!> <!></div></div></main></div>`);
+var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header class="header svelte-1n46o8q"><div class="header-glyph svelte-1n46o8q" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="#a64dff" class="svelte-1n46o8q"><path fill-rule="evenodd" d="M116.589 182.742l-7.405 20.346a4 4 0 0 1-5.125 2.396l-7.525-2.738a4 4 0 0 1-2.386-5.13l7.435-20.427C83.963 167.623 72 148.959 72 127.5 72 96.296 97.296 71 128.5 71c3.877 0 7.663.39 11.32 1.134l6.996-19.222a4 4 0 0 1 5.125-2.396l7.525 2.738a4 4 0 0 1 2.386 5.13l-6.968 19.142C172.796 87.002 185 105.826 185 127.5c0 31.204-25.296 56.5-56.5 56.5-4.086 0-8.071-.434-11.911-1.258zm5.173-14.213A41.32 41.32 0 0 0 128 169c22.644 0 41-18.356 41-41 0-14.855-7.9-27.864-19.727-35.056l-27.51 75.585zm-15.035-5.473l27.51-75.585A41.32 41.32 0 0 0 128 87c-22.644 0-41 18.356-41 41 0 14.855 7.9 27.864 19.727 35.056z"></path></svg></div> <a class="github-link svelte-1n46o8q" href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a> <div class="title-block svelte-1n46o8q"><span class="title svelte-1n46o8q">SYNTH-D</span> <span class="version-label svelte-1n46o8q"> </span></div> <div class="header-right svelte-1n46o8q"><div class="status-stack svelte-1n46o8q"><!> <!></div> <!></div></header> <main class="svelte-1n46o8q"><div><div class="panels svelte-1n46o8q"><!> <!> <div class="filter-output-grid svelte-1n46o8q"><!> <!> <div class="effects-col svelte-1n46o8q"><!></div> <div class="panel-row svelte-1n46o8q"><!> <!></div> <!></div></div> <div class="keyboard-row svelte-1n46o8q"><!> <!> <!></div></div></main></div>`);
 function App($$anchor, $$props) {
 	push($$props, true);
 	const branch = "main";
-	const versionLabel = branch === "main" ? `v1.5.0` : `v1.5.0 (${branch})`;
-	const MOD_WHEEL_DEFAULT = .5;
+	const versionLabel = branch === "main" ? `v1.6.0` : `v1.6.0 (${branch})`;
+	const WHEEL_REST = .5;
 	resetParams();
 	setActivePatch(null, PARAM_DEFAULTS);
 	let keyboardBase = /* @__PURE__ */ state(36);
@@ -14101,7 +14542,24 @@ function App($$anchor, $$props) {
 		null
 	);
 	let midiActiveNotes = /* @__PURE__ */ state(0);
-	let modWheelExternal = /* @__PURE__ */ state(proxy(powerOffValue("modWheel")));
+	let modWheelExternal = /* @__PURE__ */ state(WHEEL_REST);
+	let modWheelNonce = /* @__PURE__ */ state(0);
+	let pitchWheelExternal = /* @__PURE__ */ state(WHEEL_REST);
+	let pitchWheelNonce = /* @__PURE__ */ state(0);
+	/** @param {number} v */
+	function setModWheelExternal(v) {
+		set(modWheelExternal, v, true);
+		update(modWheelNonce);
+	}
+	/** @param {number} v */
+	function setPitchWheelExternal(v) {
+		set(pitchWheelExternal, v, true);
+		update(pitchWheelNonce);
+	}
+	let currentNoteFreq = /* @__PURE__ */ state(
+		/** @type {number | null} */
+		null
+	);
 	const midiCcMap = new MidiCcMap();
 	const midiManager = new MidiManager({
 		onNoteOn: (note, freq) => {
@@ -14115,8 +14573,9 @@ function App($$anchor, $$props) {
 			if (get(midiActiveNotes) === 0 && get(midiStatus) === "active") set(midiStatus, "connected");
 			get(keyboardReleaseNote)?.(note);
 		},
-		onPitchBend: (freq) => {
+		onPitchBend: (freq, bendSemitones) => {
 			setParam("freq", freq);
+			setPitchWheelExternal(WHEEL_REST + bendSemitones / 4);
 		},
 		onCc: ({ cc, value }) => {
 			if (get(learningParam) !== null) {
@@ -14129,7 +14588,7 @@ function App($$anchor, $$props) {
 			}
 			if (cc === 1) {
 				const scaled = value / 127;
-				set(modWheelExternal, scaled);
+				setModWheelExternal(scaled);
 				setParam("modWheel", scaled);
 				return;
 			}
@@ -14165,7 +14624,9 @@ function App($$anchor, $$props) {
 			get(keyboardReleaseAll)?.();
 			await powerOff();
 			set(powered, false);
-			set(modWheelExternal, powerOffValue("modWheel"), true);
+			setModWheelExternal(WHEEL_REST);
+			setPitchWheelExternal(WHEEL_REST);
+			set(currentNoteFreq, null);
 		} else {
 			set(loading, true);
 			try {
@@ -14173,8 +14634,9 @@ function App($$anchor, $$props) {
 				set(analyser, getAnalyser(), true);
 				set(powered, true);
 				applyParams(activePatch.params, true);
-				set(modWheelExternal, MOD_WHEEL_DEFAULT);
-				setParam("modWheel", MOD_WHEEL_DEFAULT);
+				setModWheelExternal(WHEEL_REST);
+				setPitchWheelExternal(WHEEL_REST);
+				setParam("modWheel", WHEEL_REST);
 			} catch (err) {
 				console.error("Power on failed:", err);
 			} finally {
@@ -14190,12 +14652,26 @@ function App($$anchor, $$props) {
 	/** @param {{ param: string, value: number }} e */
 	function onModWheelChange(e) {
 		if (!get(powered)) return;
-		set(modWheelExternal, e.value, true);
 		setParam(e.param, e.value);
+	}
+	/** @param {{ value: number }} e */
+	function onPitchWheelChange(e) {
+		if (!get(powered)) return;
+		if (get(currentNoteFreq) === null) return;
+		const semitones = (e.value - .5) * 2 * 2;
+		setParam("freq", bentFreq(get(currentNoteFreq), semitones));
 	}
 	/** @param {Array<{ param: string, value: number }>} messages */
 	function onKeyboardNote(messages) {
 		for (const msg of messages) setParam(msg.param, msg.value);
+		const endsNote = messages.some((m) => m.param === "gate" && m.value === 0);
+		let lastFreq = null;
+		for (let i = messages.length - 1; i >= 0; i--) if (messages[i].param === "freq") {
+			lastFreq = messages[i].value;
+			break;
+		}
+		if (endsNote) set(currentNoteFreq, null);
+		else if (lastFreq !== null) set(currentNoteFreq, lastFreq, true);
 	}
 	/** @param {string} param */
 	function onKnobContextMenu(param) {
@@ -14230,7 +14706,7 @@ function App($$anchor, $$props) {
 	let effectsMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("reverbSend", "reverbDamp", "reverbDecay", "reverbPreDelay", "delayTime", "delayFeedback", "delayMix", "delayModRate", "delayModDepth"));
 	var div = root();
 	var header = child(div);
-	var div_1 = sibling(child(header), 2);
+	var div_1 = sibling(child(header), 4);
 	var span = sibling(child(div_1), 2);
 	var text = child(span, true);
 	reset(span);
@@ -14406,11 +14882,21 @@ function App($$anchor, $$props) {
 	reset(div_5);
 	var div_9 = sibling(div_5, 2);
 	var node_11 = child(div_9);
-	WheelPanel(node_11, {
-		get externalValue() {
+	WheelsPanel(node_11, {
+		get modExternalValue() {
 			return get(modWheelExternal);
 		},
-		onchange: onModWheelChange
+		get modExternalNonce() {
+			return get(modWheelNonce);
+		},
+		get pitchExternalValue() {
+			return get(pitchWheelExternal);
+		},
+		get pitchExternalNonce() {
+			return get(pitchWheelNonce);
+		},
+		onModChange: onModWheelChange,
+		onPitchChange: onPitchWheelChange
 	});
 	var node_12 = sibling(node_11, 2);
 	Keyboard(node_12, {
