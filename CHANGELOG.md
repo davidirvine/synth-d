@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.6.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.5.0...subtractive-synth-v1.6.0) (2026-05-22)
+
+
+### Features
+
+* add spring-loaded MOD and PITCH wheels ([#84](https://github.com/davidirvine/synth-d/issues/84)) ([1c3c2d4](https://github.com/davidirvine/synth-d/commit/1c3c2d433389455ccf2a4b90b82154451cc2014b))
+* **delay:** make mix the leftmost delay knob ([#79](https://github.com/davidirvine/synth-d/issues/79)) ([d0654f9](https://github.com/davidirvine/synth-d/commit/d0654f90cda8b4c42d78e92e7523a876a7db7d30))
+* **filter:** bipolar filter contour amount ([#77](https://github.com/davidirvine/synth-d/issues/77)) ([85da4c3](https://github.com/davidirvine/synth-d/commit/85da4c34aa84668dcedc3909ab0e48128f885d28))
+* render glowing purple brand glyph in app header ([#83](https://github.com/davidirvine/synth-d/issues/83)) ([1f5af3e](https://github.com/davidirvine/synth-d/commit/1f5af3e7db2bae3119cd03b0b9c54dab8d853023))
+* **workflow:** fix kernel friction and add /opsx:verify completion gate ([#81](https://github.com/davidirvine/synth-d/issues/81)) ([38d221d](https://github.com/davidirvine/synth-d/commit/38d221d4aa349e30651e9ddc6385bad101320b7b))
+
 ## [1.5.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.4.1...subtractive-synth-v1.5.0) (2026-05-20)
 
 
