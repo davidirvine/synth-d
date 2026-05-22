@@ -2,7 +2,7 @@
 
 - [x] 1.1 Add a `slewStep` constant (delay-samples per audio sample) to the Tape Delay section of `faust/synth.dsp`, with an inline comment noting it is listening-tuned and sets both the glide's bend depth and (with jump size) its duration. Start from a modest estimate.
 - [x] 1.2 Add a rate-limited slew operating in the sample domain on `delayTime * ma.SR`, using the concrete FAUST feedback expression from Design Decision 3 — `rateLimit(prev, target) = prev + max(-slewStep, min(slewStep, target - prev))` curried via `(rateLimit ~ _)` so the delayed output feeds back into the **first** (`prev`) input — followed by a light `si.smoo` to round the glide corners. Verify the `~` routing feeds back into `prev`, not `target` (wrong routing means no slew or divergence). Name the result `tapeTimeSlewed`.
-- [ ] 1.3 Rewrite `tapeTime` to use the slewed sample-domain value as the base, keeping the wow and `modLfo` terms riding on the slewed value and keeping the existing `min(maxDelayLen-1, max(1, …))` clamp downstream of the slew.
+- [x] 1.3 Rewrite `tapeTime` to use the slewed sample-domain value as the base, keeping the wow and `modLfo` terms riding on the slewed value and keeping the existing `min(maxDelayLen-1, max(1, …))` clamp downstream of the slew.
 - [ ] 1.4 Validate the DSP compiles: `faust faust/synth.dsp -o /dev/null`. Confirm `build: { minify: false }` is still present in `vite.config.js`.
 
 ## 2. Verification against the spec scenarios

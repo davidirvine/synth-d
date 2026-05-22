@@ -174,7 +174,7 @@ modLfo            = os.osc(delayModRateS) * delayModDepthS * ma.SR * delayModOnS
 // then si.smoo rounds the start/end corners of the glide.
 rateLimit(prev, target) = prev + max(-slewStep, min(slewStep, target - prev));
 tapeTimeSlewed    = (delayTime * ma.SR) : (rateLimit ~ _) : si.smoo;
-tapeTime          = min(maxDelayLen - 1, max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR + modLfo));
+tapeTime          = min(maxDelayLen - 1, max(1, tapeTimeSlewed + wowLfo * tapeTimeSlewed + modLfo));
 delayFeedbackSafe = delayFeedback : max(0) : min(0.9);
 feedbackPath      = _ * delayFeedbackSafe : fi.lowpass(1, 6000) : ma.tanh;
 delayInput        = masterOut * int(delayOn);
