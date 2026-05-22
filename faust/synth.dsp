@@ -168,6 +168,12 @@ delayModOnS       = delayModOn    : si.smoo;
 delayModRateS     = delayModRate  : si.smoo;
 delayModDepthS    = delayModDepth : si.smoo;
 modLfo            = os.osc(delayModRateS) * delayModDepthS * ma.SR * delayModOnS;
+// Rate-limited slew on the sample-domain delay length. `(rateLimit ~ _)` feeds the
+// one-sample-delayed output back into `prev` (the FIRST input); `target` is the incoming
+// `delayTime * ma.SR`. The ±slewStep clamp on (target - prev) bounds the per-sample move,
+// then si.smoo rounds the start/end corners of the glide.
+rateLimit(prev, target) = prev + max(-slewStep, min(slewStep, target - prev));
+tapeTimeSlewed    = (delayTime * ma.SR) : (rateLimit ~ _) : si.smoo;
 tapeTime          = min(maxDelayLen - 1, max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR + modLfo));
 delayFeedbackSafe = delayFeedback : max(0) : min(0.9);
 feedbackPath      = _ * delayFeedbackSafe : fi.lowpass(1, 6000) : ma.tanh;
