@@ -130,16 +130,19 @@
     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm9-2a7.5 7.5 0 0 0-.07-1l2-1.55-2-3.46-2.35.95a7.4 7.4 0 0 0-1.74-1l-.36-2.49h-4l-.36 2.49a7.4 7.4 0 0 0-1.74 1L6.07 5l-2 3.46L6.07 10a7.5 7.5 0 0 0 0 2l-2 1.55 2 3.46 2.35-.95a7.4 7.4 0 0 0 1.74 1l.36 2.49h4l.36-2.49a7.4 7.4 0 0 0 1.74-1l2.35.95 2-3.46-2-1.55c.05-.33.07-.66.07-1z"
+        d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"
       />
     </svg>
   </button>
 
   {#if open}
     <div class="popup" bind:this={popupEl} role="dialog" aria-label="wheel physics" tabindex="-1">
-      {#each ['mod', 'pitch'] as wheel (wheel)}
+      {#each ['mod', 'pitch'] as wheel, i (wheel)}
+        {#if i > 0}
+          <div class="section-divider"></div>
+        {/if}
         <div class="physics-group">
-          <span class="group-label">{wheel === 'mod' ? 'MOD' : 'PITCH'}</span>
+          <span class="group-label">{wheel === 'mod' ? 'MOD PHYSICS' : 'PITCH PHYSICS'}</span>
           <div class="knobs">
             <Knob
               label="MASS"
@@ -236,6 +239,11 @@
   .popup:focus-visible {
     outline: 2px solid #c87941;
     outline-offset: 2px;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: #2a2a2a;
   }
 
   .physics-group {
