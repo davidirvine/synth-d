@@ -8,7 +8,7 @@
 
 - [x] 2.1 Add load/save for `synth-d:wheel-physics` (`src/audio/wheelPhysicsStore.js` or extend existing storage): shape `{ mod, pitch }` each `{ mass, spring, damping }`
 - [x] 2.2 Validate each field as a finite number in range on load, falling back to per-field defaults; expose a `defaults` and a `reset` path
-- [ ] 2.3 Unit-test: round-trip save/load, and that absent/partial/corrupt entries fall back to defaults without throwing
+- [x] 2.3 Unit-test: round-trip save/load, and that absent/partial/corrupt entries fall back to defaults without throwing
 
 ## 3. Reusable Wheel component
 
