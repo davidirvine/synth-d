@@ -130,8 +130,26 @@
 
   // Wheel external (programmatic) values: drive each cursor on power transitions
   // and incoming MIDI (CC 1 → MOD, pitch-bend → PITCH). Both rest at center.
+  // Each is paired with a nonce that is bumped on every external write so the
+  // wheel re-snaps and cancels its spring even when the new value equals the
+  // previous one (Svelte dedupes same-value assignments, which would otherwise
+  // let a repeated CC/pitch-bend value silently fail to cancel an in-flight spring).
   let modWheelExternal = $state(WHEEL_REST)
+  let modWheelNonce = $state(0)
   let pitchWheelExternal = $state(WHEEL_REST)
+  let pitchWheelNonce = $state(0)
+
+  /** @param {number} v */
+  function setModWheelExternal(v) {
+    modWheelExternal = v
+    modWheelNonce++
+  }
+
+  /** @param {number} v */
+  function setPitchWheelExternal(v) {
+    pitchWheelExternal = v
+    pitchWheelNonce++
+  }
 
   // The most recent unbent note-on frequency, tracked solely at the
   // onKeyboardNote chokepoint (every note source — on-screen keys, QWERTY, MIDI —
@@ -158,7 +176,7 @@
       setParam('freq', freq)
       // Snap the on-screen PITCH cursor to the incoming bend and cancel any
       // active spring-back (external input wins); value 0.5 = no bend.
-      pitchWheelExternal = WHEEL_REST + bendSemitones / (2 * BEND_SEMITONES)
+      setPitchWheelExternal(WHEEL_REST + bendSemitones / (2 * BEND_SEMITONES))
     },
     onCc: (/** @type {{cc: number, value: number}} */ { cc, value }) => {
       if (learningParam !== null) {
@@ -173,7 +191,7 @@
       // fires regardless of power state; setParam is a safe no-op while off.
       if (cc === 1) {
         const scaled = value / 127
-        modWheelExternal = scaled
+        setModWheelExternal(scaled)
         setParam('modWheel', scaled)
         return
       }
@@ -209,8 +227,8 @@
       keyboardReleaseAll?.()
       await powerOff()
       powered = false
-      modWheelExternal = WHEEL_REST
-      pitchWheelExternal = WHEEL_REST
+      setModWheelExternal(WHEEL_REST)
+      setPitchWheelExternal(WHEEL_REST)
       currentNoteFreq = null
     } else {
       loading = true
@@ -224,8 +242,8 @@
         // the freshly created worklet node so the DSP and UI agree from the
         // first sample.
         applyParams(activePatch.params, true)
-        modWheelExternal = WHEEL_REST
-        pitchWheelExternal = WHEEL_REST
+        setModWheelExternal(WHEEL_REST)
+        setPitchWheelExternal(WHEEL_REST)
         // modWheel is controller state (not in synthParams), so applyParams does
         // not re-send it — set the DSP to the 0.5 rest explicitly on power-on.
         setParam('modWheel', WHEEL_REST)
@@ -283,7 +301,7 @@
     // a hypothetical `freq` after a `gate:0` in the same batch can't revive a
     // released note. (Today's contract is freq-before-gate on note-on and a lone
     // gate:0 on note-off, but this stays correct if that ever changes.)
-    const freqMsg = messages.find((m) => m.param === 'freq')
+    const freqMsg = messages.findLast((m) => m.param === 'freq')
     if (freqMsg) currentNoteFreq = freqMsg.value
     if (messages.some((m) => m.param === 'gate' && m.value === 0)) currentNoteFreq = null
   }
@@ -490,7 +508,9 @@
       <div class="keyboard-row">
         <WheelsPanel
           modExternalValue={modWheelExternal}
+          modExternalNonce={modWheelNonce}
           pitchExternalValue={pitchWheelExternal}
+          pitchExternalNonce={pitchWheelNonce}
           onModChange={onModWheelChange}
           onPitchChange={onPitchWheelChange}
         />

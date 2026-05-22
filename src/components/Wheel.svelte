@@ -9,6 +9,7 @@
   /** @type {{
     label?: string,
     externalValue?: number,
+    externalNonce?: number,
     mass?: number,
     spring?: number,
     damping?: number,
@@ -18,6 +19,7 @@
   let {
     label = '',
     externalValue = undefined,
+    externalNonce = 0,
     mass = DEFAULT_PHYSICS.mass,
     spring = DEFAULT_PHYSICS.spring,
     damping = DEFAULT_PHYSICS.damping,
@@ -89,7 +91,13 @@
   // Programmatic value (power transitions, incoming MIDI CC 1 / pitch-bend):
   // snap the cursor and cancel any active spring-back — external input wins.
   // Does NOT fire onchange (the caller already wrote the param).
+  //
+  // The effect also subscribes to `externalNonce`, which the parent bumps on
+  // every external write. Without it, an external value equal to the previous
+  // one would be deduped by Svelte and never re-run this effect, so a repeated
+  // identical MIDI CC/pitch-bend value would fail to cancel an in-flight spring.
   $effect(() => {
+    externalNonce
     if (externalValue !== undefined && !dragging) {
       cancelSpring()
       value = externalValue

@@ -167,4 +167,27 @@ describe('Wheel — external value cancels spring-back (MIDI vs on-screen)', () 
     const cursor = /** @type {HTMLElement} */ (container.querySelector('.wheel-cursor'))
     expect(cursor.style.top).toBe(`${(1 - 0.2) * 56}px`) // snapped to 0.2
   })
+
+  it('a repeated identical external value still cancels the spring when the nonce bumps', async () => {
+    const onchange = vi.fn()
+    const { container, rerender } = render(Wheel, {
+      props: { externalValue: 0.3, externalNonce: 1, onchange },
+    })
+    const el = track(container)
+    // Drag away from the snapped 0.3 and release to start a spring.
+    await fireEvent.pointerDown(el, { clientY: 100, pointerId: 1 })
+    await fireEvent.pointerMove(el, { clientY: 20, pointerId: 1 }) // value 1.0
+    await fireEvent.pointerUp(el, { pointerId: 1 })
+    flushFrames(2)
+    const callsBefore = onchange.mock.calls.length
+
+    // Same externalValue (0.3) but a bumped nonce — mirrors a parked hardware
+    // controller resending an identical MIDI value. Must still cancel the spring.
+    await rerender({ externalValue: 0.3, externalNonce: 2, onchange })
+    flushFrames(50)
+
+    expect(onchange.mock.calls.length).toBe(callsBefore)
+    const cursor = /** @type {HTMLElement} */ (container.querySelector('.wheel-cursor'))
+    expect(cursor.style.top).toBe(`${(1 - 0.3) * 56}px`) // re-snapped to 0.3
+  })
 })

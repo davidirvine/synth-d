@@ -17,11 +17,20 @@
 
   /** @type {{
     modExternalValue?: number,
+    modExternalNonce?: number,
     pitchExternalValue?: number,
+    pitchExternalNonce?: number,
     onModChange?: (e: { param: string, value: number }) => void,
     onPitchChange?: (e: { value: number }) => void,
   }} */
-  let { modExternalValue, pitchExternalValue, onModChange, onPitchChange } = $props()
+  let {
+    modExternalValue,
+    modExternalNonce,
+    pitchExternalValue,
+    pitchExternalNonce,
+    onModChange,
+    onPitchChange,
+  } = $props()
 
   let physics = $state(loadWheelPhysics())
 
@@ -99,6 +108,7 @@
     <Wheel
       label="MOD"
       externalValue={modExternalValue}
+      externalNonce={modExternalNonce}
       mass={physics.mod.mass}
       spring={physics.mod.spring}
       damping={physics.mod.damping}
@@ -108,6 +118,7 @@
     <Wheel
       label="PITCH"
       externalValue={pitchExternalValue}
+      externalNonce={pitchExternalNonce}
       mass={physics.pitch.mass}
       spring={physics.pitch.spring}
       damping={physics.pitch.damping}
