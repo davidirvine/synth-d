@@ -50,7 +50,7 @@ rateLimit(step, target) = target : (-) ~ _ : ...   // conceptual
 // concretely: prev + max(-step, min(step, target - prev)) recursively via +~
 ```
 
-`slewStep` is expressed in **delay-samples per audio sample** (a dimensionless slope on `delayTime * ma.SR`), so the bend depth is sample-rate-independent in pitch terms. The slew is applied to the base `delayTime` value; `wowLfo` and `modLfo` are then summed on the slewed value exactly as today, and the existing `min(maxDelayLen-1, max(1, …))` clamp stays downstream so the read offset can never leave `[1, maxDelayLen-1]`.
+`slewStep` is expressed in **delay-samples per audio sample** (a dimensionless slope), so the bend depth is sample-rate-independent in pitch terms. To keep the constant and the slewed quantity in the same units, the rate limiter operates in the **sample domain**: it is applied to `delayTime * ma.SR` (delay length in samples), not to the seconds-valued slider. (Equivalently, a seconds-domain limiter would need `slewStep / ma.SR` — slewing the sample-domain value avoids that conversion and the sample-rate-dependent bug it invites.) `wowLfo` and `modLfo` are then summed on the slewed sample value exactly as today, and the existing `min(maxDelayLen-1, max(1, …))` clamp stays downstream so the read offset can never leave `[1, maxDelayLen-1]`.
 
 ### Decision: `slewStep` is a listening-tuned constant
 
@@ -58,7 +58,7 @@ rateLimit(step, target) = target : (-) ~ _ : ...   // conceptual
 
 ## Risks / Trade-offs
 
-- **`slewStep` mis-tuned (too slow) makes time setting feel sluggish** → start from a modest value and confirm responsiveness during the human audio-verification gate; it is a one-constant adjustment.
+- **`slewStep` mis-tuned (too slow) makes time setting feel sluggish** → start from a modest value and confirm responsiveness during the human audio-verification gate; it is a one-constant adjustment. The `delayTime` slider range is 0.01–2.0 s (`faust/synth.dsp:63`), so at 48 kHz the worst-case jump is ≈ 95 520 samples (0.01 s → 2.0 s). The maximum glide duration is `maxJumpSamples / slewStep` audio samples; the chosen `slewStep` must keep this within a musically acceptable bound (target ≪ a few seconds even for the full-range jump), which gives the verification gate a concrete expectation rather than a purely subjective "feels laggy."
 - **`slewStep` too fast reintroduces a near-click** → the eased-corner `si.smoo` and the clamped-integrator structure keep the signal continuous even at higher rates; verify by ear at the extremes of the time range.
 - **Interaction with `delayMod` and wow LFOs** → mitigated by applying the slew to the base time and letting both LFOs ride on the slewed value (unchanged summation order), and by keeping the sample clamp downstream so combined modulation can never push the read offset out of range. The existing "tapeTime remains valid at maximum depth and minimum delay time" scenario continues to hold.
 - **Steady-state regression** → at rest the slewed value equals the raw value, so held delay times, defaults, and saved patches are bit-for-bit unchanged; only the _transition_ behaviour differs.
