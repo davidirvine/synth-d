@@ -12,11 +12,11 @@
 
 ## 3. Reusable Wheel component
 
-- [ ] 3.1 Create `src/components/Wheel.svelte` with the same rectangular track (18×60px) and a centered label above; props: `label`, `value`/`externalValue`, physics params, `onchange`
-- [ ] 3.2 Render the value as a 4px full-width `#c87941` cursor line, positioned by value with half-thickness inset so it never clips at the edges; remove the filled-rect rendering
-- [ ] 3.3 Port drag interaction from the existing `WheelPanel.svelte` (same `delta=(startY−clientY)/80` sensitivity, `setPointerCapture` on pointerdown, `touch-action: none` on the track for touch/multi-touch, drag only within the track) updating value and firing `onchange`
-- [ ] 3.4 Run the physics integrator on `requestAnimationFrame` after pointer/key release, springing value back to 0.5 and firing `onchange` each frame; clamp `dt` to ~50ms; cancel the loop on new pointer-down, keydown, or external value change, and clean it up on component teardown (the appropriate Svelte 5 mechanism — e.g. an `$effect` return) so no RAF loop leaks
-- [ ] 3.5 Make the wheel `role="slider"` with Up/Down arrow-key control (step 0.05 per press; Left/Right ignored), a visible focus ring, and spring-back on key release; set `aria-valuemin=0`, `aria-valuemax=1`, `aria-valuenow={value}`, `aria-label="{label} wheel"`, and `aria-valuetext` describing the value meaningfully (e.g. semitone offset for PITCH)
+- [x] 3.1 Create `src/components/Wheel.svelte` with the same rectangular track (18×60px) and a centered label above; props: `label`, `value`/`externalValue`, physics params, `onchange`
+- [x] 3.2 Render the value as a 4px full-width `#c87941` cursor line, positioned by value with half-thickness inset so it never clips at the edges; remove the filled-rect rendering
+- [x] 3.3 Port drag interaction from the existing `WheelPanel.svelte` (same `delta=(startY−clientY)/80` sensitivity, `setPointerCapture` on pointerdown, `touch-action: none` on the track for touch/multi-touch, drag only within the track) updating value and firing `onchange`
+- [x] 3.4 Run the physics integrator on `requestAnimationFrame` after pointer/key release, springing value back to 0.5 and firing `onchange` each frame; clamp `dt` to ~50ms; cancel the loop on new pointer-down, keydown, or external value change, and clean it up on component teardown (the appropriate Svelte 5 mechanism — e.g. an `$effect` return) so no RAF loop leaks
+- [x] 3.5 Make the wheel `role="slider"` with Up/Down arrow-key control (step 0.05 per press; Left/Right ignored), a visible focus ring, and spring-back on key release; set `aria-valuemin=0`, `aria-valuemax=1`, `aria-valuenow={value}`, `aria-label="{label} wheel"`, and `aria-valuetext` describing the value meaningfully (e.g. semitone offset for PITCH)
 
 ## 4. WheelsPanel container + physics popup
 
