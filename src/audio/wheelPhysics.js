@@ -30,7 +30,7 @@ export const REST_VELOCITY_EPSILON = 0.001
  */
 export const PHYSICS_RANGES = /** @type {const} */ ({
   mass: { min: 0.05, max: 5, default: 0.1 },
-  spring: { min: 1, max: 50, default: 50 },
+  spring: { min: 1, max: 70, default: 50 },
   damping: { min: 0.05, max: 1, default: 0.3 },
 })
 

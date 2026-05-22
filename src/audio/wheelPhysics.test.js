@@ -47,7 +47,7 @@ describe('wheelPhysics — constants', () => {
 
   it('exposes the documented ranges and defaults', () => {
     expect(PHYSICS_RANGES.mass).toEqual({ min: 0.05, max: 5, default: 0.1 })
-    expect(PHYSICS_RANGES.spring).toEqual({ min: 1, max: 50, default: 50 })
+    expect(PHYSICS_RANGES.spring).toEqual({ min: 1, max: 70, default: 50 })
     expect(PHYSICS_RANGES.damping).toEqual({ min: 0.05, max: 1, default: 0.3 })
     expect(DEFAULT_PHYSICS).toEqual({ mass: 0.1, spring: 50, damping: 0.3 })
   })

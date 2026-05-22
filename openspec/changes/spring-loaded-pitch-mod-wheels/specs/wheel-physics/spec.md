@@ -29,7 +29,7 @@ Each parameter SHALL use the following range, default, and unit:
 | Parameter         | Min  | Max | Default | Notes                                                        |
 | ----------------- | ---- | --- | ------- | ------------------------------------------------------------ |
 | Mass              | 0.05 | 5   | 0.1     | Higher mass returns more slowly; min below default for speed |
-| Spring strength   | 1    | 50  | 50      | Higher spring returns faster                                 |
+| Spring strength   | 1    | 70  | 50      | Higher spring returns faster                                 |
 | Damping ratio (ζ) | 0.05 | 1   | 0.3     | Lower bound >0 (never perpetually undamped); ζ=1 is critical |
 
 #### Scenario: Physics knobs use their defined defaults
