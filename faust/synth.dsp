@@ -158,6 +158,11 @@ filteredSig = attach(mixerOut, mixerPeak) : ma.tanh : ve.moog_vcf_2bn(resonanceS
 // ─── Tape Delay ───────────────────────────────────────────────────────────────
 
 maxDelayLen       = 96000;
+// slewStep: max delay-samples the slewed time may move per audio sample (capstan-motor
+// inertia). Listening-tuned constant — final value set by ear at the audio-verification
+// gate, in the same spirit as the reverb si.smoo. It sets both observable behaviours at
+// once: peak pitch-bend depth (≈ slewStep) and glide duration (Δsamples / slewStep).
+slewStep          = 0.25;
 wowLfo            = os.osc(0.5) * 0.003;
 delayModOnS       = delayModOn    : si.smoo;
 delayModRateS     = delayModRate  : si.smoo;
