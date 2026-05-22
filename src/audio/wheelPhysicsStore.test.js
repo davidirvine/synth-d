@@ -159,6 +159,12 @@ describe('wheelPhysicsStore — key and defensive inputs', () => {
     expect(() => saveWheelPhysics()).not.toThrow()
     expect(loadWheelPhysics()).toEqual(defaultWheelPhysics())
   })
+
+  it('saving an explicit null falls back to defaults without throwing', () => {
+    // @ts-expect-error deliberately malformed input
+    expect(() => saveWheelPhysics(null)).not.toThrow()
+    expect(loadWheelPhysics()).toEqual(defaultWheelPhysics())
+  })
 })
 
 describe('wheelPhysicsStore — localStorage unavailable', () => {

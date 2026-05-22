@@ -94,10 +94,10 @@ export function loadWheelPhysics() {
  * Persist both wheels' physics. Each field is validated/clamped through the
  * same path as load, so only in-range numbers are written. Storage failure is
  * non-fatal.
- * @param {{ mod?: unknown, pitch?: unknown }} physics
+ * @param {{ mod?: unknown, pitch?: unknown }} [physics]
  * @returns {boolean} success
  */
-export function saveWheelPhysics(physics) {
+export function saveWheelPhysics(physics = {}) {
   /** @type {Record<string, { mass: number, spring: number, damping: number }>} */
   const clean = {}
   for (const wheel of WHEELS) {

@@ -296,14 +296,19 @@
     }
     // Track the unbent base note frequency for the PITCH wheel. This chokepoint
     // sees every note source (on-screen, QWERTY, MIDI all route through here).
-    // Resolved over the whole batch so it does not depend on message order: a
-    // `freq` sets the base, and a `gate:0` (note-off) clearing it wins last, so
-    // a hypothetical `freq` after a `gate:0` in the same batch can't revive a
-    // released note. (Today's contract is freq-before-gate on note-on and a lone
-    // gate:0 on note-off, but this stays correct if that ever changes.)
+    // Resolved over the whole batch (not positionally): a note-off batch carries
+    // a lone `gate:0` and clears the base; a note-on or legato batch carries
+    // `freq` (with `gate:1` only on the first note) and sets it. A `gate:0` takes
+    // precedence, so the base can never outlive a release — going inert is the
+    // safe default. (Today's contract never mixes `freq` and `gate:0` in one
+    // batch, so this is a defensive choice, not an observable one.)
+    const endsNote = messages.some((m) => m.param === 'gate' && m.value === 0)
     const freqMsg = messages.findLast((m) => m.param === 'freq')
-    if (freqMsg) currentNoteFreq = freqMsg.value
-    if (messages.some((m) => m.param === 'gate' && m.value === 0)) currentNoteFreq = null
+    if (endsNote) {
+      currentNoteFreq = null
+    } else if (freqMsg) {
+      currentNoteFreq = freqMsg.value
+    }
   }
 
   /** @param {string} param */
