@@ -188,14 +188,18 @@ describe('MidiManager — pitchbend', () => {
     m._handleMessage(midiEvent(bytes('noteOn', 69, 100))) // A4 = 440 Hz
     // max bend: raw = (0x7f << 7) | 0x7f = 16383
     m._handleMessage(midiEvent(bytes('pitchBend', 0x7f, 0x7f)))
-    expect(onPitchBend).toHaveBeenCalledWith(expect.closeTo(440 * Math.pow(2, 2 / 12), 1))
+    // Called with the bent freq and the bend in semitones (≈ +2 at max).
+    expect(onPitchBend).toHaveBeenCalledWith(
+      expect.closeTo(440 * Math.pow(2, 2 / 12), 1),
+      expect.closeTo(2, 2)
+    )
   })
 
-  it('center pitchbend returns unmodified freq', () => {
+  it('center pitchbend returns unmodified freq and zero semitones', () => {
     m._handleMessage(midiEvent(bytes('noteOn', 69, 100)))
     // center: raw = (0x40 << 7) | 0x00 = 8192
     m._handleMessage(midiEvent(bytes('pitchBend', 0x00, 0x40)))
-    expect(onPitchBend).toHaveBeenCalledWith(expect.closeTo(440, 1))
+    expect(onPitchBend).toHaveBeenCalledWith(expect.closeTo(440, 1), 0)
   })
 
   it('stores bend with no active note, applies on next note-on', async () => {

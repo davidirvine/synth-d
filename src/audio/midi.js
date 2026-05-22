@@ -164,7 +164,9 @@ export class MidiManager {
   _pitchBend(raw) {
     this.#bendValue = parseBend(raw)
     if (this.#lastNote !== null && this.#activeNotes.has(this.#lastNote)) {
-      this._onPitchBend(this._bentFreq(this.#lastNote))
+      // Pass the bend in semitones alongside the bent freq so the on-screen
+      // PITCH wheel can mirror the hardware control's position.
+      this._onPitchBend(this._bentFreq(this.#lastNote), this.#bendValue)
     }
   }
 

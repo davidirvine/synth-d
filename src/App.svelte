@@ -69,6 +69,7 @@
   } from './audio/engine.js'
   import { MidiManager } from './audio/midi.js'
   import { MidiCcMap } from './audio/midiCcMap.js'
+  import { bentFreq, BEND_SEMITONES } from './audio/pitchbend.js'
   import Oscillator from './components/Oscillator.svelte'
   import Mixer from './components/Mixer.svelte'
   import Filter from './components/Filter.svelte'
@@ -78,7 +79,7 @@
   import Glide from './components/Glide.svelte'
   import Keyboard from './components/Keyboard.svelte'
   import RegisterPanel from './components/RegisterPanel.svelte'
-  import WheelPanel from './components/WheelPanel.svelte'
+  import WheelsPanel from './components/WheelsPanel.svelte'
   import PowerButton from './components/PowerButton.svelte'
   import MidiStatus from './components/MidiStatus.svelte'
   import PatchControl from './components/PatchControl.svelte'
@@ -96,9 +97,10 @@
   const branch = __GIT_BRANCH__
   const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
 
-  // The mod-wheel is controller state, not part of the synth store/patch. Its
-  // power-on value is its own default; power-off returns it to rest like a knob.
-  const MOD_WHEEL_DEFAULT = 0.5
+  // The mod/pitch wheels are controller state, not part of the synth store/patch.
+  // Both are spring-loaded and rest at 0.5 (center), so power-on and power-off
+  // alike snap their cursors to this rest position.
+  const WHEEL_REST = 0.5
 
   // Seed the store to factory defaults for this App instance. On page load this
   // shows factory defaults (knobs sit at their power-off rest positions until
@@ -126,9 +128,17 @@
   let learningParam = $state(/** @type {string|null} */ (null))
   let midiActiveNotes = $state(0)
 
-  // Mod-wheel external (programmatic) value: drives the wheel on power
-  // transitions and incoming CC 1. Initialised at the power-off rest position.
-  let modWheelExternal = $state(powerOffValue('modWheel'))
+  // Wheel external (programmatic) values: drive each cursor on power transitions
+  // and incoming MIDI (CC 1 → MOD, pitch-bend → PITCH). Both rest at center.
+  let modWheelExternal = $state(WHEEL_REST)
+  let pitchWheelExternal = $state(WHEEL_REST)
+
+  // The most recent unbent note-on frequency, tracked solely at the
+  // onKeyboardNote chokepoint (every note source — on-screen keys, QWERTY, MIDI —
+  // routes through it): set from each `freq` message, nulled on the `gate:0` of
+  // the last release. Non-null exactly while a note sounds, so the PITCH wheel
+  // bends a live note and spring frames with nothing sounding stay inert.
+  let currentNoteFreq = $state(/** @type {number | null} */ (null))
 
   const midiCcMap = new MidiCcMap()
 
@@ -144,8 +154,11 @@
       if (midiActiveNotes === 0 && midiStatus === 'active') midiStatus = 'connected'
       keyboardReleaseNote?.(note)
     },
-    onPitchBend: (/** @type {number} */ freq) => {
+    onPitchBend: (/** @type {number} */ freq, /** @type {number} */ bendSemitones) => {
       setParam('freq', freq)
+      // Snap the on-screen PITCH cursor to the incoming bend and cancel any
+      // active spring-back (external input wins); value 0.5 = no bend.
+      pitchWheelExternal = WHEEL_REST + bendSemitones / (2 * BEND_SEMITONES)
     },
     onCc: (/** @type {{cc: number, value: number}} */ { cc, value }) => {
       if (learningParam !== null) {
@@ -196,7 +209,9 @@
       keyboardReleaseAll?.()
       await powerOff()
       powered = false
-      modWheelExternal = powerOffValue('modWheel')
+      modWheelExternal = WHEEL_REST
+      pitchWheelExternal = WHEEL_REST
+      currentNoteFreq = null
     } else {
       loading = true
       try {
@@ -209,8 +224,11 @@
         // the freshly created worklet node so the DSP and UI agree from the
         // first sample.
         applyParams(activePatch.params, true)
-        modWheelExternal = MOD_WHEEL_DEFAULT
-        setParam('modWheel', MOD_WHEEL_DEFAULT)
+        modWheelExternal = WHEEL_REST
+        pitchWheelExternal = WHEEL_REST
+        // modWheel is controller state (not in synthParams), so applyParams does
+        // not re-send it — set the DSP to the 0.5 rest explicitly on power-on.
+        setParam('modWheel', WHEEL_REST)
       } catch (err) {
         console.error('Power on failed:', err)
       } finally {
@@ -230,19 +248,37 @@
 
   /** @param {{ param: string, value: number }} e */
   function onModWheelChange(e) {
-    // Guard on power state to match onParamChange: only act on real user
-    // interaction while powered.
+    // Guard on power state to match onParamChange: only act while powered (the
+    // cursor still springs visually when off, but no DSP/store write occurs).
     if (!powered) return
-    // Keep the external value in sync with the wheel's position so a later CC 1
-    // carrying this same value still registers as a change and re-renders.
-    modWheelExternal = e.value
+    // Do NOT write back to modWheelExternal here: that prop is the programmatic
+    // override (CC 1 / power), and feeding the wheel's own per-frame spring
+    // values into it would cancel the spring-back on the very next frame.
     setParam(e.param, e.value)
+  }
+
+  /** @param {{ value: number }} e */
+  function onPitchWheelChange(e) {
+    if (!powered) return
+    // Inert when no note sounds: skip the write so spring frames after a release
+    // (and bends with nothing playing) cannot stomp the next note-on's freq.
+    if (currentNoteFreq === null) return
+    const semitones = (e.value - 0.5) * 2 * BEND_SEMITONES
+    setParam('freq', bentFreq(currentNoteFreq, semitones))
   }
 
   /** @param {Array<{ param: string, value: number }>} messages */
   function onKeyboardNote(messages) {
     for (const msg of messages) {
       setParam(msg.param, msg.value)
+      // Track the unbent base note frequency for the PITCH wheel. This chokepoint
+      // sees every note source (on-screen, QWERTY, MIDI all route through here).
+      if (msg.param === 'freq') {
+        currentNoteFreq = msg.value
+      } else if (msg.param === 'gate' && msg.value === 0) {
+        // Last key released — clear the base so PITCH writes go inert.
+        currentNoteFreq = null
+      }
     }
   }
 
@@ -446,7 +482,12 @@
         </div>
       </div>
       <div class="keyboard-row">
-        <WheelPanel externalValue={modWheelExternal} onchange={onModWheelChange} />
+        <WheelsPanel
+          modExternalValue={modWheelExternal}
+          pitchExternalValue={pitchWheelExternal}
+          onModChange={onModWheelChange}
+          onPitchChange={onPitchWheelChange}
+        />
         <Keyboard
           onnote={onKeyboardNote}
           bind:triggerNote={keyboardTriggerNote}

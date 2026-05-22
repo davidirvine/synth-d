@@ -27,15 +27,15 @@
 
 ## 5. App wiring
 
-- [ ] 5.1 Replace the `WheelPanel` mount in `App.svelte` (keyboard row) with `WheelsPanel`; keep MOD wired to `modWheelExternal` / `onModWheelChange` / CC 1 (the MOD wrapper must emit `{ param: 'modWheel', value }` to match the existing handler), now resting and springing to 0.5
-- [ ] 5.2 Track the current base note frequency at the single keyboard chokepoint. Add App-level `currentNoteFreq` + `noteSounding` state, both updated **solely in `onKeyboardNote`** — every note source (on-screen keys, QWERTY, MIDI note-on/off, MIDI device disconnect, power-off `releaseAll`) routes through it:
-  - extract the unbent `freq` from the `{ param: 'freq' }` message → `currentNoteFreq`
-  - `{ param: 'gate', value: 1 }` → `noteSounding = true`; `{ param: 'gate', value: 0 }` → `noteSounding = false` and `currentNoteFreq = null`
-  - the keyboard's monophonic-gate stream (gate:1 on the first note, gate:0 on the last release; legato adds send `freq` only) is a clean binary "any note sounding" signal — last-note-wins, mirroring `MidiManager.#lastNote`
-  - do **not** add separate `onNoteOn`/`onNoteOff` counting: MIDI note-on/off already route through `onKeyboardNote` via `keyboardTriggerNote`/`keyboardReleaseNote`, so a second counter would double-count and would use the already-bent `onNoteOn` freq instead of the unbent base
-- [ ] 5.3 Wire the PITCH wheel `onchange` in `App.svelte`: compute `bentFreq(currentNoteFreq, (value − 0.5) · 2 · BEND_SEMITONES)` (reusing `src/audio/pitchbend.js`) and write via `setParam('freq', …)`; 0.5 = no bend; **skip the write when `currentNoteFreq === null`** so spring frames with no note sounding are inert and cannot stomp a new note-on
-- [ ] 5.4 Ensure spring-frame writes are guarded by the `powered` check (no store writes while powered off, cursor still animates) and that incoming CC 1 (MOD) **and** MIDI pitch-bend (PITCH) each update the wheel's external value and cancel an active spring-back
-- [ ] 5.5 Delete the obsolete `WheelPanel.svelte`
+- [x] 5.1 Replace the `WheelPanel` mount in `App.svelte` (keyboard row) with `WheelsPanel`; keep MOD wired to `modWheelExternal` / `onModWheelChange` / CC 1 (the MOD wrapper must emit `{ param: 'modWheel', value }` to match the existing handler), now resting and springing to 0.5
+- [x] 5.2 Track the current base note frequency at the single keyboard chokepoint. Add App-level `currentNoteFreq` state, updated **solely in `onKeyboardNote`** — every note source (on-screen keys, QWERTY, MIDI note-on/off, MIDI device disconnect, power-off `releaseAll`) routes through it:
+  - set from the unbent `freq` of each `{ param: 'freq' }` message
+  - clear to `null` on the `{ param: 'gate', value: 0 }` of the last release (the keyboard's monophonic gate fires gate:0 only when the last key clears; legato adds send `freq` only)
+  - `currentNoteFreq !== null` is therefore exactly "a note is sounding" — last-note-wins, mirroring `MidiManager.#lastNote`; no separate boolean is needed
+  - do **not** add separate `onNoteOn`/`onNoteOff` tracking: MIDI note-on/off already route through `onKeyboardNote` via `keyboardTriggerNote`/`keyboardReleaseNote`, so a second path would double-handle and would use the already-bent `onNoteOn` freq instead of the unbent base
+- [x] 5.3 Wire the PITCH wheel `onchange` in `App.svelte`: compute `bentFreq(currentNoteFreq, (value − 0.5) · 2 · BEND_SEMITONES)` (reusing `src/audio/pitchbend.js`) and write via `setParam('freq', …)`; 0.5 = no bend; **skip the write when `currentNoteFreq === null`** so spring frames with no note sounding are inert and cannot stomp a new note-on
+- [x] 5.4 Ensure spring-frame writes are guarded by the `powered` check (no store writes while powered off, cursor still animates) and that incoming CC 1 (MOD) **and** MIDI pitch-bend (PITCH) each update the wheel's external value and cancel an active spring-back
+- [x] 5.5 Delete the obsolete `WheelPanel.svelte`
 
 ## 6. Tests & verification
 
