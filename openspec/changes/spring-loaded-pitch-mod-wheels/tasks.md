@@ -39,9 +39,9 @@
 
 ## 6. Tests & verification
 
-- [ ] 6.1 Component tests for `Wheel`: cursor renders at the value position, drag updates value, release triggers spring-back toward 0.5, arrow keys move the focused wheel
+- [x] 6.1 Component tests for `Wheel`: cursor renders at the value position, drag updates value, release triggers spring-back toward 0.5, arrow keys move the focused wheel
 - [ ] 6.2 Component test for `WheelsPanel`: two labeled wheels render, gear opens popup with six knobs, reset restores defaults, edited physics persist to localStorage, popup dismisses on Escape / outside click
-- [ ] 6.3 Test that on-screen PITCH drag and incoming MIDI pitch-bend do not fight: an arriving pitch-bend cancels the wheel's spring-back and snaps to the external value
+- [x] 6.3 Test that on-screen PITCH drag and incoming MIDI pitch-bend do not fight: an arriving pitch-bend cancels the wheel's spring-back and snaps to the external value
 - [ ] 6.4 Run full gate per STACK.md — `npx vitest run` and `npx playwright test` first for fast feedback, then `npx stryker run` (≥85%) as the final gate — plus eslint/prettier on changed files
 - [ ] 6.5 Manual audio verification: MOD wheel mod-depth wobble and PITCH ±2-semitone bend are audible as the cursor springs back to center
 
