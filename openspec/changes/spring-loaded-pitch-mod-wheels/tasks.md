@@ -20,10 +20,10 @@
 
 ## 4. WheelsPanel container + physics popup
 
-- [ ] 4.1 Create `src/components/WheelsPanel.svelte` laying out MOD and PITCH `Wheel`s (no "WHEEL" label); load physics from storage and pass per-wheel params down
-- [ ] 4.2 Add the gear/settings icon button in the top-left and a popup it toggles (click-outside / Escape to close); tab order MOD → PITCH → gear; when the popup opens, move focus into it (its knobs join the tab order) and on Escape return focus to the gear button
-- [ ] 4.3 Render six `Knob.svelte` controls in the popup (mass/spring/damping × MOD/PITCH) bound to the physics params; persist on change
-- [ ] 4.4 Add a reset-to-defaults action that restores the six knobs and saves defaults
+- [x] 4.1 Create `src/components/WheelsPanel.svelte` laying out MOD and PITCH `Wheel`s (no "WHEEL" label); load physics from storage and pass per-wheel params down
+- [x] 4.2 Add the gear/settings icon button in the top-left and a popup it toggles (click-outside / Escape to close); tab order MOD → PITCH → gear; when the popup opens, move focus into it (its knobs join the tab order) and on Escape return focus to the gear button
+- [x] 4.3 Render six `Knob.svelte` controls in the popup (mass/spring/damping × MOD/PITCH) bound to the physics params; persist on change
+- [x] 4.4 Add a reset-to-defaults action that restores the six knobs and saves defaults
 
 ## 5. App wiring
 
