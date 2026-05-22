@@ -144,6 +144,45 @@ describe('wheelPhysics — stepSpring clamping', () => {
     const capped = stepSpring({ ...base, dt: MAX_DT })
     expect(huge).toEqual(capped)
   })
+
+  it('zeroes velocity when the cursor hits a wall (no accumulation past the clamp)', () => {
+    const top = stepSpring({
+      value: 0.99,
+      velocity: 100,
+      mass: 1,
+      spring: 20,
+      dampingRatio: 0.3,
+      dt: 1 / 60,
+    })
+    expect(top.value).toBe(1)
+    expect(top.velocity).toBe(0)
+
+    const bottom = stepSpring({
+      value: 0.01,
+      velocity: -100,
+      mass: 1,
+      spring: 20,
+      dampingRatio: 0.3,
+      dt: 1 / 60,
+    })
+    expect(bottom.value).toBe(0)
+    expect(bottom.velocity).toBe(0)
+  })
+
+  it('preserves velocity on a step that does not hit a wall', () => {
+    const next = stepSpring({
+      value: 0.9,
+      velocity: 0,
+      mass: 1,
+      spring: 20,
+      dampingRatio: 0.3,
+      dt: 1 / 60,
+    })
+    // Interior step: velocity is the integrated value, not forced to 0.
+    expect(next.value).toBeGreaterThan(0)
+    expect(next.value).toBeLessThan(1)
+    expect(next.velocity).not.toBe(0)
+  })
 })
 
 describe('wheelPhysics — settling behaviour', () => {

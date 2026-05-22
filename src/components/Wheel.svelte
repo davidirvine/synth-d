@@ -34,8 +34,13 @@
   let value = $state(REST)
   let cursorTop = $derived((1 - value) * (TRACK_HEIGHT - CURSOR_THICKNESS))
 
-  // Plain (untracked) interaction state — drag is gated imperatively, not via
-  // reactivity, so the externalValue effect below tracks only externalValue.
+  // Plain (untracked) interaction state. `dragging` is deliberately NOT $state:
+  // the externalValue effect below reads it only to gate, and keeping it
+  // untracked means that effect subscribes to `externalValue` alone. So an
+  // external value arriving mid-drag is correctly ignored (dragging is true at
+  // read time), and the effect does not spuriously re-fire when the drag ends
+  // with the same externalValue still set — the released wheel springs home
+  // instead of re-snapping to a stale external value.
   let dragging = false
   let startY = 0
   let startVal = REST
@@ -72,6 +77,9 @@
 
   function startSpring() {
     cancelSpring()
+    // The spring starts from rest at the released position (no carried-over drag
+    // velocity), matching the design's integrator model. A "flick" feel that
+    // preserves release velocity is a possible future enhancement, not required.
     velocity = 0
     // Seed lastTime so the first frame's dt is small (clamped regardless).
     lastTime = performance.now()

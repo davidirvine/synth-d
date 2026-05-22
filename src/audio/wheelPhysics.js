@@ -59,8 +59,14 @@ export function stepSpring({ value, velocity, mass, spring, dampingRatio, dt }) 
   const x = value - REST
   const a = (-spring * x - c * velocity) / mass
   const nextVelocity = velocity + a * step
-  const nextValue = clamp(REST + (x + nextVelocity * step), 0, 1)
-  return { value: nextValue, velocity: nextVelocity }
+  const rawValue = REST + (x + nextVelocity * step)
+  const nextValue = clamp(rawValue, 0, 1)
+  // If the cursor hit an edge, stop it there (inelastic) rather than letting
+  // velocity keep accumulating past the clamp — otherwise an extreme underdamped
+  // overshoot could "stick" at the wall for a frame and then rebound late (the
+  // explicit-Euler clamp artifact). Settling toward the 0.5 center is unaffected.
+  const hitWall = rawValue !== nextValue
+  return { value: nextValue, velocity: hitWall ? 0 : nextVelocity }
 }
 
 /**

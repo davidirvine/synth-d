@@ -263,6 +263,10 @@
     // Inert when no note sounds: skip the write so spring frames after a release
     // (and bends with nothing playing) cannot stomp the next note-on's freq.
     if (currentNoteFreq === null) return
+    // Last-note-wins: if a legato note arrives while the PITCH wheel is still
+    // springing home, currentNoteFreq is already the new note, so the in-flight
+    // spring bends the new note. This is intended (the bend tracks the live
+    // note), consistent with the existing MidiManager.#lastNote pitch-bend path.
     const semitones = (e.value - 0.5) * 2 * BEND_SEMITONES
     setParam('freq', bentFreq(currentNoteFreq, semitones))
   }

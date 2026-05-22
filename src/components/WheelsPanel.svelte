@@ -71,8 +71,11 @@
 
   /** @param {KeyboardEvent} e */
   function onKeyDown(e) {
+    // Listening on the window (rather than rootEl) matches the established
+    // popover pattern in PatchControl: the popup can be dismissed by Escape
+    // regardless of which descendant holds focus. `stopPropagation` keeps the
+    // same Escape from also reaching App's MIDI-learn-cancel handler.
     if (e.key === 'Escape' && open) {
-      // Don't also trigger App's Escape handler (MIDI-learn cancel).
       e.stopPropagation()
       open = false
       gearEl?.focus()
