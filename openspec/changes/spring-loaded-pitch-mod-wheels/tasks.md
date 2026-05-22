@@ -2,7 +2,7 @@
 
 - [x] 1.1 Add a damped-harmonic-oscillator helper (`src/audio/wheelPhysics.js`): given `{ value, velocity, mass, spring, dampingRatio, dt }` return the next `{ value, velocity }`, deriving `c = ζ·2·√(spring·mass)`, clamping `value` to [0,1] and `dt` to a safe max
 - [x] 1.2 Add a `isAtRest(value, velocity)` threshold helper and the default physics constants (mass/spring/damping ranges + defaults) in the same module
-- [ ] 1.3 Unit-test the integrator with mutation coverage in mind (boundary values at clamp edges, sign of acceleration, zero-velocity rest detection): underdamped overshoots then settles, critical damping never overshoots, heavier mass settles slower, rest threshold terminates
+- [x] 1.3 Unit-test the integrator with mutation coverage in mind (boundary values at clamp edges, sign of acceleration, zero-velocity rest detection): underdamped overshoots then settles, critical damping never overshoots, heavier mass settles slower, rest threshold terminates
 
 ## 2. Physics persistence
 
