@@ -8,7 +8,7 @@
 ## 2. Verification against the spec scenarios
 
 - [x] 2.1 Confirm steady-state equivalence: with `delayTime` held constant, the slewed value equals the raw value (no change to held times, defaults, or saved-patch behaviour).
-- [ ] 2.2 By inspecting the DSP signal flow (not by listening — the ear-test is 3.2), confirm the slew structure yields a continuous read offset with no discontinuity on a `delayTime` step, so the repeats glide rather than teleport, with glide direction following the time change (spec: "Time change glides smoothly with a tape-style pitch slide").
+- [x] 2.2 By inspecting the DSP signal flow (not by listening — the ear-test is 3.2), confirm the slew structure yields a continuous read offset with no discontinuity on a `delayTime` step, so the repeats glide rather than teleport, with glide direction following the time change (spec: "Time change glides smoothly with a tape-style pitch slide").
 - [ ] 2.3 By inspecting the DSP, confirm the fixed `±slewStep` clamp makes peak bend depth independent of jump size while glide duration scales as `Δsamples / slewStep` (spec: "Larger time changes glide for longer at the same bend depth").
 - [ ] 2.4 Confirm the read offset stays within `[1, maxDelayLen-1]` at `delayModDepth` = 0.025 s and `delayTime` = 0.01 s during a slew (spec: "tapeTime remains valid at maximum depth and minimum delay time" still holds).
 
