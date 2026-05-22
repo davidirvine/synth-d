@@ -275,15 +275,17 @@
   function onKeyboardNote(messages) {
     for (const msg of messages) {
       setParam(msg.param, msg.value)
-      // Track the unbent base note frequency for the PITCH wheel. This chokepoint
-      // sees every note source (on-screen, QWERTY, MIDI all route through here).
-      if (msg.param === 'freq') {
-        currentNoteFreq = msg.value
-      } else if (msg.param === 'gate' && msg.value === 0) {
-        // Last key released — clear the base so PITCH writes go inert.
-        currentNoteFreq = null
-      }
     }
+    // Track the unbent base note frequency for the PITCH wheel. This chokepoint
+    // sees every note source (on-screen, QWERTY, MIDI all route through here).
+    // Resolved over the whole batch so it does not depend on message order: a
+    // `freq` sets the base, and a `gate:0` (note-off) clearing it wins last, so
+    // a hypothetical `freq` after a `gate:0` in the same batch can't revive a
+    // released note. (Today's contract is freq-before-gate on note-on and a lone
+    // gate:0 on note-off, but this stays correct if that ever changes.)
+    const freqMsg = messages.find((m) => m.param === 'freq')
+    if (freqMsg) currentNoteFreq = freqMsg.value
+    if (messages.some((m) => m.param === 'gate' && m.value === 0)) currentNoteFreq = null
   }
 
   /** @param {string} param */
