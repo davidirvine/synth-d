@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.6.0...subtractive-synth-v1.7.0) (2026-05-23)
+
+
+### Features
+
+* **delay:** rate-limited tape-time glide on delayTime changes ([#86](https://github.com/davidirvine/synth-d/issues/86)) ([a522307](https://github.com/davidirvine/synth-d/commit/a522307e5622e92f915f9ba41b02c3f22e126d31))
+
+
+### Bug Fixes
+
+* remove decorative header glyph ([#87](https://github.com/davidirvine/synth-d/issues/87)) ([df57627](https://github.com/davidirvine/synth-d/commit/df576275586e87d0abb1b7b67459d6ce53ed403b))
+
 ## [1.6.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.5.0...subtractive-synth-v1.6.0) (2026-05-22)
 
 
