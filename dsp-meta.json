@@ -24,8 +24,8 @@
         "/usr/share/faust",
         "."
     ],
-    "size": 1160036,
-    "code": "aFS+B1Q8Hw==",
+    "size": 1160052,
+    "code": "uD7CB1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -397,10 +397,10 @@
                 {
                     "type": "hslider",
                     "label": "delayModDepth",
-                    "varname": "fHslider26",
+                    "varname": "fHslider27",
                     "shortname": "delayModDepth",
                     "address": "/synth/delayModDepth",
-                    "index": 311752,
+                    "index": 311788,
                     "meta": [
                         {
                             "unit": "s"
@@ -417,7 +417,7 @@
                     "varname": "fEntry15",
                     "shortname": "delayModOn",
                     "address": "/synth/delayModOn",
-                    "index": 311768,
+                    "index": 311800,
                     "init": 0,
                     "min": 0,
                     "max": 1,
@@ -426,10 +426,10 @@
                 {
                     "type": "hslider",
                     "label": "delayModRate",
-                    "varname": "fHslider27",
+                    "varname": "fHslider28",
                     "shortname": "delayModRate",
                     "address": "/synth/delayModRate",
-                    "index": 311780,
+                    "index": 311812,
                     "meta": [
                         {
                             "unit": "Hz"
@@ -455,10 +455,10 @@
                 {
                     "type": "hslider",
                     "label": "delayTime",
-                    "varname": "fHslider28",
+                    "varname": "fHslider26",
                     "shortname": "delayTime",
                     "address": "/synth/delayTime",
-                    "index": 311800,
+                    "index": 311752,
                     "meta": [
                         {
                             "unit": "s"
@@ -942,7 +942,7 @@
                     "varname": "fHslider31",
                     "shortname": "reverbDamp",
                     "address": "/synth/reverbDamp",
-                    "index": 868956,
+                    "index": 868972,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -954,7 +954,7 @@
                     "varname": "fHslider30",
                     "shortname": "reverbDecay",
                     "address": "/synth/reverbDecay",
-                    "index": 868944,
+                    "index": 868960,
                     "init": 0.5,
                     "min": 0,
                     "max": 1,
@@ -978,7 +978,7 @@
                     "varname": "fHslider29",
                     "shortname": "reverbPreDelay",
                     "address": "/synth/reverbPreDelay",
-                    "index": 868908,
+                    "index": 868924,
                     "meta": [
                         {
                             "unit": "s"
@@ -995,7 +995,7 @@
                     "varname": "fHslider32",
                     "shortname": "reverbSend",
                     "address": "/synth/reverbSend",
-                    "index": 1160008,
+                    "index": 1160024,
                     "init": 0.3,
                     "min": 0,
                     "max": 1,
