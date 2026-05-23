@@ -557,33 +557,6 @@
     border-bottom: 1px solid #333;
   }
 
-  /* Decorative brand glyph, centered across the full header width regardless of
-     the asymmetric left/right groups. Absolutely positioned so it stays out of
-     the flex flow (neither shifts nor is shifted by the side content) and
-     pointer-events: none so it never intercepts a click aimed at the header. */
-  .header-glyph {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    /* Fixed 55px square, centered in both axes. Absolutely positioned so it
-       neither grows the header (55px fits within the ~63px bar) nor shifts the
-       side content. */
-    width: 55px;
-    height: 55px;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-
-  .header-glyph svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    /* Purple glow: a tight bright halo plus a softer wider one, painted around
-       the glyph shape (filters don't affect layout, so the halo can spill past
-       the 55px box without shifting anything). */
-    filter: drop-shadow(0 0 4px #a64dff) drop-shadow(0 0 12px rgba(166, 77, 255, 0.6));
-  }
-
   .header-right {
     display: flex;
     align-items: center;
