@@ -403,14 +403,6 @@
 
 <div class="app">
   <header class="header">
-    <div class="header-glyph" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="#a64dff">
-        <path
-          fill-rule="evenodd"
-          d="M116.589 182.742l-7.405 20.346a4 4 0 0 1-5.125 2.396l-7.525-2.738a4 4 0 0 1-2.386-5.13l7.435-20.427C83.963 167.623 72 148.959 72 127.5 72 96.296 97.296 71 128.5 71c3.877 0 7.663.39 11.32 1.134l6.996-19.222a4 4 0 0 1 5.125-2.396l7.525 2.738a4 4 0 0 1 2.386 5.13l-6.968 19.142C172.796 87.002 185 105.826 185 127.5c0 31.204-25.296 56.5-56.5 56.5-4.086 0-8.071-.434-11.911-1.258zm5.173-14.213A41.32 41.32 0 0 0 128 169c22.644 0 41-18.356 41-41 0-14.855-7.9-27.864-19.727-35.056l-27.51 75.585zm-15.035-5.473l27.51-75.585A41.32 41.32 0 0 0 128 87c-22.644 0-41 18.356-41 41 0 14.855 7.9 27.864 19.727 35.056z"
-        />
-      </svg>
-    </div>
     <a
       class="github-link"
       href="https://github.com/davidirvine/synth-d"
@@ -563,33 +555,6 @@
     margin: 0 8px;
     background: #1c1c1c;
     border-bottom: 1px solid #333;
-  }
-
-  /* Decorative brand glyph, centered across the full header width regardless of
-     the asymmetric left/right groups. Absolutely positioned so it stays out of
-     the flex flow (neither shifts nor is shifted by the side content) and
-     pointer-events: none so it never intercepts a click aimed at the header. */
-  .header-glyph {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    /* Fixed 55px square, centered in both axes. Absolutely positioned so it
-       neither grows the header (55px fits within the ~63px bar) nor shifts the
-       side content. */
-    width: 55px;
-    height: 55px;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-
-  .header-glyph svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    /* Purple glow: a tight bright halo plus a softer wider one, painted around
-       the glyph shape (filters don't affect layout, so the halo can spill past
-       the 55px box without shifting anything). */
-    filter: drop-shadow(0 0 4px #a64dff) drop-shadow(0 0 12px rgba(166, 77, 255, 0.6));
   }
 
   .header-right {
