@@ -14,13 +14,14 @@ A browser-based subtractive synthesizer inspired by the Moog Model D, built with
 - **OSC3 as LFO** — switchable between audio-rate oscillator and low-frequency modulation source
 - **Moog ladder filter** with ADSR envelope and keyboard tracking
 - **Amplitude envelope** (ADSR) with decay/release lock
-- **Modulation** — OSC3 or noise routed to OSC1 pitch, OSC2 pitch, or filter cutoff, with mod wheel depth
+- **Modulation** — OSC3 (LFO) or noise routed to OSC1 pitch, OSC2 pitch, or filter cutoff, with mod-wheel depth
 - **Glide** (portamento) with variable rate
-- **Tape delay** with time, feedback, and mix; includes a subtle wow LFO for analog character
-- **Freeverb reverb** with pre-delay, decay, and LPF tone control
+- **Tape delay** with mix, time, and feedback; a wow LFO and a capstan-style time glide give it analog drift, plus a switchable MOD LFO with rate and depth for chorus/vibrato on the repeats
+- **Freeverb reverb** with send, damp, decay, and pre-delay controls
 - **Oscilloscope** — live waveform display via Web Audio `AnalyserNode`
 - **MIDI input** via Web MIDI API — notes, pitch bend, CC, and per-knob MIDI learn (right-click any knob)
-- **On-screen keyboard** playable with mouse or touch
+- **Spring-loaded MOD and PITCH wheels** — physics-driven wheels beside the keyboard; PITCH springs back to centre on release
+- **On-screen keyboard** playable with mouse or touch, with a keyboard-range octave shift
 
 ---
 
@@ -35,10 +36,10 @@ Signal chain summary:
 1. **Oscillators** — three independent oscillators with octave range controls; OSC2 and OSC3 add cent-level detune; OSC3 can be switched to LFO mode
 2. **Modulation** — OSC3 signal (or white noise) scaled by the mod wheel routes to OSC1 pitch, OSC2 pitch, and/or filter cutoff
 3. **Mixer** — OSC1 + OSC2 + OSC3 (audio mode only) + white/pink noise with independent level knobs
-4. **Moog ladder filter** (`ve.moog_vcf`) — ADSR envelope, key tracking, and modulation input all sum into the cutoff frequency
+4. **Moog ladder filter** (`ve.moog_vcf_2bn`) — ADSR envelope, key tracking, and modulation input all sum into the cutoff frequency
 5. **VCA** — ADSR amplitude envelope with optional decay/release lock
-6. **Tape delay** — feedback path through a 6 kHz LPF and `tanh` saturation; a 0.5 Hz wow LFO modulates delay time for analog drift
-7. **Freeverb reverb** (`re.mono_freeverb`) — pre-delay, decay, LPF tone, and dry/wet mix; all parameters smoothed to prevent zipper noise
+6. **Tape delay** — feedback path through a 6 kHz LPF and `tanh` saturation; a 0.5 Hz wow LFO and an optional MOD LFO modulate the read position, and `delayTime` changes are rate-limited into a smooth capstan-style pitch glide
+7. **Freeverb reverb** (`re.mono_freeverb`) — send, damp, decay, and pre-delay; all parameters smoothed to prevent zipper noise
 
 ### UI (`src/`)
 
@@ -56,7 +57,7 @@ Built with **Svelte 5** (runes API) and bundled with **Vite**. `App.svelte` is t
 
 | Tool         | Purpose                                        |
 | ------------ | ---------------------------------------------- |
-| Node.js ≥ 20 | build and dev server                           |
+| Node.js ≥ 22 | build and dev server (see `.nvmrc`)            |
 | FAUST        | DSP compilation to WASM (`faust:build` script) |
 
 ```sh
@@ -102,9 +103,9 @@ npm install
 This project uses a spec-driven, AI-assisted development workflow:
 
 - **OpenSpec** — every change starts with a spec proposal (`/opsx:propose`). Implementation only begins after the spec is approved.
-- **roborev** — an AI code review daemon runs after every commit. Open findings are addressed with `/roborev-fix` before a section can be closed.
+- **roborev** — an AI code review daemon. Reviews are invoked explicitly at defined gates (the proposal design review and the end-of-implementation `roborev refine`) rather than firing on every commit; open findings are addressed with `/roborev-fix`.
 - **git + gh** — branch management uses plain `git`; PRs are created and managed with the `gh` CLI. A single PR is opened per feature/bugfix branch when the entire change is complete.
-- **Husky hooks** — pre-commit (lint/format) and post-commit (roborev review trigger) run automatically.
+- **Git hooks** (`.githooks/`, installed via the `postinstall` script) — pre-commit runs the test suite; pre-push runs lint, format check, the FAUST build, and the full Vitest + Playwright suites, mirroring CI.
 
 See [CLAUDE.md](CLAUDE.md) for the full mandatory workflow rules.
 
@@ -125,7 +126,7 @@ See [CLAUDE.md](CLAUDE.md) for the full mandatory workflow rules.
 | End-to-end tests       | Playwright                          |
 | Linting                | ESLint + `eslint-plugin-svelte`     |
 | Formatting             | Prettier + `prettier-plugin-svelte` |
-| Git hooks              | Husky                               |
+| Git hooks              | `.githooks/` via `core.hooksPath`   |
 | Branch / PR management | git + `gh` CLI                      |
 | Code review            | roborev                             |
 | Change workflow        | OpenSpec                            |
