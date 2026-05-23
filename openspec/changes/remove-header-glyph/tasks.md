@@ -1,6 +1,6 @@
 ## 1. Remove glyph markup and styling
 
-- [ ] 1.1 Remove the `.header-glyph` block (the `<div class="header-glyph" aria-hidden="true">` wrapper and its inline `<svg>` favicon glyph) from the header in `src/App.svelte`, then run `npx eslint --fix src/App.svelte` and `npx prettier --write src/App.svelte`. Note: removing the markup before the CSS leaves the `.header-glyph` rules temporarily orphaned, so the Svelte compiler / `eslint-plugin-svelte` may emit an unused-selector warning after this step — it is expected and is resolved by task 1.2, which removes those rules
+- [x] 1.1 Remove the `.header-glyph` block (the `<div class="header-glyph" aria-hidden="true">` wrapper and its inline `<svg>` favicon glyph) from the header in `src/App.svelte`, then run `npx eslint --fix src/App.svelte` and `npx prettier --write src/App.svelte`. Note: removing the markup before the CSS leaves the `.header-glyph` rules temporarily orphaned, so the Svelte compiler / `eslint-plugin-svelte` may emit an unused-selector warning after this step — it is expected and is resolved by task 1.2, which removes those rules
 - [ ] 1.2 Remove the `.header-glyph` and `.header-glyph svg` CSS rules and their explanatory comment (absolute centering, fixed 55px square, `pointer-events: none`, purple `#a64dff` fill, `drop-shadow` glow) from `src/App.svelte`, then run `npx eslint --fix src/App.svelte` and `npx prettier --write src/App.svelte`
 
 ## 2. Remove glyph tests
