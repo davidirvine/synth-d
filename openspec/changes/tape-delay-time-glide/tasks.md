@@ -16,4 +16,4 @@
 
 - [x] 3.1 Run the full test suite: `npx vitest run`, `npx stryker run` (mutation ≥ 85%), `npx playwright test`.
 - [ ] 3.2 Audio verification by the human: tune `slewStep` by ear so time setting stays responsive while the glide feels musically tape-like; confirm no click at the extremes of the time range.
-- [ ] 3.3 Run `/opsx:verify tape-delay-time-glide`, then the roborev refine gate per `CLAUDE.md`.
+- [x] 3.3 Run `/opsx:verify tape-delay-time-glide`, then the roborev refine gate per `CLAUDE.md`.
