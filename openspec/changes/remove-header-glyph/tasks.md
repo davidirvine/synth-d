@@ -5,7 +5,7 @@
 
 ## 2. Remove glyph tests
 
-- [ ] 2.1 Remove the `App — header brand glyph` describe block from `src/App.test.js`, then run `npx eslint --fix src/App.test.js` and `npx prettier --write src/App.test.js`
+- [x] 2.1 Remove the `App — header brand glyph` describe block from `src/App.test.js`, then run `npx eslint --fix src/App.test.js` and `npx prettier --write src/App.test.js`
 
 ## 3. Verify
 
