@@ -8,6 +8,8 @@ Provides a tape-modelled feedback delay effect stage positioned after master vol
 
 The system SHALL implement a tape-delay-modelled feedback delay stage in `faust/synth.dsp` positioned after `masterVol` and before the shimmer reverb stage. The delay SHALL use `de.fdelay` (linear interpolation, tape character) with a slow wow/flutter LFO (≈ 0.5 Hz, ±0.3% of delay time) modulating the read position. The feedback path SHALL include a first-order low-pass filter at 6 kHz (`fi.lowpass(1, 6000)`) to darken successive repeats and `ma.tanh` soft saturation to model tape saturation. The feedback coefficient SHALL be capped via `max(0) : min(0.9)` to prevent unbounded buildup. When `delayOn` is 0 the delay input SHALL be driven with zeros so the buffer stays silent and enabling delay for the first time produces no jarring burst of buffered audio. The wet/dry blend SHALL be controlled by `delayMix` (0–1). A `delayOn` parameter (0 or 1, default 0) SHALL bypass the entire delay stage via `select2` when 0. Default values: `delayOn` = 0, `delayTime` = 0.3 s, `delayFeedback` = 0.3, `delayMix` = 0.3.
 
+The `delayTime` control value SHALL be rate-limit-slewed before it reaches `de.fdelay`: the rate limiter SHALL operate in the sample domain on `delayTime * ma.SR` (the delay length in samples, not the seconds-valued slider), and the slewed value SHALL change by at most a fixed `slewStep` (a tuned constant, expressed in delay-samples per audio sample) on any single sample, modelling capstan-motor inertia, after which it SHALL pass through a light one-pole smoother (`si.smoo`) to round the start and end corners of the glide. The wow and `delayMod` LFOs SHALL ride on the slewed value, and the `min`/`max` sample clamp SHALL remain downstream of the slew so the resulting read offset stays within `[1, maxDelayLen - 1]`. The fixed `slewStep` SHALL bound the maximum pitch-bend depth independently of how far the time changes, so that the glide duration scales with the size of the time change while the bend depth stays constant. The slew SHALL NOT be exposed as a UI control, parameter, default, or MIDI-learnable mapping; it is fixed internal character.
+
 #### Scenario: delayOn at zero bypasses the delay
 
 - **WHEN** `delayOn` is 0
@@ -64,10 +66,15 @@ The system SHALL implement a tape-delay-modelled feedback delay stage in `faust/
 - **WHEN** `delayOn` transitions from 0 to 1 for the first time
 - **THEN** no delay repeats from before the toggle are audible; the first repeat arrives one `delayTime` after the toggle
 
-#### Scenario: Time change is smooth with no hard clicks
+#### Scenario: Time change glides smoothly with a tape-style pitch slide
 
-- **WHEN** `delayTime` is adjusted while `delayOn` is 1 and audio is playing
-- **THEN** the delay time transitions without hard clicks; subtle interpolation artefacts consistent with the tape character of `de.fdelay` are acceptable
+- **WHEN** `delayTime` is adjusted while `delayOn` is 1, `delayFeedback` is greater than 0, and audio is playing
+- **THEN** the repeats already circulating in the feedback path Doppler-shift into a smooth, continuous pitch glide toward the new time with no hard click or teleport, the glide direction follows the time change (downward in pitch as time increases, upward as it decreases), and the read offset never leaves `[1, maxDelayLen - 1]`
+
+#### Scenario: Larger time changes glide for longer at the same bend depth
+
+- **WHEN** two `delayTime` changes of different magnitudes are made while `delayOn` is 1 and audio is playing
+- **THEN** the larger time change takes proportionally longer to reach its target while the peak pitch-bend depth of both glides is the same, consistent with a fixed slew rate
 
 ---
 
