@@ -13,4 +13,4 @@
 - [x] 3.2 If any Playwright visual-regression or DOM-snapshot baselines capture the header (e.g. `toHaveScreenshot`/`toMatchSnapshot` against the header), update them so they no longer contain the glyph; if no such baselines exist, note that and continue
 - [x] 3.3 Run `npx vitest run` and confirm all unit/component tests pass with no glyph assertions remaining
 - [x] 3.4 Run `npx playwright test` and confirm E2E tests pass
-- [ ] 3.5 Run `npx stryker run` and confirm the mutation score is ≥ 85%
+- [x] 3.5 Run `npx stryker run` and confirm the mutation score is ≥ 85%
