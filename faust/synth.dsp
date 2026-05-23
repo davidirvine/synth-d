@@ -158,12 +158,23 @@ filteredSig = attach(mixerOut, mixerPeak) : ma.tanh : ve.moog_vcf_2bn(resonanceS
 // ─── Tape Delay ───────────────────────────────────────────────────────────────
 
 maxDelayLen       = 96000;
+// slewStep: max delay-samples the slewed time may move per audio sample (capstan-motor
+// inertia). Listening-tuned constant — final value set by ear at the audio-verification
+// gate, in the same spirit as the reverb si.smoo. It sets both observable behaviours at
+// once: peak pitch-bend depth (≈ slewStep) and glide duration (Δsamples / slewStep).
+slewStep          = 0.25;
 wowLfo            = os.osc(0.5) * 0.003;
 delayModOnS       = delayModOn    : si.smoo;
 delayModRateS     = delayModRate  : si.smoo;
 delayModDepthS    = delayModDepth : si.smoo;
 modLfo            = os.osc(delayModRateS) * delayModDepthS * ma.SR * delayModOnS;
-tapeTime          = min(maxDelayLen - 1, max(1, delayTime * ma.SR + wowLfo * delayTime * ma.SR + modLfo));
+// Rate-limited slew on the sample-domain delay length. `(rateLimit ~ _)` feeds the
+// one-sample-delayed output back into `prev` (the FIRST input); `target` is the incoming
+// `delayTime * ma.SR`. The ±slewStep clamp on (target - prev) bounds the per-sample move,
+// then si.smoo rounds the start/end corners of the glide.
+rateLimit(prev, target) = prev + max(-slewStep, min(slewStep, target - prev));
+tapeTimeSlewed    = (delayTime * ma.SR) : (rateLimit ~ _) : si.smoo;
+tapeTime          = min(maxDelayLen - 1, max(1, tapeTimeSlewed + wowLfo * tapeTimeSlewed + modLfo));
 delayFeedbackSafe = delayFeedback : max(0) : min(0.9);
 feedbackPath      = _ * delayFeedbackSafe : fi.lowpass(1, 6000) : ma.tanh;
 delayInput        = masterOut * int(delayOn);
