@@ -1,19 +1,23 @@
 const STORAGE_PREFIX = 'midiCc:'
 
-// Param renames applied to persisted entries on load only. The underlying
-// localStorage value is left untouched so a revert keeps existing mappings
-// working without further migration.
-const PARAM_RENAMES = /** @type {Record<string, string>} */ ({
-  reverbMix: 'reverbSend',
-})
-
 export class MidiCcMap {
   /** @type {Map<number, { param: string, min: number, max: number }>} */
   #byCC = new Map()
   /** @type {Map<string, number>} */
   #byParam = new Map()
+  /**
+   * Persisted-name → current-name renames applied to stored entries on load
+   * only. This table is instrument-specific and injected by the caller (the
+   * chassis MidiCcMap is param-name-agnostic, design.md D4); it defaults to no
+   * renames. The underlying localStorage value is left untouched so a revert
+   * keeps existing mappings working without further migration.
+   * @type {Record<string, string>}
+   */
+  #paramRenames
 
-  constructor() {
+  /** @param {Record<string, string>} [paramRenames] persisted→current name map */
+  constructor(paramRenames = {}) {
+    this.#paramRenames = paramRenames
     this.#load()
   }
 
@@ -76,16 +80,16 @@ export class MidiCcMap {
       // source). These take precedence over any stale renamed entry pointing
       // at the same canonical name.
       for (const { cc, param, min, max } of entries) {
-        if (PARAM_RENAMES[param] !== undefined) continue
+        if (this.#paramRenames[param] !== undefined) continue
         this.#byCC.set(cc, { param, min, max })
         this.#byParam.set(param, cc)
       }
 
       // Pass 2: apply renames only when no canonical entry has already
-      // claimed the target param. This prevents a stale `reverbMix` entry
-      // and a fresh `reverbSend` entry from racing on iteration order.
+      // claimed the target param. This prevents a stale renamed-source entry
+      // and a fresh canonical-name entry from racing on iteration order.
       for (const { cc, param, min, max } of entries) {
-        const target = PARAM_RENAMES[param]
+        const target = this.#paramRenames[param]
         if (target === undefined) continue
         if (this.#byParam.has(target)) continue
         this.#byCC.set(cc, { param: target, min, max })

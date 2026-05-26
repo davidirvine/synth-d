@@ -35,9 +35,12 @@
     activePatch,
     PARAM_DEFAULTS,
   } from '../state/synth.svelte.js'
-  // CC-scaling bounds and power-off rest values come from the instrument-owned
-  // schema (design.md D1) — the chassis's sanctioned cross-tier contract import.
-  import { KNOB_PARAMS, powerOffValue } from '../param-schema.js'
+  // CC-scaling bounds, power-off rest values, and the instrument's persisted-CC
+  // param renames all come from the instrument-owned schema (design.md D1) — the
+  // chassis's sanctioned cross-tier contract import. PARAM_RENAMES is injected
+  // into the param-name-agnostic MidiCcMap so the chassis carries no instrument
+  // param-name literal (D4).
+  import { KNOB_PARAMS, powerOffValue, PARAM_RENAMES } from '../param-schema.js'
 
   // The instrument panel layout is injected as a snippet (D3). The Shell hands
   // it the chassis contract: the param-name-agnostic midiStateFor helper, the
@@ -109,7 +112,7 @@
   // bends a live note and spring frames with nothing sounding stay inert.
   let currentNoteFreq = $state(/** @type {number | null} */ (null))
 
-  const midiCcMap = new MidiCcMap()
+  const midiCcMap = new MidiCcMap(PARAM_RENAMES)
 
   const midiManager = new MidiManager({
     onNoteOn: (/** @type {number} */ note, /** @type {number} */ freq) => {

@@ -229,3 +229,17 @@ export const BIPOLAR_PARAMS = Object.freeze(
 export function powerOffValue(p) {
   return BIPOLAR_PARAMS.has(p) ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2 : KNOB_PARAMS[p].min
 }
+
+/**
+ * Instrument-specific parameter renames applied to persisted MIDI-CC mappings at
+ * load time (old persisted name → current schema name). This is instrument
+ * history (e.g. `reverbMix` was renamed to `reverbSend`), so it belongs with the
+ * other parameter metadata here, NOT in the generic MIDI-CC map (design.md D4) —
+ * the chassis `MidiCcMap` is param-name-agnostic and receives this table by
+ * injection. The underlying localStorage value is left untouched so a revert
+ * keeps existing mappings working without further migration.
+ * @type {Record<string, string>}
+ */
+export const PARAM_RENAMES = Object.freeze({
+  reverbMix: 'reverbSend',
+})
