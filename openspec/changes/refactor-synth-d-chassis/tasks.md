@@ -35,7 +35,7 @@
 
 ## 6. Full regression gate
 
-- [ ] 6.1 Run `npx vitest run` — all unit + component tests pass
-- [ ] 6.2 Run `npx stryker run` — mutation score ≥ 85%
-- [ ] 6.3 Run `npx playwright test` — all E2E pass
-- [ ] 6.4 Confirm the only test edits across the change were import-path updates (no weakened or altered assertions); if any assertion had to change, treat as a regression and fix the code
+- [x] 6.1 Run `npx vitest run` — all unit + component tests pass
+- [x] 6.2 Run `npx stryker run` — mutation score ≥ 85%
+- [x] 6.3 Run `npx playwright test` — all E2E pass
+- [x] 6.4 Confirm the only test edits across the change were import-path updates (no weakened or altered assertions); if any assertion had to change, treat as a regression and fix the code
