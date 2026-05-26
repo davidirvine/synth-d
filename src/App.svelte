@@ -1,62 +1,3 @@
-<script module>
-  // Knob param registry: param name → { min, max } for CC scaling
-  /** @type {Record<string, {min: number, max: number}>} */
-  const KNOB_PARAMS = {
-    // Oscillators
-    osc2Detune: { min: -100, max: 100 },
-    osc3Detune: { min: -100, max: 100 },
-    osc3LfoRate: { min: 0.1, max: 20 },
-    // Mixer
-    osc1Level: { min: 0, max: 1 },
-    osc2Level: { min: 0, max: 1 },
-    osc3Level: { min: 0, max: 1 },
-    noiseLevel: { min: 0, max: 1 },
-    // Filter
-    cutoff: { min: 20, max: 20000 },
-    resonance: { min: 0, max: 1 },
-    keyTrack: { min: 0, max: 1 },
-    // Filter env
-    filterAttack: { min: 0.001, max: 4 },
-    filterDecay: { min: 0.001, max: 4 },
-    filterSustain: { min: 0, max: 1 },
-    filterRelease: { min: 0.001, max: 8 },
-    filterEnvAmt: { min: -10000, max: 10000 },
-    // Amp env
-    ampAttack: { min: 0.001, max: 4 },
-    ampDecay: { min: 0.001, max: 4 },
-    ampSustain: { min: 0, max: 1 },
-    ampRelease: { min: 0.001, max: 8 },
-    // Modulation
-    modMix: { min: 0, max: 1 },
-    modWheel: { min: 0, max: 1 },
-    // Glide
-    glideRate: { min: 0.001, max: 5 },
-    // Delay — delayOn and delayModOn are intentionally excluded: they are toggles, not knobs.
-    delayTime: { min: 0.01, max: 2.0 },
-    delayFeedback: { min: 0, max: 0.9 },
-    delayMix: { min: 0, max: 1 },
-    delayModRate: { min: 0.1, max: 10 },
-    delayModDepth: { min: 0, max: 0.025 },
-    // Reverb — reverbOn is intentionally excluded: it is a toggle, not a knob.
-    reverbSend: { min: 0, max: 1 },
-    reverbDecay: { min: 0.01, max: 1 },
-    reverbDamp: { min: 0, max: 1 },
-    reverbPreDelay: { min: 0, max: 0.1 },
-    // Master
-    masterVol: { min: 0, max: 1 },
-  }
-
-  // Must stay in sync with the `bipolar` prop on each Knob in the UI.
-  export const BIPOLAR_PARAMS = new Set(['osc2Detune', 'osc3Detune', 'modMix', 'filterEnvAmt'])
-
-  /** @param {string} p */
-  export function powerOffValue(p) {
-    return BIPOLAR_PARAMS.has(p)
-      ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2
-      : KNOB_PARAMS[p].min
-  }
-</script>
-
 <script>
   import { onMount, onDestroy } from 'svelte'
   import {
@@ -93,6 +34,9 @@
     activePatch,
     PARAM_DEFAULTS,
   } from './state/synth.svelte.js'
+  // CC-scaling bounds and power-off rest values come from the instrument-owned
+  // schema (design.md D1) — the chassis's sanctioned cross-tier contract import.
+  import { KNOB_PARAMS, powerOffValue } from './param-schema.js'
 
   const branch = __GIT_BRANCH__
   const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`

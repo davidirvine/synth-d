@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, fireEvent, waitFor } from '@testing-library/svelte'
-import App, { powerOffValue } from './App.svelte'
+import App from './App.svelte'
+import { powerOffValue } from './param-schema.js'
 import { setParam } from './audio/engine.js'
 import { setActivePatch, PARAM_DEFAULTS } from './state/synth.svelte.js'
 
