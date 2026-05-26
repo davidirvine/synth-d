@@ -153,3 +153,79 @@ export const PARAM_SCHEMA = Object.freeze({
   delayModOn: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
   reverbOn: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
 })
+
+// --- Derived collections ---------------------------------------------------
+//
+// Everything below is computed once from PARAM_SCHEMA, replacing the literal
+// tables that previously lived in state/synth.svelte.js and App.svelte. The
+// equality-gate test (param-schema.test.js) asserts these exactly match the
+// pre-refactor values before the originals are deleted.
+
+const SCHEMA_ENTRIES = Object.entries(PARAM_SCHEMA)
+
+// Store-backed descriptors: knobs and switches (controllers like modWheel are
+// excluded — they are not patchable and not forwarded by the store, per D6).
+const STORE_ENTRIES = SCHEMA_ENTRIES.filter(([, d]) => d.kind === 'knob' || d.kind === 'switch')
+
+/**
+ * Factory defaults for every store-backed synth parameter (the initial active
+ * patch). Iteration order is the schema's order, filtered to store-backed
+ * descriptors — reproducing the pre-refactor `{ ...CONTINUOUS_DEFAULTS,
+ * ...SWITCH_DEFAULTS }` order.
+ * @type {Record<string, number>}
+ */
+export const PARAM_DEFAULTS = Object.freeze(
+  Object.fromEntries(STORE_ENTRIES.map(([name, d]) => [name, d.default]))
+)
+
+/**
+ * The names of every store-backed synth parameter, i.e. exactly what a patch
+ * captures. Excludes the mod-wheel (controller), keyboard register, and MIDI CC
+ * assignments.
+ * @type {string[]}
+ */
+export const PARAM_NAMES = Object.freeze(Object.keys(PARAM_DEFAULTS))
+
+/**
+ * The set of parameters forwarded to the DSP via `engine.setParam`. Every
+ * store-backed parameter is an audio parameter; names outside this set (e.g.
+ * `modWheel`, keyboard register) are never forwarded by the store.
+ * @type {ReadonlySet<string>}
+ */
+
+export const AUDIO_PARAMS = Object.freeze(new Set(PARAM_NAMES))
+
+/**
+ * CC-scalable knob metadata: param name → { min, max } scaling bounds. Derived
+ * from `ccScalable === true` (all knobs plus the CC-mappable switch `keyTrack`
+ * and the controller `modWheel`), NOT from `kind === 'knob'` (D2).
+ * @type {Record<string, {min: number, max: number}>}
+ */
+export const KNOB_PARAMS = Object.freeze(
+  Object.fromEntries(
+    SCHEMA_ENTRIES.filter(([, d]) => d.ccScalable).map(([name, d]) => [
+      name,
+      { min: d.min, max: d.max },
+    ])
+  )
+)
+
+/**
+ * The set of bipolar (centred) parameters. Must stay in sync with the
+ * `bipolar` prop on each Knob in the UI — now derived rather than hand-listed.
+ * @type {ReadonlySet<string>}
+ */
+
+export const BIPOLAR_PARAMS = Object.freeze(
+  new Set(SCHEMA_ENTRIES.filter(([, d]) => d.bipolar).map(([name]) => name))
+)
+
+/**
+ * The value a parameter rests at when the synth is powered off: the midpoint
+ * for a bipolar parameter, otherwise its minimum.
+ * @param {string} p parameter name
+ * @returns {number}
+ */
+export function powerOffValue(p) {
+  return BIPOLAR_PARAMS.has(p) ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2 : KNOB_PARAMS[p].min
+}
