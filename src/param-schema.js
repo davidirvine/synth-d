@@ -1,0 +1,155 @@
+// The parameter schema: the single source of truth for what the subtractive
+// instrument exposes, and the explicit seam between the generic chassis and
+// this specific instrument (design.md D1). One entry per parameter carries
+// everything the chassis needs to treat the parameter generically.
+//
+// This module is instrument-owned (Tier 3 — a different instrument supplies a
+// different schema) but it is the ONE sanctioned cross-tier import: the store
+// and the Shell import the schema-derived collections from here by design. It
+// is the contract interface both tiers depend on, not a boundary violation.
+//
+// Previously these values were smeared across two hand-synchronised tables:
+// CONTINUOUS_DEFAULTS / SWITCH_DEFAULTS (state/synth.svelte.js) and
+// KNOB_PARAMS / BIPOLAR_PARAMS (App.svelte). Consolidating them here removes
+// the manual-sync hazard.
+
+/**
+ * A single parameter descriptor.
+ * @typedef {object} ParamDescriptor
+ * @property {number} [min] lower bound; required for any ccScalable descriptor
+ *   (it is a scaling bound), present on switches only where meaningful.
+ * @property {number} [max] upper bound; same rule as `min`.
+ * @property {number} [default] factory-default value; absent for controllers,
+ *   which are not store-backed (D6).
+ * @property {boolean} bipolar whether the parameter is centred (affects the
+ *   power-off rest value: bipolar → midpoint, else → min).
+ * @property {'knob' | 'switch' | 'controller'} kind UI/role classification.
+ *   `knob` and `switch` are store-backed; `controller` is not (D6).
+ * @property {boolean} ccScalable whether a MIDI CC can be scaled into this
+ *   parameter's range. Independent of `kind`: `keyTrack` is a CC-mappable
+ *   switch and `modWheel` is a CC-scalable controller (D2/D6).
+ */
+
+/**
+ * Ordered map of every parameter the subtractive instrument exposes.
+ *
+ * Order is load-bearing: filtering to the store-backed descriptors
+ * (kind ∈ {knob, switch}) must reproduce the pre-refactor PARAM_NAMES order,
+ * which was `{ ...CONTINUOUS_DEFAULTS, ...SWITCH_DEFAULTS }` — i.e. all
+ * continuous knobs (in their original order) followed by all switches (in
+ * theirs). `modWheel` (a controller) is excluded from that filter, so its
+ * position here does not affect store membership.
+ * @type {Record<string, ParamDescriptor>}
+ */
+export const PARAM_SCHEMA = Object.freeze({
+  // --- Continuous (knob) parameters --------------------------------------
+  // Oscillators
+  osc2Detune: { min: -100, max: 100, default: 0, bipolar: true, kind: 'knob', ccScalable: true },
+  osc3Detune: { min: -100, max: 100, default: 0, bipolar: true, kind: 'knob', ccScalable: true },
+  osc3LfoRate: { min: 0.1, max: 20, default: 1, bipolar: false, kind: 'knob', ccScalable: true },
+  // Mixer
+  osc1Level: { min: 0, max: 1, default: 0.75, bipolar: false, kind: 'knob', ccScalable: true },
+  osc2Level: { min: 0, max: 1, default: 0, bipolar: false, kind: 'knob', ccScalable: true },
+  osc3Level: { min: 0, max: 1, default: 0, bipolar: false, kind: 'knob', ccScalable: true },
+  noiseLevel: { min: 0, max: 1, default: 0, bipolar: false, kind: 'knob', ccScalable: true },
+  // Filter
+  cutoff: { min: 20, max: 20000, default: 2000, bipolar: false, kind: 'knob', ccScalable: true },
+  resonance: { min: 0, max: 1, default: 0.3, bipolar: false, kind: 'knob', ccScalable: true },
+  filterAttack: {
+    min: 0.001,
+    max: 4,
+    default: 0.01,
+    bipolar: false,
+    kind: 'knob',
+    ccScalable: true,
+  },
+  filterDecay: { min: 0.001, max: 4, default: 0.3, bipolar: false, kind: 'knob', ccScalable: true },
+  filterSustain: { min: 0, max: 1, default: 0.5, bipolar: false, kind: 'knob', ccScalable: true },
+  filterRelease: {
+    min: 0.001,
+    max: 8,
+    default: 0.3,
+    bipolar: false,
+    kind: 'knob',
+    ccScalable: true,
+  },
+  filterEnvAmt: {
+    min: -10000,
+    max: 10000,
+    default: 0,
+    bipolar: true,
+    kind: 'knob',
+    ccScalable: true,
+  },
+  // Amp envelope
+  ampAttack: { min: 0.001, max: 4, default: 0.01, bipolar: false, kind: 'knob', ccScalable: true },
+  ampDecay: { min: 0.001, max: 4, default: 0.5, bipolar: false, kind: 'knob', ccScalable: true },
+  ampSustain: { min: 0, max: 1, default: 0.7, bipolar: false, kind: 'knob', ccScalable: true },
+  // Matches ampDecay: the decay/release lock (drLock) defaults on, slaving
+  // release to decay, so the factory default release must equal decay or the
+  // active patch reads as dirty the instant the synth powers on.
+  ampRelease: { min: 0.001, max: 8, default: 0.5, bipolar: false, kind: 'knob', ccScalable: true },
+  // Master
+  masterVol: { min: 0, max: 1, default: 0.75, bipolar: false, kind: 'knob', ccScalable: true },
+  // Modulation
+  modMix: { min: 0, max: 1, default: 0, bipolar: true, kind: 'knob', ccScalable: true },
+  // modWheel is a controller (D6): CC-scalable, but NOT store-backed — it has no
+  // factory default and must be absent from PARAM_DEFAULTS/PARAM_NAMES/AUDIO_PARAMS.
+  modWheel: { min: 0, max: 1, bipolar: false, kind: 'controller', ccScalable: true },
+  // Glide
+  glideRate: { min: 0.001, max: 5, default: 0.2, bipolar: false, kind: 'knob', ccScalable: true },
+  // Delay
+  delayTime: { min: 0.01, max: 2.0, default: 0.3, bipolar: false, kind: 'knob', ccScalable: true },
+  delayFeedback: { min: 0, max: 0.9, default: 0.3, bipolar: false, kind: 'knob', ccScalable: true },
+  delayMix: { min: 0, max: 1, default: 0.3, bipolar: false, kind: 'knob', ccScalable: true },
+  delayModRate: { min: 0.1, max: 10, default: 0.5, bipolar: false, kind: 'knob', ccScalable: true },
+  delayModDepth: {
+    min: 0,
+    max: 0.025,
+    default: 0,
+    bipolar: false,
+    kind: 'knob',
+    ccScalable: true,
+  },
+  // Reverb
+  reverbSend: { min: 0, max: 1, default: 0.3, bipolar: false, kind: 'knob', ccScalable: true },
+  reverbDamp: { min: 0, max: 1, default: 0.5, bipolar: false, kind: 'knob', ccScalable: true },
+  reverbDecay: { min: 0.01, max: 1, default: 0.5, bipolar: false, kind: 'knob', ccScalable: true },
+  reverbPreDelay: {
+    min: 0,
+    max: 0.1,
+    default: 0.015,
+    bipolar: false,
+    kind: 'knob',
+    ccScalable: true,
+  },
+
+  // --- Discrete (switch) parameters --------------------------------------
+  // Oscillator waveform selections (index into the waveform list)
+  osc1Wave: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  osc2Wave: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  osc3Wave: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  // Oscillator octave ranges (-2..+2)
+  osc1Range: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  osc2Range: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  osc3Range: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  // OSC3 LFO mode
+  osc3LfoMode: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  // Filter key tracking — a 0/1 toggle, but MIDI-CC-assignable (D2), so it is a
+  // switch with ccScalable: true and carries the CC-scaling bounds.
+  keyTrack: { min: 0, max: 1, default: 0, bipolar: false, kind: 'switch', ccScalable: true },
+  // Mixer noise colour (0 = white, 1 = pink)
+  noiseType: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  // Amp decay/release lock (defaults on)
+  drLock: { default: 1, bipolar: false, kind: 'switch', ccScalable: false },
+  // Modulation routing
+  modToOsc1: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  modToOsc2: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  modToFilter: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  // Glide
+  glideOn: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  // Effects routing
+  delayOn: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  delayModOn: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+  reverbOn: { default: 0, bipolar: false, kind: 'switch', ccScalable: false },
+})
