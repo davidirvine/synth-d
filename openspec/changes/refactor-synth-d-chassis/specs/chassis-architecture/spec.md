@@ -49,12 +49,12 @@ The application SHALL be split into a generic `Shell` and an instrument-supplied
 
 ### Requirement: The refactor preserves synth behavior
 
-Establishing the chassis seam SHALL NOT change observable synth behavior. The existing `vitest`, `stryker`, and `playwright` suites SHALL pass, with test changes limited to import paths for moved symbols; no scenario assertion SHALL need to change to accommodate the refactor.
+Establishing the chassis seam SHALL NOT change observable synth behavior. The existing `vitest`, `stryker`, and `playwright` suites SHALL pass. Test edits SHALL be limited to import-path updates for moved symbols and mechanical constructor-signature updates required to remove chassis→instrument coupling (e.g. injecting the instrument-owned CC-rename table into `MidiCcMap`); no scenario assertion SHALL be weakened or altered to accommodate the refactor.
 
 #### Scenario: Existing suites pass unchanged in behavior
 
 - **WHEN** the full `vitest`, `stryker` (mutation score ≥ 85%), and `playwright` suites run after the refactor
-- **THEN** they pass, and the only test edits are import-path updates for symbols that moved into the schema module — no assertion is weakened or altered
+- **THEN** they pass, and the only test edits are import-path updates for moved symbols and mechanical constructor-signature updates that remove chassis coupling — no assertion is weakened or altered
 
 #### Scenario: An assertion change signals a regression
 
