@@ -21,8 +21,8 @@
 
 ## 5. Verify no hardcoded identity literals remain
 
-- [ ] 5.1 Re-run the literal grep (hex, `rgba(`, `hsl(`, `font-family`) across `src/components/*.svelte` and `src/global.css`; confirm the only remaining identity color literals are the fallbacks inside `var(--token, …)` references and the definitions in `theme.css`. Documented exceptions per D7 are acceptable: LevelLed's algorithmic HSL ramp, bare `monospace`/`inherit` font declarations, and any `rgba()` shadow ruled structural in 1.2
-- [ ] 5.2 Spot-check that each tokenized declaration's fallback equals the corresponding `theme.css` value (D3); fix any disagreement (it is a defect, not a new look)
+- [x] 5.1 Re-run the literal grep (hex, `rgba(`, `hsl(`, `font-family`) across `src/components/*.svelte` and `src/global.css`; confirm the only remaining identity color literals are the fallbacks inside `var(--token, …)` references and the definitions in `theme.css`. Documented exceptions per D7 are acceptable: LevelLed's algorithmic HSL ramp, bare `monospace`/`inherit` font declarations, and any `rgba()` shadow ruled structural in 1.2
+- [x] 5.2 Spot-check that each tokenized declaration's fallback equals the corresponding `theme.css` value (D3); fix any disagreement (it is a defect, not a new look)
 
 ## 6. Pixel-identity and full regression gate
 
