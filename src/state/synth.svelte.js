@@ -9,113 +9,13 @@
 // Likewise the keyboard register and MIDI CC assignments are not stored here.
 
 import { setParam } from '../audio/engine.js'
+import { PARAM_DEFAULTS, PARAM_NAMES, AUDIO_PARAMS } from '../param-schema.js'
 
-/**
- * Continuous (knob) parameters and their factory-default values.
- * Mirrors App.svelte's KNOB_PARAMS minus `modWheel` (controller state).
- * @type {Record<string, number>}
- */
-const CONTINUOUS_DEFAULTS = {
-  // Oscillators
-  osc2Detune: 0,
-  osc3Detune: 0,
-  osc3LfoRate: 1,
-  // Mixer
-  osc1Level: 0.75,
-  osc2Level: 0,
-  osc3Level: 0,
-  noiseLevel: 0,
-  // Filter
-  cutoff: 2000,
-  resonance: 0.3,
-  filterAttack: 0.01,
-  filterDecay: 0.3,
-  filterSustain: 0.5,
-  filterRelease: 0.3,
-  filterEnvAmt: 0,
-  // Amp envelope
-  ampAttack: 0.01,
-  ampDecay: 0.5,
-  ampSustain: 0.7,
-  // Matches ampDecay: the decay/release lock (drLock) defaults on, slaving
-  // release to decay, so the factory default release must equal decay or the
-  // active patch reads as dirty the instant the synth powers on.
-  ampRelease: 0.5,
-  // Master
-  masterVol: 0.75,
-  // Modulation
-  modMix: 0,
-  // Glide
-  glideRate: 0.2,
-  // Delay
-  delayTime: 0.3,
-  delayFeedback: 0.3,
-  delayMix: 0.3,
-  delayModRate: 0.5,
-  delayModDepth: 0,
-  // Reverb
-  reverbSend: 0.3,
-  reverbDamp: 0.5,
-  reverbDecay: 0.5,
-  reverbPreDelay: 0.015,
-}
-
-/**
- * Discrete (switch/toggle/stepper) parameters and their factory-default values.
- * These previously lived as local `$state` inside each panel component and were
- * zeroed by a numeric `reset` prop on power-on. They are now part of the store.
- * @type {Record<string, number>}
- */
-const SWITCH_DEFAULTS = {
-  // Oscillator waveform selections (index into the waveform list)
-  osc1Wave: 0,
-  osc2Wave: 0,
-  osc3Wave: 0,
-  // Oscillator octave ranges (-2..+2)
-  osc1Range: 0,
-  osc2Range: 0,
-  osc3Range: 0,
-  // OSC3 LFO mode
-  osc3LfoMode: 0,
-  // Filter key tracking
-  keyTrack: 0,
-  // Mixer noise colour (0 = white, 1 = pink)
-  noiseType: 0,
-  // Amp decay/release lock (defaults on)
-  drLock: 1,
-  // Modulation routing
-  modToOsc1: 0,
-  modToOsc2: 0,
-  modToFilter: 0,
-  // Glide
-  glideOn: 0,
-  // Effects routing
-  delayOn: 0,
-  delayModOn: 0,
-  reverbOn: 0,
-}
-
-/**
- * Factory defaults for every in-scope synth parameter (the initial active patch).
- * @type {Record<string, number>}
- */
-export const PARAM_DEFAULTS = Object.freeze({ ...CONTINUOUS_DEFAULTS, ...SWITCH_DEFAULTS })
-
-/**
- * The names of every in-scope synth parameter, i.e. exactly what a patch captures.
- * Excludes the mod-wheel, keyboard register, and MIDI CC assignments.
- * @type {string[]}
- */
-export const PARAM_NAMES = Object.freeze(Object.keys(PARAM_DEFAULTS))
-
-/**
- * The set of parameters forwarded to the DSP via `engine.setParam`. Every store
- * parameter is an audio parameter; names outside this set (e.g. `modWheel`,
- * keyboard register) are not store parameters and are never forwarded by the store.
- * @type {ReadonlySet<string>}
- */
-// eslint-disable-next-line svelte/prefer-svelte-reactivity -- frozen, never-mutated constant; not reactive state
-export const AUDIO_PARAMS = Object.freeze(new Set(PARAM_NAMES))
+// Parameter membership is now derived from the single instrument-owned schema
+// (src/param-schema.js), the sanctioned cross-tier contract import (design.md
+// D1). The store re-exports the three collections it consumes so existing
+// importers keep their current `./state/synth.svelte.js` path unchanged.
+export { PARAM_DEFAULTS, PARAM_NAMES, AUDIO_PARAMS }
 
 /**
  * The live synth parameter state — the single source of truth for the sound.

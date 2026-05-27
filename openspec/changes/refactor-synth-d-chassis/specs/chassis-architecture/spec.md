@@ -1,0 +1,62 @@
+## ADDED Requirements
+
+### Requirement: Single parameter-schema module is the source of truth
+
+The instrument SHALL declare every synth parameter in one instrument-owned schema module. Each parameter entry SHALL provide its bounds (`min`, `max`), factory `default`, a `bipolar` flag, a `kind` of `knob`, `switch`, or `controller`, and a `ccScalable` flag. No other module SHALL define parameter defaults, ranges, or bipolar flags as independent literals; all such values SHALL be derived from the schema.
+
+#### Scenario: Store membership derives from the schema and excludes controllers
+
+- **WHEN** the synth parameter store resolves its factory defaults, parameter names, and audio-param set
+- **THEN** they are derived from the schema as the descriptors whose `kind` is `knob` or `switch`, and the derived `PARAM_DEFAULTS`, `PARAM_NAMES`, and `AUDIO_PARAMS` equal the values the synth used before the refactor — in particular `modWheel` (`kind: 'controller'`) is absent from all three, preserving its exclusion from patches and store forwarding
+
+#### Scenario: CC-scalable knob metadata derives from the schema
+
+- **WHEN** the UI resolves knob ranges, the bipolar set, and each parameter's power-off rest value
+- **THEN** `KNOB_PARAMS` is derived as the descriptors with `ccScalable === true` (all knobs plus the CC-mappable switch `keyTrack` and the controller `modWheel`), not by a `kind === 'knob'` filter; `powerOffValue` returns the midpoint for a bipolar parameter and the minimum otherwise; and the derived `KNOB_PARAMS`, `BIPOLAR_PARAMS`, and `powerOffValue` outputs equal the pre-refactor values
+
+#### Scenario: No duplicated parameter literals remain
+
+- **WHEN** the codebase is searched for parameter default, range, or bipolar literals outside the schema module
+- **THEN** none are found; the store and the UI reference the schema-derived values only
+
+### Requirement: Chassis couples to the instrument only through the schema and the universal engine contract
+
+The generic chassis SHALL reference instrument parameters only via the schema-derived collections and the universal engine param contract — the names `freq`, `gate`, `modWheel`, `mixerPeak`, and `outputPeak`. Chassis modules SHALL NOT reference any instrument-specific parameter name (e.g. `cutoff`, `osc1Level`) as a literal.
+
+#### Scenario: Chassis contains no instrument-specific param literals
+
+- **WHEN** the chassis modules (audio engine, MIDI, keyboard, patch storage, store machinery, Shell, and generic components) are inspected
+- **THEN** the only literal parameter names they contain are the five universal engine params, and an automated check fails the build if an instrument-specific param name appears in chassis code
+
+#### Scenario: Universal engine contract is honored
+
+- **WHEN** the chassis sends notes, controller, or reads meters
+- **THEN** it uses exactly `freq`/`gate` for notes, `modWheel` for the controller, and `mixerPeak`/`outputPeak` for meter readbacks, independent of which instrument is loaded
+
+### Requirement: Generic Shell is free of instrument knowledge
+
+The application SHALL be split into a generic `Shell` and an instrument-supplied panel layout. The Shell SHALL own the instrument-independent application frame — header, power button and power lifecycle, MIDI wiring and status, keyboard row, scope, store seeding, and the parameter/wheel change chokepoints — and SHALL host the instrument panels through an injected boundary (slot/children) rather than importing them. The Shell SHALL contain no import of any instrument (Tier 3) module.
+
+#### Scenario: Shell hosts instrument panels by injection
+
+- **WHEN** the application renders
+- **THEN** the Shell renders the instrument's panel layout through its injected boundary, exposing the chassis callbacks (parameter change, knob context menu, per-knob MIDI state) to the panels, without the Shell importing any instrument panel directly
+
+#### Scenario: Shell imports no instrument module
+
+- **WHEN** the Shell's imports are inspected
+- **THEN** none resolve to a Tier-3 instrument module (Oscillator, Mixer, Filter, AmpEnv, Effects, Modulation, Glide, `filterGains`, or the instrument panel layout)
+
+### Requirement: The refactor preserves synth behavior
+
+Establishing the chassis seam SHALL NOT change observable synth behavior. The existing `vitest`, `stryker`, and `playwright` suites SHALL pass. Test edits SHALL be limited to import-path updates for moved symbols and mechanical constructor-signature updates required to remove chassis→instrument coupling (e.g. injecting the instrument-owned CC-rename table into `MidiCcMap`); no scenario assertion SHALL be weakened or altered to accommodate the refactor.
+
+#### Scenario: Existing suites pass unchanged in behavior
+
+- **WHEN** the full `vitest`, `stryker` (mutation score ≥ 85%), and `playwright` suites run after the refactor
+- **THEN** they pass, and the only test edits are import-path updates for moved symbols and mechanical constructor-signature updates that remove chassis coupling — no assertion is weakened or altered
+
+#### Scenario: An assertion change signals a regression
+
+- **WHEN** a test's assertion (not its imports) would need to change for the suite to pass
+- **THEN** this is treated as a behavior regression introduced by the refactor and the code is corrected, rather than the test being adjusted

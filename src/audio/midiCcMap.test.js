@@ -111,9 +111,13 @@ describe('MidiCcMap — localStorage persistence', () => {
 })
 
 describe('MidiCcMap — reverbMix → reverbSend load-time translation', () => {
+  // The rename table is now injected by the caller (the instrument owns it via
+  // param-schema.js, design.md D4); these tests pass it explicitly.
+  const RENAMES = { reverbMix: 'reverbSend' }
+
   it('stored reverbMix entry resolves as reverbSend in memory', () => {
     localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbMix', min: 0, max: 1 }))
-    const map = new MidiCcMap()
+    const map = new MidiCcMap(RENAMES)
     expect(map.resolve(42)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
     expect(map.getAssignedCc('reverbSend')).toBe(42)
     expect(map.getAssignedCc('reverbMix')).toBeNull()
@@ -121,7 +125,7 @@ describe('MidiCcMap — reverbMix → reverbSend load-time translation', () => {
 
   it('translation does not rewrite the localStorage entry', () => {
     localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbMix', min: 0, max: 1 }))
-    new MidiCcMap()
+    new MidiCcMap(RENAMES)
     const raw = localStorage.getItem('midiCc:42')
     expect(JSON.parse(/** @type {string} */ (raw))).toEqual({
       param: 'reverbMix',
@@ -132,7 +136,7 @@ describe('MidiCcMap — reverbMix → reverbSend load-time translation', () => {
 
   it('stored reverbSend entry loads unchanged', () => {
     localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbSend', min: 0, max: 1 }))
-    const map = new MidiCcMap()
+    const map = new MidiCcMap(RENAMES)
     expect(map.resolve(42)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
     expect(map.getAssignedCc('reverbSend')).toBe(42)
   })
@@ -142,7 +146,7 @@ describe('MidiCcMap — reverbMix → reverbSend load-time translation', () => {
     // reverbSend to CC 71 after the rename. Both keys persist in storage.
     localStorage.setItem('midiCc:42', JSON.stringify({ param: 'reverbMix', min: 0, max: 1 }))
     localStorage.setItem('midiCc:71', JSON.stringify({ param: 'reverbSend', min: 0, max: 1 }))
-    const map = new MidiCcMap()
+    const map = new MidiCcMap(RENAMES)
     expect(map.getAssignedCc('reverbSend')).toBe(71)
     expect(map.resolve(71)).toEqual({ param: 'reverbSend', min: 0, max: 1 })
     // The stale reverbMix entry must not shadow the canonical one in #byCC.
