@@ -193,8 +193,8 @@
 <style>
   .wheels-panel {
     position: relative;
-    background: #1c1c1c;
-    border: 1px solid #333;
+    background: var(--panel-bg, #1c1c1c);
+    border: 1px solid var(--panel-border, #333);
     padding: 10px 12px;
     display: flex;
     align-items: center;
@@ -219,16 +219,16 @@
     justify-content: center;
     background: transparent;
     border: none;
-    color: #888;
+    color: var(--control-label-color, #888);
     cursor: pointer;
   }
 
   .gear:hover {
-    color: #c87941;
+    color: var(--accent-color, #c87941);
   }
 
   .gear:focus-visible {
-    outline: 2px solid #c87941;
+    outline: 2px solid var(--accent-color, #c87941);
     outline-offset: 2px;
   }
 
@@ -238,8 +238,8 @@
     left: 6px;
     z-index: 10;
     max-width: calc(100vw - 24px);
-    background: #1c1c1c;
-    border: 1px solid #444;
+    background: var(--panel-bg, #1c1c1c);
+    border: 1px solid var(--control-border, #444);
     padding: 12px;
     display: flex;
     flex-direction: column;
@@ -248,13 +248,13 @@
   }
 
   .popup:focus-visible {
-    outline: 2px solid #c87941;
+    outline: 2px solid var(--accent-color, #c87941);
     outline-offset: 2px;
   }
 
   .section-divider {
     height: 1px;
-    background: #2a2a2a;
+    background: var(--control-bg, #2a2a2a);
   }
 
   .physics-group {
@@ -265,7 +265,7 @@
 
   .group-label {
     font-size: 10px;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
@@ -280,19 +280,19 @@
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #e8dcc8;
-    background: #2a2a2a;
-    border: 1px solid #444;
+    color: var(--panel-label-color, #e8dcc8);
+    background: var(--control-bg, #2a2a2a);
+    border: 1px solid var(--control-border, #444);
     padding: 4px 10px;
     cursor: pointer;
   }
 
   .reset:hover {
-    border-color: #c87941;
+    border-color: var(--accent-color, #c87941);
   }
 
   .reset:focus-visible {
-    outline: 2px solid #c87941;
+    outline: 2px solid var(--accent-color, #c87941);
     outline-offset: 2px;
   }
 </style>

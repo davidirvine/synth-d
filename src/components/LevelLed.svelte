@@ -73,7 +73,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--led-color, #111111);
+    background: var(--led-color, var(--led-off-color, #111111));
     transition: background 80ms ease-out;
   }
 </style>

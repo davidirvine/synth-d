@@ -134,7 +134,7 @@
 
 <div class="keyboard-wrap">
   <svg width={totalWidth} height={WHITE_H + RAIL_H + 2}>
-    <rect x={0} y={0} width={totalWidth} height={RAIL_H} fill="#333" />
+    <rect x={0} y={0} width={totalWidth} height={RAIL_H} fill="var(--panel-border, #333)" />
     <!-- White keys -->
     {#each whiteKeys as key (key.midi)}
       <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -193,39 +193,39 @@
   }
 
   .white-key {
-    fill: #dddddd;
-    stroke: #888;
+    fill: var(--key-white-fill, #dddddd);
+    stroke: var(--key-white-stroke, #888);
     stroke-width: 1;
     cursor: pointer;
     touch-action: none;
   }
 
   .white-key.active {
-    fill: #c87941;
+    fill: var(--key-active-fill, #c87941);
   }
 
   .black-key {
-    fill: #1a1a1a;
-    stroke: #000;
+    fill: var(--key-black-fill, #1a1a1a);
+    stroke: var(--key-black-stroke, #000);
     stroke-width: 1;
     cursor: pointer;
     touch-action: none;
   }
 
   .black-key.active {
-    fill: #c87941;
+    fill: var(--key-active-fill, #c87941);
   }
 
   .key-label {
     font-size: 8px;
-    fill: #888;
+    fill: var(--control-label-color, #888);
     pointer-events: none;
     user-select: none;
   }
 
   .key-label-black {
     font-size: 6px;
-    fill: #aaa;
+    fill: var(--key-label-color, #aaa);
     pointer-events: none;
     user-select: none;
   }

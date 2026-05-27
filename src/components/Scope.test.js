@@ -39,7 +39,7 @@ describe('Scope', () => {
     const canvas = /** @type {Element} */ (container.querySelector('canvas'))
 
     expect(canvas.getAttribute('style')).toContain('height: 80px')
-    expect(canvas.getAttribute('style')).toContain('background: #1c1c1c')
+    expect(canvas.getAttribute('style')).toContain('background: var(--panel-bg, #1c1c1c)')
   })
 
   it('does not start an animation frame when powered is false', () => {

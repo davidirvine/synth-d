@@ -43,8 +43,8 @@
     width: 31px;
     height: 31px;
     border-radius: 50%;
-    background: #1c1c1c;
-    border: 2px solid #333;
+    background: var(--panel-bg, #1c1c1c);
+    border: 2px solid var(--panel-border, #333);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -54,7 +54,7 @@
   }
 
   .power-btn:hover:not(:disabled) {
-    border-color: #555;
+    border-color: var(--control-faint-color, #555);
   }
 
   .power-btn:disabled {
@@ -68,17 +68,17 @@
   }
 
   .power-icon.off {
-    stroke: #e07820;
+    stroke: var(--power-glow-warn, #e07820);
     filter: drop-shadow(0 0 0px transparent);
   }
 
   .power-icon.loading {
-    stroke: #e0c020;
+    stroke: var(--power-glow-ready, #e0c020);
     filter: drop-shadow(0 0 0px transparent);
   }
 
   .power-icon.on {
-    stroke: #20b040;
-    filter: drop-shadow(0 0 3px #20b040);
+    stroke: var(--power-on-color, #20b040);
+    filter: drop-shadow(0 0 3px var(--power-on-color, #20b040));
   }
 </style>

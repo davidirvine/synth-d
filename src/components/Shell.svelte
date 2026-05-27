@@ -426,8 +426,8 @@
     gap: 12px;
     padding: 12px 20px 12px 8px;
     margin: 0 8px;
-    background: #1c1c1c;
-    border-bottom: 1px solid #333;
+    background: var(--panel-bg, #1c1c1c);
+    border-bottom: 1px solid var(--panel-border, #333);
   }
 
   .header-right {
@@ -447,14 +447,14 @@
   }
 
   .github-link {
-    color: #555;
+    color: var(--control-faint-color, #555);
     text-decoration: none;
     line-height: 0;
     transition: color 0.15s;
   }
 
   .github-link:hover {
-    color: #888;
+    color: var(--control-label-color, #888);
   }
 
   .github-link:focus:not(:focus-visible) {
@@ -472,13 +472,13 @@
     font-family: monospace;
     font-size: 16px;
     font-weight: bold;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     letter-spacing: 0.2em;
   }
 
   .version-label {
     font-size: 9px;
-    color: #666;
+    color: var(--control-hint-color, #666);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }

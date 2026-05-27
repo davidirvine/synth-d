@@ -37,7 +37,9 @@ describe('Keyboard — rendering', () => {
 describe('Keyboard — SVG structure', () => {
   it('renders a top rail rect at y=0 with fill #333', () => {
     const { container } = render(Keyboard)
-    const rail = /** @type {Element} */ (container.querySelector('rect[fill="#333"]'))
+    const rail = /** @type {Element} */ (
+      container.querySelector('rect[fill="var(--panel-border, #333)"]')
+    )
     expect(rail).not.toBeNull()
     expect(rail.getAttribute('y')).toBe('0')
   })

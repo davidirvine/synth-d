@@ -96,8 +96,8 @@
 
 <style>
   .panel {
-    background: #1c1c1c;
-    border: 1px solid #333;
+    background: var(--panel-bg, #1c1c1c);
+    border: 1px solid var(--panel-border, #333);
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
@@ -106,7 +106,7 @@
 
   .panel-label {
     font-size: 10px;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
@@ -126,7 +126,7 @@
 
   .section-divider {
     height: 1px;
-    background: #2a2a2a;
+    background: var(--control-bg, #2a2a2a);
   }
 
   .noise-row {
@@ -144,17 +144,17 @@
   .noise-btn {
     font-family: inherit;
     font-size: 9px;
-    background: #2a2a2a;
-    color: #888;
-    border: 1px solid #444;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--control-label-color, #888);
+    border: 1px solid var(--control-border, #444);
     padding: 3px 5px;
     cursor: pointer;
     text-transform: uppercase;
   }
 
   .noise-btn.active {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: var(--accent-active-bg, #3a2a1a);
+    color: var(--accent-color, #c87941);
+    border-color: var(--accent-color, #c87941);
   }
 </style>

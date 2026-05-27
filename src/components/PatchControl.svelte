@@ -388,9 +388,9 @@
     font-family: monospace;
     font-size: 10px;
     letter-spacing: 0.1em;
-    background: #2a2a2a;
-    color: #888;
-    border: 1px solid #444;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--control-label-color, #888);
+    border: 1px solid var(--control-border, #444);
     border-radius: 2px;
     padding: 3px 6px;
     cursor: pointer;
@@ -398,16 +398,16 @@
   }
 
   .trigger:hover {
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
   }
 
   .patch-name {
-    color: #c87941;
+    color: var(--accent-color, #c87941);
     text-transform: uppercase;
   }
 
   .dirty {
-    color: #c87941;
+    color: var(--accent-color, #c87941);
     margin-left: 1px;
   }
 
@@ -417,8 +417,8 @@
     right: 0;
     z-index: 10;
     min-width: 200px;
-    background: #1c1c1c;
-    border: 1px solid #444;
+    background: var(--panel-bg, #1c1c1c);
+    border: 1px solid var(--control-border, #444);
     border-radius: 2px;
     padding: 8px;
     display: flex;
@@ -430,7 +430,7 @@
   .empty {
     font-family: monospace;
     font-size: 10px;
-    color: #666;
+    color: var(--control-hint-color, #666);
     margin: 0;
     padding: 4px 0;
     text-align: center;
@@ -460,7 +460,7 @@
     font-family: monospace;
     font-size: 11px;
     background: transparent;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     border: none;
     padding: 3px 4px;
     cursor: pointer;
@@ -470,17 +470,17 @@
   }
 
   .patch-row.active .patch-load {
-    color: #c87941;
+    color: var(--accent-color, #c87941);
   }
 
   .patch-load:hover {
-    background: #2a2a2a;
+    background: var(--control-bg, #2a2a2a);
   }
 
   .marker {
     display: inline-block;
     width: 0.9em;
-    color: #c87941;
+    color: var(--accent-color, #c87941);
   }
 
   .rename-input {
@@ -488,9 +488,9 @@
     min-width: 0;
     font-family: monospace;
     font-size: 11px;
-    background: #2a2a2a;
-    color: #e8dcc8;
-    border: 1px solid #c87941;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--panel-label-color, #e8dcc8);
+    border: 1px solid var(--accent-color, #c87941);
     border-radius: 2px;
     padding: 2px 4px;
     text-transform: uppercase;
@@ -501,28 +501,28 @@
   .confirm-btn {
     font-family: monospace;
     font-size: 11px;
-    background: #2a2a2a;
-    color: #888;
-    border: 1px solid #444;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--control-label-color, #888);
+    border: 1px solid var(--control-border, #444);
     border-radius: 2px;
     padding: 1px 5px;
     cursor: pointer;
   }
 
   .patch-delete:hover {
-    color: #c8413a;
-    border-color: #c8413a;
+    color: var(--danger-color, #c8413a);
+    border-color: var(--danger-color, #c8413a);
   }
 
   .patch-rename:hover {
-    color: #c87941;
-    border-color: #c87941;
+    color: var(--accent-color, #c87941);
+    border-color: var(--accent-color, #c87941);
   }
 
   .confirm {
     font-family: monospace;
     font-size: 10px;
-    color: #c87941;
+    color: var(--accent-color, #c87941);
     display: inline-flex;
     align-items: center;
     gap: 3px;
@@ -533,7 +533,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--panel-border, #333);
     padding-top: 6px;
   }
 
@@ -542,16 +542,16 @@
     min-width: 0;
     font-family: monospace;
     font-size: 11px;
-    background: #2a2a2a;
-    color: #e8dcc8;
-    border: 1px solid #444;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--panel-label-color, #e8dcc8);
+    border: 1px solid var(--control-border, #444);
     border-radius: 2px;
     padding: 3px 5px;
     text-transform: uppercase;
   }
 
   .name-input::placeholder {
-    color: #666;
+    color: var(--control-hint-color, #666);
     /* Placeholder is descriptive text, not an entered name — keep it as-is. */
     text-transform: none;
   }
@@ -560,16 +560,16 @@
     font-family: monospace;
     font-size: 10px;
     letter-spacing: 0.1em;
-    background: #3a2a1a;
-    color: #c87941;
-    border: 1px solid #c87941;
+    background: var(--accent-active-bg, #3a2a1a);
+    color: var(--accent-color, #c87941);
+    border: 1px solid var(--accent-color, #c87941);
     border-radius: 2px;
     padding: 3px 8px;
     cursor: pointer;
   }
 
   .save-btn:hover:not(:disabled) {
-    background: #4a3424;
+    background: var(--accent-active-hover-bg, #4a3424);
   }
 
   .save-btn:disabled,
@@ -581,7 +581,7 @@
   .error {
     font-family: monospace;
     font-size: 10px;
-    color: #c8413a;
+    color: var(--danger-color, #c8413a);
     margin: 0;
   }
 </style>
