@@ -11,8 +11,8 @@
 
 ## 3. Tokenize chassis components
 
-- [ ] 3.1 Replace identity color literals with `var(--token, <current-value>)` in the chassis components: `Knob`, `Wheel`, `WheelsPanel`, `Scope`, `PowerButton` (its `#20b040` → `--led-on`), `MidiStatus`, `PatchControl` (its `#c8413a` → `--danger`; review the `rgba()` per 1.2), `Keyboard`, `RegisterPanel`, `EmptyPanel`, `Shell` — each fallback equal to today's value. `LevelLed`: tokenize only the `#111111` off-state (`--led-off`); leave the dynamic `--led-color` HSL ramp untouched. Leave `font-family: inherit` and bare `monospace` declarations as-is (D7)
-- [ ] 3.2 Run `npx vitest run` on the component suite; confirm green. Rendered values are unchanged, so behavioral assertions are untouched — with one human-approved exception: two **serialization** assertions on chassis literals (`Scope.test.js` inline `background`, `Keyboard.test.js` rail `fill`) are updated to track the tokenized form, since those literals are now `var(--token, …)` references (see `inventory.md`)
+- [x] 3.1 Replace identity color literals with `var(--token, <current-value>)` in the chassis components: `Knob`, `Wheel`, `WheelsPanel`, `Scope`, `PowerButton` (its `#20b040` → `--led-on`), `MidiStatus`, `PatchControl` (its `#c8413a` → `--danger`; review the `rgba()` per 1.2), `Keyboard`, `RegisterPanel`, `EmptyPanel`, `Shell` — each fallback equal to today's value. `LevelLed`: tokenize only the `#111111` off-state (`--led-off`); leave the dynamic `--led-color` HSL ramp untouched. Leave `font-family: inherit` and bare `monospace` declarations as-is (D7)
+- [x] 3.2 Run `npx vitest run` on the component suite; confirm green. Rendered values are unchanged, so behavioral assertions are untouched — with one human-approved exception: two **serialization** assertions on chassis literals (`Scope.test.js` inline `background`, `Keyboard.test.js` rail `fill`) are updated to track the tokenized form, since those literals are now `var(--token, …)` references (see `inventory.md`)
 
 ## 4. Tokenize instrument panels and global.css
 

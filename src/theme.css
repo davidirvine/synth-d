@@ -65,7 +65,7 @@
   --knob-arc-track-color: var(--border); /* #333 background arc */
   --knob-track-color: var(--surface-raised); /* #2a2a2a body fill */
   --knob-track-stroke: var(--border-strong); /* #444 body stroke */
-  --knob-indicator-color: var(--text-primary); /* #e8dcc8 pointer */
+  --knob-tick-label-color: var(--text-primary); /* #e8dcc8 SVG tick label */
   --knob-tick-color: #6a6a6a; /* tick label grey */
 
   /* scope */

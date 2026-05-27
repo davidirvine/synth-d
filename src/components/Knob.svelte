@@ -266,7 +266,7 @@
 
   .knob-label {
     font-size: 10px;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     letter-spacing: 0.05em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -275,7 +275,7 @@
 
   .knob-value {
     font-size: 10px;
-    color: #888;
+    color: var(--control-label-color, #888);
     line-height: 1;
   }
 
@@ -292,7 +292,7 @@
 
   .interval-indicator {
     font-size: 10px;
-    color: #6a6a6a;
+    color: var(--knob-tick-color, #6a6a6a);
     min-height: 1em;
     line-height: 1;
     letter-spacing: 0.03em;
@@ -308,7 +308,7 @@
 
   .cc-label {
     font-size: 9px;
-    color: #666;
+    color: var(--control-hint-color, #666);
     font-family: monospace;
     letter-spacing: 0.03em;
   }
@@ -323,26 +323,26 @@
   }
 
   .track {
-    stroke: #333;
+    stroke: var(--knob-arc-track-color, #333);
   }
 
   .arc {
-    stroke: #c87941;
+    stroke: var(--knob-arc-color, #c87941);
   }
 
   .body {
-    fill: #2a2a2a;
-    stroke: #444;
+    fill: var(--knob-track-color, #2a2a2a);
+    stroke: var(--knob-track-stroke, #444);
     stroke-width: 1;
   }
 
   .indicator {
-    stroke: #c87941;
+    stroke: var(--knob-arc-color, #c87941);
   }
 
   .tick-label {
     font-size: 7px;
-    fill: #e8dcc8;
+    fill: var(--knob-tick-label-color, #e8dcc8);
     font-family: monospace;
     text-transform: uppercase;
     pointer-events: none;
@@ -350,7 +350,7 @@
   }
 
   .learn-ring {
-    stroke: #c87941;
+    stroke: var(--knob-arc-color, #c87941);
     animation: learn-pulse 0.8s ease-in-out infinite alternate;
   }
 

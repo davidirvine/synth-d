@@ -9,6 +9,10 @@
   let frameId = 0
   let mounted = false
   let dataArray = /** @type {Uint8Array<ArrayBuffer> | null} */ (null)
+  // Resolved once on mount from the --scope-trace-color theme token (D7); the
+  // canvas stroke color is JS-driven, so it reads the cascaded custom property
+  // rather than carrying a hardcoded literal.
+  let traceColor = '#e8dcc8'
 
   function syncCanvasSize() {
     if (!canvas) return
@@ -23,7 +27,7 @@
     syncCanvasSize()
 
     context.clearRect(0, 0, canvas.width, canvas.height)
-    context.strokeStyle = '#e8dcc8'
+    context.strokeStyle = traceColor
     context.lineWidth = 2
     context.beginPath()
     context.moveTo(0, canvas.height / 2)
@@ -44,7 +48,7 @@
     analyser.getByteTimeDomainData(dataArray)
 
     context.clearRect(0, 0, canvas.width, canvas.height)
-    context.strokeStyle = '#e8dcc8'
+    context.strokeStyle = traceColor
     context.lineWidth = 2
     context.beginPath()
 
@@ -100,6 +104,10 @@
   onMount(() => {
     context = canvas?.getContext('2d') ?? null
     mounted = true
+    if (canvas) {
+      traceColor =
+        getComputedStyle(canvas).getPropertyValue('--scope-trace-color').trim() || '#e8dcc8'
+    }
     drawMidline()
     syncAnimation()
   })
@@ -120,15 +128,15 @@
   <div class="scope-body">
     <canvas
       bind:this={canvas}
-      style="display: block; width: 100%; height: 80px; background: #1c1c1c;"
+      style="display: block; width: 100%; height: 80px; background: var(--panel-bg, #1c1c1c);"
     ></canvas>
   </div>
 </div>
 
 <style>
   .panel {
-    background: #1c1c1c;
-    border: 1px solid #333;
+    background: var(--panel-bg, #1c1c1c);
+    border: 1px solid var(--panel-border, #333);
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
@@ -137,7 +145,7 @@
 
   .panel-label {
     font-size: 10px;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }

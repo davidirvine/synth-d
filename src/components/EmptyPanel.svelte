@@ -2,8 +2,8 @@
 
 <style>
   .panel {
-    background: #1c1c1c;
-    border: 1px solid #333;
+    background: var(--panel-bg, #1c1c1c);
+    border: 1px solid var(--panel-border, #333);
     padding: 10px 12px;
   }
 </style>

@@ -195,7 +195,7 @@
 
   .wheel-label {
     font-size: 10px;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     text-align: center;
@@ -205,14 +205,14 @@
     position: relative;
     width: 18px;
     height: 60px;
-    background: #2a2a2a;
-    border: 1px solid #444;
+    background: var(--control-bg, #2a2a2a);
+    border: 1px solid var(--control-border, #444);
     cursor: ns-resize;
     touch-action: none;
   }
 
   .wheel-track:focus-visible {
-    outline: 2px solid #c87941;
+    outline: 2px solid var(--accent-color, #c87941);
     outline-offset: 2px;
   }
 
@@ -221,6 +221,6 @@
     left: 0;
     width: 100%;
     height: 4px;
-    background: #c87941;
+    background: var(--accent-color, #c87941);
   }
 </style>
