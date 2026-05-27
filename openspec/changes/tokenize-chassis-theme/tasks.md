@@ -26,8 +26,8 @@
 
 ## 6. Pixel-identity and full regression gate
 
-- [ ] 6.1 Run the Playwright screenshot gate (task 1.1); confirm the post-tokenization render matches the pre-change baseline at power-off and power-on within threshold
-- [ ] 6.2 Run `npx vitest run` — all unit + component tests pass
-- [ ] 6.3 Run `npx stryker run` — mutation score ≥ 85%
-- [ ] 6.4 Run `npx playwright test` — all E2E pass
-- [ ] 6.5 Remove the throwaway screenshot spec and its baseline snapshots — including the generated images in the spec's snapshot directory (glob for the spec's `*.png` artifacts, honoring any `snapshotDir`/`snapshotPathTemplate` in the Playwright config) so no dead artifacts ship; confirm no assertion changed anywhere in the suite
+- [x] 6.1 Run the Playwright screenshot gate (task 1.1); confirm the post-tokenization render matches the pre-change baseline at power-off and power-on within threshold
+- [x] 6.2 Run `npx vitest run` — all unit + component tests pass
+- [x] 6.3 Run `npx stryker run` — mutation score ≥ 85%
+- [x] 6.4 Run `npx playwright test` — all E2E pass
+- [x] 6.5 Remove the throwaway screenshot spec and its baseline snapshots — including the generated images in the spec's snapshot directory (glob for the spec's `*.png` artifacts, honoring any `snapshotDir`/`snapshotPathTemplate` in the Playwright config) so no dead artifacts ship; confirm no assertion changed anywhere in the suite
