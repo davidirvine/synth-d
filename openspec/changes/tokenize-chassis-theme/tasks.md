@@ -6,8 +6,8 @@
 ## 2. Author the token system
 
 - [x] 2.1 Create `src/theme.css` defining the palette layer on `:root` (accent, text, surfaces, `--led-on` [green active], `--danger`/clip [red], `--led-off`, `--font-mono` = the full mono stack — ~10–12 tokens) with each value set to synth-d's current color, and the component-token layer referencing the palette (e.g. `--knob-arc-color: var(--accent-warm)`). Per D7: no `--led-on`/clip token is placed in LevelLed (its lit color is the algorithmic `--led-color` ramp); bare `monospace` sites are NOT folded into `--font-mono`
-- [ ] 2.2 Import `theme.css` in `src/main.js` so its `:root` tokens apply and cascade to all components. (Note: `var()` resolves from the cascaded `:root` rule at use time regardless of JS import order — as the existing `var(--knob-body-size)` proves — so import order is not a correctness invariant; place it alongside `global.css`)
-- [ ] 2.3 Verify the cascade reaches both tiers: temporarily override one palette token and confirm a chassis component (Knob) and an instrument panel (Oscillator) both pick it up; revert the override
+- [x] 2.2 Import `theme.css` in `src/main.js` so its `:root` tokens apply and cascade to all components. (Note: `var()` resolves from the cascaded `:root` rule at use time regardless of JS import order — as the existing `var(--knob-body-size)` proves — so import order is not a correctness invariant; place it alongside `global.css`)
+- [x] 2.3 Verify the cascade reaches both tiers: temporarily override one palette token and confirm a chassis component (Knob) and an instrument panel (Oscillator) both pick it up; revert the override
 
 ## 3. Tokenize chassis components
 
