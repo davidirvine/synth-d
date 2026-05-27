@@ -28,8 +28,8 @@
 
 <style>
   .panel {
-    background: #1c1c1c;
-    border: 1px solid #333;
+    background: var(--panel-bg, #1c1c1c);
+    border: 1px solid var(--panel-border, #333);
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
@@ -39,7 +39,7 @@
 
   .panel-label {
     font-size: 10px;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }

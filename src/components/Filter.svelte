@@ -133,8 +133,8 @@
 
 <style>
   .panel {
-    background: #1c1c1c;
-    border: 1px solid #333;
+    background: var(--panel-bg, #1c1c1c);
+    border: 1px solid var(--panel-border, #333);
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
@@ -143,14 +143,14 @@
 
   .panel-label {
     font-size: 10px;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
 
   .sub-label {
     font-size: 9px;
-    color: #666;
+    color: var(--control-hint-color, #666);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
@@ -163,7 +163,7 @@
 
   .section-divider {
     height: 1px;
-    background: #2a2a2a;
+    background: var(--control-bg, #2a2a2a);
   }
 
   .knob-row {
@@ -193,9 +193,9 @@
   .toggle-btn {
     font-family: inherit;
     font-size: 9px;
-    background: #2a2a2a;
-    color: #888;
-    border: 1px solid #444;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--control-label-color, #888);
+    border: 1px solid var(--control-border, #444);
     padding: 3px 8px;
     cursor: pointer;
     text-transform: uppercase;
@@ -205,9 +205,9 @@
   }
 
   .toggle-btn.active {
-    background: #1a2a1a;
-    color: #20b040;
-    border-color: #20b040;
+    background: var(--led-on-bg, #1a2a1a);
+    color: var(--led-on-color, #20b040);
+    border-color: var(--led-on-color, #20b040);
   }
 
   /* Reserve fixed width for the filter env amount knob value.

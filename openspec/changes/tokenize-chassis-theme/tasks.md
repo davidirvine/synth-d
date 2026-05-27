@@ -16,8 +16,8 @@
 
 ## 4. Tokenize instrument panels and global.css
 
-- [ ] 4.1 Replace identity color literals with palette-token references in the instrument panels: `Oscillator`, `Mixer`, `Filter`, `AmpEnv`, `Effects`, `Modulation`, `Glide`, `Volume`, `SubtractivePanels` (the panels' `#20b040` active-state → `--led-on`), and in `src/global.css` (its mono stack → `--font-mono`) — fallbacks equal to current values. Leave `font-family: inherit` as-is (it cascades from the now-tokenized global rule)
-- [ ] 4.2 Run `npx vitest run`; confirm green
+- [x] 4.1 Replace identity color literals with palette-token references in the instrument panels: `Oscillator`, `Mixer`, `Filter`, `AmpEnv`, `Effects`, `Modulation`, `Glide`, `Volume`, `SubtractivePanels` (the panels' `#20b040` active-state → `--led-on`), and in `src/global.css` (its mono stack → `--font-mono`) — fallbacks equal to current values. Leave `font-family: inherit` as-is (it cascades from the now-tokenized global rule)
+- [x] 4.2 Run `npx vitest run`; confirm green
 
 ## 5. Verify no hardcoded identity literals remain
 

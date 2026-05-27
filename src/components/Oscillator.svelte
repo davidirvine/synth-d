@@ -168,8 +168,8 @@
 
 <style>
   .panel {
-    background: #1c1c1c;
-    border: 1px solid #333;
+    background: var(--panel-bg, #1c1c1c);
+    border: 1px solid var(--panel-border, #333);
     padding: 10px 12px;
     display: flex;
     flex-direction: column;
@@ -178,7 +178,7 @@
 
   .panel-label {
     font-size: 10px;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
@@ -188,7 +188,7 @@
     flex-direction: column;
     gap: 6px;
     padding-bottom: 8px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--control-bg, #2a2a2a);
   }
 
   .osc-section:last-child {
@@ -198,7 +198,7 @@
 
   .osc-label {
     font-size: 9px;
-    color: #888;
+    color: var(--control-label-color, #888);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
@@ -211,18 +211,18 @@
   .wave-btn {
     font-family: inherit;
     font-size: 9px;
-    background: #2a2a2a;
-    color: #888;
-    border: 1px solid #444;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--control-label-color, #888);
+    border: 1px solid var(--control-border, #444);
     padding: 3px 5px;
     cursor: pointer;
     text-transform: uppercase;
   }
 
   .wave-btn.active {
-    background: #3a2a1a;
-    color: #c87941;
-    border-color: #c87941;
+    background: var(--accent-active-bg, #3a2a1a);
+    color: var(--accent-color, #c87941);
+    border-color: var(--accent-color, #c87941);
   }
 
   .range-row {
@@ -233,16 +233,16 @@
 
   .param-label {
     font-size: 9px;
-    color: #666;
+    color: var(--control-hint-color, #666);
     text-transform: uppercase;
   }
 
   .step-btn {
     font-family: inherit;
     font-size: 14px;
-    background: #2a2a2a;
-    color: #888;
-    border: 1px solid #444;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--control-label-color, #888);
+    border: 1px solid var(--control-border, #444);
     width: 20px;
     height: 20px;
     cursor: pointer;
@@ -256,7 +256,7 @@
 
   .range-val {
     font-size: 11px;
-    color: #e8dcc8;
+    color: var(--panel-label-color, #e8dcc8);
     width: 22px;
     text-align: center;
   }
@@ -264,9 +264,9 @@
   .lfo-btn {
     font-family: inherit;
     font-size: 9px;
-    background: #2a2a2a;
-    color: #888;
-    border: 1px solid #444;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--control-label-color, #888);
+    border: 1px solid var(--control-border, #444);
     padding: 3px 8px;
     cursor: pointer;
     text-transform: uppercase;
@@ -274,8 +274,8 @@
   }
 
   .lfo-btn.active {
-    background: #1a2a1a;
-    color: #20b040;
-    border-color: #20b040;
+    background: var(--led-on-bg, #1a2a1a);
+    color: var(--led-on-color, #20b040);
+    border-color: var(--led-on-color, #20b040);
   }
 </style>

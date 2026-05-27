@@ -7,9 +7,16 @@
 }
 
 body {
-  background: #111111;
-  color: #e8dcc8;
-  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, monospace;
+  background: var(--surface-deep, #111111);
+  color: var(--text-primary, #e8dcc8);
+  font-family: var(
+    --font-mono,
+    'JetBrains Mono',
+    'Cascadia Code',
+    'Fira Code',
+    ui-monospace,
+    monospace
+  );
   min-height: 100vh;
   overflow-x: hidden;
 }
