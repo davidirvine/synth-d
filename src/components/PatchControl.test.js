@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, fireEvent } from '@testing-library/svelte'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { render, fireEvent, waitFor } from '@testing-library/svelte'
 import PatchControl from './PatchControl.svelte'
 import {
   resetParams,
@@ -425,6 +425,179 @@ describe('PatchControl — dirty marker', () => {
     // Missing params fell back to defaults, and the baseline has every key, so
     // there are no spurious unsaved-change markers.
     expect(container.querySelector('.dirty')).toBeNull()
+  })
+})
+
+describe('PatchControl — export/import footer', () => {
+  /** Build valid patch-file JSON text. */
+  function fileText(name, params = {}) {
+    return JSON.stringify({ fileFormat: 1, name, version: 1, params })
+  }
+
+  /**
+   * Simulate selecting a file in the hidden input. jsdom's `files` is read-only,
+   * so it is defined imperatively; the FileReader onload then fires async.
+   * @param {HTMLElement} container @param {string} text @param {string} [filename]
+   */
+  function selectFile(container, text, filename = 'patch.json') {
+    const input = /** @type {HTMLInputElement} */ (container.querySelector('.file-input'))
+    const file = new File([text], filename, { type: 'application/json' })
+    Object.defineProperty(input, 'files', { value: [file], configurable: true })
+    return fireEvent.change(input)
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    // stubGlobal is undone by unstubAllGlobals, not restoreAllMocks — without
+    // this the URL/FileReader stubs would leak into later tests.
+    vi.unstubAllGlobals()
+  })
+
+  it('renders Export and Import controls in the footer', async () => {
+    const { container, getByLabelText } = render(PatchControl)
+    await openPopover(container)
+    expect(getByLabelText('export active patch')).toBeTruthy()
+    expect(getByLabelText('import patch from file')).toBeTruthy()
+    // The per-row controls are untouched: with no patches, none are present.
+    expect(container.querySelector('.patch-rename')).toBeNull()
+  })
+
+  it('disables Export accessibly when there is no active patch', async () => {
+    const { container, getByLabelText } = render(PatchControl)
+    await openPopover(container)
+    const exportBtn = /** @type {HTMLButtonElement} */ (getByLabelText('export active patch'))
+    // Native disabled communicates the state to assistive tech.
+    expect(exportBtn.disabled).toBe(true)
+  })
+
+  it('enables Export once a patch is active', async () => {
+    setActivePatch('LEAD', { ...PARAM_DEFAULTS })
+    const { container, getByLabelText } = render(PatchControl)
+    await openPopover(container)
+    expect(/** @type {HTMLButtonElement} */ (getByLabelText('export active patch')).disabled).toBe(
+      false
+    )
+  })
+
+  it('keeps Import available while powered off', async () => {
+    const { container, getByLabelText } = render(PatchControl, { props: { powered: false } })
+    await openPopover(container)
+    const importBtn = /** @type {HTMLButtonElement} */ (getByLabelText('import patch from file'))
+    expect(importBtn.disabled).toBe(false)
+  })
+
+  it('wires Export to a sanitized .json Blob download', async () => {
+    setActivePatch('MY/LEAD', { ...PARAM_DEFAULTS, cutoff: 1234 })
+    const createUrl = vi.fn(() => 'blob:fake')
+    const revokeUrl = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL: createUrl, revokeObjectURL: revokeUrl })
+    /** @type {HTMLAnchorElement[]} */
+    const anchors = []
+    const realCreate = document.createElement.bind(document)
+    vi.spyOn(document, 'createElement').mockImplementation((tag) => {
+      const el = realCreate(tag)
+      if (tag === 'a') anchors.push(/** @type {HTMLAnchorElement} */ (el))
+      return el
+    })
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    const { container, getByLabelText } = render(PatchControl)
+    await openPopover(container)
+    await fireEvent.click(getByLabelText('export active patch'))
+
+    expect(createUrl).toHaveBeenCalledOnce()
+    expect(clickSpy).toHaveBeenCalledOnce()
+    // Unsafe characters in the name are sanitized in the download filename.
+    expect(anchors[0].download).toBe('MY_LEAD.json')
+    expect(revokeUrl).toHaveBeenCalledWith('blob:fake')
+    // Export mutated nothing.
+    expect(listPatches()).toEqual([])
+  })
+
+  it('imports a valid file and the patch appears in the list', async () => {
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    await selectFile(container, fileText('IMPORTED', { cutoff: 8000 }))
+    await waitFor(() => expect(listPatches()).toContain('IMPORTED'))
+    // A success notice names the imported patch.
+    await waitFor(() =>
+      expect(/** @type {Element} */ (container.querySelector('.status')).textContent).toContain(
+        'IMPORTED'
+      )
+    )
+  })
+
+  it('surfaces the rejection reason and adds no patch on an invalid file', async () => {
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    await selectFile(container, 'this is not json')
+    await waitFor(() =>
+      expect(/** @type {Element} */ (container.querySelector('.error')).textContent).toMatch(
+        /json/i
+      )
+    )
+    expect(listPatches()).toEqual([])
+  })
+
+  it('rejects an oversized file without reading it', async () => {
+    const { MAX_IMPORT_BYTES } = await import('../patches/file.js')
+    // A FileReader that fails the test if it is ever asked to read.
+    const readSpy = vi.fn()
+    class GuardFileReader {
+      readAsText() {
+        readSpy()
+      }
+    }
+    vi.stubGlobal('FileReader', GuardFileReader)
+
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    const input = /** @type {HTMLInputElement} */ (container.querySelector('.file-input'))
+    const file = new File(['{}'], 'big.json', { type: 'application/json' })
+    // Override the reported size so no multi-megabyte buffer is allocated.
+    Object.defineProperty(file, 'size', { value: MAX_IMPORT_BYTES + 1, configurable: true })
+    Object.defineProperty(input, 'files', { value: [file], configurable: true })
+    await fireEvent.change(input)
+
+    expect(readSpy).not.toHaveBeenCalled()
+    expect(/** @type {Element} */ (container.querySelector('.error')).textContent).toMatch(/large/i)
+    expect(listPatches()).toEqual([])
+  })
+
+  it('surfaces a reason when reading the file fails', async () => {
+    // A FileReader stub that errors instead of loading.
+    class ErroringFileReader {
+      readAsText() {
+        Promise.resolve().then(() => this.onerror && this.onerror(new Event('error')))
+      }
+    }
+    vi.stubGlobal('FileReader', ErroringFileReader)
+
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    await selectFile(container, fileText('X'))
+    await waitFor(() =>
+      expect(/** @type {Element} */ (container.querySelector('.error')).textContent).toMatch(
+        /read/i
+      )
+    )
+    expect(listPatches()).toEqual([])
+  })
+
+  it('re-importing the same file fires the handler again (input.value reset)', async () => {
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    const input = /** @type {HTMLInputElement} */ (container.querySelector('.file-input'))
+
+    await selectFile(container, fileText('DUP', { cutoff: 1000 }))
+    await waitFor(() => expect(listPatches()).toContain('DUP'))
+    expect(input.value).toBe('')
+
+    // Selecting the same file again must run the pipeline a second time — the
+    // collision auto-suffix proves the handler fired, not silently dedup'd.
+    await selectFile(container, fileText('DUP', { cutoff: 2000 }))
+    await waitFor(() => expect(listPatches()).toContain('DUP 2'))
+    expect(input.value).toBe('')
   })
 })
 
