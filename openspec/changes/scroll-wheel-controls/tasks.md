@@ -43,4 +43,4 @@
 
 - [x] 8.1 Run `/opsx:verify scroll-wheel-controls` and resolve any artifact/implementation mismatch
 - [x] 8.2 Run the full STACK.md suite: `npx vitest run`, `npx stryker run` (mutation ≥ 85%), `npx playwright test`
-- [ ] 8.3 Run `roborev status` then `roborev refine --max-iterations 3`; present results to the human for approval
+- [x] 8.3 Run `roborev status` then `roborev refine --max-iterations 3`; present results to the human for approval
