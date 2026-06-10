@@ -3,6 +3,7 @@
   "$id": "https://synth-d.local/schemas/patch-file.schema.json",
   "title": "Synth-D patch file",
   "description": "Canonical contract for an exported Synth-D patch file. REFERENCE DOCUMENTATION ONLY — this document is not loaded or executed at runtime; import validation is hand-rolled in src/patches/file.js (no runtime schema dependency). A test (file.schema.test.js) validates shared fixtures against both this document and the hand-rolled validator and asserts they agree, so the two cannot silently drift. The structural gate checks number-ness of parameter values only; integer-domain coercion of switch parameters happens after validation and is intentionally NOT expressed here.",
+  "$comment": "`additionalProperties` is intentionally left unset (i.e. extra top-level keys are TOLERATED), matching the hand-rolled validator, which inspects only fileFormat/name/params and ignores any other keys. This is a conscious choice, not an oversight: unknown top-level keys (e.g. from a newer or hand-edited file) are harmless and forward-compatible. Do not add `additionalProperties: false` here without also tightening the validator, or the drift test will fail.",
   "type": "object",
   "required": ["fileFormat", "name", "params"],
   "properties": {

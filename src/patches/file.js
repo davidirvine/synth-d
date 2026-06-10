@@ -213,6 +213,10 @@ export function uniquePatchName(name, existingNames) {
   const taken = new Set(existingNames.map((n) => n.toUpperCase()))
   if (!taken.has(base)) return base
 
+  // Termination is guaranteed: each iteration produces a candidate ending in a
+  // distinct " N", so the candidates are pairwise distinct across n. `taken` is
+  // finite, so a free candidate must appear within at most `taken.size + 1`
+  // iterations — the loop cannot spin indefinitely.
   for (let n = 2; ; n++) {
     const suffix = ` ${n}`
     // Truncate the base (not the suffix) when the suffixed name overflows the cap.
