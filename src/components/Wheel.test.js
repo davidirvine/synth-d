@@ -272,3 +272,84 @@ describe('Wheel — external value cancels spring-back (MIDI vs on-screen)', () 
     expect(cursor.style.top).toBe(`${(1 - 0.3) * 56}px`) // re-snapped to 0.3
   })
 })
+
+describe('Wheel — scroll wheel', () => {
+  it('PITCH: scrolling up bends the cursor up by KEY_STEP then springs back to 0.5', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { externalValue: 0.5, onchange } })
+    const el = track(container)
+    await fireEvent.wheel(el, { deltaY: -100 }) // up: 0.5 + 0.05 = 0.55
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBeCloseTo(0.55, 5)
+    // A spring-back frame was scheduled and returns the cursor to centre.
+    expect(rafMap.size).toBe(1)
+    flushFrames(1000)
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBeCloseTo(0.5, 2)
+  })
+
+  it('PITCH: scrolling down bends the cursor down by KEY_STEP', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { externalValue: 0.5, onchange } })
+    const el = track(container)
+    await fireEvent.wheel(el, { deltaY: 100 }) // down: 0.5 − 0.05 = 0.45
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBeCloseTo(0.45, 5)
+  })
+
+  it('PITCH: a scroll during spring-back restarts from the in-flight position', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { externalValue: 0.5, onchange } })
+    const el = track(container)
+    await fireEvent.wheel(el, { deltaY: -100 }) // 0.55, spring starts
+    flushFrames(1) // advance one frame: the cursor is now mid-flight, < 0.55
+    const inFlight = onchange.mock.calls.at(-1)?.[0].value
+    expect(inFlight).toBeLessThan(0.55) // moving back toward 0.5
+
+    await fireEvent.wheel(el, { deltaY: -100 }) // read in-flight value, add 0.05
+    const afterSecond = onchange.mock.calls.at(-1)?.[0].value
+    // The increment is applied to the live in-flight position, not compounded
+    // onto the stale 0.55 (which would give ~0.6) nor reset to 0.5 (→ 0.55).
+    expect(afterSecond).toBeCloseTo(Math.min(1, inFlight + 0.05), 5)
+    // And the spring restarts from there.
+    expect(rafMap.size).toBe(1)
+  })
+
+  it('MOD (non-spring): scrolling moves the cursor and it holds (no spring frame)', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { springBack: false, rest: 0, onchange } })
+    const el = track(container)
+    await fireEvent.wheel(el, { deltaY: -100 }) // 0 + 0.05 = 0.05
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBeCloseTo(0.05, 5)
+    // No spring loop is scheduled and the value holds across frames.
+    expect(rafMap.size).toBe(0)
+    flushFrames(1000)
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBeCloseTo(0.05, 5)
+  })
+
+  it('the increment is independent of deltaY magnitude (one KEY_STEP per event)', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { springBack: false, rest: 0, onchange } })
+    const el = track(container)
+    await fireEvent.wheel(el, { deltaY: -3 }) // small notch → 0.05
+    await fireEvent.wheel(el, { deltaY: -300 }) // large notch → 0.10
+    const values = onchange.mock.calls.map((c) => c[0].value)
+    expect(values[0]).toBeCloseTo(0.05, 5)
+    expect(values[1]).toBeCloseTo(0.1, 5)
+  })
+
+  it('ignores scroll while a pointer drag is in progress', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { externalValue: 0.5, onchange } })
+    const el = track(container)
+    await fireEvent.pointerDown(el, { clientY: 100, pointerId: 1 })
+    onchange.mockClear()
+    await fireEvent.wheel(el, { deltaY: -100 })
+    expect(onchange).not.toHaveBeenCalled()
+  })
+
+  it('calls preventDefault so the page does not scroll', () => {
+    const { container } = render(Wheel, { props: { externalValue: 0.5 } })
+    const el = track(container)
+    const ev = new WheelEvent('wheel', { deltaY: -100, cancelable: true, bubbles: true })
+    el.dispatchEvent(ev)
+    expect(ev.defaultPrevented).toBe(true)
+  })
+})
