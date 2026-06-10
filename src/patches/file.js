@@ -98,3 +98,50 @@ export function parsePatchFile(text) {
   }
   return { ok: true, value }
 }
+
+/** The file-format versions this build recognizes. Only the current one. */
+const RECOGNIZED_FILE_FORMATS = new Set([FILE_FORMAT_VERSION])
+
+/** @param {unknown} v @returns {v is Record<string, unknown>} plain (non-array) object */
+function isPlainObject(v) {
+  return typeof v === 'object' && v !== null && !Array.isArray(v)
+}
+
+/**
+ * The structural gate: the trust boundary for an untrusted, already-parsed file.
+ * It rejects a malformed *shape* with a human-readable reason but never coerces
+ * values — top-level must be an object, `fileFormat` must be a recognized
+ * version, `name` must be a string, `params` must be an object, and every
+ * parameter value must be a number. It deliberately checks number-ness ONLY: the
+ * integer-domain check for switches and the dropping of non-finite values both
+ * belong to the coercion layer, so the two postures (reject shape vs. coerce
+ * magnitude) never fight. An empty `params` object is valid. (`JSON.parse` cannot
+ * even produce a non-finite number, so the gate never needs to.)
+ * @param {unknown} value the parsed file value
+ * @returns {{ ok: true, file: { fileFormat: number, name: string, version: unknown, params: Record<string, number> } } | { ok: false, error: string }}
+ */
+export function validatePatchFile(value) {
+  if (!isPlainObject(value)) {
+    return { ok: false, error: 'file is not a patch object' }
+  }
+  if (!RECOGNIZED_FILE_FORMATS.has(value.fileFormat)) {
+    return { ok: false, error: 'unsupported or missing file-format version' }
+  }
+  if (typeof value.name !== 'string') {
+    return { ok: false, error: 'patch name must be a string' }
+  }
+  if (!isPlainObject(value.params)) {
+    return { ok: false, error: 'patch params must be an object' }
+  }
+  for (const [key, paramValue] of Object.entries(value.params)) {
+    if (typeof paramValue !== 'number') {
+      return { ok: false, error: `parameter "${key}" must be a number` }
+    }
+  }
+  return {
+    ok: true,
+    file: /** @type {{ fileFormat: number, name: string, version: unknown, params: Record<string, number> }} */ (
+      value
+    ),
+  }
+}
