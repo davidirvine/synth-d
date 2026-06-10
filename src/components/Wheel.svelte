@@ -11,6 +11,7 @@
     label?: string,
     externalValue?: number,
     externalNonce?: number,
+    springBack?: boolean,
     mass?: number,
     spring?: number,
     damping?: number,
@@ -21,6 +22,7 @@
     label = '',
     externalValue = undefined,
     externalNonce = 0,
+    springBack = true,
     mass = DEFAULT_PHYSICS.mass,
     spring = DEFAULT_PHYSICS.spring,
     damping = DEFAULT_PHYSICS.damping,
@@ -79,6 +81,9 @@
   }
 
   function startSpring() {
+    // A non-spring wheel (springBack=false) holds wherever it was left: no RAF
+    // loop is started, so the cursor stays put instead of returning to rest.
+    if (!springBack) return
     cancelSpring()
     // The spring starts from rest at the released position (no carried-over drag
     // velocity), matching the design's integrator model. A "flick" feel that
