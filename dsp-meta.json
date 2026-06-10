@@ -25,7 +25,7 @@
         "."
     ],
     "size": 1160052,
-    "code": "uD7CB1Q8Hw==",
+    "code": "yD7CB1Q8Hw==",
     "inputs": 0,
     "outputs": 2,
     "meta": [
@@ -709,7 +709,7 @@
                     "shortname": "modWheel",
                     "address": "/synth/modWheel",
                     "index": 262220,
-                    "init": 0.5,
+                    "init": 0,
                     "min": 0,
                     "max": 1,
                     "step": 0.001

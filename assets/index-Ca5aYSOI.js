@@ -42,6 +42,13 @@ var object_prototype = Object.prototype;
 var array_prototype = Array.prototype;
 var get_prototype_of = Object.getPrototypeOf;
 var is_extensible = Object.isExtensible;
+/**
+* @param {any} thing
+* @returns {thing is Function}
+*/
+function is_function(thing) {
+	return typeof thing === "function";
+}
 var noop = () => {};
 /** @param {Array<() => void>} arr */
 function run_all(arr) {
@@ -243,6 +250,17 @@ function effect_update_depth_exceeded() {
 		error.name = "Svelte error";
 		throw error;
 	} else throw new Error(`https://svelte.dev/e/effect_update_depth_exceeded`);
+}
+/**
+* Could not `{@render}` snippet due to the expression being `null` or `undefined`. Consider using optional chaining `{@render snippet?.()}`
+* @returns {never}
+*/
+function invalid_snippet() {
+	if (dev_fallback_default) {
+		const error = /* @__PURE__ */ new Error(`invalid_snippet\nCould not \`{@render}\` snippet due to the expression being \`null\` or \`undefined\`. Consider using optional chaining \`{@render snippet?.()}\`\nhttps://svelte.dev/e/invalid_snippet`);
+		error.name = "Svelte error";
+		throw error;
+	} else throw new Error(`https://svelte.dev/e/invalid_snippet`);
 }
 /**
 * Cannot do `bind:%key%={undefined}` when `%key%` has a fallback value
@@ -492,6 +510,9 @@ var async_mode_flag = false;
 var legacy_mode_flag = false;
 /** True if $inspect.trace is used */
 var tracing_mode_flag = false;
+function enable_legacy_mode_flag() {
+	legacy_mode_flag = true;
+}
 //#endregion
 //#region node_modules/svelte/src/internal/client/dev/tracing.js
 /**
@@ -5033,6 +5054,26 @@ function validate_each_keys(array, key_fn) {
 	}
 }
 //#endregion
+//#region node_modules/svelte/src/internal/client/dom/blocks/snippet.js
+/** @import { Snippet } from 'svelte' */
+/** @import { TemplateNode } from '#client' */
+/** @import { Getters } from '#shared' */
+/**
+* @template {(node: TemplateNode, ...args: any[]) => void} SnippetFn
+* @param {TemplateNode} node
+* @param {() => SnippetFn | null | undefined} get_snippet
+* @param {(() => any)[]} args
+* @returns {void}
+*/
+function snippet(node, get_snippet, ...args) {
+	var branches = new BranchManager(node);
+	block(() => {
+		const snippet = get_snippet() ?? null;
+		if (dev_fallback_default && snippet == null) invalid_snippet();
+		branches.ensure(snippet, snippet && ((anchor) => snippet(anchor, ...args)));
+	}, EFFECT_TRANSPARENT);
+}
+//#endregion
 //#region node_modules/svelte/src/internal/client/timing.js
 /** @import { Raf } from '#client' */
 var now = () => performance.now();
@@ -5535,6 +5576,73 @@ function bind_this(element_or_component = {}, update, get_value, get_parts) {
 //#region node_modules/svelte/src/internal/client/reactivity/props.js
 /** @import { Derived, Effect, Source } from './types.js' */
 /**
+* The proxy handler for spread props. Handles the incoming array of props
+* that looks like `() => { dynamic: props }, { static: prop }, ..` and wraps
+* them so that the whole thing is passed to the component as the `$$props` argument.
+* @type {ProxyHandler<{ props: Array<Record<string | symbol, unknown> | (() => Record<string | symbol, unknown>)> }>}}
+*/
+var spread_props_handler = {
+	get(target, key) {
+		let i = target.props.length;
+		while (i--) {
+			let p = target.props[i];
+			if (is_function(p)) p = p();
+			if (typeof p === "object" && p !== null && key in p) return p[key];
+		}
+	},
+	set(target, key, value) {
+		let i = target.props.length;
+		while (i--) {
+			let p = target.props[i];
+			if (is_function(p)) p = p();
+			const desc = get_descriptor(p, key);
+			if (desc && desc.set) {
+				desc.set(value);
+				return true;
+			}
+		}
+		return false;
+	},
+	getOwnPropertyDescriptor(target, key) {
+		let i = target.props.length;
+		while (i--) {
+			let p = target.props[i];
+			if (is_function(p)) p = p();
+			if (typeof p === "object" && p !== null && key in p) {
+				const descriptor = get_descriptor(p, key);
+				if (descriptor && !descriptor.configurable) descriptor.configurable = true;
+				return descriptor;
+			}
+		}
+	},
+	has(target, key) {
+		if (key === STATE_SYMBOL || key === LEGACY_PROPS) return false;
+		for (let p of target.props) {
+			if (is_function(p)) p = p();
+			if (p != null && key in p) return true;
+		}
+		return false;
+	},
+	ownKeys(target) {
+		/** @type {Array<string | symbol>} */
+		const keys = [];
+		for (let p of target.props) {
+			if (is_function(p)) p = p();
+			if (!p) continue;
+			for (const key in p) if (!keys.includes(key)) keys.push(key);
+			for (const key of Object.getOwnPropertySymbols(p)) if (!keys.includes(key)) keys.push(key);
+		}
+		return keys;
+	}
+};
+/**
+* @param {Array<Record<string, unknown> | (() => Record<string, unknown>)>} props
+* @returns {any}
+*/
+function spread_props(...props) {
+	return new Proxy({ props }, spread_props_handler);
+}
+/**
 * This function is responsible for synchronizing a possibly bound prop with the inner component state.
 * It is used whenever the compiler sees that the component writes to the prop, or when it has a default prop_value.
 * @template V
@@ -5708,6 +5816,9 @@ function init_update_callbacks(context) {
 //#endregion
 //#region node_modules/svelte/src/internal/disclose-version.js
 if (typeof window !== "undefined") ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()).add("5");
+//#endregion
+//#region node_modules/svelte/src/internal/flags/legacy.js
+enable_legacy_mode_flag();
 //#endregion
 //#region \0vite/preload-helper.js
 var scriptRel = "modulepreload";
@@ -10605,13 +10716,23 @@ var MidiManager = class {
 //#endregion
 //#region src/audio/midiCcMap.js
 var STORAGE_PREFIX = "midiCc:";
-var PARAM_RENAMES = { reverbMix: "reverbSend" };
 var MidiCcMap = class {
 	/** @type {Map<number, { param: string, min: number, max: number }>} */
 	#byCC = /* @__PURE__ */ new Map();
 	/** @type {Map<string, number>} */
 	#byParam = /* @__PURE__ */ new Map();
-	constructor() {
+	/**
+	* Persisted-name → current-name renames applied to stored entries on load
+	* only. This table is instrument-specific and injected by the caller (the
+	* chassis MidiCcMap is param-name-agnostic, design.md D4); it defaults to no
+	* renames. The underlying localStorage value is left untouched so a revert
+	* keeps existing mappings working without further migration.
+	* @type {Record<string, string>}
+	*/
+	#paramRenames;
+	/** @param {Record<string, string>} [paramRenames] persisted→current name map */
+	constructor(paramRenames = {}) {
+		this.#paramRenames = paramRenames;
 		this.#load();
 	}
 	/** @param {number} cc @param {string} param @param {number} min @param {number} max */
@@ -10671,7 +10792,7 @@ var MidiCcMap = class {
 				});
 			}
 			for (const { cc, param, min, max } of entries) {
-				if (PARAM_RENAMES[param] !== void 0) continue;
+				if (this.#paramRenames[param] !== void 0) continue;
 				this.#byCC.set(cc, {
 					param,
 					min,
@@ -10680,7 +10801,7 @@ var MidiCcMap = class {
 				this.#byParam.set(param, cc);
 			}
 			for (const { cc, param, min, max } of entries) {
-				const target = PARAM_RENAMES[param];
+				const target = this.#paramRenames[param];
 				if (target === void 0) continue;
 				if (this.#byParam.has(target)) continue;
 				this.#byCC.set(cc, {
@@ -10860,6 +10981,477 @@ var SvelteSet = class SvelteSet extends Set {
 	}
 };
 //#endregion
+//#region src/components/Keyboard.svelte
+var root_1$5 = /* @__PURE__ */ from_svg(`<rect></rect>`);
+var root_2$4 = /* @__PURE__ */ from_svg(`<rect></rect>`);
+var root_3$3 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label svelte-1dlz8xf"> </text>`);
+var root_4$2 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label-black svelte-1dlz8xf"> </text>`);
+var root$18 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><rect fill="var(--panel-border, #333)"></rect><!><!><!><!></svg></div>`);
+function Keyboard($$anchor, $$props) {
+	push($$props, true);
+	/** @type {{
+	onnote?: (msgs: Array<{ param: string, value: number }>) => void,
+	triggerNote?: ((midi: number) => void) | null,
+	releaseNote?: ((midi: number) => void) | null,
+	releaseAll?: (() => void) | null,
+	baseMidi?: number,
+	}} */
+	let triggerNote = prop($$props, "triggerNote", 15, null), releaseNote = prop($$props, "releaseNote", 15, null), releaseAll = prop($$props, "releaseAll", 15, null), baseMidi = prop($$props, "baseMidi", 3, 36);
+	const BLACK_SEMITONES = new Set([
+		1,
+		3,
+		6,
+		8,
+		10
+	]);
+	const RAIL_H = 1;
+	const WHITE_W = 28;
+	const WHITE_H = 100;
+	const BLACK_W = 18;
+	const BLACK_H = 60;
+	/**
+	* @param {number} base
+	* @param {number} count
+	*/
+	function buildKeys(base, count) {
+		let whiteIdx = 0;
+		return Array.from({ length: count }, (_, i) => {
+			const midi = base + i;
+			const black = BLACK_SEMITONES.has(midi % 12);
+			let x;
+			if (!black) {
+				x = whiteIdx * WHITE_W;
+				whiteIdx++;
+			} else x = (whiteIdx - 1) * WHITE_W + WHITE_W - BLACK_W / 2;
+			return {
+				midi,
+				black,
+				x
+			};
+		});
+	}
+	const keys = /* @__PURE__ */ user_derived(() => buildKeys(baseMidi(), 61));
+	const whiteKeys = /* @__PURE__ */ user_derived(() => get(keys).filter((k) => !k.black));
+	const totalWidth = /* @__PURE__ */ user_derived(() => get(whiteKeys).length * WHITE_W);
+	/** @param {number} midi */
+	function midiToNoteName(midi) {
+		return `${[
+			"C",
+			"C#",
+			"D",
+			"D#",
+			"E",
+			"F",
+			"F#",
+			"G",
+			"G#",
+			"A",
+			"A#",
+			"B"
+		][midi % 12]}${Math.floor(midi / 12) - 1}`;
+	}
+	const activeKeys = new SvelteSet();
+	const pressedQwerty = new SvelteSet();
+	function _triggerNote(midi) {
+		const freq = midiToFreq(midi);
+		const wasActive = activeKeys.size > 0;
+		activeKeys.add(midi);
+		$$props.onnote?.(buildNoteOnMessages(freq, wasActive));
+	}
+	function _releaseNote(midi) {
+		activeKeys.delete(midi);
+		if (activeKeys.size === 0) $$props.onnote?.([{
+			param: "gate",
+			value: 0
+		}]);
+	}
+	function _releaseAll() {
+		for (const midi of Array.from(activeKeys)) _releaseNote(midi);
+	}
+	triggerNote(_triggerNote);
+	releaseNote(_releaseNote);
+	releaseAll(_releaseAll);
+	/** @param {EventTarget | null} target */
+	function isEditableTarget(target) {
+		if (!(target instanceof HTMLElement)) return false;
+		const tag = target.tagName;
+		return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
+	}
+	function onKeyDown(e) {
+		if (e.repeat) return;
+		if (isEditableTarget(e.target)) return;
+		const midi = QWERTY_MAP[e.key];
+		if (midi === void 0) return;
+		if (pressedQwerty.has(e.key)) return;
+		pressedQwerty.add(e.key);
+		_triggerNote(midi);
+	}
+	function onKeyUp(e) {
+		if (isEditableTarget(e.target)) return;
+		const midi = QWERTY_MAP[e.key];
+		if (midi === void 0) return;
+		pressedQwerty.delete(e.key);
+		_releaseNote(midi);
+	}
+	onMount(() => {
+		window.addEventListener("keydown", onKeyDown);
+		window.addEventListener("keyup", onKeyUp);
+	});
+	onDestroy(() => {
+		window.removeEventListener("keydown", onKeyDown);
+		window.removeEventListener("keyup", onKeyUp);
+	});
+	var div = root$18();
+	var svg = child(div);
+	set_attribute(svg, "height", WHITE_H + RAIL_H + 2);
+	var rect = child(svg);
+	set_attribute(rect, "x", 0);
+	set_attribute(rect, "y", 0);
+	set_attribute(rect, "height", RAIL_H);
+	var node = sibling(rect);
+	each(node, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
+		var rect_1 = root_1$5();
+		set_attribute(rect_1, "y", RAIL_H);
+		set_attribute(rect_1, "width", WHITE_W - 2);
+		set_attribute(rect_1, "height", WHITE_H);
+		let classes;
+		template_effect(($0) => {
+			set_attribute(rect_1, "x", get(key).x + 1);
+			classes = set_class(rect_1, 0, "white-key svelte-1dlz8xf", null, classes, $0);
+			set_attribute(rect_1, "data-midi", get(key).midi);
+		}, [() => ({ active: activeKeys.has(get(key).midi) })]);
+		delegated("pointerdown", rect_1, () => _triggerNote(get(key).midi));
+		delegated("pointerup", rect_1, () => _releaseNote(get(key).midi));
+		event("pointerleave", rect_1, () => _releaseNote(get(key).midi));
+		append($$anchor, rect_1);
+	});
+	var node_1 = sibling(node);
+	each(node_1, 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
+		var rect_2 = root_2$4();
+		set_attribute(rect_2, "y", RAIL_H);
+		set_attribute(rect_2, "width", BLACK_W);
+		set_attribute(rect_2, "height", BLACK_H);
+		let classes_1;
+		template_effect(($0) => {
+			set_attribute(rect_2, "x", get(key).x);
+			classes_1 = set_class(rect_2, 0, "black-key svelte-1dlz8xf", null, classes_1, $0);
+			set_attribute(rect_2, "data-midi", get(key).midi);
+		}, [() => ({ active: activeKeys.has(get(key).midi) })]);
+		delegated("pointerdown", rect_2, () => _triggerNote(get(key).midi));
+		delegated("pointerup", rect_2, () => _releaseNote(get(key).midi));
+		event("pointerleave", rect_2, () => _releaseNote(get(key).midi));
+		append($$anchor, rect_2);
+	});
+	var node_2 = sibling(node_1);
+	each(node_2, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
+		var text = root_3$3();
+		set_attribute(text, "y", RAIL_H + WHITE_H - 5);
+		var text_1 = child(text, true);
+		reset(text);
+		template_effect(($0) => {
+			set_attribute(text, "x", get(key).x + WHITE_W / 2);
+			set_text(text_1, $0);
+		}, [() => midiToNoteName(get(key).midi)]);
+		append($$anchor, text);
+	});
+	each(sibling(node_2), 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
+		var text_2 = root_4$2();
+		set_attribute(text_2, "y", RAIL_H + BLACK_H - 4);
+		var text_3 = child(text_2, true);
+		reset(text_2);
+		template_effect(($0) => {
+			set_attribute(text_2, "x", get(key).x + BLACK_W / 2);
+			set_text(text_3, $0);
+		}, [() => midiToNoteName(get(key).midi)]);
+		append($$anchor, text_2);
+	});
+	reset(svg);
+	reset(div);
+	template_effect(() => {
+		set_attribute(svg, "width", get(totalWidth));
+		set_attribute(rect, "width", get(totalWidth));
+	});
+	append($$anchor, div);
+	pop();
+}
+delegate(["pointerdown", "pointerup"]);
+//#endregion
+//#region src/components/RegisterPanel.svelte
+var root$17 = /* @__PURE__ */ from_html(`<div class="panel svelte-pygl9d"><span class="panel-label svelte-pygl9d">keyboard range</span> <div class="btn-col svelte-pygl9d"><button>Oct ▲</button> <button>Oct ▼</button></div></div>`);
+function RegisterPanel($$anchor, $$props) {
+	/** @type {{
+	ondown?: () => void,
+	onup?: () => void,
+	activeRegister?: 'bottom' | 'top' | 'mid',
+	}} */
+	let activeRegister = prop($$props, "activeRegister", 3, "mid");
+	var div = root$17();
+	var div_1 = sibling(child(div), 2);
+	var button = child(div_1);
+	let classes;
+	var button_1 = sibling(button, 2);
+	let classes_1;
+	reset(div_1);
+	reset(div);
+	template_effect(() => {
+		classes = set_class(button, 1, "reg-btn svelte-pygl9d", null, classes, { active: activeRegister() === "top" });
+		set_attribute(button, "aria-pressed", activeRegister() === "top");
+		classes_1 = set_class(button_1, 1, "reg-btn svelte-pygl9d", null, classes_1, { active: activeRegister() === "bottom" });
+		set_attribute(button_1, "aria-pressed", activeRegister() === "bottom");
+	});
+	delegated("click", button, function(...$$args) {
+		$$props.onup?.apply(this, $$args);
+	});
+	delegated("click", button_1, function(...$$args) {
+		$$props.ondown?.apply(this, $$args);
+	});
+	append($$anchor, div);
+}
+delegate(["click"]);
+//#endregion
+//#region src/audio/wheelPhysics.js
+/** The position both wheels rest at and spring back to. */
+var REST = .5;
+/** Maximum integration step (≈ three dropped frames at 60 Hz), in seconds. */
+var MAX_DT = .05;
+/**
+* Allowed range and default for each physics parameter. Ranges bound the
+* discrete Euler step so it cannot go unstable; the ζ lower bound is >0 so the
+* system can never be perfectly undamped (perpetual oscillation).
+*/
+var PHYSICS_RANGES = {
+	mass: {
+		min: .05,
+		max: 5,
+		default: .1
+	},
+	spring: {
+		min: 1,
+		max: 70,
+		default: 50
+	},
+	damping: {
+		min: .05,
+		max: 1,
+		default: .3
+	}
+};
+/**
+* Default per-wheel physics: a light mass with a strong spring for a snappy
+* return, underdamped (ζ=0.3) so it still overshoots and settles. The mass min
+* sits below the default so the wheel can be tuned even faster.
+*/
+var DEFAULT_PHYSICS = {
+	mass: PHYSICS_RANGES.mass.default,
+	spring: PHYSICS_RANGES.spring.default,
+	damping: PHYSICS_RANGES.damping.default
+};
+/** @param {number} v @param {number} min @param {number} max */
+function clamp(v, min, max) {
+	return Math.max(min, Math.min(max, v));
+}
+/**
+* Advance the damped oscillator one step.
+*
+* `rest` is the spring target (the position the cursor is pulled toward);
+* displacement is measured from it. It defaults to {@link REST} (0.5) so callers
+* that omit it keep the original centre-resting behaviour, and a spring wheel
+* with a different rest returns to its own rest rather than the module constant.
+*
+* @param {{ value: number, velocity: number, mass: number, spring: number, dampingRatio: number, dt: number, rest?: number }} state
+* @returns {{ value: number, velocity: number }} the next value/velocity
+*/
+function stepSpring({ value, velocity, mass, spring, dampingRatio, dt, rest = REST }) {
+	const step = clamp(dt, 0, MAX_DT);
+	const c = dampingRatio * 2 * Math.sqrt(spring * mass);
+	const x = value - rest;
+	const nextVelocity = velocity + (-spring * x - c * velocity) / mass * step;
+	const rawValue = rest + (x + nextVelocity * step);
+	const nextValue = clamp(rawValue, 0, 1);
+	return {
+		value: nextValue,
+		velocity: rawValue !== nextValue ? 0 : nextVelocity
+	};
+}
+/**
+* True once the cursor is within a small threshold of its `rest` target with
+* negligible velocity — the loop stops here so a settled wheel emits no further
+* frames. `rest` defaults to {@link REST} (0.5) to match the spring target.
+*
+* @param {number} value
+* @param {number} velocity
+* @param {number} [rest]
+* @returns {boolean}
+*/
+function isAtRest(value, velocity, rest = REST) {
+	return Math.abs(value - rest) < .001 && Math.abs(velocity) < .001;
+}
+//#endregion
+//#region src/components/Wheel.svelte
+var root$16 = /* @__PURE__ */ from_html(`<div class="wheel svelte-52kkif"><span class="wheel-label svelte-52kkif"> </span> <div class="wheel-track svelte-52kkif" role="slider"><div class="wheel-cursor svelte-52kkif"></div></div></div>`);
+function Wheel($$anchor, $$props) {
+	push($$props, true);
+	/** @type {{
+	label?: string,
+	externalValue?: number,
+	externalNonce?: number,
+	springBack?: boolean,
+	mass?: number,
+	spring?: number,
+	damping?: number,
+	rest?: number,
+	formatValueText?: (value: number) => string,
+	onchange?: (e: { value: number }) => void,
+	}} */
+	let label = prop($$props, "label", 3, ""), externalValue = prop($$props, "externalValue", 3, void 0), externalNonce = prop($$props, "externalNonce", 3, 0), springBack = prop($$props, "springBack", 3, true), rest = prop($$props, "rest", 3, REST), mass = prop($$props, "mass", 19, () => DEFAULT_PHYSICS.mass), spring = prop($$props, "spring", 19, () => DEFAULT_PHYSICS.spring), damping = prop($$props, "damping", 19, () => DEFAULT_PHYSICS.damping), formatValueText = prop($$props, "formatValueText", 3, void 0);
+	const TRACK_HEIGHT = 60;
+	const CURSOR_THICKNESS = 4;
+	const KEY_STEP = .05;
+	let value = /* @__PURE__ */ state(proxy(untrack(() => rest())));
+	let cursorTop = /* @__PURE__ */ user_derived(() => (1 - get(value)) * (TRACK_HEIGHT - CURSOR_THICKNESS));
+	let dragging = false;
+	let startY = 0;
+	let startVal = untrack(() => rest());
+	let rafId = null;
+	let velocity = 0;
+	let lastTime = 0;
+	function cancelSpring() {
+		if (rafId !== null) {
+			cancelAnimationFrame(rafId);
+			rafId = null;
+		}
+	}
+	/** @param {number} now */
+	function tick(now) {
+		const dt = (now - lastTime) / 1e3;
+		lastTime = now;
+		const next = stepSpring({
+			value: get(value),
+			velocity,
+			mass: mass(),
+			spring: spring(),
+			dampingRatio: damping(),
+			dt,
+			rest: rest()
+		});
+		set(value, next.value, true);
+		velocity = next.velocity;
+		if (isAtRest(get(value), velocity, rest())) {
+			set(value, rest(), true);
+			velocity = 0;
+			rafId = null;
+			$$props.onchange?.({ value: get(value) });
+			return;
+		}
+		$$props.onchange?.({ value: get(value) });
+		rafId = requestAnimationFrame(tick);
+	}
+	function startSpring() {
+		if (!springBack()) return;
+		cancelSpring();
+		velocity = 0;
+		lastTime = performance.now();
+		rafId = requestAnimationFrame(tick);
+	}
+	user_effect(() => {
+		externalNonce();
+		if (externalValue() !== void 0 && !dragging) {
+			cancelSpring();
+			set(value, externalValue());
+		}
+	});
+	user_effect(() => () => cancelSpring());
+	/** @param {PointerEvent & { currentTarget: Element }} e */
+	function onPointerDown(e) {
+		cancelSpring();
+		dragging = true;
+		startY = e.clientY;
+		startVal = get(value);
+		e.currentTarget.setPointerCapture(e.pointerId);
+	}
+	/** @param {PointerEvent} e */
+	function onPointerMove(e) {
+		if (!dragging) return;
+		const delta = (startY - e.clientY) / 80;
+		set(value, Math.max(0, Math.min(1, startVal + delta)), true);
+		$$props.onchange?.({ value: get(value) });
+	}
+	function onPointerUp() {
+		if (!dragging) return;
+		dragging = false;
+		startSpring();
+	}
+	const heldArrows = new SvelteSet();
+	/** @param {KeyboardEvent} e */
+	function onKeyDown(e) {
+		if (e.key === "ArrowUp") {
+			e.preventDefault();
+			heldArrows.add(e.key);
+			cancelSpring();
+			set(value, Math.min(1, get(value) + KEY_STEP), true);
+			$$props.onchange?.({ value: get(value) });
+		} else if (e.key === "ArrowDown") {
+			e.preventDefault();
+			heldArrows.add(e.key);
+			cancelSpring();
+			set(value, Math.max(0, get(value) - KEY_STEP), true);
+			$$props.onchange?.({ value: get(value) });
+		}
+	}
+	/** @param {KeyboardEvent} e */
+	function onKeyUp(e) {
+		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+			heldArrows.delete(e.key);
+			if (heldArrows.size === 0) startSpring();
+		}
+	}
+	/** @param {WheelEvent} e */
+	function onWheel(e) {
+		e.preventDefault();
+		if (dragging) return;
+		const direction = -Math.sign(e.deltaY);
+		if (direction === 0) return;
+		cancelSpring();
+		set(value, Math.max(0, Math.min(1, get(value) + direction * KEY_STEP)), true);
+		$$props.onchange?.({ value: get(value) });
+		startSpring();
+	}
+	var div = root$16();
+	var span = child(div);
+	var text = child(span, true);
+	reset(span);
+	var div_1 = sibling(span, 2);
+	set_attribute(div_1, "tabindex", 0);
+	set_attribute(div_1, "aria-valuemin", 0);
+	set_attribute(div_1, "aria-valuemax", 1);
+	var div_2 = child(div_1);
+	reset(div_1);
+	reset(div);
+	template_effect(($0) => {
+		set_text(text, label());
+		set_attribute(div_1, "aria-label", `${label()} wheel`);
+		set_attribute(div_1, "aria-valuenow", get(value));
+		set_attribute(div_1, "aria-valuetext", $0);
+		set_style(div_2, `top: ${get(cursorTop) ?? ""}px`);
+	}, [() => formatValueText() ? formatValueText()(get(value)) : void 0]);
+	delegated("pointerdown", div_1, onPointerDown);
+	delegated("pointermove", div_1, onPointerMove);
+	delegated("pointerup", div_1, onPointerUp);
+	event("pointercancel", div_1, onPointerUp);
+	event("wheel", div_1, onWheel);
+	delegated("keydown", div_1, onKeyDown);
+	delegated("keyup", div_1, onKeyUp);
+	append($$anchor, div);
+	pop();
+}
+delegate([
+	"pointerdown",
+	"pointermove",
+	"pointerup",
+	"keydown",
+	"keyup"
+]);
+//#endregion
 //#region node_modules/svelte/src/motion/utils.js
 /**
 * @param {any} obj
@@ -11008,12 +11600,12 @@ function tweened(value, defaults = {}) {
 }
 //#endregion
 //#region src/components/Knob.svelte
-var root_1$5 = /* @__PURE__ */ from_svg(`<circle class="learn-ring svelte-1wmwmfc" fill="none" stroke-width="2"></circle>`);
-var root_2$5 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
-var root_3$4 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
-var root_4$2 = /* @__PURE__ */ from_html(`<span class="interval-indicator svelte-1wmwmfc"> </span>`);
+var root_1$4 = /* @__PURE__ */ from_svg(`<circle class="learn-ring svelte-1wmwmfc" fill="none" stroke-width="2"></circle>`);
+var root_2$3 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
+var root_3$2 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
+var root_4$1 = /* @__PURE__ */ from_html(`<span class="interval-indicator svelte-1wmwmfc"> </span>`);
 var root_5$1 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> </span>`);
-var root$17 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <!> <span> </span> <!></div>`);
+var root$15 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc" role="slider" tabindex="0"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <!> <span> </span> <!></div>`);
 function Knob($$anchor, $$props) {
 	push($$props, true);
 	const $animPos = () => store_get(animPos, "$animPos", $$stores);
@@ -11146,12 +11738,77 @@ function Knob($$anchor, $$props) {
 		animPos.set(valueToNormalized(defaultValue(), min(), max(), scale()), { duration: 0 });
 		$$props.onchange?.({ value: defaultValue() });
 	}
+	/**
+	* Nudge the value by one increment in `direction` (+1 up / −1 down), shared by
+	* scroll and keyboard. The increment is one `step` (or one `fineStep` while
+	* Shift is held, when both are set); with no `step` it moves the normalized
+	* position by 0.01 (1% of travel) and converts back through the knob's scale,
+	* so a nonlinear scale keeps a uniform perceptual step (intended). Clamps to
+	* [min, max] and fires onchange.
+	* @param {1 | -1} direction
+	* @param {boolean} shift
+	*/
+	function nudge(direction, shift) {
+		const activeStep = shift && fineStep() !== null ? fineStep() : step();
+		let newValue;
+		if (activeStep !== null && activeStep > 0) newValue = get(value) + direction * activeStep;
+		else newValue = normalizedToValue(Math.max(0, Math.min(1, valueToNormalized(get(value), min(), max(), scale()) + direction * .01)), min(), max(), scale());
+		newValue = Math.max(min(), Math.min(max(), newValue));
+		set(value, newValue, true);
+		animPos.set(valueToNormalized(newValue, min(), max(), scale()), { duration: 0 });
+		$$props.onchange?.({ value: newValue });
+	}
+	/** @param {WheelEvent} e */
+	function onWheel(e) {
+		if (disabled()) return;
+		e.preventDefault();
+		if (dragging) return;
+		const direction = -Math.sign(e.deltaY);
+		if (direction === 0) return;
+		nudge(direction, e.shiftKey);
+	}
+	/** Jump straight to a value (Home/End), clamping and firing onchange. @param {number} v */
+	function jumpTo(v) {
+		const clamped = Math.max(min(), Math.min(max(), v));
+		set(value, clamped, true);
+		animPos.set(valueToNormalized(clamped, min(), max(), scale()), { duration: 0 });
+		$$props.onchange?.({ value: clamped });
+	}
+	/**
+	* Keyboard operability for the slider role (WAI-ARIA): arrows step by one
+	* increment (same rule as scroll), Home/End jump to min/max. Handled keys are
+	* consumed so the page does not scroll; a disabled knob ignores all keys.
+	* @param {KeyboardEvent} e
+	*/
+	function onKeyDown(e) {
+		if (disabled()) return;
+		switch (e.key) {
+			case "ArrowUp":
+			case "ArrowRight":
+				e.preventDefault();
+				nudge(1, e.shiftKey);
+				break;
+			case "ArrowDown":
+			case "ArrowLeft":
+				e.preventDefault();
+				nudge(-1, e.shiftKey);
+				break;
+			case "Home":
+				e.preventDefault();
+				jumpTo(min());
+				break;
+			case "End":
+				e.preventDefault();
+				jumpTo(max());
+				break;
+		}
+	}
 	/** @param {MouseEvent} e */
 	function handleContextMenu(e) {
 		e.preventDefault();
 		$$props.oncontextmenu?.();
 	}
-	var div = root$17();
+	var div = root$15();
 	let classes;
 	var span = child(div);
 	let classes_1;
@@ -11161,7 +11818,7 @@ function Knob($$anchor, $$props) {
 	var svg = child(div_1);
 	var node = child(svg);
 	var consequent = ($$anchor) => {
-		var circle = root_1$5();
+		var circle = root_1$4();
 		set_attribute(circle, "cx", CX);
 		set_attribute(circle, "cy", CY);
 		set_attribute(circle, "r", R + 4);
@@ -11173,7 +11830,7 @@ function Knob($$anchor, $$props) {
 	var path = sibling(node);
 	var node_1 = sibling(path);
 	var consequent_1 = ($$anchor) => {
-		var path_1 = root_2$5();
+		var path_1 = root_2$3();
 		template_effect(() => set_attribute(path_1, "d", get(activePath)));
 		append($$anchor, path_1);
 	};
@@ -11188,7 +11845,7 @@ function Knob($$anchor, $$props) {
 	set_attribute(line, "y1", CY);
 	each(sibling(line), 17, ticks, (tick) => tick.label, ($$anchor, tick) => {
 		const xy = /* @__PURE__ */ user_derived(() => tickXY(get(tick)));
-		var text_1 = root_3$4();
+		var text_1 = root_3$2();
 		var text_2 = child(text_1, true);
 		reset(text_1);
 		template_effect(() => {
@@ -11203,7 +11860,7 @@ function Knob($$anchor, $$props) {
 	var node_3 = sibling(div_1, 2);
 	var consequent_2 = ($$anchor) => {
 		const interval = /* @__PURE__ */ user_derived(() => detectInterval(get(value)));
-		var span_1 = root_4$2();
+		var span_1 = root_4$1();
 		var text_3 = child(span_1, true);
 		reset(span_1);
 		template_effect(() => set_text(text_3, get(interval) ?? "\xA0"));
@@ -11228,19 +11885,30 @@ function Knob($$anchor, $$props) {
 		if (assignedCc() !== null) $$render(consequent_3);
 	});
 	reset(div);
-	template_effect(($0, $1) => {
+	template_effect(($0, $1, $2) => {
 		classes = set_class(div, 1, "knob-wrap svelte-1wmwmfc", null, classes, { disabled: disabled() });
 		classes_1 = set_class(span, 1, "knob-label svelte-1wmwmfc", null, classes_1, { invisible: !showLabel() });
 		set_text(text, label());
-		set_attribute(path, "d", $0);
+		set_attribute(div_1, "aria-label", label());
+		set_attribute(div_1, "aria-valuemin", min());
+		set_attribute(div_1, "aria-valuemax", max());
+		set_attribute(div_1, "aria-valuenow", get(value));
+		set_attribute(div_1, "aria-valuetext", $0);
+		set_attribute(path, "d", $1);
 		set_attribute(line, "x2", get(indicatorEnd).x);
 		set_attribute(line, "y2", get(indicatorEnd).y);
 		classes_2 = set_class(span_2, 1, "knob-value svelte-1wmwmfc", null, classes_2, { invisible: !showValue() });
-		set_text(text_4, $1);
-	}, [() => arcPath(1), () => formatValue(get(value), unit())]);
+		set_text(text_4, $2);
+	}, [
+		() => formatValue(get(value), unit()),
+		() => arcPath(1),
+		() => formatValue(get(value), unit())
+	]);
 	delegated("pointerdown", div_1, onPointerDown);
 	delegated("pointermove", div_1, onPointerMove);
 	delegated("pointerup", div_1, onPointerUp);
+	event("wheel", div_1, onWheel);
+	delegated("keydown", div_1, onKeyDown);
 	delegated("dblclick", div_1, onDblClick);
 	delegated("contextmenu", div_1, handleContextMenu);
 	append($$anchor, div);
@@ -11251,15 +11919,2312 @@ delegate([
 	"pointerdown",
 	"pointermove",
 	"pointerup",
+	"keydown",
 	"dblclick",
 	"contextmenu"
 ]);
 //#endregion
+//#region src/audio/wheelPhysicsStore.js
+/** localStorage key (in the established `synth-d:` namespace). */
+var STORAGE_KEY = "synth-d:wheel-physics";
+/** Default PITCH physics (a fresh object per call — never shared). */
+function defaultWheelPhysics() {
+	return { pitch: { ...DEFAULT_PHYSICS } };
+}
+/** @param {string} key @returns {string | null} */
+function safeGet$1(key) {
+	try {
+		return localStorage.getItem(key);
+	} catch {
+		return null;
+	}
+}
+/** @param {string} key @param {string} value @returns {boolean} success */
+function safeSet$1(key, value) {
+	try {
+		localStorage.setItem(key, value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+/**
+* Validate one physics field against its range, falling back to the default
+* when missing or out of range. NaN/Infinity fail `Number.isFinite`.
+* @param {unknown} v
+* @param {{ min: number, max: number, default: number }} range
+* @returns {number}
+*/
+function validateField(v, range) {
+	if (typeof v !== "number" || !Number.isFinite(v) || v < range.min || v > range.max) return range.default;
+	return v;
+}
+/**
+* Validate a single wheel's params, falling back per-field to defaults.
+* @param {unknown} raw
+* @returns {{ mass: number, spring: number, damping: number }}
+*/
+function validateWheel(raw) {
+	const w = raw && typeof raw === "object" ? raw : {};
+	return {
+		mass: validateField(w.mass, PHYSICS_RANGES.mass),
+		spring: validateField(w.spring, PHYSICS_RANGES.spring),
+		damping: validateField(w.damping, PHYSICS_RANGES.damping)
+	};
+}
+/**
+* Load the PITCH wheel's physics. Absent, partial, or corrupt data resolves to
+* per-field defaults so the wheels always function. A legacy `mod` field is
+* ignored (not read, not re-saved).
+* @returns {{ pitch: { mass: number, spring: number, damping: number } }}
+*/
+function loadWheelPhysics() {
+	const raw = safeGet$1(STORAGE_KEY);
+	/** @type {Record<string, unknown>} */
+	let parsed = {};
+	if (raw) try {
+		const obj = JSON.parse(raw);
+		if (obj && typeof obj === "object") parsed = obj;
+	} catch {}
+	return { pitch: validateWheel(parsed.pitch) };
+}
+/**
+* Persist the PITCH wheel's physics. Each field is validated/clamped through
+* the same path as load, so only in-range numbers are written; any `mod` field
+* on the input is dropped. Storage failure is non-fatal.
+* @param {{ pitch?: unknown }} [physics]
+* @returns {boolean} success
+*/
+function saveWheelPhysics(physics = {}) {
+	const clean = { pitch: validateWheel(physics?.pitch) };
+	return safeSet$1(STORAGE_KEY, JSON.stringify(clean));
+}
+/**
+* Reset the PITCH wheel to default physics and persist it.
+* @returns {{ pitch: { mass: number, spring: number, damping: number } }}
+*/
+function resetWheelPhysics() {
+	const defaults = defaultWheelPhysics();
+	saveWheelPhysics(defaults);
+	return defaults;
+}
+//#endregion
+//#region src/components/WheelsPanel.svelte
+var root_1$3 = /* @__PURE__ */ from_html(`<div class="popup svelte-1u30a8q" role="dialog" aria-label="wheel physics" tabindex="-1"><div class="physics-group svelte-1u30a8q"><span class="group-label svelte-1u30a8q">PITCH PHYSICS</span> <div class="knobs svelte-1u30a8q"><!> <!> <!></div></div> <button class="reset svelte-1u30a8q">reset</button></div>`);
+var root$14 = /* @__PURE__ */ from_html(`<div class="wheels-panel svelte-1u30a8q"><div class="wheels svelte-1u30a8q"><!> <!></div> <button class="gear svelte-1u30a8q" aria-haspopup="dialog" aria-label="wheel physics settings" title="Wheel physics"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"></path></svg></button> <!></div>`);
+function WheelsPanel($$anchor, $$props) {
+	push($$props, true);
+	/** @type {{
+	modExternalValue?: number,
+	modExternalNonce?: number,
+	pitchExternalValue?: number,
+	pitchExternalNonce?: number,
+	onModChange?: (e: { param: string, value: number }) => void,
+	onPitchChange?: (e: { value: number }) => void,
+	}} */
+	let physics = /* @__PURE__ */ state(proxy(loadWheelPhysics()));
+	let open = /* @__PURE__ */ state(false);
+	let rootEl = /* @__PURE__ */ state(
+		/** @type {HTMLElement | null} */
+		null
+	);
+	let gearEl = /* @__PURE__ */ state(
+		/** @type {HTMLButtonElement | null} */
+		null
+	);
+	let popupEl = /* @__PURE__ */ state(
+		/** @type {HTMLElement | null} */
+		null
+	);
+	/** @param {number} v */
+	function pitchValueText(v) {
+		const semis = (v - .5) * 2 * 2;
+		const rounded = Math.round(semis * 100) / 100;
+		return `${rounded > 0 ? "+" : ""}${rounded} st`;
+	}
+	/** @param {number} v */
+	function modValueText(v) {
+		return `${Math.round(v * 100)}%`;
+	}
+	async function toggleOpen() {
+		set(open, !get(open));
+		if (get(open)) {
+			await tick();
+			get(popupEl)?.focus();
+		}
+	}
+	/**
+	* Update one PITCH physics field and persist. Bound to each knob's onchange.
+	* The MOD wheel has no spring physics, so only PITCH is tunable.
+	* @param {'mass' | 'spring' | 'damping'} field
+	* @param {number} value
+	*/
+	function updatePhysics(field, value) {
+		set(physics, {
+			...get(physics),
+			pitch: {
+				...get(physics).pitch,
+				[field]: value
+			}
+		}, true);
+		saveWheelPhysics(get(physics));
+	}
+	function resetPhysics() {
+		set(physics, resetWheelPhysics(), true);
+	}
+	/** @param {KeyboardEvent} e */
+	function onKeyDown(e) {
+		if (e.key === "Escape" && get(open)) {
+			e.stopPropagation();
+			set(open, false);
+			get(gearEl)?.focus();
+		}
+	}
+	/** @param {PointerEvent} e */
+	function onWindowPointerDown(e) {
+		if (get(open) && get(rootEl) && e.target instanceof Node && !get(rootEl).contains(e.target)) set(open, false);
+	}
+	var div = root$14();
+	event("keydown", $window, onKeyDown);
+	event("pointerdown", $window, onWindowPointerDown);
+	var div_1 = child(div);
+	var node = child(div_1);
+	Wheel(node, {
+		label: "MOD",
+		get externalValue() {
+			return $$props.modExternalValue;
+		},
+		get externalNonce() {
+			return $$props.modExternalNonce;
+		},
+		springBack: false,
+		rest: 0,
+		formatValueText: modValueText,
+		onchange: (e) => $$props.onModChange?.({
+			param: "modWheel",
+			value: e.value
+		})
+	});
+	Wheel(sibling(node, 2), {
+		label: "PITCH",
+		get externalValue() {
+			return $$props.pitchExternalValue;
+		},
+		get externalNonce() {
+			return $$props.pitchExternalNonce;
+		},
+		get mass() {
+			return get(physics).pitch.mass;
+		},
+		get spring() {
+			return get(physics).pitch.spring;
+		},
+		get damping() {
+			return get(physics).pitch.damping;
+		},
+		formatValueText: pitchValueText,
+		onchange: (e) => $$props.onPitchChange?.({ value: e.value })
+	});
+	reset(div_1);
+	var button = sibling(div_1, 2);
+	bind_this(button, ($$value) => set(gearEl, $$value), () => get(gearEl));
+	var node_2 = sibling(button, 2);
+	var consequent = ($$anchor) => {
+		var div_2 = root_1$3();
+		var div_3 = child(div_2);
+		var div_4 = sibling(child(div_3), 2);
+		var node_3 = child(div_4);
+		Knob(node_3, {
+			label: "MASS",
+			get min() {
+				return PHYSICS_RANGES.mass.min;
+			},
+			get max() {
+				return PHYSICS_RANGES.mass.max;
+			},
+			get default() {
+				return PHYSICS_RANGES.mass.default;
+			},
+			get externalValue() {
+				return get(physics).pitch.mass;
+			},
+			showArc: false,
+			onchange: (e) => updatePhysics("mass", e.value)
+		});
+		var node_4 = sibling(node_3, 2);
+		Knob(node_4, {
+			label: "SPRING",
+			get min() {
+				return PHYSICS_RANGES.spring.min;
+			},
+			get max() {
+				return PHYSICS_RANGES.spring.max;
+			},
+			get default() {
+				return PHYSICS_RANGES.spring.default;
+			},
+			get externalValue() {
+				return get(physics).pitch.spring;
+			},
+			showArc: false,
+			onchange: (e) => updatePhysics("spring", e.value)
+		});
+		Knob(sibling(node_4, 2), {
+			label: "DAMP",
+			get min() {
+				return PHYSICS_RANGES.damping.min;
+			},
+			get max() {
+				return PHYSICS_RANGES.damping.max;
+			},
+			get default() {
+				return PHYSICS_RANGES.damping.default;
+			},
+			get externalValue() {
+				return get(physics).pitch.damping;
+			},
+			showArc: false,
+			onchange: (e) => updatePhysics("damping", e.value)
+		});
+		reset(div_4);
+		reset(div_3);
+		var button_1 = sibling(div_3, 2);
+		reset(div_2);
+		bind_this(div_2, ($$value) => set(popupEl, $$value), () => get(popupEl));
+		delegated("click", button_1, resetPhysics);
+		append($$anchor, div_2);
+	};
+	if_block(node_2, ($$render) => {
+		if (get(open)) $$render(consequent);
+	});
+	reset(div);
+	bind_this(div, ($$value) => set(rootEl, $$value), () => get(rootEl));
+	template_effect(() => set_attribute(button, "aria-expanded", get(open)));
+	delegated("click", button, toggleOpen);
+	append($$anchor, div);
+	pop();
+}
+delegate(["click"]);
+//#endregion
+//#region src/components/PowerButton.svelte
+var root$13 = /* @__PURE__ */ from_html(`<div class="power-wrap svelte-z2dg21"><button type="button"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke-linecap="round" stroke-width="2" aria-hidden="true"><line x1="10" y1="2" x2="10" y2="8"></line><path d="M 14.5 4.6 A 7 7 0 1 1 5.5 4.6"></path></svg></button></div>`);
+function PowerButton($$anchor, $$props) {
+	/** @type {{ powered: boolean, loading: boolean, ontoggle: () => void }} */
+	let powered = prop($$props, "powered", 3, false), loading = prop($$props, "loading", 3, false);
+	const status = /* @__PURE__ */ user_derived(() => loading() ? "loading" : powered() ? "on" : "off");
+	var div = root$13();
+	var button = child(div);
+	let classes;
+	var svg = child(button);
+	reset(button);
+	reset(div);
+	template_effect(() => {
+		classes = set_class(button, 1, "power-btn svelte-z2dg21", null, classes, { on: powered() });
+		button.disabled = loading();
+		set_attribute(button, "aria-pressed", powered());
+		set_attribute(button, "aria-label", loading() ? "Starting audio" : powered() ? "Power off" : "Power on");
+		set_class(svg, 0, `power-icon ${get(status) ?? ""}`, "svelte-z2dg21");
+	});
+	delegated("click", button, function(...$$args) {
+		$$props.ontoggle?.apply(this, $$args);
+	});
+	append($$anchor, div);
+}
+delegate(["click"]);
+//#endregion
+//#region src/components/MidiStatus.svelte
+var root_2$2 = /* @__PURE__ */ from_html(`<option> </option>`);
+var root_1$2 = /* @__PURE__ */ from_html(`<select class="device-select svelte-1w0iv8d"></select>`);
+var root$12 = /* @__PURE__ */ from_html(`<div class="midi-status svelte-1w0iv8d"><span></span> <span class="label svelte-1w0iv8d">MIDI</span> <!></div>`);
+function MidiStatus($$anchor, $$props) {
+	push($$props, true);
+	/** @type {{
+	status?: string,
+	devices?: Array<{ id: string, name: string }>,
+	selectedDeviceId?: string | null,
+	ondevicechange?: (id: string) => void,
+	}} */
+	let status = prop($$props, "status", 3, "unavailable"), devices = prop($$props, "devices", 19, () => []), selectedDeviceId = prop($$props, "selectedDeviceId", 3, null);
+	var div = root$12();
+	var span = child(div);
+	let classes;
+	var node = sibling(span, 4);
+	var consequent = ($$anchor) => {
+		var select = root_1$2();
+		each(select, 21, devices, (device) => device.id, ($$anchor, device) => {
+			var option = root_2$2();
+			var text = child(option, true);
+			reset(option);
+			var option_value = {};
+			template_effect(() => {
+				set_text(text, get(device).name);
+				if (option_value !== (option_value = get(device).id)) option.value = (option.__value = get(device).id) ?? "";
+			});
+			append($$anchor, option);
+		});
+		reset(select);
+		var select_value;
+		init_select(select);
+		template_effect(() => {
+			if (select_value !== (select_value = selectedDeviceId())) select.value = (select.__value = selectedDeviceId()) ?? "", select_option(select, selectedDeviceId());
+		});
+		delegated("change", select, (e) => $$props.ondevicechange?.(e.currentTarget.value));
+		append($$anchor, select);
+	};
+	if_block(node, ($$render) => {
+		if (devices().length > 1) $$render(consequent);
+	});
+	reset(div);
+	template_effect(() => classes = set_class(span, 1, "dot svelte-1w0iv8d", null, classes, {
+		unavailable: status() === "unavailable",
+		connected: status() === "connected",
+		active: status() === "active"
+	}));
+	append($$anchor, div);
+	pop();
+}
+delegate(["change"]);
+//#endregion
+//#region src/param-schema.js
+/**
+* A single parameter descriptor.
+* @typedef {object} ParamDescriptor
+* @property {number} [min] lower bound; required for any ccScalable descriptor
+*   (it is a scaling bound), present on switches only where meaningful.
+* @property {number} [max] upper bound; same rule as `min`.
+* @property {number} [default] factory-default value; absent for controllers,
+*   which are not store-backed (D6).
+* @property {boolean} bipolar whether the parameter is centred (affects the
+*   power-off rest value: bipolar → midpoint, else → min).
+* @property {'knob' | 'switch' | 'controller'} kind UI/role classification.
+*   `knob` and `switch` are store-backed; `controller` is not (D6).
+* @property {boolean} ccScalable whether a MIDI CC can be scaled into this
+*   parameter's range. Independent of `kind`: `keyTrack` is a CC-mappable
+*   switch and `modWheel` is a CC-scalable controller (D2/D6).
+*/
+/**
+* Ordered map of every parameter the subtractive instrument exposes.
+*
+* Order is load-bearing: filtering to the store-backed descriptors
+* (kind ∈ {knob, switch}) must reproduce the pre-refactor PARAM_NAMES order,
+* which was `{ ...CONTINUOUS_DEFAULTS, ...SWITCH_DEFAULTS }` — i.e. all
+* continuous knobs (in their original order) followed by all switches (in
+* theirs). `modWheel` (a controller) is excluded from that filter, so its
+* position here does not affect store membership.
+* @type {Record<string, ParamDescriptor>}
+*/
+var PARAM_SCHEMA = Object.freeze({
+	osc2Detune: {
+		min: -100,
+		max: 100,
+		default: 0,
+		bipolar: true,
+		kind: "knob",
+		ccScalable: true
+	},
+	osc3Detune: {
+		min: -100,
+		max: 100,
+		default: 0,
+		bipolar: true,
+		kind: "knob",
+		ccScalable: true
+	},
+	osc3LfoRate: {
+		min: .1,
+		max: 20,
+		default: 1,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	osc1Level: {
+		min: 0,
+		max: 1,
+		default: .75,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	osc2Level: {
+		min: 0,
+		max: 1,
+		default: 0,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	osc3Level: {
+		min: 0,
+		max: 1,
+		default: 0,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	noiseLevel: {
+		min: 0,
+		max: 1,
+		default: 0,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	cutoff: {
+		min: 20,
+		max: 2e4,
+		default: 2e3,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	resonance: {
+		min: 0,
+		max: 1,
+		default: .3,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	filterAttack: {
+		min: .001,
+		max: 4,
+		default: .01,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	filterDecay: {
+		min: .001,
+		max: 4,
+		default: .3,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	filterSustain: {
+		min: 0,
+		max: 1,
+		default: .5,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	filterRelease: {
+		min: .001,
+		max: 8,
+		default: .3,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	filterEnvAmt: {
+		min: -1e4,
+		max: 1e4,
+		default: 0,
+		bipolar: true,
+		kind: "knob",
+		ccScalable: true
+	},
+	ampAttack: {
+		min: .001,
+		max: 4,
+		default: .01,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	ampDecay: {
+		min: .001,
+		max: 4,
+		default: .5,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	ampSustain: {
+		min: 0,
+		max: 1,
+		default: .7,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	ampRelease: {
+		min: .001,
+		max: 8,
+		default: .5,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	masterVol: {
+		min: 0,
+		max: 1,
+		default: .75,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	modMix: {
+		min: 0,
+		max: 1,
+		default: 0,
+		bipolar: true,
+		kind: "knob",
+		ccScalable: true
+	},
+	modWheel: {
+		min: 0,
+		max: 1,
+		bipolar: false,
+		kind: "controller",
+		ccScalable: true
+	},
+	glideRate: {
+		min: .001,
+		max: 5,
+		default: .2,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	delayTime: {
+		min: .01,
+		max: 2,
+		default: .3,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	delayFeedback: {
+		min: 0,
+		max: .9,
+		default: .3,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	delayMix: {
+		min: 0,
+		max: 1,
+		default: .3,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	delayModRate: {
+		min: .1,
+		max: 10,
+		default: .5,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	delayModDepth: {
+		min: 0,
+		max: .025,
+		default: 0,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	reverbSend: {
+		min: 0,
+		max: 1,
+		default: .3,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	reverbDamp: {
+		min: 0,
+		max: 1,
+		default: .5,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	reverbDecay: {
+		min: .01,
+		max: 1,
+		default: .5,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	reverbPreDelay: {
+		min: 0,
+		max: .1,
+		default: .015,
+		bipolar: false,
+		kind: "knob",
+		ccScalable: true
+	},
+	osc1Wave: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	osc2Wave: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	osc3Wave: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	osc1Range: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	osc2Range: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	osc3Range: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	osc3LfoMode: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	keyTrack: {
+		min: 0,
+		max: 1,
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: true
+	},
+	noiseType: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	drLock: {
+		default: 1,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	modToOsc1: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	modToOsc2: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	modToFilter: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	glideOn: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	delayOn: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	delayModOn: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	},
+	reverbOn: {
+		default: 0,
+		bipolar: false,
+		kind: "switch",
+		ccScalable: false
+	}
+});
+var SCHEMA_ENTRIES = Object.entries(PARAM_SCHEMA);
+var STORE_ENTRIES = SCHEMA_ENTRIES.filter(([, d]) => d.kind === "knob" || d.kind === "switch");
+/**
+* Factory defaults for every store-backed synth parameter (the initial active
+* patch). Iteration order is the schema's order, filtered to store-backed
+* descriptors — reproducing the pre-refactor `{ ...CONTINUOUS_DEFAULTS,
+* ...SWITCH_DEFAULTS }` order.
+* @type {Record<string, number>}
+*/
+var PARAM_DEFAULTS = Object.freeze(Object.fromEntries(STORE_ENTRIES.map(([name, d]) => [name, d.default])));
+/**
+* The names of every store-backed synth parameter, i.e. exactly what a patch
+* captures. Excludes the mod-wheel (controller), keyboard register, and MIDI CC
+* assignments.
+* @type {string[]}
+*/
+var PARAM_NAMES = Object.freeze(Object.keys(PARAM_DEFAULTS));
+/**
+* The set of parameters forwarded to the DSP via `engine.setParam`. Every
+* store-backed parameter is an audio parameter; names outside this set (e.g.
+* `modWheel`, keyboard register) are never forwarded by the store.
+* @type {ReadonlySet<string>}
+*/
+var AUDIO_PARAMS = Object.freeze(new Set(PARAM_NAMES));
+/**
+* CC-scalable knob metadata: param name → { min, max } scaling bounds. Derived
+* from `ccScalable === true` (all knobs plus the CC-mappable switch `keyTrack`
+* and the controller `modWheel`), NOT from `kind === 'knob'` (D2).
+* @type {Record<string, {min: number, max: number}>}
+*/
+var KNOB_PARAMS = Object.freeze(Object.fromEntries(SCHEMA_ENTRIES.filter(([, d]) => d.ccScalable).map(([name, d]) => [name, {
+	min: d.min,
+	max: d.max
+}])));
+/**
+* The set of bipolar (centred) parameters. Must stay in sync with the
+* `bipolar` prop on each Knob in the UI — now derived rather than hand-listed.
+* @type {ReadonlySet<string>}
+*/
+var BIPOLAR_PARAMS = Object.freeze(new Set(SCHEMA_ENTRIES.filter(([, d]) => d.bipolar).map(([name]) => name)));
+/**
+* The value a parameter rests at when the synth is powered off: the midpoint
+* for a bipolar parameter, otherwise its minimum.
+* @param {string} p parameter name
+* @returns {number}
+*/
+function powerOffValue(p) {
+	return BIPOLAR_PARAMS.has(p) ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2 : KNOB_PARAMS[p].min;
+}
+/**
+* Instrument-specific parameter renames applied to persisted MIDI-CC mappings at
+* load time (old persisted name → current schema name). This is instrument
+* history (e.g. `reverbMix` was renamed to `reverbSend`), so it belongs with the
+* other parameter metadata here, NOT in the generic MIDI-CC map (design.md D4) —
+* the chassis `MidiCcMap` is param-name-agnostic and receives this table by
+* injection. The underlying localStorage value is left untouched so a revert
+* keeps existing mappings working without further migration.
+* @type {Record<string, string>}
+*/
+var PARAM_RENAMES = Object.freeze({ reverbMix: "reverbSend" });
+/**
+* Valid integer domains for the discrete (switch) parameters that carry no
+* `min`/`max` in `PARAM_SCHEMA`. Used by the patch-import coercion layer
+* (`patches/file.js`) to keep out-of-range switch indices in bounds.
+*
+* This lives here, as a sibling export to `PARAM_RENAMES`, for the same reason
+* that rename table does: it is instrument-specific data (it names this
+* instrument's switch params), and the chassis-purity contract (chassis
+* design.md D4, enforced by `chassis-purity.test.js`) forbids instrument
+* param-name literals in generic chassis modules. The import pipeline in
+* `file.js` is generic chassis code, so the table is injected from this
+* instrument-owned module rather than colocated there.
+*
+* It is intentionally NOT folded into the frozen `PARAM_SCHEMA` object: switch
+* domains are coercion metadata, not part of the descriptor contract the store
+* and chassis consume. The values are not invented — they mirror the synth's
+* authoritative `nentry(name, init, min, max, step)` definitions in
+* `faust/synth.dsp` (echoed by the panel controls). A drift test
+* (`patches/file.coerce.test.js`) parses those DSP definitions and asserts this
+* table matches, so a waveform/range count change in the DSP that is not
+* reflected here fails a test.
+*
+* `keyTrack` is intentionally absent: it carries `min`/`max` in `PARAM_SCHEMA`
+* (it is `ccScalable`) and coercion reads its bounds from there, so duplicating
+* them here would create a second source that can drift.
+* @type {Record<string, { min: number, max: number }>}
+*/
+var DISCRETE_DOMAINS = Object.freeze({
+	osc1Wave: {
+		min: 0,
+		max: 5
+	},
+	osc2Wave: {
+		min: 0,
+		max: 5
+	},
+	osc3Wave: {
+		min: 0,
+		max: 5
+	},
+	osc1Range: {
+		min: -2,
+		max: 2
+	},
+	osc2Range: {
+		min: -2,
+		max: 2
+	},
+	osc3Range: {
+		min: -2,
+		max: 2
+	},
+	osc3LfoMode: {
+		min: 0,
+		max: 1
+	},
+	noiseType: {
+		min: 0,
+		max: 1
+	},
+	drLock: {
+		min: 0,
+		max: 1
+	},
+	modToOsc1: {
+		min: 0,
+		max: 1
+	},
+	modToOsc2: {
+		min: 0,
+		max: 1
+	},
+	modToFilter: {
+		min: 0,
+		max: 1
+	},
+	glideOn: {
+		min: 0,
+		max: 1
+	},
+	delayOn: {
+		min: 0,
+		max: 1
+	},
+	delayModOn: {
+		min: 0,
+		max: 1
+	},
+	reverbOn: {
+		min: 0,
+		max: 1
+	}
+});
+//#endregion
+//#region src/state/synth.svelte.js
+var synthParams = proxy({ ...PARAM_DEFAULTS });
+var activePatch = proxy({
+	name: null,
+	params: { ...PARAM_DEFAULTS }
+});
+function setActivePatch(name, params) {
+	activePatch.name = name;
+	activePatch.params = { ...params };
+}
+/**
+* Write a single parameter to the store and forward it to the DSP.
+*
+* Contract: forwarding goes through engine.setParam, which is a safe no-op when
+* the AudioWorklet node has not been created (i.e. while powered off). Callers
+* (interactions, MIDI, patch loads) may therefore write at any time; DSP calls
+* made before power-on simply do nothing, and the values are (re)sent when the
+* active patch is applied on power-on.
+* @param {string} name parameter name
+* @param {number} value new value
+* @param {boolean} [force] when true, call setParam even if the value is unchanged
+*/
+function writeParam(name, value, force = false) {
+	if (!AUDIO_PARAMS.has(name)) return;
+	if (!Number.isFinite(value)) return;
+	const changed = synthParams[name] !== value;
+	if (changed) synthParams[name] = value;
+	if (changed || force) setParam(name, value);
+}
+/**
+* Apply a full or partial set of parameter values to the store at once. Used to
+* apply the active patch on power-on and to load a patch. Unknown keys in the
+* input are ignored by writeParam.
+* @param {Record<string, number>} params
+* @param {boolean} [force] forwarded to writeParam (defaults true: power-on/load
+*   must (re)send every parameter to the freshly created DSP node)
+*/
+function applyParams(params, force = true) {
+	for (const name of PARAM_NAMES) if (name in params) writeParam(name, params[name], force);
+}
+/**
+* Seed the store state to factory defaults WITHOUT touching the DSP. Used at
+* App initialisation (the worklet isn't created yet, so there is nothing to
+* drive) and to give a clean baseline in tests, where the store is a singleton.
+*/
+function resetParams() {
+	for (const name of PARAM_NAMES) synthParams[name] = PARAM_DEFAULTS[name];
+}
+/**
+* Snapshot the in-scope parameter values as a plain object, suitable for
+* serializing into a patch. Only PARAM_NAMES are included.
+* @returns {Record<string, number>}
+*/
+function serializeParams() {
+	/** @type {Record<string, number>} */
+	const out = {};
+	for (const name of PARAM_NAMES) out[name] = synthParams[name];
+	return out;
+}
+//#endregion
+//#region src/patches/storage.js
+var NS = "synth-d:";
+var INDEX_KEY = NS + "patches";
+var SLOT_PREFIX = NS + "patch:";
+/** @param {string} key @returns {string | null} */
+function safeGet(key) {
+	try {
+		return localStorage.getItem(key);
+	} catch {
+		return null;
+	}
+}
+/** @param {string} key @param {string} value @returns {boolean} success */
+function safeSet(key, value) {
+	try {
+		localStorage.setItem(key, value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+/** @param {string} key */
+function safeRemove(key) {
+	try {
+		localStorage.removeItem(key);
+	} catch {}
+}
+/**
+* Validate and normalize a patch name: trim surrounding whitespace, reject
+* empty/whitespace-only, upper-case it (patch names are always all caps), and
+* cap the length. Returns the cleaned name, or null if invalid. A name that
+* collides with an existing patch is NOT an error here — the caller routes that
+* through an overwrite confirmation. Upper-casing also means names that differ
+* only by case resolve to the same patch.
+* @param {unknown} name
+* @returns {string | null}
+*/
+function validateName(name) {
+	if (typeof name !== "string") return null;
+	const trimmed = name.trim();
+	if (trimmed.length === 0) return null;
+	return trimmed.toUpperCase().slice(0, 24);
+}
+/** @returns {string[]} */
+function readIndex() {
+	const raw = safeGet(INDEX_KEY);
+	if (!raw) return [];
+	try {
+		const arr = JSON.parse(raw);
+		return Array.isArray(arr) ? arr.filter((n) => typeof n === "string") : [];
+	} catch {
+		return [];
+	}
+}
+/** @param {string[]} names */
+function writeIndex(names) {
+	return safeSet(INDEX_KEY, JSON.stringify(names));
+}
+/**
+* Migrate any legacy patch whose name is not already upper-case to its
+* upper-cased name (patch names are now always all caps). Rewrites the slot
+* under the upper-cased key (updating the envelope name) and the index entry,
+* de-duplicating if an upper-cased twin already exists. Idempotent: when every
+* name is already upper-case it does nothing. Runs as part of listPatches so the
+* UI (which lists before any load/delete/rename) always operates on canonical
+* upper-case names.
+*/
+function migrateLegacyNames() {
+	const index = readIndex();
+	/** @type {string[]} */
+	const nextIndex = [];
+	const seen = /* @__PURE__ */ new Set();
+	let changed = false;
+	for (const name of index) {
+		const upper = name.toUpperCase();
+		if (upper === name) {
+			if (!seen.has(upper)) {
+				nextIndex.push(name);
+				seen.add(upper);
+			}
+			continue;
+		}
+		changed = true;
+		const raw = safeGet(SLOT_PREFIX + name);
+		if (raw !== null && !seen.has(upper)) {
+			let payload = raw;
+			try {
+				const env = JSON.parse(raw);
+				if (env && typeof env === "object") {
+					env.name = upper;
+					payload = JSON.stringify(env);
+				}
+			} catch {}
+			safeSet(SLOT_PREFIX + upper, payload);
+			nextIndex.push(upper);
+			seen.add(upper);
+		}
+		safeRemove(SLOT_PREFIX + name);
+	}
+	if (changed) writeIndex(nextIndex);
+}
+/**
+* List the names of all saved patches (the index is the authority). Legacy
+* non-upper-case names are migrated to upper-case first.
+* @returns {string[]}
+*/
+function listPatches() {
+	migrateLegacyNames();
+	return readIndex();
+}
+/**
+* Save the current params as a named patch. Only in-scope params (PARAM_NAMES)
+* are serialized; anything else in `params` (e.g. modWheel) is excluded. A name
+* collision overwrites the existing slot. Storage failures are non-fatal.
+* @param {string} name
+* @param {Record<string, number>} params
+* @returns {{ ok: true, name: string } | { ok: false, error: 'invalid-name' | 'storage-unavailable' }}
+*/
+function savePatch(name, params) {
+	const clean = validateName(name);
+	if (clean === null) return {
+		ok: false,
+		error: "invalid-name"
+	};
+	/** @type {Record<string, number>} */
+	const filtered = {};
+	for (const p of PARAM_NAMES) if (p in params && Number.isFinite(params[p])) filtered[p] = params[p];
+	const envelope = {
+		name: clean,
+		version: 1,
+		params: filtered
+	};
+	if (!safeSet(SLOT_PREFIX + clean, JSON.stringify(envelope))) return {
+		ok: false,
+		error: "storage-unavailable"
+	};
+	const index = readIndex();
+	if (!index.includes(clean)) {
+		index.push(clean);
+		if (!writeIndex(index)) {
+			safeRemove(SLOT_PREFIX + clean);
+			return {
+				ok: false,
+				error: "storage-unavailable"
+			};
+		}
+	}
+	return {
+		ok: true,
+		name: clean
+	};
+}
+/**
+* Load a saved patch. Returns the envelope with params filtered to in-scope
+* names, or null if the name is invalid or the slot is missing/corrupt.
+* @param {string} name
+* @returns {{ name: string, version: number, params: Record<string, number> } | null}
+*/
+function loadPatch(name) {
+	const clean = validateName(name);
+	if (clean === null) return null;
+	const raw = safeGet(SLOT_PREFIX + clean);
+	if (!raw) return null;
+	try {
+		const env = JSON.parse(raw);
+		if (!env || typeof env !== "object" || typeof env.params !== "object" || env.params === null) return null;
+		/** @type {Record<string, number>} */
+		const params = {};
+		for (const p of PARAM_NAMES) if (p in env.params && Number.isFinite(env.params[p])) params[p] = env.params[p];
+		return {
+			name: clean,
+			version: typeof env.version === "number" ? env.version : 1,
+			params
+		};
+	} catch {
+		return null;
+	}
+}
+/**
+* Delete a saved patch: remove its slot and drop it from the index.
+* @param {string} name
+* @returns {boolean} true unless the name was invalid
+*/
+function deletePatch(name) {
+	const clean = validateName(name);
+	if (clean === null) return false;
+	const index = readIndex();
+	const next = index.filter((n) => n !== clean);
+	if (next.length !== index.length && !writeIndex(next)) return false;
+	safeRemove(SLOT_PREFIX + clean);
+	return true;
+}
+/**
+* Rename a saved patch in place, keeping its stored params. The new name is
+* validated like a save name. The index entry is replaced at its original
+* position. If the new name matches a different existing patch, that patch is
+* overwritten (the caller is responsible for confirming the clash). Storage
+* failures are non-fatal and roll back the new slot.
+* @param {string} oldName
+* @param {string} newName
+* @returns {{ ok: true, name: string } | { ok: false, error: 'invalid-name' | 'not-found' | 'storage-unavailable' }}
+*/
+function renamePatch(oldName, newName) {
+	const from = validateName(oldName);
+	const to = validateName(newName);
+	if (from === null || to === null) return {
+		ok: false,
+		error: "invalid-name"
+	};
+	if (from === to) return {
+		ok: true,
+		name: to
+	};
+	const patch = loadPatch(from);
+	if (!patch) return {
+		ok: false,
+		error: "not-found"
+	};
+	const index = readIndex();
+	/** @type {string[]} */
+	const next = [];
+	for (const n of index) if (n === from) next.push(to);
+	else if (n === to) continue;
+	else next.push(n);
+	if (!next.includes(to)) next.push(to);
+	if (!writeIndex(next)) return {
+		ok: false,
+		error: "storage-unavailable"
+	};
+	const envelope = {
+		name: to,
+		version: 1,
+		params: patch.params
+	};
+	if (!safeSet(SLOT_PREFIX + to, JSON.stringify(envelope))) {
+		writeIndex(index);
+		return {
+			ok: false,
+			error: "storage-unavailable"
+		};
+	}
+	safeRemove(SLOT_PREFIX + from);
+	return {
+		ok: true,
+		name: to
+	};
+}
+/**
+* Wrap a patch envelope in the versioned file object. The inner
+* `{ name, version, params }` is exactly the existing patch envelope, so export
+* is "read the envelope, add `fileFormat`, serialize." No performance/controller
+* state is included — the envelope already excludes it.
+* @param {{ name: string, version: number, params: Record<string, number> }} envelope
+* @returns {{ fileFormat: number, name: string, version: number, params: Record<string, number> }}
+*/
+function serializePatch({ name, version, params }) {
+	return {
+		fileFormat: 1,
+		name,
+		version,
+		params
+	};
+}
+var RESERVED_FILENAME_CHARS = new Set([
+	"<",
+	">",
+	":",
+	"\"",
+	"/",
+	"\\",
+	"|",
+	"?",
+	"*"
+]);
+/**
+* Derive a filesystem-safe `.json` download filename from a patch name. The
+* in-file `name` is untouched — this only sanitizes the *download* filename, so
+* a patch named with characters illegal on common filesystems still downloads
+* cleanly. Unsafe characters (reserved, whitespace, control) become `_`, runs
+* collapse, surrounding `_` is trimmed, and an empty result falls back to
+* `patch` so the name is never bare `.json`.
+* @param {string} name
+* @returns {string}
+*/
+function patchFilename(name) {
+	let out = "";
+	for (const ch of String(name)) {
+		const code = ch.codePointAt(0) ?? 0;
+		out += code < 32 || /\s/.test(ch) || RESERVED_FILENAME_CHARS.has(ch) ? "_" : ch;
+	}
+	return `${out.replace(/_+/g, "_").replace(/^_+|_+$/g, "") || "patch"}.json`;
+}
+var textEncoder = new TextEncoder();
+/**
+* Parse untrusted import text into a JSON value, bounding cost first. Rejects
+* input above {@link MAX_IMPORT_BYTES} before parsing, then rejects anything that
+* is not valid JSON. Returns the parsed value on success; never throws — failures
+* come back as `{ ok: false, error }` in the `storage.js` house style.
+* @param {unknown} text
+* @returns {{ ok: true, value: unknown } | { ok: false, error: string }}
+*/
+function parsePatchFile(text) {
+	if (typeof text !== "string") return {
+		ok: false,
+		error: "file contents are not text"
+	};
+	if (text.length > 1048576 || textEncoder.encode(text).length > 1048576) return {
+		ok: false,
+		error: "file is too large to import"
+	};
+	let value;
+	try {
+		value = JSON.parse(text);
+	} catch {
+		return {
+			ok: false,
+			error: "file is not valid JSON"
+		};
+	}
+	return {
+		ok: true,
+		value
+	};
+}
+/** The file-format versions this build recognizes. Only the current one. */
+var RECOGNIZED_FILE_FORMATS = new Set([1]);
+/** @param {unknown} v @returns {v is Record<string, unknown>} plain (non-array) object */
+function isPlainObject(v) {
+	return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+/**
+* The structural gate: the trust boundary for an untrusted, already-parsed file.
+* It rejects a malformed *shape* with a human-readable reason but never coerces
+* values — top-level must be an object, `fileFormat` must be a recognized
+* version, `name` must be a string, `params` must be an object, and every
+* parameter value must be a number. It deliberately checks number-ness ONLY: the
+* integer-domain check for switches and the dropping of non-finite values both
+* belong to the coercion layer, so the two postures (reject shape vs. coerce
+* magnitude) never fight. An empty `params` object is valid. (`JSON.parse` cannot
+* even produce a non-finite number, so the gate never needs to.)
+* @param {unknown} value the parsed file value
+* @returns {{ ok: true, file: { fileFormat: number, name: string, version: unknown, params: Record<string, number> } } | { ok: false, error: string }}
+*/
+function validatePatchFile(value) {
+	if (!isPlainObject(value)) return {
+		ok: false,
+		error: "file is not a patch object"
+	};
+	if (!RECOGNIZED_FILE_FORMATS.has(value.fileFormat)) return {
+		ok: false,
+		error: "unsupported or missing file-format version"
+	};
+	if (typeof value.name !== "string") return {
+		ok: false,
+		error: "patch name must be a string"
+	};
+	if (!isPlainObject(value.params)) return {
+		ok: false,
+		error: "patch params must be an object"
+	};
+	for (const [key, paramValue] of Object.entries(value.params)) if (typeof paramValue !== "number") return {
+		ok: false,
+		error: `parameter "${key}" must be a number`
+	};
+	return {
+		ok: true,
+		file: value
+	};
+}
+/**
+* Coerce an already-structurally-valid `params` map so the resulting patch is
+* always in range. Iterates `PARAM_NAMES` (which excludes the `modWheel`
+* controller, so a `kind: 'controller'` param is never iterated and is dropped
+* as out-of-scope), and branches on the `PARAM_SCHEMA` `kind`:
+*
+* - `knob`: clamp the value to `[min, max]`.
+* - `switch`: take the domain from `PARAM_SCHEMA` `min`/`max` when present (only
+*   `keyTrack`), else from {@link DISCRETE_DOMAINS}; keep the value only if it is
+*   an integer within that domain, else fall back to the parameter's `default`
+*   — always a safe, valid value, so a stale domain table fails closed.
+*
+* Non-finite values and parameter names outside `PARAM_NAMES` are dropped,
+* mirroring the existing `savePatch`/`loadPatch` filtering. Structure is already
+* trusted here; this layer only normalizes magnitude.
+* @param {Record<string, unknown>} params
+* @returns {Record<string, number>}
+*/
+function coerceParams(params) {
+	/** @type {Record<string, number>} */
+	const out = {};
+	for (const name of PARAM_NAMES) {
+		if (!(name in params)) continue;
+		const value = params[name];
+		if (typeof value !== "number" || !Number.isFinite(value)) continue;
+		const descriptor = PARAM_SCHEMA[name];
+		if (descriptor.kind === "knob") {
+			out[name] = Math.min(descriptor.max, Math.max(descriptor.min, value));
+			continue;
+		}
+		const domain = typeof descriptor.min === "number" && typeof descriptor.max === "number" ? {
+			min: descriptor.min,
+			max: descriptor.max
+		} : DISCRETE_DOMAINS[name];
+		out[name] = domain !== void 0 && Number.isInteger(value) && value >= domain.min && value <= domain.max ? value : descriptor.default;
+	}
+	return out;
+}
+/**
+* Normalize an imported patch name through the same `validateName` gate as save
+* (trim → upper-case → cap at `MAX_NAME_LENGTH`), then make it unique against the
+* existing patch names by auto-suffixing — import is non-destructive, so a
+* colliding name is never overwritten. On collision `" N"` is appended starting
+* at 2 and incremented until free. If `base + " N"` would exceed
+* `MAX_NAME_LENGTH`, the *base* is truncated (never the suffix) so the unique
+* suffix always survives and the result fits the cap.
+* @param {unknown} name the raw imported name
+* @param {string[]} existingNames current patch names (already canonical/upper)
+* @returns {string | null} a unique valid name, or null if the name is invalid
+*   (empty/whitespace-only) — the caller surfaces that as a rejection reason
+*/
+function uniquePatchName(name, existingNames) {
+	const base = validateName(name);
+	if (base === null) return null;
+	const taken = new Set(existingNames.map((n) => n.toUpperCase()));
+	if (!taken.has(base)) return base;
+	for (let n = 2;; n++) {
+		const suffix = ` ${n}`;
+		const room = 24 - suffix.length;
+		const candidate = (base.length > room ? base.slice(0, room) : base) + suffix;
+		if (!taken.has(candidate)) return candidate;
+	}
+}
+/**
+* Import a single patch from untrusted file text through an atomic
+* validate-then-commit pipeline. The file is parsed, structurally validated,
+* value-coerced, and name-resolved entirely in memory; only then does exactly
+* one `savePatch()` write commit it. Nothing touches `localStorage` until the
+* file is proven good, so a rejected import is inherently a no-op — no rollback
+* machinery is needed because no partial state is ever produced. This function
+* owns the terminal write; the Svelte handler only invokes it and surfaces the
+* result.
+* @param {unknown} text the raw file contents
+* @returns {{ ok: true, name: string, params: Record<string, number> } | { ok: false, error: string }}
+*/
+function importPatch(text) {
+	const parsed = parsePatchFile(text);
+	if (!parsed.ok) return {
+		ok: false,
+		error: parsed.error
+	};
+	const validated = validatePatchFile(parsed.value);
+	if (!validated.ok) return {
+		ok: false,
+		error: validated.error
+	};
+	const params = coerceParams(validated.file.params);
+	const name = uniquePatchName(validated.file.name, listPatches());
+	if (name === null) return {
+		ok: false,
+		error: "patch name is empty"
+	};
+	const res = savePatch(name, params);
+	if (!res.ok) return {
+		ok: false,
+		error: res.error === "invalid-name" ? "patch name is empty" : "storage unavailable"
+	};
+	return {
+		ok: true,
+		name: res.name,
+		params
+	};
+}
+//#endregion
+//#region src/components/PatchControl.svelte
+var root_1$1 = /* @__PURE__ */ from_html(`<span class="dirty svelte-skeerl" aria-label="unsaved changes">*</span>`);
+var root_3$1 = /* @__PURE__ */ from_html(`<p class="empty svelte-skeerl">no patches saved yet</p>`);
+var root_7 = /* @__PURE__ */ from_html(`<span class="confirm svelte-skeerl"> <button class="confirm-btn svelte-skeerl" aria-label="confirm rename overwrite">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel rename">✕</button></span>`);
+var root_8 = /* @__PURE__ */ from_html(`<button class="confirm-btn svelte-skeerl" aria-label="confirm rename">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel rename">✕</button>`, 1);
+var root_6 = /* @__PURE__ */ from_html(`<input class="rename-input svelte-skeerl" type="text"/> <!>`, 1);
+var root_10 = /* @__PURE__ */ from_html(`<span class="confirm svelte-skeerl">delete? <button class="confirm-btn svelte-skeerl" aria-label="confirm delete">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel delete">✕</button></span>`);
+var root_11 = /* @__PURE__ */ from_html(`<button class="patch-delete svelte-skeerl" title="Delete patch">✕</button>`);
+var root_9 = /* @__PURE__ */ from_html(`<button class="patch-load svelte-skeerl" title="Load patch"><span class="marker svelte-skeerl"> </span> </button> <button class="patch-rename svelte-skeerl" title="Rename patch">✎</button> <!>`, 1);
+var root_5 = /* @__PURE__ */ from_html(`<li><!></li>`);
+var root_4 = /* @__PURE__ */ from_html(`<ul class="patch-list svelte-skeerl"></ul>`);
+var root_12 = /* @__PURE__ */ from_html(`<span class="confirm svelte-skeerl"> <button class="confirm-btn svelte-skeerl" aria-label="confirm overwrite">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel overwrite">✕</button></span>`);
+var root_13 = /* @__PURE__ */ from_html(`<button class="save-btn svelte-skeerl">SAVE</button>`);
+var root_14 = /* @__PURE__ */ from_html(`<p class="error svelte-skeerl" role="alert"> </p>`);
+var root_15 = /* @__PURE__ */ from_html(`<p class="status svelte-skeerl" role="status"> </p>`);
+var root_2$1 = /* @__PURE__ */ from_html(`<div class="popover svelte-skeerl" role="dialog" aria-label="Patches"><!> <div class="save-row svelte-skeerl"><input class="name-input svelte-skeerl" type="text" placeholder="patch name" aria-label="patch name"/> <!></div> <div class="footer-row svelte-skeerl"><button class="footer-btn svelte-skeerl" aria-label="export active patch">EXPORT</button> <button class="footer-btn svelte-skeerl" aria-label="import patch from file">IMPORT</button> <input class="file-input svelte-skeerl" type="file" accept=".json" aria-hidden="true" tabindex="-1"/></div> <!> <!></div>`);
+var root$11 = /* @__PURE__ */ from_html(`<div class="patch-control svelte-skeerl"><button class="trigger svelte-skeerl" aria-haspopup="true" title="Patches">PATCH: <span class="patch-name svelte-skeerl"> </span><!></button> <!></div>`);
+function PatchControl($$anchor, $$props) {
+	push($$props, true);
+	/** @type {{ powered?: boolean }} */
+	let powered = prop($$props, "powered", 3, false);
+	let open = /* @__PURE__ */ state(false);
+	let rootEl = /* @__PURE__ */ state(
+		/** @type {HTMLElement | null} */
+		null
+	);
+	let patches = /* @__PURE__ */ state(proxy(
+		/** @type {string[]} */
+		[]
+	));
+	let nameInput = /* @__PURE__ */ state("");
+	let confirmingOverwrite = /* @__PURE__ */ state(false);
+	let confirmingDeleteName = /* @__PURE__ */ state(
+		/** @type {string | null} */
+		null
+	);
+	let renamingName = /* @__PURE__ */ state(
+		/** @type {string | null} */
+		null
+	);
+	let renameInput = /* @__PURE__ */ state("");
+	let confirmingRenameOverwrite = /* @__PURE__ */ state(false);
+	let error = /* @__PURE__ */ state("");
+	let importStatus = /* @__PURE__ */ state("");
+	let fileInput = /* @__PURE__ */ state(
+		/** @type {HTMLInputElement | null} */
+		null
+	);
+	const dirty = /* @__PURE__ */ user_derived(() => {
+		return PARAM_NAMES.map((p) => synthParams[p]).join("|") !== PARAM_NAMES.map((p) => activePatch.params[p]).join("|");
+	});
+	const displayName = /* @__PURE__ */ user_derived(() => activePatch.name ?? "DEFAULT");
+	function refresh() {
+		set(patches, listPatches(), true);
+	}
+	function toggleOpen() {
+		set(open, !get(open));
+		if (get(open)) {
+			refresh();
+			set(nameInput, activePatch.name ?? "", true);
+			set(error, "");
+			set(importStatus, "");
+			set(confirmingOverwrite, false);
+			set(confirmingDeleteName, null);
+			set(renamingName, null);
+			set(confirmingRenameOverwrite, false);
+		}
+	}
+	function onNameInput() {
+		set(confirmingOverwrite, false);
+		set(error, "");
+	}
+	/** @param {string} name */
+	function handleLoad(name) {
+		const patch = loadPatch(name);
+		if (!patch) {
+			set(error, `could not load "${name}"`);
+			return;
+		}
+		const params = {
+			...PARAM_DEFAULTS,
+			...patch.params
+		};
+		setActivePatch(patch.name, params);
+		applyParams(params, false);
+		set(nameInput, patch.name, true);
+		set(confirmingDeleteName, null);
+		set(renamingName, null);
+		set(confirmingRenameOverwrite, false);
+		set(confirmingOverwrite, false);
+		set(error, "");
+	}
+	function doSave() {
+		const snapshot = serializeParams();
+		const res = savePatch(get(nameInput), snapshot);
+		if (!res.ok) {
+			set(error, res.error === "invalid-name" ? "name required" : "storage unavailable", true);
+			return;
+		}
+		setActivePatch(res.name, snapshot);
+		set(nameInput, res.name, true);
+		set(confirmingOverwrite, false);
+		refresh();
+	}
+	function handleSave() {
+		const clean = validateName(get(nameInput));
+		if (clean === null) {
+			set(error, "name required");
+			return;
+		}
+		if (clean !== activePatch.name && get(patches).includes(clean) && !get(confirmingOverwrite)) {
+			set(confirmingOverwrite, true);
+			return;
+		}
+		doSave();
+	}
+	function cancelOverwrite() {
+		set(confirmingOverwrite, false);
+	}
+	/** @param {KeyboardEvent} e */
+	function onNameKeydown(e) {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			handleSave();
+		}
+	}
+	/** @param {string} name */
+	function requestDelete(name) {
+		set(confirmingDeleteName, name, true);
+	}
+	function cancelDelete() {
+		set(confirmingDeleteName, null);
+	}
+	/** @param {string} name */
+	function confirmDelete(name) {
+		deletePatch(name);
+		if (name === activePatch.name) setActivePatch(null, activePatch.params);
+		set(confirmingDeleteName, null);
+		refresh();
+	}
+	/** @param {string} name */
+	function startRename(name) {
+		set(renamingName, name, true);
+		set(renameInput, name, true);
+		set(confirmingRenameOverwrite, false);
+		set(confirmingDeleteName, null);
+		set(error, "");
+	}
+	function cancelRename() {
+		set(renamingName, null);
+		set(confirmingRenameOverwrite, false);
+	}
+	function onRenameInput() {
+		set(confirmingRenameOverwrite, false);
+		set(error, "");
+	}
+	/** @param {KeyboardEvent} e */
+	function onRenameKeydown(e) {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			handleRename();
+		}
+	}
+	function handleRename() {
+		const clean = validateName(get(renameInput));
+		if (clean === null) {
+			set(error, "name required");
+			return;
+		}
+		if (clean === get(renamingName)) {
+			cancelRename();
+			return;
+		}
+		if (get(patches).includes(clean) && !get(confirmingRenameOverwrite)) {
+			set(confirmingRenameOverwrite, true);
+			return;
+		}
+		doRename();
+	}
+	function doRename() {
+		const from = get(renamingName);
+		const res = renamePatch(
+			/** @type {string} */
+			from,
+			get(renameInput)
+		);
+		if (!res.ok) {
+			set(error, res.error === "invalid-name" ? "name required" : res.error === "not-found" ? "patch not found" : "storage unavailable", true);
+			return;
+		}
+		if (from === activePatch.name) {
+			setActivePatch(res.name, activePatch.params);
+			if (get(nameInput) === from) set(nameInput, res.name, true);
+		}
+		set(renamingName, null);
+		set(confirmingRenameOverwrite, false);
+		set(confirmingDeleteName, null);
+		refresh();
+	}
+	function handleExport() {
+		if (activePatch.name === null) return;
+		const file = serializePatch({
+			name: activePatch.name,
+			version: 1,
+			params: activePatch.params
+		});
+		const blob = new Blob([JSON.stringify(file, null, 2)], { type: "application/json" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = patchFilename(activePatch.name);
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+	function handleImport() {
+		get(fileInput)?.click();
+	}
+	/** @param {Event} e */
+	function onFileChange(e) {
+		const input = e.currentTarget;
+		const file = input.files?.[0];
+		if (!file) return;
+		if (file.size > 1048576) {
+			set(importStatus, "");
+			set(error, "file is too large to import");
+			input.value = "";
+			return;
+		}
+		const reader = new FileReader();
+		reader.onload = () => {
+			const res = importPatch(String(reader.result));
+			if (res.ok) {
+				set(error, "");
+				set(importStatus, `imported ${res.name}`);
+				refresh();
+			} else {
+				set(importStatus, "");
+				set(error, res.error, true);
+			}
+			input.value = "";
+		};
+		reader.onerror = () => {
+			set(importStatus, "");
+			set(error, "could not read file");
+			input.value = "";
+		};
+		reader.readAsText(file);
+	}
+	/** @param {KeyboardEvent} e */
+	function onKeyDown(e) {
+		if (e.key === "Escape" && get(open)) {
+			e.stopPropagation();
+			set(open, false);
+		}
+	}
+	/** @param {PointerEvent} e */
+	function onWindowPointerDown(e) {
+		if (get(open) && get(rootEl) && e.target instanceof Node && !get(rootEl).contains(e.target)) set(open, false);
+	}
+	var div = root$11();
+	event("keydown", $window, onKeyDown);
+	event("pointerdown", $window, onWindowPointerDown);
+	var button = child(div);
+	var span = sibling(child(button));
+	var text = child(span, true);
+	reset(span);
+	var node = sibling(span);
+	var consequent = ($$anchor) => {
+		append($$anchor, root_1$1());
+	};
+	if_block(node, ($$render) => {
+		if (get(dirty)) $$render(consequent);
+	});
+	reset(button);
+	var node_1 = sibling(button, 2);
+	var consequent_8 = ($$anchor) => {
+		var div_1 = root_2$1();
+		var node_2 = child(div_1);
+		var consequent_1 = ($$anchor) => {
+			append($$anchor, root_3$1());
+		};
+		var alternate_3 = ($$anchor) => {
+			var ul = root_4();
+			each(ul, 20, () => get(patches), (name) => name, ($$anchor, name) => {
+				var li = root_5();
+				let classes;
+				var node_3 = child(li);
+				var consequent_3 = ($$anchor) => {
+					var fragment = root_6();
+					var input_1 = first_child(fragment);
+					remove_input_defaults(input_1);
+					var node_4 = sibling(input_1, 2);
+					var consequent_2 = ($$anchor) => {
+						var span_2 = root_7();
+						var text_1 = child(span_2);
+						var button_1 = sibling(text_1);
+						var button_2 = sibling(button_1, 2);
+						reset(span_2);
+						template_effect(($0) => set_text(text_1, `overwrite ${$0 ?? ""}? `), [() => validateName(get(renameInput)) ?? ""]);
+						delegated("click", button_1, doRename);
+						delegated("click", button_2, cancelRename);
+						append($$anchor, span_2);
+					};
+					var alternate = ($$anchor) => {
+						var fragment_1 = root_8();
+						var button_3 = first_child(fragment_1);
+						var button_4 = sibling(button_3, 2);
+						delegated("click", button_3, handleRename);
+						delegated("click", button_4, cancelRename);
+						append($$anchor, fragment_1);
+					};
+					if_block(node_4, ($$render) => {
+						if (get(confirmingRenameOverwrite)) $$render(consequent_2);
+						else $$render(alternate, -1);
+					});
+					template_effect(() => {
+						set_attribute(input_1, "maxlength", 24);
+						set_attribute(input_1, "aria-label", `rename ${name}`);
+					});
+					delegated("input", input_1, onRenameInput);
+					delegated("keydown", input_1, onRenameKeydown);
+					bind_value(input_1, () => get(renameInput), ($$value) => set(renameInput, $$value));
+					append($$anchor, fragment);
+				};
+				var alternate_2 = ($$anchor) => {
+					var fragment_2 = root_9();
+					var button_5 = first_child(fragment_2);
+					var span_3 = child(button_5);
+					var text_2 = child(span_3, true);
+					reset(span_3);
+					var text_3 = sibling(span_3, 1, true);
+					reset(button_5);
+					var button_6 = sibling(button_5, 2);
+					var node_5 = sibling(button_6, 2);
+					var consequent_4 = ($$anchor) => {
+						var span_4 = root_10();
+						var button_7 = sibling(child(span_4));
+						var button_8 = sibling(button_7, 2);
+						reset(span_4);
+						delegated("click", button_7, () => confirmDelete(name));
+						delegated("click", button_8, cancelDelete);
+						append($$anchor, span_4);
+					};
+					var alternate_1 = ($$anchor) => {
+						var button_9 = root_11();
+						template_effect(() => set_attribute(button_9, "aria-label", `delete ${name}`));
+						delegated("click", button_9, () => requestDelete(name));
+						append($$anchor, button_9);
+					};
+					if_block(node_5, ($$render) => {
+						if (get(confirmingDeleteName) === name) $$render(consequent_4);
+						else $$render(alternate_1, -1);
+					});
+					template_effect(() => {
+						set_text(text_2, name === activePatch.name ? "▸" : " ");
+						set_text(text_3, name);
+						set_attribute(button_6, "aria-label", `rename ${name}`);
+					});
+					delegated("click", button_5, () => handleLoad(name));
+					delegated("click", button_6, () => startRename(name));
+					append($$anchor, fragment_2);
+				};
+				if_block(node_3, ($$render) => {
+					if (get(renamingName) === name) $$render(consequent_3);
+					else $$render(alternate_2, -1);
+				});
+				reset(li);
+				template_effect(() => classes = set_class(li, 1, "patch-row svelte-skeerl", null, classes, { active: name === activePatch.name }));
+				append($$anchor, li);
+			});
+			reset(ul);
+			append($$anchor, ul);
+		};
+		if_block(node_2, ($$render) => {
+			if (get(patches).length === 0) $$render(consequent_1);
+			else $$render(alternate_3, -1);
+		});
+		var div_2 = sibling(node_2, 2);
+		var input_2 = child(div_2);
+		remove_input_defaults(input_2);
+		var node_6 = sibling(input_2, 2);
+		var consequent_5 = ($$anchor) => {
+			var span_5 = root_12();
+			var text_4 = child(span_5);
+			var button_10 = sibling(text_4);
+			var button_11 = sibling(button_10, 2);
+			reset(span_5);
+			template_effect(($0) => set_text(text_4, `overwrite ${$0 ?? ""}? `), [() => validateName(get(nameInput)) ?? ""]);
+			delegated("click", button_10, doSave);
+			delegated("click", button_11, cancelOverwrite);
+			append($$anchor, span_5);
+		};
+		var alternate_4 = ($$anchor) => {
+			var button_12 = root_13();
+			template_effect(() => button_12.disabled = !powered());
+			delegated("click", button_12, handleSave);
+			append($$anchor, button_12);
+		};
+		if_block(node_6, ($$render) => {
+			if (get(confirmingOverwrite)) $$render(consequent_5);
+			else $$render(alternate_4, -1);
+		});
+		reset(div_2);
+		var div_3 = sibling(div_2, 2);
+		var button_13 = child(div_3);
+		var button_14 = sibling(button_13, 2);
+		var input_3 = sibling(button_14, 2);
+		bind_this(input_3, ($$value) => set(fileInput, $$value), () => get(fileInput));
+		reset(div_3);
+		var node_7 = sibling(div_3, 2);
+		var consequent_6 = ($$anchor) => {
+			var p_2 = root_14();
+			var text_5 = child(p_2, true);
+			reset(p_2);
+			template_effect(() => set_text(text_5, get(error)));
+			append($$anchor, p_2);
+		};
+		if_block(node_7, ($$render) => {
+			if (get(error)) $$render(consequent_6);
+		});
+		var node_8 = sibling(node_7, 2);
+		var consequent_7 = ($$anchor) => {
+			var p_3 = root_15();
+			var text_6 = child(p_3, true);
+			reset(p_3);
+			template_effect(() => set_text(text_6, get(importStatus)));
+			append($$anchor, p_3);
+		};
+		if_block(node_8, ($$render) => {
+			if (get(importStatus)) $$render(consequent_7);
+		});
+		reset(div_1);
+		template_effect(() => {
+			set_attribute(input_2, "maxlength", 24);
+			input_2.disabled = !powered();
+			button_13.disabled = activePatch.name === null;
+		});
+		delegated("input", input_2, onNameInput);
+		delegated("keydown", input_2, onNameKeydown);
+		bind_value(input_2, () => get(nameInput), ($$value) => set(nameInput, $$value));
+		delegated("click", button_13, handleExport);
+		delegated("click", button_14, handleImport);
+		delegated("change", input_3, onFileChange);
+		append($$anchor, div_1);
+	};
+	if_block(node_1, ($$render) => {
+		if (get(open)) $$render(consequent_8);
+	});
+	reset(div);
+	bind_this(div, ($$value) => set(rootEl, $$value), () => get(rootEl));
+	template_effect(() => {
+		set_attribute(button, "aria-expanded", get(open));
+		set_text(text, get(displayName));
+	});
+	delegated("click", button, toggleOpen);
+	append($$anchor, div);
+	pop();
+}
+delegate([
+	"click",
+	"input",
+	"keydown",
+	"change"
+]);
+//#endregion
+//#region src/components/Scope.svelte
+var root$10 = /* @__PURE__ */ from_html(`<div class="panel svelte-1pr5o9o"><span class="panel-label svelte-1pr5o9o">OSCILLOSCOPE</span> <div class="scope-body svelte-1pr5o9o"><canvas style="display: block; width: 100%; height: 80px; background: var(--panel-bg, #1c1c1c);"></canvas></div></div>`);
+function Scope($$anchor, $$props) {
+	push($$props, true);
+	/** @type {{ analyser: AnalyserNode | null, powered: boolean }} */
+	let analyser = prop($$props, "analyser", 3, null), powered = prop($$props, "powered", 3, false);
+	let canvas = /* @__PURE__ */ state(
+		/** @type {HTMLCanvasElement | null} */
+		null
+	);
+	let context = null;
+	let frameId = 0;
+	let mounted = false;
+	let dataArray = null;
+	let traceColor = "#e8dcc8";
+	function syncCanvasSize() {
+		if (!get(canvas)) return;
+		const width = get(canvas).clientWidth || 300;
+		if (get(canvas).width !== width) get(canvas).width = width;
+		if (get(canvas).height !== 80) get(canvas).height = 80;
+	}
+	function drawMidline() {
+		if (!get(canvas) || !context) return;
+		syncCanvasSize();
+		context.clearRect(0, 0, get(canvas).width, get(canvas).height);
+		context.strokeStyle = traceColor;
+		context.lineWidth = 2;
+		context.beginPath();
+		context.moveTo(0, get(canvas).height / 2);
+		context.lineTo(get(canvas).width, get(canvas).height / 2);
+		context.stroke();
+	}
+	function drawWaveform() {
+		if (!get(canvas) || !context || !analyser()) return;
+		syncCanvasSize();
+		const bufferLength = analyser().fftSize / 2;
+		if (!dataArray || dataArray.length !== bufferLength) dataArray = new Uint8Array(bufferLength);
+		analyser().getByteTimeDomainData(dataArray);
+		context.clearRect(0, 0, get(canvas).width, get(canvas).height);
+		context.strokeStyle = traceColor;
+		context.lineWidth = 2;
+		context.beginPath();
+		for (let index = 0; index < dataArray.length; index += 1) {
+			const x = index / (dataArray.length - 1) * get(canvas).width;
+			const y = dataArray[index] / 128 * (get(canvas).height / 2);
+			if (index === 0) context.moveTo(x, y);
+			else context.lineTo(x, y);
+		}
+		context.stroke();
+	}
+	function stopAnimation() {
+		if (frameId) {
+			cancelAnimationFrame(frameId);
+			frameId = 0;
+		}
+	}
+	function tick() {
+		if (!powered() || !analyser()) {
+			frameId = 0;
+			drawMidline();
+			return;
+		}
+		drawWaveform();
+		frameId = requestAnimationFrame(tick);
+	}
+	function startAnimation() {
+		if (frameId || !powered() || !analyser()) return;
+		frameId = requestAnimationFrame(tick);
+	}
+	function syncAnimation() {
+		if (!mounted) return;
+		if (powered() && analyser()) {
+			startAnimation();
+			return;
+		}
+		stopAnimation();
+		drawMidline();
+	}
+	onMount(() => {
+		context = get(canvas)?.getContext("2d") ?? null;
+		mounted = true;
+		if (get(canvas)) traceColor = getComputedStyle(get(canvas)).getPropertyValue("--scope-trace-color").trim() || "#e8dcc8";
+		drawMidline();
+		syncAnimation();
+	});
+	onDestroy(() => {
+		stopAnimation();
+	});
+	user_effect(() => {
+		powered();
+		analyser();
+		syncAnimation();
+	});
+	var div = root$10();
+	var div_1 = sibling(child(div), 2);
+	bind_this(child(div_1), ($$value) => set(canvas, $$value), () => get(canvas));
+	reset(div_1);
+	reset(div);
+	append($$anchor, div);
+	pop();
+}
+//#endregion
+//#region src/components/Shell.svelte
+var root$9 = /* @__PURE__ */ from_html(`<div class="app svelte-12hq2y2"><header class="header svelte-12hq2y2"><a class="github-link svelte-12hq2y2" href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a> <div class="title-block svelte-12hq2y2"><span class="title svelte-12hq2y2">SYNTH-D</span> <span class="version-label svelte-12hq2y2"> </span></div> <div class="header-right svelte-12hq2y2"><div class="status-stack svelte-12hq2y2"><!> <!></div> <!></div></header> <main class="svelte-12hq2y2"><div><!> <div class="keyboard-row svelte-12hq2y2"><!> <!> <!></div></div></main></div>`);
+function Shell($$anchor, $$props) {
+	push($$props, true);
+	const scope = ($$anchor) => {
+		Scope($$anchor, {
+			get analyser() {
+				return get(analyser);
+			},
+			get powered() {
+				return get(powered);
+			}
+		});
+	};
+	const branch = "main";
+	const versionLabel = branch === "main" ? `v1.8.0` : `v1.8.0 (${branch})`;
+	const WHEEL_REST = .5;
+	const MOD_REST = 0;
+	resetParams();
+	setActivePatch(null, PARAM_DEFAULTS);
+	let keyboardBase = /* @__PURE__ */ state(36);
+	const activeRegister = /* @__PURE__ */ user_derived(() => get(keyboardBase) === 21 ? "bottom" : get(keyboardBase) === 48 ? "top" : "mid");
+	let powered = /* @__PURE__ */ state(false);
+	let loading = /* @__PURE__ */ state(false);
+	let analyser = /* @__PURE__ */ state(null);
+	let midiStatus = /* @__PURE__ */ state("unavailable");
+	let midiDevices = /* @__PURE__ */ state(proxy([]));
+	let selectedDeviceId = /* @__PURE__ */ state(null);
+	let learningParam = /* @__PURE__ */ state(null);
+	let midiActiveNotes = /* @__PURE__ */ state(0);
+	let modWheelExternal = /* @__PURE__ */ state(MOD_REST);
+	let modWheelNonce = /* @__PURE__ */ state(0);
+	let pitchWheelExternal = /* @__PURE__ */ state(WHEEL_REST);
+	let pitchWheelNonce = /* @__PURE__ */ state(0);
+	function setModWheelExternal(v) {
+		set(modWheelExternal, v, true);
+		update(modWheelNonce);
+	}
+	/** @param {number} v */
+	function setPitchWheelExternal(v) {
+		set(pitchWheelExternal, v, true);
+		update(pitchWheelNonce);
+	}
+	let currentNoteFreq = /* @__PURE__ */ state(
+		/** @type {number | null} */
+		null
+	);
+	const midiCcMap = new MidiCcMap(PARAM_RENAMES);
+	const midiManager = new MidiManager({
+		onNoteOn: (note, freq) => {
+			update(midiActiveNotes);
+			if (get(midiStatus) === "connected") set(midiStatus, "active");
+			get(keyboardTriggerNote)?.(note);
+			setParam("freq", freq);
+		},
+		onNoteOff: (note) => {
+			set(midiActiveNotes, Math.max(0, get(midiActiveNotes) - 1), true);
+			if (get(midiActiveNotes) === 0 && get(midiStatus) === "active") set(midiStatus, "connected");
+			get(keyboardReleaseNote)?.(note);
+		},
+		onPitchBend: (freq, bendSemitones) => {
+			setParam("freq", freq);
+			setPitchWheelExternal(WHEEL_REST + bendSemitones / 4);
+		},
+		onCc: ({ cc, value }) => {
+			if (get(learningParam) !== null) {
+				const knob = KNOB_PARAMS[get(learningParam)];
+				if (knob) {
+					midiCcMap.assign(cc, get(learningParam), knob.min, knob.max);
+					set(learningParam, null);
+					return;
+				}
+			}
+			if (cc === 1) {
+				const scaled = value / 127;
+				setModWheelExternal(scaled);
+				setParam("modWheel", scaled);
+				return;
+			}
+			if (!get(powered)) return;
+			const mapping = midiCcMap.resolve(cc);
+			if (!mapping) return;
+			const scaled = midiCcMap.scale(cc, value);
+			if (scaled === null) return;
+			writeParam(mapping.param, scaled);
+		},
+		onStatusChange: (status) => {
+			set(midiStatus, status, true);
+		},
+		onDevicesChange: (devices) => {
+			set(midiDevices, devices, true);
+			if (devices.length > 0 && get(selectedDeviceId) === null) set(selectedDeviceId, devices[0].id, true);
+		}
+	});
+	let keyboardTriggerNote = /* @__PURE__ */ state(
+		/** @type {((midi: number) => void) | null} */
+		null
+	);
+	let keyboardReleaseNote = /* @__PURE__ */ state(
+		/** @type {((midi: number) => void) | null} */
+		null
+	);
+	let keyboardReleaseAll = /* @__PURE__ */ state(
+		/** @type {(() => void) | null} */
+		null
+	);
+	async function handleToggle() {
+		if (get(powered)) {
+			get(keyboardReleaseAll)?.();
+			await powerOff();
+			set(powered, false);
+			setModWheelExternal(MOD_REST);
+			setPitchWheelExternal(WHEEL_REST);
+			set(currentNoteFreq, null);
+		} else {
+			set(loading, true);
+			try {
+				await powerOn();
+				set(analyser, getAnalyser(), true);
+				set(powered, true);
+				applyParams(activePatch.params, true);
+				setModWheelExternal(MOD_REST);
+				setPitchWheelExternal(WHEEL_REST);
+				setParam("modWheel", MOD_REST);
+			} catch (err) {
+				console.error("Power on failed:", err);
+			} finally {
+				set(loading, false);
+			}
+		}
+	}
+	/** @param {{ param: string, value: number }} e */
+	function onParamChange(e) {
+		if (!get(powered)) return;
+		writeParam(e.param, e.value);
+	}
+	/** @param {{ param: string, value: number }} e */
+	function onModWheelChange(e) {
+		if (!get(powered)) return;
+		setParam(e.param, e.value);
+	}
+	/** @param {{ value: number }} e */
+	function onPitchWheelChange(e) {
+		if (!get(powered)) return;
+		if (get(currentNoteFreq) === null) return;
+		const semitones = (e.value - .5) * 2 * 2;
+		setParam("freq", bentFreq(get(currentNoteFreq), semitones));
+	}
+	/** @param {Array<{ param: string, value: number }>} messages */
+	function onKeyboardNote(messages) {
+		for (const msg of messages) setParam(msg.param, msg.value);
+		const endsNote = messages.some((m) => m.param === "gate" && m.value === 0);
+		let lastFreq = null;
+		for (let i = messages.length - 1; i >= 0; i--) if (messages[i].param === "freq") {
+			lastFreq = messages[i].value;
+			break;
+		}
+		if (endsNote) set(currentNoteFreq, null);
+		else if (lastFreq !== null) set(currentNoteFreq, lastFreq, true);
+	}
+	/** @param {string} param */
+	function onKnobContextMenu(param) {
+		set(learningParam, get(learningParam) === param ? null : param, true);
+	}
+	/** @param {KeyboardEvent} e */
+	function onKeyDown(e) {
+		if (e.key === "Escape" && get(learningParam) !== null) set(learningParam, null);
+	}
+	onMount(() => {
+		window.addEventListener("keydown", onKeyDown);
+		midiManager.connect();
+	});
+	onDestroy(() => {
+		window.removeEventListener("keydown", onKeyDown);
+		midiManager.destroy();
+	});
+	/** @param {...string} params */
+	function midiStateFor(...params) {
+		return Object.fromEntries(params.map((p) => [p, {
+			externalValue: get(powered) ? synthParams[p] : powerOffValue(p),
+			learningMidi: get(learningParam) === p,
+			assignedCc: midiCcMap.getAssignedCc(p)
+		}]));
+	}
+	var div = root$9();
+	var header = child(div);
+	var div_1 = sibling(child(header), 2);
+	var span = sibling(child(div_1), 2);
+	var text = child(span, true);
+	reset(span);
+	reset(div_1);
+	var div_2 = sibling(div_1, 2);
+	var div_3 = child(div_2);
+	var node = child(div_3);
+	MidiStatus(node, {
+		get status() {
+			return get(midiStatus);
+		},
+		get devices() {
+			return get(midiDevices);
+		},
+		get selectedDeviceId() {
+			return get(selectedDeviceId);
+		},
+		ondevicechange: (id) => {
+			set(selectedDeviceId, id, true);
+			midiManager.selectDevice(id);
+		}
+	});
+	PatchControl(sibling(node, 2), { get powered() {
+		return get(powered);
+	} });
+	reset(div_3);
+	PowerButton(sibling(div_3, 2), {
+		get powered() {
+			return get(powered);
+		},
+		get loading() {
+			return get(loading);
+		},
+		ontoggle: handleToggle
+	});
+	reset(div_2);
+	reset(header);
+	var main = sibling(header, 2);
+	var div_4 = child(main);
+	let classes;
+	var node_3 = child(div_4);
+	snippet(node_3, () => $$props.children, () => ({
+		midiStateFor,
+		onParamChange,
+		onKnobContextMenu,
+		powered: get(powered),
+		getMixerPeak,
+		getOutputPeak,
+		scope
+	}));
+	var div_5 = sibling(node_3, 2);
+	var node_4 = child(div_5);
+	WheelsPanel(node_4, {
+		get modExternalValue() {
+			return get(modWheelExternal);
+		},
+		get modExternalNonce() {
+			return get(modWheelNonce);
+		},
+		get pitchExternalValue() {
+			return get(pitchWheelExternal);
+		},
+		get pitchExternalNonce() {
+			return get(pitchWheelNonce);
+		},
+		onModChange: onModWheelChange,
+		onPitchChange: onPitchWheelChange
+	});
+	var node_5 = sibling(node_4, 2);
+	Keyboard(node_5, {
+		onnote: onKeyboardNote,
+		get baseMidi() {
+			return get(keyboardBase);
+		},
+		get triggerNote() {
+			return get(keyboardTriggerNote);
+		},
+		set triggerNote($$value) {
+			set(keyboardTriggerNote, $$value, true);
+		},
+		get releaseNote() {
+			return get(keyboardReleaseNote);
+		},
+		set releaseNote($$value) {
+			set(keyboardReleaseNote, $$value, true);
+		},
+		get releaseAll() {
+			return get(keyboardReleaseAll);
+		},
+		set releaseAll($$value) {
+			set(keyboardReleaseAll, $$value, true);
+		}
+	});
+	RegisterPanel(sibling(node_5, 2), {
+		ondown: () => set(keyboardBase, 21),
+		onup: () => set(keyboardBase, 48),
+		get activeRegister() {
+			return get(activeRegister);
+		}
+	});
+	reset(div_5);
+	reset(div_4);
+	reset(main);
+	reset(div);
+	template_effect(() => {
+		set_text(text, versionLabel);
+		main.inert = !get(powered) || void 0;
+		classes = set_class(div_4, 1, "synth svelte-12hq2y2", null, classes, { dimmed: !get(powered) });
+	});
+	append($$anchor, div);
+	pop();
+}
+//#endregion
 //#region src/components/Oscillator.svelte
-var root_1$4 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root_2$4 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root_3$3 = /* @__PURE__ */ from_html(`<button> </button>`);
-var root$16 = /* @__PURE__ */ from_html(`<div class="panel svelte-19bkkl2"><span class="panel-label svelte-19bkkl2">oscillator bank</span> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 1</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 2</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 3</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!> <button>lfo</button> <!></div></div></div>`);
+var root_1 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root_2 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root_3 = /* @__PURE__ */ from_html(`<button> </button>`);
+var root$8 = /* @__PURE__ */ from_html(`<div class="panel svelte-19bkkl2"><span class="panel-label svelte-19bkkl2">oscillator bank</span> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 1</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 2</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!></div></div> <div class="osc-section svelte-19bkkl2"><span class="osc-label svelte-19bkkl2">osc 3</span> <div class="wave-row svelte-19bkkl2"></div> <div class="range-row svelte-19bkkl2"><span class="param-label svelte-19bkkl2">range</span> <button class="step-btn svelte-19bkkl2">−</button> <span class="range-val svelte-19bkkl2"> </span> <button class="step-btn svelte-19bkkl2">+</button> <!> <button>lfo</button> <!></div></div></div>`);
 function Oscillator($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -11312,11 +14277,11 @@ function Oscillator($$anchor, $$props) {
 			value: osc3LfoMode() === 0 ? 1 : 0
 		});
 	}
-	var div = root$16();
+	var div = root$8();
 	var div_1 = sibling(child(div), 2);
 	var div_2 = sibling(child(div_1), 2);
 	each(div_2, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button = root_1$4();
+		var button = root_1();
 		let classes;
 		var text = child(button, true);
 		reset(button);
@@ -11339,7 +14304,7 @@ function Oscillator($$anchor, $$props) {
 	var div_4 = sibling(div_1, 2);
 	var div_5 = sibling(child(div_4), 2);
 	each(div_5, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button_3 = root_2$4();
+		var button_3 = root_2();
 		let classes_1;
 		var text_2 = child(button_3, true);
 		reset(button_3);
@@ -11393,7 +14358,7 @@ function Oscillator($$anchor, $$props) {
 	var div_7 = sibling(div_4, 2);
 	var div_8 = sibling(child(div_7), 2);
 	each(div_8, 21, () => WAVEFORMS, index, ($$anchor, name, i) => {
-		var button_6 = root_3$3();
+		var button_6 = root_3();
 		let classes_2;
 		var text_4 = child(button_6, true);
 		reset(button_6);
@@ -11505,7 +14470,7 @@ function Oscillator($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/LevelLed.svelte
-var root$15 = /* @__PURE__ */ from_html(`<div class="level-led svelte-1hlnysh"></div>`);
+var root$7 = /* @__PURE__ */ from_html(`<div class="level-led svelte-1hlnysh"></div>`);
 function LevelLed($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{ getPeak?: () => number, powered?: boolean }} */
@@ -11559,7 +14524,7 @@ function LevelLed($$anchor, $$props) {
 		cancelAnimationFrame(rafHandle);
 		clearTimeout(latchHandle);
 	});
-	var div = root$15();
+	var div = root$7();
 	let styles;
 	template_effect(() => styles = set_style(div, "", styles, { "--led-color": get(color) }));
 	append($$anchor, div);
@@ -11567,7 +14532,7 @@ function LevelLed($$anchor, $$props) {
 }
 //#endregion
 //#region src/components/Mixer.svelte
-var root$14 = /* @__PURE__ */ from_html(`<div class="panel svelte-gq0xe5"><div class="panel-header svelte-gq0xe5"><span class="panel-label svelte-gq0xe5">mixer</span> <!></div> <div class="mixer-col svelte-gq0xe5"><!> <!> <!> <div class="section-divider svelte-gq0xe5"></div> <div class="noise-row svelte-gq0xe5"><!> <div class="noise-type-row svelte-gq0xe5"><button>wht</button> <button>pink</button></div></div></div></div>`);
+var root$6 = /* @__PURE__ */ from_html(`<div class="panel svelte-gq0xe5"><div class="panel-header svelte-gq0xe5"><span class="panel-label svelte-gq0xe5">mixer</span> <!></div> <div class="mixer-col svelte-gq0xe5"><!> <!> <!> <div class="section-divider svelte-gq0xe5"></div> <div class="noise-row svelte-gq0xe5"><!> <div class="noise-type-row svelte-gq0xe5"><button>wht</button> <button>pink</button></div></div></div></div>`);
 function Mixer($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -11587,7 +14552,7 @@ function Mixer($$anchor, $$props) {
 			value: t
 		});
 	}
-	var div = root$14();
+	var div = root$6();
 	var div_1 = child(div);
 	LevelLed(sibling(child(div_1), 2), {
 		get getPeak() {
@@ -11729,7 +14694,7 @@ function Mixer($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Filter.svelte
-var root$13 = /* @__PURE__ */ from_html(`<div class="panel svelte-xeds7y"><span class="panel-label svelte-xeds7y">filter</span> <div class="knob-row centered svelte-xeds7y"><!> <!> <div class="key-track-col svelte-xeds7y"><div class="key-track-btn-wrap svelte-xeds7y"><button>KEY TRACK</button></div></div></div> <div class="section-divider svelte-xeds7y"></div> <div class="contour-header svelte-xeds7y"><span class="sub-label svelte-xeds7y">filter contour</span></div> <div class="knob-row svelte-xeds7y"><!> <!> <!> <!> <!></div></div>`);
+var root$5 = /* @__PURE__ */ from_html(`<div class="panel svelte-xeds7y"><span class="panel-label svelte-xeds7y">filter</span> <div class="knob-row centered svelte-xeds7y"><!> <!> <div class="key-track-col svelte-xeds7y"><div class="key-track-btn-wrap svelte-xeds7y"><button>KEY TRACK</button></div></div></div> <div class="section-divider svelte-xeds7y"></div> <div class="contour-header svelte-xeds7y"><span class="sub-label svelte-xeds7y">filter contour</span></div> <div class="knob-row svelte-xeds7y"><!> <!> <!> <!> <!></div></div>`);
 function Filter($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -11745,7 +14710,7 @@ function Filter($$anchor, $$props) {
 			value: keyTrack() === 0 ? 1 : 0
 		});
 	}
-	var div = root$13();
+	var div = root$5();
 	var div_1 = sibling(child(div), 2);
 	var node = child(div_1);
 	{
@@ -11963,7 +14928,7 @@ function Filter($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Effects.svelte
-var root$12 = /* @__PURE__ */ from_html(`<div class="panel svelte-123klp2"><span class="panel-label svelte-123klp2">effects</span> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">delay</span> <button> </button></div> <div class="effects-row svelte-123klp2"><!> <!> <!></div> <div class="mod-row svelte-123klp2"><button>MOD</button> <!> <!></div> <div class="section-divider svelte-123klp2"></div> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">reverb</span> <button> </button></div> <div class="effects-row reverb-row svelte-123klp2"><!> <!> <!> <!></div></div>`);
+var root$4 = /* @__PURE__ */ from_html(`<div class="panel svelte-123klp2"><span class="panel-label svelte-123klp2">effects</span> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">delay</span> <button> </button></div> <div class="effects-row svelte-123klp2"><!> <!> <!></div> <div class="mod-row svelte-123klp2"><button>MOD</button> <!> <!></div> <div class="section-divider svelte-123klp2"></div> <div class="section-header svelte-123klp2"><span class="sub-label svelte-123klp2">reverb</span> <button> </button></div> <div class="effects-row reverb-row svelte-123klp2"><!> <!> <!> <!></div></div>`);
 function Effects($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -11993,7 +14958,7 @@ function Effects($$anchor, $$props) {
 			value: reverbOn() === 0 ? 1 : 0
 		});
 	}
-	var div = root$12();
+	var div = root$4();
 	var div_1 = sibling(child(div), 2);
 	var button = sibling(child(div_1), 2);
 	let classes;
@@ -12319,7 +15284,7 @@ function Effects($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/AmpEnv.svelte
-var root$11 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
+var root$3 = /* @__PURE__ */ from_html(`<div class="panel svelte-7n4nfz"><div class="panel-header svelte-7n4nfz"><span class="panel-label svelte-7n4nfz">output</span> <!></div> <div class="knob-row centered svelte-7n4nfz"><!></div> <div class="section-divider svelte-7n4nfz"></div> <div class="contour-header svelte-7n4nfz"><span class="sub-label svelte-7n4nfz">loudness contour</span> <button title="Decay/Release lock">d/r</button></div> <div class="knob-row svelte-7n4nfz"><!> <!> <!> <!></div></div>`);
 function AmpEnv($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12338,7 +15303,7 @@ function AmpEnv($$anchor, $$props) {
 			value: drLock() === 0 ? 1 : 0
 		});
 	}
-	var div = root$11();
+	var div = root$3();
 	var div_1 = child(div);
 	LevelLed(sibling(child(div_1), 2), {
 		get getPeak() {
@@ -12514,7 +15479,7 @@ function AmpEnv($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Modulation.svelte
-var root$10 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div></div></div>`);
+var root$2 = /* @__PURE__ */ from_html(`<div class="panel svelte-1ddpss2"><span class="panel-label svelte-1ddpss2">modulation</span> <div class="mod-layout svelte-1ddpss2"><div data-testid="mod-mix-knob"><!></div> <div class="routes svelte-1ddpss2"><button>osc 1</button> <button>osc 2</button> <button>filter</button></div></div></div>`);
 function Modulation($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12540,7 +15505,7 @@ function Modulation($$anchor, $$props) {
 			value: modToFilter() === 0 ? 1 : 0
 		});
 	}
-	var div = root$10();
+	var div = root$2();
 	var div_1 = sibling(child(div), 2);
 	var div_2 = child(div_1);
 	var node = child(div_2);
@@ -12607,7 +15572,7 @@ function Modulation($$anchor, $$props) {
 delegate(["click"]);
 //#endregion
 //#region src/components/Glide.svelte
-var root$9 = /* @__PURE__ */ from_html(`<div class="panel svelte-oqc131"><span class="panel-label svelte-oqc131">glide</span> <div class="glide-row svelte-oqc131"><button> </button> <!></div></div>`);
+var root$1 = /* @__PURE__ */ from_html(`<div class="panel svelte-oqc131"><span class="panel-label svelte-oqc131">glide</span> <div class="glide-row svelte-oqc131"><button> </button> <!></div></div>`);
 function Glide($$anchor, $$props) {
 	push($$props, true);
 	/** @type {{
@@ -12623,7 +15588,7 @@ function Glide($$anchor, $$props) {
 			value: glideOn() === 0 ? 1 : 0
 		});
 	}
-	var div = root$9();
+	var div = root$1();
 	var div_1 = sibling(child(div), 2);
 	var button = child(div_1);
 	let classes;
@@ -12674,2087 +15639,36 @@ function Glide($$anchor, $$props) {
 }
 delegate(["click"]);
 //#endregion
-//#region src/components/Keyboard.svelte
-var root_1$3 = /* @__PURE__ */ from_svg(`<rect></rect>`);
-var root_2$3 = /* @__PURE__ */ from_svg(`<rect></rect>`);
-var root_3$2 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label svelte-1dlz8xf"> </text>`);
-var root_4$1 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label-black svelte-1dlz8xf"> </text>`);
-var root$8 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><rect fill="#333"></rect><!><!><!><!></svg></div>`);
-function Keyboard($$anchor, $$props) {
+//#region src/components/SubtractivePanels.svelte
+var root = /* @__PURE__ */ from_html(`<div class="panels svelte-rijahx"><!> <!> <div class="filter-output-grid svelte-rijahx"><!> <!> <div class="effects-col svelte-rijahx"><!></div> <div class="panel-row svelte-rijahx"><!> <!></div> <!></div></div>`);
+function SubtractivePanels($$anchor, $$props) {
 	push($$props, true);
-	/** @type {{
-	onnote?: (msgs: Array<{ param: string, value: number }>) => void,
-	triggerNote?: ((midi: number) => void) | null,
-	releaseNote?: ((midi: number) => void) | null,
-	releaseAll?: (() => void) | null,
-	baseMidi?: number,
-	}} */
-	let triggerNote = prop($$props, "triggerNote", 15, null), releaseNote = prop($$props, "releaseNote", 15, null), releaseAll = prop($$props, "releaseAll", 15, null), baseMidi = prop($$props, "baseMidi", 3, 36);
-	const BLACK_SEMITONES = new Set([
-		1,
-		3,
-		6,
-		8,
-		10
-	]);
-	const RAIL_H = 1;
-	const WHITE_W = 28;
-	const WHITE_H = 100;
-	const BLACK_W = 18;
-	const BLACK_H = 60;
-	/**
-	* @param {number} base
-	* @param {number} count
-	*/
-	function buildKeys(base, count) {
-		let whiteIdx = 0;
-		return Array.from({ length: count }, (_, i) => {
-			const midi = base + i;
-			const black = BLACK_SEMITONES.has(midi % 12);
-			let x;
-			if (!black) {
-				x = whiteIdx * WHITE_W;
-				whiteIdx++;
-			} else x = (whiteIdx - 1) * WHITE_W + WHITE_W - BLACK_W / 2;
-			return {
-				midi,
-				black,
-				x
-			};
-		});
-	}
-	const keys = /* @__PURE__ */ user_derived(() => buildKeys(baseMidi(), 61));
-	const whiteKeys = /* @__PURE__ */ user_derived(() => get(keys).filter((k) => !k.black));
-	const totalWidth = /* @__PURE__ */ user_derived(() => get(whiteKeys).length * WHITE_W);
-	/** @param {number} midi */
-	function midiToNoteName(midi) {
-		return `${[
-			"C",
-			"C#",
-			"D",
-			"D#",
-			"E",
-			"F",
-			"F#",
-			"G",
-			"G#",
-			"A",
-			"A#",
-			"B"
-		][midi % 12]}${Math.floor(midi / 12) - 1}`;
-	}
-	const activeKeys = new SvelteSet();
-	const pressedQwerty = new SvelteSet();
-	function _triggerNote(midi) {
-		const freq = midiToFreq(midi);
-		const wasActive = activeKeys.size > 0;
-		activeKeys.add(midi);
-		$$props.onnote?.(buildNoteOnMessages(freq, wasActive));
-	}
-	function _releaseNote(midi) {
-		activeKeys.delete(midi);
-		if (activeKeys.size === 0) $$props.onnote?.([{
-			param: "gate",
-			value: 0
-		}]);
-	}
-	function _releaseAll() {
-		for (const midi of Array.from(activeKeys)) _releaseNote(midi);
-	}
-	triggerNote(_triggerNote);
-	releaseNote(_releaseNote);
-	releaseAll(_releaseAll);
-	/** @param {EventTarget | null} target */
-	function isEditableTarget(target) {
-		if (!(target instanceof HTMLElement)) return false;
-		const tag = target.tagName;
-		return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
-	}
-	function onKeyDown(e) {
-		if (e.repeat) return;
-		if (isEditableTarget(e.target)) return;
-		const midi = QWERTY_MAP[e.key];
-		if (midi === void 0) return;
-		if (pressedQwerty.has(e.key)) return;
-		pressedQwerty.add(e.key);
-		_triggerNote(midi);
-	}
-	function onKeyUp(e) {
-		if (isEditableTarget(e.target)) return;
-		const midi = QWERTY_MAP[e.key];
-		if (midi === void 0) return;
-		pressedQwerty.delete(e.key);
-		_releaseNote(midi);
-	}
-	onMount(() => {
-		window.addEventListener("keydown", onKeyDown);
-		window.addEventListener("keyup", onKeyUp);
-	});
-	onDestroy(() => {
-		window.removeEventListener("keydown", onKeyDown);
-		window.removeEventListener("keyup", onKeyUp);
-	});
-	var div = root$8();
-	var svg = child(div);
-	set_attribute(svg, "height", WHITE_H + RAIL_H + 2);
-	var rect = child(svg);
-	set_attribute(rect, "x", 0);
-	set_attribute(rect, "y", 0);
-	set_attribute(rect, "height", RAIL_H);
-	var node = sibling(rect);
-	each(node, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
-		var rect_1 = root_1$3();
-		set_attribute(rect_1, "y", RAIL_H);
-		set_attribute(rect_1, "width", WHITE_W - 2);
-		set_attribute(rect_1, "height", WHITE_H);
-		let classes;
-		template_effect(($0) => {
-			set_attribute(rect_1, "x", get(key).x + 1);
-			classes = set_class(rect_1, 0, "white-key svelte-1dlz8xf", null, classes, $0);
-			set_attribute(rect_1, "data-midi", get(key).midi);
-		}, [() => ({ active: activeKeys.has(get(key).midi) })]);
-		delegated("pointerdown", rect_1, () => _triggerNote(get(key).midi));
-		delegated("pointerup", rect_1, () => _releaseNote(get(key).midi));
-		event("pointerleave", rect_1, () => _releaseNote(get(key).midi));
-		append($$anchor, rect_1);
-	});
-	var node_1 = sibling(node);
-	each(node_1, 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
-		var rect_2 = root_2$3();
-		set_attribute(rect_2, "y", RAIL_H);
-		set_attribute(rect_2, "width", BLACK_W);
-		set_attribute(rect_2, "height", BLACK_H);
-		let classes_1;
-		template_effect(($0) => {
-			set_attribute(rect_2, "x", get(key).x);
-			classes_1 = set_class(rect_2, 0, "black-key svelte-1dlz8xf", null, classes_1, $0);
-			set_attribute(rect_2, "data-midi", get(key).midi);
-		}, [() => ({ active: activeKeys.has(get(key).midi) })]);
-		delegated("pointerdown", rect_2, () => _triggerNote(get(key).midi));
-		delegated("pointerup", rect_2, () => _releaseNote(get(key).midi));
-		event("pointerleave", rect_2, () => _releaseNote(get(key).midi));
-		append($$anchor, rect_2);
-	});
-	var node_2 = sibling(node_1);
-	each(node_2, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
-		var text = root_3$2();
-		set_attribute(text, "y", RAIL_H + WHITE_H - 5);
-		var text_1 = child(text, true);
-		reset(text);
-		template_effect(($0) => {
-			set_attribute(text, "x", get(key).x + WHITE_W / 2);
-			set_text(text_1, $0);
-		}, [() => midiToNoteName(get(key).midi)]);
-		append($$anchor, text);
-	});
-	each(sibling(node_2), 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
-		var text_2 = root_4$1();
-		set_attribute(text_2, "y", RAIL_H + BLACK_H - 4);
-		var text_3 = child(text_2, true);
-		reset(text_2);
-		template_effect(($0) => {
-			set_attribute(text_2, "x", get(key).x + BLACK_W / 2);
-			set_text(text_3, $0);
-		}, [() => midiToNoteName(get(key).midi)]);
-		append($$anchor, text_2);
-	});
-	reset(svg);
-	reset(div);
-	template_effect(() => {
-		set_attribute(svg, "width", get(totalWidth));
-		set_attribute(rect, "width", get(totalWidth));
-	});
-	append($$anchor, div);
-	pop();
-}
-delegate(["pointerdown", "pointerup"]);
-//#endregion
-//#region src/components/RegisterPanel.svelte
-var root$7 = /* @__PURE__ */ from_html(`<div class="panel svelte-pygl9d"><span class="panel-label svelte-pygl9d">keyboard range</span> <div class="btn-col svelte-pygl9d"><button>Oct ▲</button> <button>Oct ▼</button></div></div>`);
-function RegisterPanel($$anchor, $$props) {
-	/** @type {{
-	ondown?: () => void,
-	onup?: () => void,
-	activeRegister?: 'bottom' | 'top' | 'mid',
-	}} */
-	let activeRegister = prop($$props, "activeRegister", 3, "mid");
-	var div = root$7();
-	var div_1 = sibling(child(div), 2);
-	var button = child(div_1);
-	let classes;
-	var button_1 = sibling(button, 2);
-	let classes_1;
-	reset(div_1);
-	reset(div);
-	template_effect(() => {
-		classes = set_class(button, 1, "reg-btn svelte-pygl9d", null, classes, { active: activeRegister() === "top" });
-		set_attribute(button, "aria-pressed", activeRegister() === "top");
-		classes_1 = set_class(button_1, 1, "reg-btn svelte-pygl9d", null, classes_1, { active: activeRegister() === "bottom" });
-		set_attribute(button_1, "aria-pressed", activeRegister() === "bottom");
-	});
-	delegated("click", button, function(...$$args) {
-		$$props.onup?.apply(this, $$args);
-	});
-	delegated("click", button_1, function(...$$args) {
-		$$props.ondown?.apply(this, $$args);
-	});
-	append($$anchor, div);
-}
-delegate(["click"]);
-//#endregion
-//#region src/audio/wheelPhysics.js
-/** The position both wheels rest at and spring back to. */
-var REST = .5;
-/** Maximum integration step (≈ three dropped frames at 60 Hz), in seconds. */
-var MAX_DT = .05;
-/**
-* Allowed range and default for each physics parameter. Ranges bound the
-* discrete Euler step so it cannot go unstable; the ζ lower bound is >0 so the
-* system can never be perfectly undamped (perpetual oscillation).
-*/
-var PHYSICS_RANGES = {
-	mass: {
-		min: .05,
-		max: 5,
-		default: .1
-	},
-	spring: {
-		min: 1,
-		max: 70,
-		default: 50
-	},
-	damping: {
-		min: .05,
-		max: 1,
-		default: .3
-	}
-};
-/**
-* Default per-wheel physics: a light mass with a strong spring for a snappy
-* return, underdamped (ζ=0.3) so it still overshoots and settles. The mass min
-* sits below the default so the wheel can be tuned even faster.
-*/
-var DEFAULT_PHYSICS = {
-	mass: PHYSICS_RANGES.mass.default,
-	spring: PHYSICS_RANGES.spring.default,
-	damping: PHYSICS_RANGES.damping.default
-};
-/** @param {number} v @param {number} min @param {number} max */
-function clamp(v, min, max) {
-	return Math.max(min, Math.min(max, v));
-}
-/**
-* Advance the damped oscillator one step.
-*
-* @param {{ value: number, velocity: number, mass: number, spring: number, dampingRatio: number, dt: number }} state
-* @returns {{ value: number, velocity: number }} the next value/velocity
-*/
-function stepSpring({ value, velocity, mass, spring, dampingRatio, dt }) {
-	const step = clamp(dt, 0, MAX_DT);
-	const c = dampingRatio * 2 * Math.sqrt(spring * mass);
-	const x = value - REST;
-	const nextVelocity = velocity + (-spring * x - c * velocity) / mass * step;
-	const rawValue = REST + (x + nextVelocity * step);
-	const nextValue = clamp(rawValue, 0, 1);
-	return {
-		value: nextValue,
-		velocity: rawValue !== nextValue ? 0 : nextVelocity
-	};
-}
-/**
-* True once the cursor is within a small threshold of REST with negligible
-* velocity — the loop stops here so a settled wheel emits no further frames.
-*
-* @param {number} value
-* @param {number} velocity
-* @returns {boolean}
-*/
-function isAtRest(value, velocity) {
-	return Math.abs(value - .5) < .001 && Math.abs(velocity) < .001;
-}
-//#endregion
-//#region src/components/Wheel.svelte
-var root$6 = /* @__PURE__ */ from_html(`<div class="wheel svelte-52kkif"><span class="wheel-label svelte-52kkif"> </span> <div class="wheel-track svelte-52kkif" role="slider"><div class="wheel-cursor svelte-52kkif"></div></div></div>`);
-function Wheel($$anchor, $$props) {
-	push($$props, true);
-	/** @type {{
-	label?: string,
-	externalValue?: number,
-	externalNonce?: number,
-	mass?: number,
-	spring?: number,
-	damping?: number,
-	formatValueText?: (value: number) => string,
-	onchange?: (e: { value: number }) => void,
-	}} */
-	let label = prop($$props, "label", 3, ""), externalValue = prop($$props, "externalValue", 3, void 0), externalNonce = prop($$props, "externalNonce", 3, 0), mass = prop($$props, "mass", 19, () => DEFAULT_PHYSICS.mass), spring = prop($$props, "spring", 19, () => DEFAULT_PHYSICS.spring), damping = prop($$props, "damping", 19, () => DEFAULT_PHYSICS.damping), formatValueText = prop($$props, "formatValueText", 3, void 0);
-	const TRACK_HEIGHT = 60;
-	const CURSOR_THICKNESS = 4;
-	const KEY_STEP = .05;
-	let value = /* @__PURE__ */ state(proxy(REST));
-	let cursorTop = /* @__PURE__ */ user_derived(() => (1 - get(value)) * (TRACK_HEIGHT - CURSOR_THICKNESS));
-	let dragging = false;
-	let startY = 0;
-	let startVal = REST;
-	let rafId = null;
-	let velocity = 0;
-	let lastTime = 0;
-	function cancelSpring() {
-		if (rafId !== null) {
-			cancelAnimationFrame(rafId);
-			rafId = null;
-		}
-	}
-	/** @param {number} now */
-	function tick(now) {
-		const dt = (now - lastTime) / 1e3;
-		lastTime = now;
-		const next = stepSpring({
-			value: get(value),
-			velocity,
-			mass: mass(),
-			spring: spring(),
-			dampingRatio: damping(),
-			dt
-		});
-		set(value, next.value, true);
-		velocity = next.velocity;
-		if (isAtRest(get(value), velocity)) {
-			set(value, REST, true);
-			velocity = 0;
-			rafId = null;
-			$$props.onchange?.({ value: get(value) });
-			return;
-		}
-		$$props.onchange?.({ value: get(value) });
-		rafId = requestAnimationFrame(tick);
-	}
-	function startSpring() {
-		cancelSpring();
-		velocity = 0;
-		lastTime = performance.now();
-		rafId = requestAnimationFrame(tick);
-	}
-	user_effect(() => {
-		externalNonce();
-		if (externalValue() !== void 0 && !dragging) {
-			cancelSpring();
-			set(value, externalValue());
-		}
-	});
-	user_effect(() => () => cancelSpring());
-	/** @param {PointerEvent & { currentTarget: Element }} e */
-	function onPointerDown(e) {
-		cancelSpring();
-		dragging = true;
-		startY = e.clientY;
-		startVal = get(value);
-		e.currentTarget.setPointerCapture(e.pointerId);
-	}
-	/** @param {PointerEvent} e */
-	function onPointerMove(e) {
-		if (!dragging) return;
-		const delta = (startY - e.clientY) / 80;
-		set(value, Math.max(0, Math.min(1, startVal + delta)), true);
-		$$props.onchange?.({ value: get(value) });
-	}
-	function onPointerUp() {
-		if (!dragging) return;
-		dragging = false;
-		startSpring();
-	}
-	const heldArrows = new SvelteSet();
-	/** @param {KeyboardEvent} e */
-	function onKeyDown(e) {
-		if (e.key === "ArrowUp") {
-			e.preventDefault();
-			heldArrows.add(e.key);
-			cancelSpring();
-			set(value, Math.min(1, get(value) + KEY_STEP), true);
-			$$props.onchange?.({ value: get(value) });
-		} else if (e.key === "ArrowDown") {
-			e.preventDefault();
-			heldArrows.add(e.key);
-			cancelSpring();
-			set(value, Math.max(0, get(value) - KEY_STEP), true);
-			$$props.onchange?.({ value: get(value) });
-		}
-	}
-	/** @param {KeyboardEvent} e */
-	function onKeyUp(e) {
-		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-			heldArrows.delete(e.key);
-			if (heldArrows.size === 0) startSpring();
-		}
-	}
-	var div = root$6();
-	var span = child(div);
-	var text = child(span, true);
-	reset(span);
-	var div_1 = sibling(span, 2);
-	set_attribute(div_1, "tabindex", 0);
-	set_attribute(div_1, "aria-valuemin", 0);
-	set_attribute(div_1, "aria-valuemax", 1);
-	var div_2 = child(div_1);
-	reset(div_1);
-	reset(div);
-	template_effect(($0) => {
-		set_text(text, label());
-		set_attribute(div_1, "aria-label", `${label()} wheel`);
-		set_attribute(div_1, "aria-valuenow", get(value));
-		set_attribute(div_1, "aria-valuetext", $0);
-		set_style(div_2, `top: ${get(cursorTop) ?? ""}px`);
-	}, [() => formatValueText() ? formatValueText()(get(value)) : void 0]);
-	delegated("pointerdown", div_1, onPointerDown);
-	delegated("pointermove", div_1, onPointerMove);
-	delegated("pointerup", div_1, onPointerUp);
-	event("pointercancel", div_1, onPointerUp);
-	delegated("keydown", div_1, onKeyDown);
-	delegated("keyup", div_1, onKeyUp);
-	append($$anchor, div);
-	pop();
-}
-delegate([
-	"pointerdown",
-	"pointermove",
-	"pointerup",
-	"keydown",
-	"keyup"
-]);
-//#endregion
-//#region src/audio/wheelPhysicsStore.js
-/** localStorage key (in the established `synth-d:` namespace). */
-var STORAGE_KEY = "synth-d:wheel-physics";
-/** The wheels persisted under this key. */
-var WHEELS = ["mod", "pitch"];
-/** Default physics for both wheels (a fresh object per call — never shared). */
-function defaultWheelPhysics() {
-	return {
-		mod: { ...DEFAULT_PHYSICS },
-		pitch: { ...DEFAULT_PHYSICS }
-	};
-}
-/** @param {string} key @returns {string | null} */
-function safeGet$1(key) {
-	try {
-		return localStorage.getItem(key);
-	} catch {
-		return null;
-	}
-}
-/** @param {string} key @param {string} value @returns {boolean} success */
-function safeSet$1(key, value) {
-	try {
-		localStorage.setItem(key, value);
-		return true;
-	} catch {
-		return false;
-	}
-}
-/**
-* Validate one physics field against its range, falling back to the default
-* when missing or out of range. NaN/Infinity fail `Number.isFinite`.
-* @param {unknown} v
-* @param {{ min: number, max: number, default: number }} range
-* @returns {number}
-*/
-function validateField(v, range) {
-	if (typeof v !== "number" || !Number.isFinite(v) || v < range.min || v > range.max) return range.default;
-	return v;
-}
-/**
-* Validate a single wheel's params, falling back per-field to defaults.
-* @param {unknown} raw
-* @returns {{ mass: number, spring: number, damping: number }}
-*/
-function validateWheel(raw) {
-	const w = raw && typeof raw === "object" ? raw : {};
-	return {
-		mass: validateField(w.mass, PHYSICS_RANGES.mass),
-		spring: validateField(w.spring, PHYSICS_RANGES.spring),
-		damping: validateField(w.damping, PHYSICS_RANGES.damping)
-	};
-}
-/**
-* Load both wheels' physics. Absent, partial, or corrupt data resolves to
-* per-field defaults so the wheels always function.
-* @returns {{ mod: { mass: number, spring: number, damping: number }, pitch: { mass: number, spring: number, damping: number } }}
-*/
-function loadWheelPhysics() {
-	const raw = safeGet$1(STORAGE_KEY);
-	/** @type {Record<string, unknown>} */
-	let parsed = {};
-	if (raw) try {
-		const obj = JSON.parse(raw);
-		if (obj && typeof obj === "object") parsed = obj;
-	} catch {}
-	return {
-		mod: validateWheel(parsed.mod),
-		pitch: validateWheel(parsed.pitch)
-	};
-}
-/**
-* Persist both wheels' physics. Each field is validated/clamped through the
-* same path as load, so only in-range numbers are written. Storage failure is
-* non-fatal.
-* @param {{ mod?: unknown, pitch?: unknown }} [physics]
-* @returns {boolean} success
-*/
-function saveWheelPhysics(physics = {}) {
-	/** @type {Record<string, { mass: number, spring: number, damping: number }>} */
-	const clean = {};
-	for (const wheel of WHEELS) clean[wheel] = validateWheel(physics?.[wheel]);
-	return safeSet$1(STORAGE_KEY, JSON.stringify(clean));
-}
-/**
-* Reset both wheels to default physics and persist them.
-* @returns {{ mod: { mass: number, spring: number, damping: number }, pitch: { mass: number, spring: number, damping: number } }}
-*/
-function resetWheelPhysics() {
-	const defaults = defaultWheelPhysics();
-	saveWheelPhysics(defaults);
-	return defaults;
-}
-//#endregion
-//#region src/components/WheelsPanel.svelte
-var root_3$1 = /* @__PURE__ */ from_html(`<div class="section-divider svelte-1u30a8q"></div>`);
-var root_2$2 = /* @__PURE__ */ from_html(`<!> <div class="physics-group svelte-1u30a8q"><span class="group-label svelte-1u30a8q"> </span> <div class="knobs svelte-1u30a8q"><!> <!> <!></div></div>`, 1);
-var root_1$2 = /* @__PURE__ */ from_html(`<div class="popup svelte-1u30a8q" role="dialog" aria-label="wheel physics" tabindex="-1"><!> <button class="reset svelte-1u30a8q">reset</button></div>`);
-var root$5 = /* @__PURE__ */ from_html(`<div class="wheels-panel svelte-1u30a8q"><div class="wheels svelte-1u30a8q"><!> <!></div> <button class="gear svelte-1u30a8q" aria-haspopup="dialog" aria-label="wheel physics settings" title="Wheel physics"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"></path></svg></button> <!></div>`);
-function WheelsPanel($$anchor, $$props) {
-	push($$props, true);
-	/** @type {{
-	modExternalValue?: number,
-	modExternalNonce?: number,
-	pitchExternalValue?: number,
-	pitchExternalNonce?: number,
-	onModChange?: (e: { param: string, value: number }) => void,
-	onPitchChange?: (e: { value: number }) => void,
-	}} */
-	let physics = /* @__PURE__ */ state(proxy(loadWheelPhysics()));
-	let open = /* @__PURE__ */ state(false);
-	let rootEl = /* @__PURE__ */ state(
-		/** @type {HTMLElement | null} */
-		null
-	);
-	let gearEl = /* @__PURE__ */ state(
-		/** @type {HTMLButtonElement | null} */
-		null
-	);
-	let popupEl = /* @__PURE__ */ state(
-		/** @type {HTMLElement | null} */
-		null
-	);
-	/** @param {number} v */
-	function pitchValueText(v) {
-		const semis = (v - .5) * 2 * 2;
-		const rounded = Math.round(semis * 100) / 100;
-		return `${rounded > 0 ? "+" : ""}${rounded} st`;
-	}
-	/** @param {number} v */
-	function modValueText(v) {
-		return `${Math.round(v * 100)}%`;
-	}
-	async function toggleOpen() {
-		set(open, !get(open));
-		if (get(open)) {
-			await tick();
-			get(popupEl)?.focus();
-		}
-	}
-	/**
-	* Update one physics field and persist. Bound to each knob's onchange.
-	* @param {'mod' | 'pitch'} wheel
-	* @param {'mass' | 'spring' | 'damping'} field
-	* @param {number} value
-	*/
-	function updatePhysics(wheel, field, value) {
-		set(physics, {
-			...get(physics),
-			[wheel]: {
-				...get(physics)[wheel],
-				[field]: value
-			}
-		}, true);
-		saveWheelPhysics(get(physics));
-	}
-	function resetPhysics() {
-		set(physics, resetWheelPhysics(), true);
-	}
-	/** @param {KeyboardEvent} e */
-	function onKeyDown(e) {
-		if (e.key === "Escape" && get(open)) {
-			e.stopPropagation();
-			set(open, false);
-			get(gearEl)?.focus();
-		}
-	}
-	/** @param {PointerEvent} e */
-	function onWindowPointerDown(e) {
-		if (get(open) && get(rootEl) && e.target instanceof Node && !get(rootEl).contains(e.target)) set(open, false);
-	}
-	var div = root$5();
-	event("keydown", $window, onKeyDown);
-	event("pointerdown", $window, onWindowPointerDown);
-	var div_1 = child(div);
-	var node = child(div_1);
-	Wheel(node, {
-		label: "MOD",
-		get externalValue() {
-			return $$props.modExternalValue;
-		},
-		get externalNonce() {
-			return $$props.modExternalNonce;
-		},
-		get mass() {
-			return get(physics).mod.mass;
-		},
-		get spring() {
-			return get(physics).mod.spring;
-		},
-		get damping() {
-			return get(physics).mod.damping;
-		},
-		formatValueText: modValueText,
-		onchange: (e) => $$props.onModChange?.({
-			param: "modWheel",
-			value: e.value
-		})
-	});
-	Wheel(sibling(node, 2), {
-		label: "PITCH",
-		get externalValue() {
-			return $$props.pitchExternalValue;
-		},
-		get externalNonce() {
-			return $$props.pitchExternalNonce;
-		},
-		get mass() {
-			return get(physics).pitch.mass;
-		},
-		get spring() {
-			return get(physics).pitch.spring;
-		},
-		get damping() {
-			return get(physics).pitch.damping;
-		},
-		formatValueText: pitchValueText,
-		onchange: (e) => $$props.onPitchChange?.({ value: e.value })
-	});
-	reset(div_1);
-	var button = sibling(div_1, 2);
-	bind_this(button, ($$value) => set(gearEl, $$value), () => get(gearEl));
-	var node_2 = sibling(button, 2);
-	var consequent_1 = ($$anchor) => {
-		var div_2 = root_1$2();
-		var node_3 = child(div_2);
-		each(node_3, 18, () => ["mod", "pitch"], (wheel) => wheel, ($$anchor, wheel, i) => {
-			var fragment = root_2$2();
-			var node_4 = first_child(fragment);
-			var consequent = ($$anchor) => {
-				append($$anchor, root_3$1());
-			};
-			if_block(node_4, ($$render) => {
-				if (get(i) > 0) $$render(consequent);
-			});
-			var div_4 = sibling(node_4, 2);
-			var span = child(div_4);
-			var text = child(span, true);
-			reset(span);
-			var div_5 = sibling(span, 2);
-			var node_5 = child(div_5);
-			Knob(node_5, {
-				label: "MASS",
-				get min() {
-					return PHYSICS_RANGES.mass.min;
-				},
-				get max() {
-					return PHYSICS_RANGES.mass.max;
-				},
-				get default() {
-					return PHYSICS_RANGES.mass.default;
-				},
-				get externalValue() {
-					return get(physics)[wheel].mass;
-				},
-				showArc: false,
-				onchange: (e) => updatePhysics(wheel, "mass", e.value)
-			});
-			var node_6 = sibling(node_5, 2);
-			Knob(node_6, {
-				label: "SPRING",
-				get min() {
-					return PHYSICS_RANGES.spring.min;
-				},
-				get max() {
-					return PHYSICS_RANGES.spring.max;
-				},
-				get default() {
-					return PHYSICS_RANGES.spring.default;
-				},
-				get externalValue() {
-					return get(physics)[wheel].spring;
-				},
-				showArc: false,
-				onchange: (e) => updatePhysics(wheel, "spring", e.value)
-			});
-			Knob(sibling(node_6, 2), {
-				label: "DAMP",
-				get min() {
-					return PHYSICS_RANGES.damping.min;
-				},
-				get max() {
-					return PHYSICS_RANGES.damping.max;
-				},
-				get default() {
-					return PHYSICS_RANGES.damping.default;
-				},
-				get externalValue() {
-					return get(physics)[wheel].damping;
-				},
-				showArc: false,
-				onchange: (e) => updatePhysics(wheel, "damping", e.value)
-			});
-			reset(div_5);
-			reset(div_4);
-			template_effect(() => set_text(text, wheel === "mod" ? "MOD PHYSICS" : "PITCH PHYSICS"));
-			append($$anchor, fragment);
-		});
-		var button_1 = sibling(node_3, 2);
-		reset(div_2);
-		bind_this(div_2, ($$value) => set(popupEl, $$value), () => get(popupEl));
-		delegated("click", button_1, resetPhysics);
-		append($$anchor, div_2);
-	};
-	if_block(node_2, ($$render) => {
-		if (get(open)) $$render(consequent_1);
-	});
-	reset(div);
-	bind_this(div, ($$value) => set(rootEl, $$value), () => get(rootEl));
-	template_effect(() => set_attribute(button, "aria-expanded", get(open)));
-	delegated("click", button, toggleOpen);
-	append($$anchor, div);
-	pop();
-}
-delegate(["click"]);
-//#endregion
-//#region src/components/PowerButton.svelte
-var root$4 = /* @__PURE__ */ from_html(`<div class="power-wrap svelte-z2dg21"><button type="button"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke-linecap="round" stroke-width="2" aria-hidden="true"><line x1="10" y1="2" x2="10" y2="8"></line><path d="M 14.5 4.6 A 7 7 0 1 1 5.5 4.6"></path></svg></button></div>`);
-function PowerButton($$anchor, $$props) {
-	/** @type {{ powered: boolean, loading: boolean, ontoggle: () => void }} */
-	let powered = prop($$props, "powered", 3, false), loading = prop($$props, "loading", 3, false);
-	const status = /* @__PURE__ */ user_derived(() => loading() ? "loading" : powered() ? "on" : "off");
-	var div = root$4();
-	var button = child(div);
-	let classes;
-	var svg = child(button);
-	reset(button);
-	reset(div);
-	template_effect(() => {
-		classes = set_class(button, 1, "power-btn svelte-z2dg21", null, classes, { on: powered() });
-		button.disabled = loading();
-		set_attribute(button, "aria-pressed", powered());
-		set_attribute(button, "aria-label", loading() ? "Starting audio" : powered() ? "Power off" : "Power on");
-		set_class(svg, 0, `power-icon ${get(status) ?? ""}`, "svelte-z2dg21");
-	});
-	delegated("click", button, function(...$$args) {
-		$$props.ontoggle?.apply(this, $$args);
-	});
-	append($$anchor, div);
-}
-delegate(["click"]);
-//#endregion
-//#region src/components/MidiStatus.svelte
-var root_2$1 = /* @__PURE__ */ from_html(`<option> </option>`);
-var root_1$1 = /* @__PURE__ */ from_html(`<select class="device-select svelte-1w0iv8d"></select>`);
-var root$3 = /* @__PURE__ */ from_html(`<div class="midi-status svelte-1w0iv8d"><span></span> <span class="label svelte-1w0iv8d">MIDI</span> <!></div>`);
-function MidiStatus($$anchor, $$props) {
-	push($$props, true);
-	/** @type {{
-	status?: string,
-	devices?: Array<{ id: string, name: string }>,
-	selectedDeviceId?: string | null,
-	ondevicechange?: (id: string) => void,
-	}} */
-	let status = prop($$props, "status", 3, "unavailable"), devices = prop($$props, "devices", 19, () => []), selectedDeviceId = prop($$props, "selectedDeviceId", 3, null);
-	var div = root$3();
-	var span = child(div);
-	let classes;
-	var node = sibling(span, 4);
-	var consequent = ($$anchor) => {
-		var select = root_1$1();
-		each(select, 21, devices, (device) => device.id, ($$anchor, device) => {
-			var option = root_2$1();
-			var text = child(option, true);
-			reset(option);
-			var option_value = {};
-			template_effect(() => {
-				set_text(text, get(device).name);
-				if (option_value !== (option_value = get(device).id)) option.value = (option.__value = get(device).id) ?? "";
-			});
-			append($$anchor, option);
-		});
-		reset(select);
-		var select_value;
-		init_select(select);
-		template_effect(() => {
-			if (select_value !== (select_value = selectedDeviceId())) select.value = (select.__value = selectedDeviceId()) ?? "", select_option(select, selectedDeviceId());
-		});
-		delegated("change", select, (e) => $$props.ondevicechange?.(e.currentTarget.value));
-		append($$anchor, select);
-	};
-	if_block(node, ($$render) => {
-		if (devices().length > 1) $$render(consequent);
-	});
-	reset(div);
-	template_effect(() => classes = set_class(span, 1, "dot svelte-1w0iv8d", null, classes, {
-		unavailable: status() === "unavailable",
-		connected: status() === "connected",
-		active: status() === "active"
-	}));
-	append($$anchor, div);
-	pop();
-}
-delegate(["change"]);
-//#endregion
-//#region src/state/synth.svelte.js
-var CONTINUOUS_DEFAULTS = {
-	osc2Detune: 0,
-	osc3Detune: 0,
-	osc3LfoRate: 1,
-	osc1Level: .75,
-	osc2Level: 0,
-	osc3Level: 0,
-	noiseLevel: 0,
-	cutoff: 2e3,
-	resonance: .3,
-	filterAttack: .01,
-	filterDecay: .3,
-	filterSustain: .5,
-	filterRelease: .3,
-	filterEnvAmt: 0,
-	ampAttack: .01,
-	ampDecay: .5,
-	ampSustain: .7,
-	ampRelease: .5,
-	masterVol: .75,
-	modMix: 0,
-	glideRate: .2,
-	delayTime: .3,
-	delayFeedback: .3,
-	delayMix: .3,
-	delayModRate: .5,
-	delayModDepth: 0,
-	reverbSend: .3,
-	reverbDamp: .5,
-	reverbDecay: .5,
-	reverbPreDelay: .015
-};
-var SWITCH_DEFAULTS = {
-	osc1Wave: 0,
-	osc2Wave: 0,
-	osc3Wave: 0,
-	osc1Range: 0,
-	osc2Range: 0,
-	osc3Range: 0,
-	osc3LfoMode: 0,
-	keyTrack: 0,
-	noiseType: 0,
-	drLock: 1,
-	modToOsc1: 0,
-	modToOsc2: 0,
-	modToFilter: 0,
-	glideOn: 0,
-	delayOn: 0,
-	delayModOn: 0,
-	reverbOn: 0
-};
-var PARAM_DEFAULTS = Object.freeze({
-	...CONTINUOUS_DEFAULTS,
-	...SWITCH_DEFAULTS
-});
-var PARAM_NAMES = Object.freeze(Object.keys(PARAM_DEFAULTS));
-var AUDIO_PARAMS = Object.freeze(new Set(PARAM_NAMES));
-var synthParams = proxy({ ...PARAM_DEFAULTS });
-var activePatch = proxy({
-	name: null,
-	params: { ...PARAM_DEFAULTS }
-});
-function setActivePatch(name, params) {
-	activePatch.name = name;
-	activePatch.params = { ...params };
-}
-/**
-* Write a single parameter to the store and forward it to the DSP.
-*
-* Contract: forwarding goes through engine.setParam, which is a safe no-op when
-* the AudioWorklet node has not been created (i.e. while powered off). Callers
-* (interactions, MIDI, patch loads) may therefore write at any time; DSP calls
-* made before power-on simply do nothing, and the values are (re)sent when the
-* active patch is applied on power-on.
-* @param {string} name parameter name
-* @param {number} value new value
-* @param {boolean} [force] when true, call setParam even if the value is unchanged
-*/
-function writeParam(name, value, force = false) {
-	if (!AUDIO_PARAMS.has(name)) return;
-	if (!Number.isFinite(value)) return;
-	const changed = synthParams[name] !== value;
-	if (changed) synthParams[name] = value;
-	if (changed || force) setParam(name, value);
-}
-/**
-* Apply a full or partial set of parameter values to the store at once. Used to
-* apply the active patch on power-on and to load a patch. Unknown keys in the
-* input are ignored by writeParam.
-* @param {Record<string, number>} params
-* @param {boolean} [force] forwarded to writeParam (defaults true: power-on/load
-*   must (re)send every parameter to the freshly created DSP node)
-*/
-function applyParams(params, force = true) {
-	for (const name of PARAM_NAMES) if (name in params) writeParam(name, params[name], force);
-}
-/**
-* Seed the store state to factory defaults WITHOUT touching the DSP. Used at
-* App initialisation (the worklet isn't created yet, so there is nothing to
-* drive) and to give a clean baseline in tests, where the store is a singleton.
-*/
-function resetParams() {
-	for (const name of PARAM_NAMES) synthParams[name] = PARAM_DEFAULTS[name];
-}
-/**
-* Snapshot the in-scope parameter values as a plain object, suitable for
-* serializing into a patch. Only PARAM_NAMES are included.
-* @returns {Record<string, number>}
-*/
-function serializeParams() {
-	/** @type {Record<string, number>} */
-	const out = {};
-	for (const name of PARAM_NAMES) out[name] = synthParams[name];
-	return out;
-}
-//#endregion
-//#region src/patches/storage.js
-var NS = "synth-d:";
-var INDEX_KEY = NS + "patches";
-var SLOT_PREFIX = NS + "patch:";
-/** @param {string} key @returns {string | null} */
-function safeGet(key) {
-	try {
-		return localStorage.getItem(key);
-	} catch {
-		return null;
-	}
-}
-/** @param {string} key @param {string} value @returns {boolean} success */
-function safeSet(key, value) {
-	try {
-		localStorage.setItem(key, value);
-		return true;
-	} catch {
-		return false;
-	}
-}
-/** @param {string} key */
-function safeRemove(key) {
-	try {
-		localStorage.removeItem(key);
-	} catch {}
-}
-/**
-* Validate and normalize a patch name: trim surrounding whitespace, reject
-* empty/whitespace-only, upper-case it (patch names are always all caps), and
-* cap the length. Returns the cleaned name, or null if invalid. A name that
-* collides with an existing patch is NOT an error here — the caller routes that
-* through an overwrite confirmation. Upper-casing also means names that differ
-* only by case resolve to the same patch.
-* @param {unknown} name
-* @returns {string | null}
-*/
-function validateName(name) {
-	if (typeof name !== "string") return null;
-	const trimmed = name.trim();
-	if (trimmed.length === 0) return null;
-	return trimmed.toUpperCase().slice(0, 24);
-}
-/** @returns {string[]} */
-function readIndex() {
-	const raw = safeGet(INDEX_KEY);
-	if (!raw) return [];
-	try {
-		const arr = JSON.parse(raw);
-		return Array.isArray(arr) ? arr.filter((n) => typeof n === "string") : [];
-	} catch {
-		return [];
-	}
-}
-/** @param {string[]} names */
-function writeIndex(names) {
-	return safeSet(INDEX_KEY, JSON.stringify(names));
-}
-/**
-* Migrate any legacy patch whose name is not already upper-case to its
-* upper-cased name (patch names are now always all caps). Rewrites the slot
-* under the upper-cased key (updating the envelope name) and the index entry,
-* de-duplicating if an upper-cased twin already exists. Idempotent: when every
-* name is already upper-case it does nothing. Runs as part of listPatches so the
-* UI (which lists before any load/delete/rename) always operates on canonical
-* upper-case names.
-*/
-function migrateLegacyNames() {
-	const index = readIndex();
-	/** @type {string[]} */
-	const nextIndex = [];
-	const seen = /* @__PURE__ */ new Set();
-	let changed = false;
-	for (const name of index) {
-		const upper = name.toUpperCase();
-		if (upper === name) {
-			if (!seen.has(upper)) {
-				nextIndex.push(name);
-				seen.add(upper);
-			}
-			continue;
-		}
-		changed = true;
-		const raw = safeGet(SLOT_PREFIX + name);
-		if (raw !== null && !seen.has(upper)) {
-			let payload = raw;
-			try {
-				const env = JSON.parse(raw);
-				if (env && typeof env === "object") {
-					env.name = upper;
-					payload = JSON.stringify(env);
-				}
-			} catch {}
-			safeSet(SLOT_PREFIX + upper, payload);
-			nextIndex.push(upper);
-			seen.add(upper);
-		}
-		safeRemove(SLOT_PREFIX + name);
-	}
-	if (changed) writeIndex(nextIndex);
-}
-/**
-* List the names of all saved patches (the index is the authority). Legacy
-* non-upper-case names are migrated to upper-case first.
-* @returns {string[]}
-*/
-function listPatches() {
-	migrateLegacyNames();
-	return readIndex();
-}
-/**
-* Save the current params as a named patch. Only in-scope params (PARAM_NAMES)
-* are serialized; anything else in `params` (e.g. modWheel) is excluded. A name
-* collision overwrites the existing slot. Storage failures are non-fatal.
-* @param {string} name
-* @param {Record<string, number>} params
-* @returns {{ ok: true, name: string } | { ok: false, error: 'invalid-name' | 'storage-unavailable' }}
-*/
-function savePatch(name, params) {
-	const clean = validateName(name);
-	if (clean === null) return {
-		ok: false,
-		error: "invalid-name"
-	};
-	/** @type {Record<string, number>} */
-	const filtered = {};
-	for (const p of PARAM_NAMES) if (p in params && Number.isFinite(params[p])) filtered[p] = params[p];
-	const envelope = {
-		name: clean,
-		version: 1,
-		params: filtered
-	};
-	if (!safeSet(SLOT_PREFIX + clean, JSON.stringify(envelope))) return {
-		ok: false,
-		error: "storage-unavailable"
-	};
-	const index = readIndex();
-	if (!index.includes(clean)) {
-		index.push(clean);
-		if (!writeIndex(index)) {
-			safeRemove(SLOT_PREFIX + clean);
-			return {
-				ok: false,
-				error: "storage-unavailable"
-			};
-		}
-	}
-	return {
-		ok: true,
-		name: clean
-	};
-}
-/**
-* Load a saved patch. Returns the envelope with params filtered to in-scope
-* names, or null if the name is invalid or the slot is missing/corrupt.
-* @param {string} name
-* @returns {{ name: string, version: number, params: Record<string, number> } | null}
-*/
-function loadPatch(name) {
-	const clean = validateName(name);
-	if (clean === null) return null;
-	const raw = safeGet(SLOT_PREFIX + clean);
-	if (!raw) return null;
-	try {
-		const env = JSON.parse(raw);
-		if (!env || typeof env !== "object" || typeof env.params !== "object" || env.params === null) return null;
-		/** @type {Record<string, number>} */
-		const params = {};
-		for (const p of PARAM_NAMES) if (p in env.params && Number.isFinite(env.params[p])) params[p] = env.params[p];
-		return {
-			name: clean,
-			version: typeof env.version === "number" ? env.version : 1,
-			params
-		};
-	} catch {
-		return null;
-	}
-}
-/**
-* Delete a saved patch: remove its slot and drop it from the index.
-* @param {string} name
-* @returns {boolean} true unless the name was invalid
-*/
-function deletePatch(name) {
-	const clean = validateName(name);
-	if (clean === null) return false;
-	const index = readIndex();
-	const next = index.filter((n) => n !== clean);
-	if (next.length !== index.length && !writeIndex(next)) return false;
-	safeRemove(SLOT_PREFIX + clean);
-	return true;
-}
-/**
-* Rename a saved patch in place, keeping its stored params. The new name is
-* validated like a save name. The index entry is replaced at its original
-* position. If the new name matches a different existing patch, that patch is
-* overwritten (the caller is responsible for confirming the clash). Storage
-* failures are non-fatal and roll back the new slot.
-* @param {string} oldName
-* @param {string} newName
-* @returns {{ ok: true, name: string } | { ok: false, error: 'invalid-name' | 'not-found' | 'storage-unavailable' }}
-*/
-function renamePatch(oldName, newName) {
-	const from = validateName(oldName);
-	const to = validateName(newName);
-	if (from === null || to === null) return {
-		ok: false,
-		error: "invalid-name"
-	};
-	if (from === to) return {
-		ok: true,
-		name: to
-	};
-	const patch = loadPatch(from);
-	if (!patch) return {
-		ok: false,
-		error: "not-found"
-	};
-	const index = readIndex();
-	/** @type {string[]} */
-	const next = [];
-	for (const n of index) if (n === from) next.push(to);
-	else if (n === to) continue;
-	else next.push(n);
-	if (!next.includes(to)) next.push(to);
-	if (!writeIndex(next)) return {
-		ok: false,
-		error: "storage-unavailable"
-	};
-	const envelope = {
-		name: to,
-		version: 1,
-		params: patch.params
-	};
-	if (!safeSet(SLOT_PREFIX + to, JSON.stringify(envelope))) {
-		writeIndex(index);
-		return {
-			ok: false,
-			error: "storage-unavailable"
-		};
-	}
-	safeRemove(SLOT_PREFIX + from);
-	return {
-		ok: true,
-		name: to
-	};
-}
-//#endregion
-//#region src/components/PatchControl.svelte
-var root_1 = /* @__PURE__ */ from_html(`<span class="dirty svelte-skeerl" aria-label="unsaved changes">*</span>`);
-var root_3 = /* @__PURE__ */ from_html(`<p class="empty svelte-skeerl">no patches saved yet</p>`);
-var root_7 = /* @__PURE__ */ from_html(`<span class="confirm svelte-skeerl"> <button class="confirm-btn svelte-skeerl" aria-label="confirm rename overwrite">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel rename">✕</button></span>`);
-var root_8 = /* @__PURE__ */ from_html(`<button class="confirm-btn svelte-skeerl" aria-label="confirm rename">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel rename">✕</button>`, 1);
-var root_6 = /* @__PURE__ */ from_html(`<input class="rename-input svelte-skeerl" type="text"/> <!>`, 1);
-var root_10 = /* @__PURE__ */ from_html(`<span class="confirm svelte-skeerl">delete? <button class="confirm-btn svelte-skeerl" aria-label="confirm delete">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel delete">✕</button></span>`);
-var root_11 = /* @__PURE__ */ from_html(`<button class="patch-delete svelte-skeerl" title="Delete patch">✕</button>`);
-var root_9 = /* @__PURE__ */ from_html(`<button class="patch-load svelte-skeerl" title="Load patch"><span class="marker svelte-skeerl"> </span> </button> <button class="patch-rename svelte-skeerl" title="Rename patch">✎</button> <!>`, 1);
-var root_5 = /* @__PURE__ */ from_html(`<li><!></li>`);
-var root_4 = /* @__PURE__ */ from_html(`<ul class="patch-list svelte-skeerl"></ul>`);
-var root_12 = /* @__PURE__ */ from_html(`<span class="confirm svelte-skeerl"> <button class="confirm-btn svelte-skeerl" aria-label="confirm overwrite">✓</button> <button class="confirm-btn svelte-skeerl" aria-label="cancel overwrite">✕</button></span>`);
-var root_13 = /* @__PURE__ */ from_html(`<button class="save-btn svelte-skeerl">SAVE</button>`);
-var root_14 = /* @__PURE__ */ from_html(`<p class="error svelte-skeerl" role="alert"> </p>`);
-var root_2 = /* @__PURE__ */ from_html(`<div class="popover svelte-skeerl" role="dialog" aria-label="Patches"><!> <div class="save-row svelte-skeerl"><input class="name-input svelte-skeerl" type="text" placeholder="patch name" aria-label="patch name"/> <!></div> <!></div>`);
-var root$2 = /* @__PURE__ */ from_html(`<div class="patch-control svelte-skeerl"><button class="trigger svelte-skeerl" aria-haspopup="true" title="Patches">PATCH: <span class="patch-name svelte-skeerl"> </span><!></button> <!></div>`);
-function PatchControl($$anchor, $$props) {
-	push($$props, true);
-	/** @type {{ powered?: boolean }} */
-	let powered = prop($$props, "powered", 3, false);
-	let open = /* @__PURE__ */ state(false);
-	let rootEl = /* @__PURE__ */ state(
-		/** @type {HTMLElement | null} */
-		null
-	);
-	let patches = /* @__PURE__ */ state(proxy(
-		/** @type {string[]} */
-		[]
-	));
-	let nameInput = /* @__PURE__ */ state("");
-	let confirmingOverwrite = /* @__PURE__ */ state(false);
-	let confirmingDeleteName = /* @__PURE__ */ state(
-		/** @type {string | null} */
-		null
-	);
-	let renamingName = /* @__PURE__ */ state(
-		/** @type {string | null} */
-		null
-	);
-	let renameInput = /* @__PURE__ */ state("");
-	let confirmingRenameOverwrite = /* @__PURE__ */ state(false);
-	let error = /* @__PURE__ */ state("");
-	const dirty = /* @__PURE__ */ user_derived(() => {
-		return PARAM_NAMES.map((p) => synthParams[p]).join("|") !== PARAM_NAMES.map((p) => activePatch.params[p]).join("|");
-	});
-	const displayName = /* @__PURE__ */ user_derived(() => activePatch.name ?? "DEFAULT");
-	function refresh() {
-		set(patches, listPatches(), true);
-	}
-	function toggleOpen() {
-		set(open, !get(open));
-		if (get(open)) {
-			refresh();
-			set(nameInput, activePatch.name ?? "", true);
-			set(error, "");
-			set(confirmingOverwrite, false);
-			set(confirmingDeleteName, null);
-			set(renamingName, null);
-			set(confirmingRenameOverwrite, false);
-		}
-	}
-	function onNameInput() {
-		set(confirmingOverwrite, false);
-		set(error, "");
-	}
-	/** @param {string} name */
-	function handleLoad(name) {
-		const patch = loadPatch(name);
-		if (!patch) {
-			set(error, `could not load "${name}"`);
-			return;
-		}
-		const params = {
-			...PARAM_DEFAULTS,
-			...patch.params
-		};
-		setActivePatch(patch.name, params);
-		applyParams(params, false);
-		set(nameInput, patch.name, true);
-		set(confirmingDeleteName, null);
-		set(renamingName, null);
-		set(confirmingRenameOverwrite, false);
-		set(confirmingOverwrite, false);
-		set(error, "");
-	}
-	function doSave() {
-		const snapshot = serializeParams();
-		const res = savePatch(get(nameInput), snapshot);
-		if (!res.ok) {
-			set(error, res.error === "invalid-name" ? "name required" : "storage unavailable", true);
-			return;
-		}
-		setActivePatch(res.name, snapshot);
-		set(nameInput, res.name, true);
-		set(confirmingOverwrite, false);
-		refresh();
-	}
-	function handleSave() {
-		const clean = validateName(get(nameInput));
-		if (clean === null) {
-			set(error, "name required");
-			return;
-		}
-		if (clean !== activePatch.name && get(patches).includes(clean) && !get(confirmingOverwrite)) {
-			set(confirmingOverwrite, true);
-			return;
-		}
-		doSave();
-	}
-	function cancelOverwrite() {
-		set(confirmingOverwrite, false);
-	}
-	/** @param {KeyboardEvent} e */
-	function onNameKeydown(e) {
-		if (e.key === "Enter") {
-			e.preventDefault();
-			handleSave();
-		}
-	}
-	/** @param {string} name */
-	function requestDelete(name) {
-		set(confirmingDeleteName, name, true);
-	}
-	function cancelDelete() {
-		set(confirmingDeleteName, null);
-	}
-	/** @param {string} name */
-	function confirmDelete(name) {
-		deletePatch(name);
-		if (name === activePatch.name) setActivePatch(null, activePatch.params);
-		set(confirmingDeleteName, null);
-		refresh();
-	}
-	/** @param {string} name */
-	function startRename(name) {
-		set(renamingName, name, true);
-		set(renameInput, name, true);
-		set(confirmingRenameOverwrite, false);
-		set(confirmingDeleteName, null);
-		set(error, "");
-	}
-	function cancelRename() {
-		set(renamingName, null);
-		set(confirmingRenameOverwrite, false);
-	}
-	function onRenameInput() {
-		set(confirmingRenameOverwrite, false);
-		set(error, "");
-	}
-	/** @param {KeyboardEvent} e */
-	function onRenameKeydown(e) {
-		if (e.key === "Enter") {
-			e.preventDefault();
-			handleRename();
-		}
-	}
-	function handleRename() {
-		const clean = validateName(get(renameInput));
-		if (clean === null) {
-			set(error, "name required");
-			return;
-		}
-		if (clean === get(renamingName)) {
-			cancelRename();
-			return;
-		}
-		if (get(patches).includes(clean) && !get(confirmingRenameOverwrite)) {
-			set(confirmingRenameOverwrite, true);
-			return;
-		}
-		doRename();
-	}
-	function doRename() {
-		const from = get(renamingName);
-		const res = renamePatch(
-			/** @type {string} */
-			from,
-			get(renameInput)
-		);
-		if (!res.ok) {
-			set(error, res.error === "invalid-name" ? "name required" : res.error === "not-found" ? "patch not found" : "storage unavailable", true);
-			return;
-		}
-		if (from === activePatch.name) {
-			setActivePatch(res.name, activePatch.params);
-			if (get(nameInput) === from) set(nameInput, res.name, true);
-		}
-		set(renamingName, null);
-		set(confirmingRenameOverwrite, false);
-		set(confirmingDeleteName, null);
-		refresh();
-	}
-	/** @param {KeyboardEvent} e */
-	function onKeyDown(e) {
-		if (e.key === "Escape" && get(open)) {
-			e.stopPropagation();
-			set(open, false);
-		}
-	}
-	/** @param {PointerEvent} e */
-	function onWindowPointerDown(e) {
-		if (get(open) && get(rootEl) && e.target instanceof Node && !get(rootEl).contains(e.target)) set(open, false);
-	}
-	var div = root$2();
-	event("keydown", $window, onKeyDown);
-	event("pointerdown", $window, onWindowPointerDown);
-	var button = child(div);
-	var span = sibling(child(button));
-	var text = child(span, true);
-	reset(span);
-	var node = sibling(span);
-	var consequent = ($$anchor) => {
-		append($$anchor, root_1());
-	};
-	if_block(node, ($$render) => {
-		if (get(dirty)) $$render(consequent);
-	});
-	reset(button);
-	var node_1 = sibling(button, 2);
-	var consequent_7 = ($$anchor) => {
-		var div_1 = root_2();
-		var node_2 = child(div_1);
-		var consequent_1 = ($$anchor) => {
-			append($$anchor, root_3());
-		};
-		var alternate_3 = ($$anchor) => {
-			var ul = root_4();
-			each(ul, 20, () => get(patches), (name) => name, ($$anchor, name) => {
-				var li = root_5();
-				let classes;
-				var node_3 = child(li);
-				var consequent_3 = ($$anchor) => {
-					var fragment = root_6();
-					var input = first_child(fragment);
-					remove_input_defaults(input);
-					var node_4 = sibling(input, 2);
-					var consequent_2 = ($$anchor) => {
-						var span_2 = root_7();
-						var text_1 = child(span_2);
-						var button_1 = sibling(text_1);
-						var button_2 = sibling(button_1, 2);
-						reset(span_2);
-						template_effect(($0) => set_text(text_1, `overwrite ${$0 ?? ""}? `), [() => validateName(get(renameInput)) ?? ""]);
-						delegated("click", button_1, doRename);
-						delegated("click", button_2, cancelRename);
-						append($$anchor, span_2);
-					};
-					var alternate = ($$anchor) => {
-						var fragment_1 = root_8();
-						var button_3 = first_child(fragment_1);
-						var button_4 = sibling(button_3, 2);
-						delegated("click", button_3, handleRename);
-						delegated("click", button_4, cancelRename);
-						append($$anchor, fragment_1);
-					};
-					if_block(node_4, ($$render) => {
-						if (get(confirmingRenameOverwrite)) $$render(consequent_2);
-						else $$render(alternate, -1);
-					});
-					template_effect(() => {
-						set_attribute(input, "maxlength", 24);
-						set_attribute(input, "aria-label", `rename ${name}`);
-					});
-					delegated("input", input, onRenameInput);
-					delegated("keydown", input, onRenameKeydown);
-					bind_value(input, () => get(renameInput), ($$value) => set(renameInput, $$value));
-					append($$anchor, fragment);
-				};
-				var alternate_2 = ($$anchor) => {
-					var fragment_2 = root_9();
-					var button_5 = first_child(fragment_2);
-					var span_3 = child(button_5);
-					var text_2 = child(span_3, true);
-					reset(span_3);
-					var text_3 = sibling(span_3, 1, true);
-					reset(button_5);
-					var button_6 = sibling(button_5, 2);
-					var node_5 = sibling(button_6, 2);
-					var consequent_4 = ($$anchor) => {
-						var span_4 = root_10();
-						var button_7 = sibling(child(span_4));
-						var button_8 = sibling(button_7, 2);
-						reset(span_4);
-						delegated("click", button_7, () => confirmDelete(name));
-						delegated("click", button_8, cancelDelete);
-						append($$anchor, span_4);
-					};
-					var alternate_1 = ($$anchor) => {
-						var button_9 = root_11();
-						template_effect(() => set_attribute(button_9, "aria-label", `delete ${name}`));
-						delegated("click", button_9, () => requestDelete(name));
-						append($$anchor, button_9);
-					};
-					if_block(node_5, ($$render) => {
-						if (get(confirmingDeleteName) === name) $$render(consequent_4);
-						else $$render(alternate_1, -1);
-					});
-					template_effect(() => {
-						set_text(text_2, name === activePatch.name ? "▸" : " ");
-						set_text(text_3, name);
-						set_attribute(button_6, "aria-label", `rename ${name}`);
-					});
-					delegated("click", button_5, () => handleLoad(name));
-					delegated("click", button_6, () => startRename(name));
-					append($$anchor, fragment_2);
-				};
-				if_block(node_3, ($$render) => {
-					if (get(renamingName) === name) $$render(consequent_3);
-					else $$render(alternate_2, -1);
-				});
-				reset(li);
-				template_effect(() => classes = set_class(li, 1, "patch-row svelte-skeerl", null, classes, { active: name === activePatch.name }));
-				append($$anchor, li);
-			});
-			reset(ul);
-			append($$anchor, ul);
-		};
-		if_block(node_2, ($$render) => {
-			if (get(patches).length === 0) $$render(consequent_1);
-			else $$render(alternate_3, -1);
-		});
-		var div_2 = sibling(node_2, 2);
-		var input_1 = child(div_2);
-		remove_input_defaults(input_1);
-		var node_6 = sibling(input_1, 2);
-		var consequent_5 = ($$anchor) => {
-			var span_5 = root_12();
-			var text_4 = child(span_5);
-			var button_10 = sibling(text_4);
-			var button_11 = sibling(button_10, 2);
-			reset(span_5);
-			template_effect(($0) => set_text(text_4, `overwrite ${$0 ?? ""}? `), [() => validateName(get(nameInput)) ?? ""]);
-			delegated("click", button_10, doSave);
-			delegated("click", button_11, cancelOverwrite);
-			append($$anchor, span_5);
-		};
-		var alternate_4 = ($$anchor) => {
-			var button_12 = root_13();
-			template_effect(() => button_12.disabled = !powered());
-			delegated("click", button_12, handleSave);
-			append($$anchor, button_12);
-		};
-		if_block(node_6, ($$render) => {
-			if (get(confirmingOverwrite)) $$render(consequent_5);
-			else $$render(alternate_4, -1);
-		});
-		reset(div_2);
-		var node_7 = sibling(div_2, 2);
-		var consequent_6 = ($$anchor) => {
-			var p_2 = root_14();
-			var text_5 = child(p_2, true);
-			reset(p_2);
-			template_effect(() => set_text(text_5, get(error)));
-			append($$anchor, p_2);
-		};
-		if_block(node_7, ($$render) => {
-			if (get(error)) $$render(consequent_6);
-		});
-		reset(div_1);
-		template_effect(() => {
-			set_attribute(input_1, "maxlength", 24);
-			input_1.disabled = !powered();
-		});
-		delegated("input", input_1, onNameInput);
-		delegated("keydown", input_1, onNameKeydown);
-		bind_value(input_1, () => get(nameInput), ($$value) => set(nameInput, $$value));
-		append($$anchor, div_1);
-	};
-	if_block(node_1, ($$render) => {
-		if (get(open)) $$render(consequent_7);
-	});
-	reset(div);
-	bind_this(div, ($$value) => set(rootEl, $$value), () => get(rootEl));
-	template_effect(() => {
-		set_attribute(button, "aria-expanded", get(open));
-		set_text(text, get(displayName));
-	});
-	delegated("click", button, toggleOpen);
-	append($$anchor, div);
-	pop();
-}
-delegate([
-	"click",
-	"input",
-	"keydown"
-]);
-//#endregion
-//#region src/components/Scope.svelte
-var root$1 = /* @__PURE__ */ from_html(`<div class="panel svelte-1pr5o9o"><span class="panel-label svelte-1pr5o9o">OSCILLOSCOPE</span> <div class="scope-body svelte-1pr5o9o"><canvas style="display: block; width: 100%; height: 80px; background: #1c1c1c;"></canvas></div></div>`);
-function Scope($$anchor, $$props) {
-	push($$props, true);
-	/** @type {{ analyser: AnalyserNode | null, powered: boolean }} */
-	let analyser = prop($$props, "analyser", 3, null), powered = prop($$props, "powered", 3, false);
-	let canvas = /* @__PURE__ */ state(
-		/** @type {HTMLCanvasElement | null} */
-		null
-	);
-	let context = null;
-	let frameId = 0;
-	let mounted = false;
-	let dataArray = null;
-	function syncCanvasSize() {
-		if (!get(canvas)) return;
-		const width = get(canvas).clientWidth || 300;
-		if (get(canvas).width !== width) get(canvas).width = width;
-		if (get(canvas).height !== 80) get(canvas).height = 80;
-	}
-	function drawMidline() {
-		if (!get(canvas) || !context) return;
-		syncCanvasSize();
-		context.clearRect(0, 0, get(canvas).width, get(canvas).height);
-		context.strokeStyle = "#e8dcc8";
-		context.lineWidth = 2;
-		context.beginPath();
-		context.moveTo(0, get(canvas).height / 2);
-		context.lineTo(get(canvas).width, get(canvas).height / 2);
-		context.stroke();
-	}
-	function drawWaveform() {
-		if (!get(canvas) || !context || !analyser()) return;
-		syncCanvasSize();
-		const bufferLength = analyser().fftSize / 2;
-		if (!dataArray || dataArray.length !== bufferLength) dataArray = new Uint8Array(bufferLength);
-		analyser().getByteTimeDomainData(dataArray);
-		context.clearRect(0, 0, get(canvas).width, get(canvas).height);
-		context.strokeStyle = "#e8dcc8";
-		context.lineWidth = 2;
-		context.beginPath();
-		for (let index = 0; index < dataArray.length; index += 1) {
-			const x = index / (dataArray.length - 1) * get(canvas).width;
-			const y = dataArray[index] / 128 * (get(canvas).height / 2);
-			if (index === 0) context.moveTo(x, y);
-			else context.lineTo(x, y);
-		}
-		context.stroke();
-	}
-	function stopAnimation() {
-		if (frameId) {
-			cancelAnimationFrame(frameId);
-			frameId = 0;
-		}
-	}
-	function tick() {
-		if (!powered() || !analyser()) {
-			frameId = 0;
-			drawMidline();
-			return;
-		}
-		drawWaveform();
-		frameId = requestAnimationFrame(tick);
-	}
-	function startAnimation() {
-		if (frameId || !powered() || !analyser()) return;
-		frameId = requestAnimationFrame(tick);
-	}
-	function syncAnimation() {
-		if (!mounted) return;
-		if (powered() && analyser()) {
-			startAnimation();
-			return;
-		}
-		stopAnimation();
-		drawMidline();
-	}
-	onMount(() => {
-		context = get(canvas)?.getContext("2d") ?? null;
-		mounted = true;
-		drawMidline();
-		syncAnimation();
-	});
-	onDestroy(() => {
-		stopAnimation();
-	});
-	user_effect(() => {
-		powered();
-		analyser();
-		syncAnimation();
-	});
-	var div = root$1();
-	var div_1 = sibling(child(div), 2);
-	bind_this(child(div_1), ($$value) => set(canvas, $$value), () => get(canvas));
-	reset(div_1);
-	reset(div);
-	append($$anchor, div);
-	pop();
-}
-//#endregion
-//#region src/App.svelte
-var KNOB_PARAMS = {
-	osc2Detune: {
-		min: -100,
-		max: 100
-	},
-	osc3Detune: {
-		min: -100,
-		max: 100
-	},
-	osc3LfoRate: {
-		min: .1,
-		max: 20
-	},
-	osc1Level: {
-		min: 0,
-		max: 1
-	},
-	osc2Level: {
-		min: 0,
-		max: 1
-	},
-	osc3Level: {
-		min: 0,
-		max: 1
-	},
-	noiseLevel: {
-		min: 0,
-		max: 1
-	},
-	cutoff: {
-		min: 20,
-		max: 2e4
-	},
-	resonance: {
-		min: 0,
-		max: 1
-	},
-	keyTrack: {
-		min: 0,
-		max: 1
-	},
-	filterAttack: {
-		min: .001,
-		max: 4
-	},
-	filterDecay: {
-		min: .001,
-		max: 4
-	},
-	filterSustain: {
-		min: 0,
-		max: 1
-	},
-	filterRelease: {
-		min: .001,
-		max: 8
-	},
-	filterEnvAmt: {
-		min: -1e4,
-		max: 1e4
-	},
-	ampAttack: {
-		min: .001,
-		max: 4
-	},
-	ampDecay: {
-		min: .001,
-		max: 4
-	},
-	ampSustain: {
-		min: 0,
-		max: 1
-	},
-	ampRelease: {
-		min: .001,
-		max: 8
-	},
-	modMix: {
-		min: 0,
-		max: 1
-	},
-	modWheel: {
-		min: 0,
-		max: 1
-	},
-	glideRate: {
-		min: .001,
-		max: 5
-	},
-	delayTime: {
-		min: .01,
-		max: 2
-	},
-	delayFeedback: {
-		min: 0,
-		max: .9
-	},
-	delayMix: {
-		min: 0,
-		max: 1
-	},
-	delayModRate: {
-		min: .1,
-		max: 10
-	},
-	delayModDepth: {
-		min: 0,
-		max: .025
-	},
-	reverbSend: {
-		min: 0,
-		max: 1
-	},
-	reverbDecay: {
-		min: .01,
-		max: 1
-	},
-	reverbDamp: {
-		min: 0,
-		max: 1
-	},
-	reverbPreDelay: {
-		min: 0,
-		max: .1
-	},
-	masterVol: {
-		min: 0,
-		max: 1
-	}
-};
-var BIPOLAR_PARAMS = new Set([
-	"osc2Detune",
-	"osc3Detune",
-	"modMix",
-	"filterEnvAmt"
-]);
-function powerOffValue(p) {
-	return BIPOLAR_PARAMS.has(p) ? (KNOB_PARAMS[p].min + KNOB_PARAMS[p].max) / 2 : KNOB_PARAMS[p].min;
-}
-var root = /* @__PURE__ */ from_html(`<div class="app svelte-1n46o8q"><header class="header svelte-1n46o8q"><a class="github-link svelte-1n46o8q" href="https://github.com/davidirvine/synth-d" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a> <div class="title-block svelte-1n46o8q"><span class="title svelte-1n46o8q">SYNTH-D</span> <span class="version-label svelte-1n46o8q"> </span></div> <div class="header-right svelte-1n46o8q"><div class="status-stack svelte-1n46o8q"><!> <!></div> <!></div></header> <main class="svelte-1n46o8q"><div><div class="panels svelte-1n46o8q"><!> <!> <div class="filter-output-grid svelte-1n46o8q"><!> <!> <div class="effects-col svelte-1n46o8q"><!></div> <div class="panel-row svelte-1n46o8q"><!> <!></div> <!></div></div> <div class="keyboard-row svelte-1n46o8q"><!> <!> <!></div></div></main></div>`);
-function App($$anchor, $$props) {
-	push($$props, true);
-	const branch = "main";
-	const versionLabel = branch === "main" ? `v1.7.0` : `v1.7.0 (${branch})`;
-	const WHEEL_REST = .5;
-	resetParams();
-	setActivePatch(null, PARAM_DEFAULTS);
-	let keyboardBase = /* @__PURE__ */ state(36);
-	const activeRegister = /* @__PURE__ */ user_derived(() => get(keyboardBase) === 21 ? "bottom" : get(keyboardBase) === 48 ? "top" : "mid");
-	let powered = /* @__PURE__ */ state(false);
-	let loading = /* @__PURE__ */ state(false);
-	let analyser = /* @__PURE__ */ state(
-		/** @type {AnalyserNode | null} */
-		null
-	);
-	let midiStatus = /* @__PURE__ */ state(
-		/** @type {'unavailable'|'connected'|'active'} */
-		"unavailable"
-	);
-	let midiDevices = /* @__PURE__ */ state(proxy(
-		/** @type {Array<{id:string,name:string}>} */
-		[]
-	));
-	let selectedDeviceId = /* @__PURE__ */ state(
-		/** @type {string|null} */
-		null
-	);
-	let learningParam = /* @__PURE__ */ state(
-		/** @type {string|null} */
-		null
-	);
-	let midiActiveNotes = /* @__PURE__ */ state(0);
-	let modWheelExternal = /* @__PURE__ */ state(WHEEL_REST);
-	let modWheelNonce = /* @__PURE__ */ state(0);
-	let pitchWheelExternal = /* @__PURE__ */ state(WHEEL_REST);
-	let pitchWheelNonce = /* @__PURE__ */ state(0);
-	/** @param {number} v */
-	function setModWheelExternal(v) {
-		set(modWheelExternal, v, true);
-		update(modWheelNonce);
-	}
-	/** @param {number} v */
-	function setPitchWheelExternal(v) {
-		set(pitchWheelExternal, v, true);
-		update(pitchWheelNonce);
-	}
-	let currentNoteFreq = /* @__PURE__ */ state(
-		/** @type {number | null} */
-		null
-	);
-	const midiCcMap = new MidiCcMap();
-	const midiManager = new MidiManager({
-		onNoteOn: (note, freq) => {
-			update(midiActiveNotes);
-			if (get(midiStatus) === "connected") set(midiStatus, "active");
-			get(keyboardTriggerNote)?.(note);
-			setParam("freq", freq);
-		},
-		onNoteOff: (note) => {
-			set(midiActiveNotes, Math.max(0, get(midiActiveNotes) - 1), true);
-			if (get(midiActiveNotes) === 0 && get(midiStatus) === "active") set(midiStatus, "connected");
-			get(keyboardReleaseNote)?.(note);
-		},
-		onPitchBend: (freq, bendSemitones) => {
-			setParam("freq", freq);
-			setPitchWheelExternal(WHEEL_REST + bendSemitones / 4);
-		},
-		onCc: ({ cc, value }) => {
-			if (get(learningParam) !== null) {
-				const knob = KNOB_PARAMS[get(learningParam)];
-				if (knob) {
-					midiCcMap.assign(cc, get(learningParam), knob.min, knob.max);
-					set(learningParam, null);
-					return;
-				}
-			}
-			if (cc === 1) {
-				const scaled = value / 127;
-				setModWheelExternal(scaled);
-				setParam("modWheel", scaled);
-				return;
-			}
-			if (!get(powered)) return;
-			const mapping = midiCcMap.resolve(cc);
-			if (!mapping) return;
-			const scaled = midiCcMap.scale(cc, value);
-			if (scaled === null) return;
-			writeParam(mapping.param, scaled);
-		},
-		onStatusChange: (status) => {
-			set(midiStatus, status, true);
-		},
-		onDevicesChange: (devices) => {
-			set(midiDevices, devices, true);
-			if (devices.length > 0 && get(selectedDeviceId) === null) set(selectedDeviceId, devices[0].id, true);
-		}
-	});
-	let keyboardTriggerNote = /* @__PURE__ */ state(
-		/** @type {((midi: number) => void) | null} */
-		null
-	);
-	let keyboardReleaseNote = /* @__PURE__ */ state(
-		/** @type {((midi: number) => void) | null} */
-		null
-	);
-	let keyboardReleaseAll = /* @__PURE__ */ state(
-		/** @type {(() => void) | null} */
-		null
-	);
-	async function handleToggle() {
-		if (get(powered)) {
-			get(keyboardReleaseAll)?.();
-			await powerOff();
-			set(powered, false);
-			setModWheelExternal(WHEEL_REST);
-			setPitchWheelExternal(WHEEL_REST);
-			set(currentNoteFreq, null);
-		} else {
-			set(loading, true);
-			try {
-				await powerOn();
-				set(analyser, getAnalyser(), true);
-				set(powered, true);
-				applyParams(activePatch.params, true);
-				setModWheelExternal(WHEEL_REST);
-				setPitchWheelExternal(WHEEL_REST);
-				setParam("modWheel", WHEEL_REST);
-			} catch (err) {
-				console.error("Power on failed:", err);
-			} finally {
-				set(loading, false);
-			}
-		}
-	}
-	/** @param {{ param: string, value: number }} e */
-	function onParamChange(e) {
-		if (!get(powered)) return;
-		writeParam(e.param, e.value);
-	}
-	/** @param {{ param: string, value: number }} e */
-	function onModWheelChange(e) {
-		if (!get(powered)) return;
-		setParam(e.param, e.value);
-	}
-	/** @param {{ value: number }} e */
-	function onPitchWheelChange(e) {
-		if (!get(powered)) return;
-		if (get(currentNoteFreq) === null) return;
-		const semitones = (e.value - .5) * 2 * 2;
-		setParam("freq", bentFreq(get(currentNoteFreq), semitones));
-	}
-	/** @param {Array<{ param: string, value: number }>} messages */
-	function onKeyboardNote(messages) {
-		for (const msg of messages) setParam(msg.param, msg.value);
-		const endsNote = messages.some((m) => m.param === "gate" && m.value === 0);
-		let lastFreq = null;
-		for (let i = messages.length - 1; i >= 0; i--) if (messages[i].param === "freq") {
-			lastFreq = messages[i].value;
-			break;
-		}
-		if (endsNote) set(currentNoteFreq, null);
-		else if (lastFreq !== null) set(currentNoteFreq, lastFreq, true);
-	}
-	/** @param {string} param */
-	function onKnobContextMenu(param) {
-		set(learningParam, get(learningParam) === param ? null : param, true);
-	}
-	/** @param {KeyboardEvent} e */
-	function onKeyDown(e) {
-		if (e.key === "Escape" && get(learningParam) !== null) set(learningParam, null);
-	}
-	onMount(() => {
-		window.addEventListener("keydown", onKeyDown);
-		midiManager.connect();
-	});
-	onDestroy(() => {
-		window.removeEventListener("keydown", onKeyDown);
-		midiManager.destroy();
-	});
-	/** @param {...string} params */
-	function midiStateFor(...params) {
-		return Object.fromEntries(params.map((p) => [p, {
-			externalValue: get(powered) ? synthParams[p] : powerOffValue(p),
-			learningMidi: get(learningParam) === p,
-			assignedCc: midiCcMap.getAssignedCc(p)
-		}]));
-	}
-	let oscMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("osc2Detune", "osc3Detune", "osc3LfoRate"));
-	let mixerMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("osc1Level", "osc2Level", "osc3Level", "noiseLevel"));
-	let filterMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("cutoff", "resonance", "filterAttack", "filterDecay", "filterSustain", "filterRelease", "filterEnvAmt"));
-	let ampEnvMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("ampAttack", "ampDecay", "ampSustain", "ampRelease", "masterVol"));
-	let modMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("modMix"));
-	let glideMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("glideRate"));
-	let effectsMidiState = /* @__PURE__ */ user_derived(() => midiStateFor("reverbSend", "reverbDamp", "reverbDecay", "reverbPreDelay", "delayTime", "delayFeedback", "delayMix", "delayModRate", "delayModDepth"));
+	/** @type {(...params: string[]) => Record<string, object>} */
+	/** @type {(e: { param: string, value: number }) => void} */
+	/** @type {(param: string) => void} */
+	/** @type {boolean} */
+	/** @type {() => number} */
+	/** @type {() => number} */
+	/** @type {import('svelte').Snippet} */
+	let oscMidiState = /* @__PURE__ */ user_derived(() => $$props.midiStateFor("osc2Detune", "osc3Detune", "osc3LfoRate"));
+	let mixerMidiState = /* @__PURE__ */ user_derived(() => $$props.midiStateFor("osc1Level", "osc2Level", "osc3Level", "noiseLevel"));
+	let filterMidiState = /* @__PURE__ */ user_derived(() => $$props.midiStateFor("cutoff", "resonance", "filterAttack", "filterDecay", "filterSustain", "filterRelease", "filterEnvAmt"));
+	let ampEnvMidiState = /* @__PURE__ */ user_derived(() => $$props.midiStateFor("ampAttack", "ampDecay", "ampSustain", "ampRelease", "masterVol"));
+	let modMidiState = /* @__PURE__ */ user_derived(() => $$props.midiStateFor("modMix"));
+	let glideMidiState = /* @__PURE__ */ user_derived(() => $$props.midiStateFor("glideRate"));
+	let effectsMidiState = /* @__PURE__ */ user_derived(() => $$props.midiStateFor("reverbSend", "reverbDamp", "reverbDecay", "reverbPreDelay", "delayTime", "delayFeedback", "delayMix", "delayModRate", "delayModDepth"));
 	var div = root();
-	var header = child(div);
-	var div_1 = sibling(child(header), 2);
-	var span = sibling(child(div_1), 2);
-	var text = child(span, true);
-	reset(span);
-	reset(div_1);
-	var div_2 = sibling(div_1, 2);
-	var div_3 = child(div_2);
-	var node = child(div_3);
-	MidiStatus(node, {
-		get status() {
-			return get(midiStatus);
+	var node = child(div);
+	Oscillator(node, {
+		get onchange() {
+			return $$props.onParamChange;
 		},
-		get devices() {
-			return get(midiDevices);
-		},
-		get selectedDeviceId() {
-			return get(selectedDeviceId);
-		},
-		ondevicechange: (id) => {
-			set(selectedDeviceId, id, true);
-			midiManager.selectDevice(id);
-		}
-	});
-	PatchControl(sibling(node, 2), { get powered() {
-		return get(powered);
-	} });
-	reset(div_3);
-	PowerButton(sibling(div_3, 2), {
-		get powered() {
-			return get(powered);
-		},
-		get loading() {
-			return get(loading);
-		},
-		ontoggle: handleToggle
-	});
-	reset(div_2);
-	reset(header);
-	var main = sibling(header, 2);
-	var div_4 = child(main);
-	let classes;
-	var div_5 = child(div_4);
-	var node_3 = child(div_5);
-	Oscillator(node_3, {
-		onchange: onParamChange,
 		get midiState() {
 			return get(oscMidiState);
 		},
-		onknobcontextmenu: onKnobContextMenu,
+		get onknobcontextmenu() {
+			return $$props.onKnobContextMenu;
+		},
 		get osc1Wave() {
 			return synthParams.osc1Wave;
 		},
@@ -14777,59 +15691,75 @@ function App($$anchor, $$props) {
 			return synthParams.osc3LfoMode;
 		}
 	});
-	var node_4 = sibling(node_3, 2);
-	Mixer(node_4, {
-		onchange: onParamChange,
+	var node_1 = sibling(node, 2);
+	Mixer(node_1, {
+		get onchange() {
+			return $$props.onParamChange;
+		},
 		get midiState() {
 			return get(mixerMidiState);
 		},
-		onknobcontextmenu: onKnobContextMenu,
+		get onknobcontextmenu() {
+			return $$props.onKnobContextMenu;
+		},
 		get noiseType() {
 			return synthParams.noiseType;
 		},
 		get getPeak() {
-			return getMixerPeak;
+			return $$props.getMixerPeak;
 		},
 		get powered() {
-			return get(powered);
+			return $$props.powered;
 		}
 	});
-	var div_6 = sibling(node_4, 2);
-	var node_5 = child(div_6);
-	Filter(node_5, {
-		onchange: onParamChange,
+	var div_1 = sibling(node_1, 2);
+	var node_2 = child(div_1);
+	Filter(node_2, {
+		get onchange() {
+			return $$props.onParamChange;
+		},
 		get midiState() {
 			return get(filterMidiState);
 		},
-		onknobcontextmenu: onKnobContextMenu,
+		get onknobcontextmenu() {
+			return $$props.onKnobContextMenu;
+		},
 		get keyTrack() {
 			return synthParams.keyTrack;
 		}
 	});
-	var node_6 = sibling(node_5, 2);
-	AmpEnv(node_6, {
-		onchange: onParamChange,
+	var node_3 = sibling(node_2, 2);
+	AmpEnv(node_3, {
+		get onchange() {
+			return $$props.onParamChange;
+		},
 		get midiState() {
 			return get(ampEnvMidiState);
 		},
-		onknobcontextmenu: onKnobContextMenu,
+		get onknobcontextmenu() {
+			return $$props.onKnobContextMenu;
+		},
 		get drLock() {
 			return synthParams.drLock;
 		},
 		get getOutputPeak() {
-			return getOutputPeak;
+			return $$props.getOutputPeak;
 		},
 		get powered() {
-			return get(powered);
+			return $$props.powered;
 		}
 	});
-	var div_7 = sibling(node_6, 2);
-	Effects(child(div_7), {
-		onchange: onParamChange,
+	var div_2 = sibling(node_3, 2);
+	Effects(child(div_2), {
+		get onchange() {
+			return $$props.onParamChange;
+		},
 		get midiState() {
 			return get(effectsMidiState);
 		},
-		onknobcontextmenu: onKnobContextMenu,
+		get onknobcontextmenu() {
+			return $$props.onKnobContextMenu;
+		},
 		get delayOn() {
 			return synthParams.delayOn;
 		},
@@ -14840,15 +15770,19 @@ function App($$anchor, $$props) {
 			return synthParams.reverbOn;
 		}
 	});
-	reset(div_7);
-	var div_8 = sibling(div_7, 2);
-	var node_8 = child(div_8);
-	Modulation(node_8, {
-		onchange: onParamChange,
+	reset(div_2);
+	var div_3 = sibling(div_2, 2);
+	var node_5 = child(div_3);
+	Modulation(node_5, {
+		get onchange() {
+			return $$props.onParamChange;
+		},
 		get midiState() {
 			return get(modMidiState);
 		},
-		onknobcontextmenu: onKnobContextMenu,
+		get onknobcontextmenu() {
+			return $$props.onKnobContextMenu;
+		},
 		get modToOsc1() {
 			return synthParams.modToOsc1;
 		},
@@ -14859,88 +15793,39 @@ function App($$anchor, $$props) {
 			return synthParams.modToFilter;
 		}
 	});
-	Glide(sibling(node_8, 2), {
-		onchange: onParamChange,
+	Glide(sibling(node_5, 2), {
+		get onchange() {
+			return $$props.onParamChange;
+		},
 		get midiState() {
 			return get(glideMidiState);
 		},
-		onknobcontextmenu: onKnobContextMenu,
+		get onknobcontextmenu() {
+			return $$props.onKnobContextMenu;
+		},
 		get glideOn() {
 			return synthParams.glideOn;
 		}
 	});
-	reset(div_8);
-	Scope(sibling(div_8, 2), {
-		get analyser() {
-			return get(analyser);
-		},
-		get powered() {
-			return get(powered);
-		}
-	});
-	reset(div_6);
-	reset(div_5);
-	var div_9 = sibling(div_5, 2);
-	var node_11 = child(div_9);
-	WheelsPanel(node_11, {
-		get modExternalValue() {
-			return get(modWheelExternal);
-		},
-		get modExternalNonce() {
-			return get(modWheelNonce);
-		},
-		get pitchExternalValue() {
-			return get(pitchWheelExternal);
-		},
-		get pitchExternalNonce() {
-			return get(pitchWheelNonce);
-		},
-		onModChange: onModWheelChange,
-		onPitchChange: onPitchWheelChange
-	});
-	var node_12 = sibling(node_11, 2);
-	Keyboard(node_12, {
-		onnote: onKeyboardNote,
-		get baseMidi() {
-			return get(keyboardBase);
-		},
-		get triggerNote() {
-			return get(keyboardTriggerNote);
-		},
-		set triggerNote($$value) {
-			set(keyboardTriggerNote, $$value, true);
-		},
-		get releaseNote() {
-			return get(keyboardReleaseNote);
-		},
-		set releaseNote($$value) {
-			set(keyboardReleaseNote, $$value, true);
-		},
-		get releaseAll() {
-			return get(keyboardReleaseAll);
-		},
-		set releaseAll($$value) {
-			set(keyboardReleaseAll, $$value, true);
-		}
-	});
-	RegisterPanel(sibling(node_12, 2), {
-		ondown: () => set(keyboardBase, 21),
-		onup: () => set(keyboardBase, 48),
-		get activeRegister() {
-			return get(activeRegister);
-		}
-	});
-	reset(div_9);
-	reset(div_4);
-	reset(main);
+	reset(div_3);
+	snippet(sibling(div_3, 2), () => $$props.scope);
+	reset(div_1);
 	reset(div);
-	template_effect(() => {
-		set_text(text, versionLabel);
-		main.inert = !get(powered) || void 0;
-		classes = set_class(div_4, 1, "synth svelte-1n46o8q", null, classes, { dimmed: !get(powered) });
-	});
 	append($$anchor, div);
 	pop();
+}
+//#endregion
+//#region src/App.svelte
+function App($$anchor) {
+	{
+		const children = ($$anchor, contract = noop) => {
+			SubtractivePanels($$anchor, spread_props(contract));
+		};
+		Shell($$anchor, {
+			children,
+			$$slots: { default: true }
+		});
+	}
 }
 mount(App, { target: document.getElementById("app") });
 //#endregion
