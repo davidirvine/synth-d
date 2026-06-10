@@ -53,7 +53,7 @@ glideRate = hslider("glideRate [unit:s]", 0, 0, 5, 0.001);
 
 // Modulation
 modMix      = hslider("modMix", 0, 0, 1, 0.001);
-modWheel    = hslider("modWheel", 0.5, 0, 1, 0.001);
+modWheel    = hslider("modWheel", 0, 0, 1, 0.001);
 modToOsc1   = nentry("modToOsc1", 0, 0, 1, 1);
 modToOsc2   = nentry("modToOsc2", 0, 0, 1, 1);
 modToFilter = nentry("modToFilter", 0, 0, 1, 1);
