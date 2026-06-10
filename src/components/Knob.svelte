@@ -193,6 +193,49 @@
     onchange?.({ value: defaultValue })
   }
 
+  /**
+   * Nudge the value by one increment in `direction` (+1 up / −1 down), shared by
+   * scroll and keyboard. The increment is one `step` (or one `fineStep` while
+   * Shift is held, when both are set); with no `step` it moves the normalized
+   * position by 0.01 (1% of travel) and converts back through the knob's scale,
+   * so a nonlinear scale keeps a uniform perceptual step (intended). Clamps to
+   * [min, max] and fires onchange.
+   * @param {1 | -1} direction
+   * @param {boolean} shift
+   */
+  function nudge(direction, shift) {
+    const activeStep = shift && fineStep !== null ? fineStep : step
+    let newValue
+    if (activeStep !== null && activeStep > 0) {
+      newValue = value + direction * activeStep
+    } else {
+      const newPos = Math.max(
+        0,
+        Math.min(1, valueToNormalized(value, min, max, scale) + direction * 0.01)
+      )
+      newValue = normalizedToValue(newPos, min, max, scale)
+    }
+    newValue = Math.max(min, Math.min(max, newValue))
+    value = newValue
+    animPos.set(valueToNormalized(newValue, min, max, scale), { duration: 0 })
+    onchange?.({ value: newValue })
+  }
+
+  /** @param {WheelEvent} e */
+  function onWheel(e) {
+    // A disabled knob ignores scroll entirely (matching how it ignores drag).
+    if (disabled) return
+    // Consume the gesture so the page never scrolls (no host region scrolls).
+    e.preventDefault()
+    // While a drag is in progress the drag owns the cursor — ignore wheel input.
+    if (dragging) return
+    // Scroll up (deltaY < 0) increases; scroll down decreases. One notch = one
+    // step regardless of deltaY magnitude (device-independent).
+    const direction = /** @type {1 | -1} */ (-Math.sign(e.deltaY))
+    if (direction === 0) return
+    nudge(direction, e.shiftKey)
+  }
+
   /** @param {MouseEvent} e */
   function handleContextMenu(e) {
     e.preventDefault()
@@ -208,6 +251,7 @@
     onpointerdown={onPointerDown}
     onpointermove={onPointerMove}
     onpointerup={onPointerUp}
+    onwheel={onWheel}
     ondblclick={onDblClick}
     oncontextmenu={handleContextMenu}
   >
