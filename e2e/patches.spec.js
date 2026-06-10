@@ -85,6 +85,50 @@ test.describe('Patch save/load', () => {
     await expect(page.getByText('no patches saved yet')).toBeVisible()
   })
 
+  // Export/import need no audio, so they run powered off (and in CI). Importing
+  // is the untrusted-input boundary; these cover the happy round-trip with a
+  // collision auto-suffix and a rejection.
+  test('export then import round-trips with a collision auto-suffix', async ({ page }) => {
+    await seedPatches(page)
+    await page.goto('/')
+    await page.locator('.patch-control .trigger').click()
+
+    // Load ONE so it becomes the active patch and Export is enabled.
+    await page.locator('.patch-load', { hasText: 'ONE' }).click()
+    await expect(page.locator('[aria-label="export active patch"]')).toBeEnabled()
+
+    // Export → capture the downloaded file.
+    const downloadPromise = page.waitForEvent('download')
+    await page.locator('[aria-label="export active patch"]').click()
+    const download = await downloadPromise
+    expect(download.suggestedFilename()).toBe('ONE.json')
+    const path = await download.path()
+
+    // Import the same file: its name collides with ONE, so it is auto-suffixed
+    // to ONE 2 rather than overwriting the original.
+    await page.locator('.file-input').setInputFiles(path)
+    await expect(page.locator('.patch-load', { hasText: 'ONE 2' })).toBeVisible()
+    // Original ONE and TWO are intact; exactly one new row was added.
+    await expect(page.locator('.patch-row')).toHaveCount(3)
+  })
+
+  test('importing an invalid file shows a reason and adds no patch', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('.patch-control .trigger').click()
+    await expect(page.getByText('no patches saved yet')).toBeVisible()
+
+    // A non-JSON file is rejected by the structural gate; the reason surfaces in
+    // the popover and nothing is stored.
+    await page.locator('.file-input').setInputFiles({
+      name: 'bad.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from('this is not valid json'),
+    })
+    await expect(page.locator('.popover .error')).toContainText(/json/i)
+    await expect(page.locator('.patch-row')).toHaveCount(0)
+    await expect(page.getByText('no patches saved yet')).toBeVisible()
+  })
+
   test.describe('powered round-trip (requires WASM)', () => {
     test.skip(!wasmBuilt, 'Requires WASM build: npm run faust:build')
 

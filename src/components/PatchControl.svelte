@@ -16,7 +16,9 @@
     renamePatch,
     validateName,
     MAX_NAME_LENGTH,
+    PATCH_VERSION,
   } from '../patches/storage.js'
+  import { serializePatch, patchFilename, importPatch } from '../patches/file.js'
 
   /** @type {{ powered?: boolean }} */
   let { powered = false } = $props()
@@ -31,6 +33,8 @@
   let renameInput = $state('')
   let confirmingRenameOverwrite = $state(false)
   let error = $state('')
+  let importStatus = $state('')
+  let fileInput = $state(/** @type {HTMLInputElement | null} */ (null))
 
   // Dirty = the live in-scope state differs from the active patch's saved
   // baseline. Compared as a positional signature over PARAM_NAMES so key order
@@ -54,6 +58,7 @@
       refresh()
       nameInput = activePatch.name ?? ''
       error = ''
+      importStatus = ''
       confirmingOverwrite = false
       confirmingDeleteName = null
       renamingName = null
@@ -232,6 +237,64 @@
     refresh()
   }
 
+  // --- Export / Import (footer action bar) ---------------------------------
+  // Export acts on the active patch; Import runs the hardened importPatch
+  // pipeline. Both are wired in below (handleExport: task 7.2; import: task 7.3).
+
+  function handleExport() {
+    // Export the active patch as a downloadable .json. Reads existing state only
+    // (activePatch.name + its saved baseline params) — it writes no storage and
+    // does not touch the active patch or the dirty indicator.
+    if (activePatch.name === null) return
+    const file = serializePatch({
+      name: activePatch.name,
+      version: PATCH_VERSION,
+      params: activePatch.params,
+    })
+    const blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = patchFilename(activePatch.name)
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImport() {
+    // Open the hidden file picker. Import never depends on power state — it does
+    // not capture live synth state — so it stays available while powered off.
+    fileInput?.click()
+  }
+
+  /** @param {Event} e */
+  function onFileChange(e) {
+    const input = /** @type {HTMLInputElement} */ (e.currentTarget)
+    const file = input.files?.[0]
+    // Cancelling the picker fires no change event; an empty selection is a no-op.
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const res = importPatch(String(reader.result))
+      if (res.ok) {
+        error = ''
+        importStatus = `imported ${res.name}`
+        refresh()
+      } else {
+        importStatus = ''
+        error = res.error
+      }
+      // Reset so re-selecting the SAME file fires `change` again.
+      input.value = ''
+    }
+    reader.onerror = () => {
+      importStatus = ''
+      error = 'could not read file'
+      input.value = ''
+    }
+    reader.readAsText(file)
+  }
+
   /** @param {KeyboardEvent} e */
   function onKeyDown(e) {
     if (e.key === 'Escape' && open) {
@@ -370,8 +433,32 @@
         {/if}
       </div>
 
+      <div class="footer-row">
+        <button
+          class="footer-btn"
+          onclick={handleExport}
+          disabled={activePatch.name === null}
+          aria-label="export active patch">EXPORT</button
+        >
+        <button class="footer-btn" onclick={handleImport} aria-label="import patch from file"
+          >IMPORT</button
+        >
+        <input
+          class="file-input"
+          type="file"
+          accept=".json"
+          aria-hidden="true"
+          tabindex="-1"
+          bind:this={fileInput}
+          onchange={onFileChange}
+        />
+      </div>
+
       {#if error}
         <p class="error" role="alert">{error}</p>
+      {/if}
+      {#if importStatus}
+        <p class="status" role="status">{importStatus}</p>
       {/if}
     </div>
   {/if}
@@ -578,10 +665,52 @@
     cursor: default;
   }
 
+  .footer-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid var(--panel-border, #333);
+    padding-top: 6px;
+  }
+
+  .footer-btn {
+    flex: 1;
+    font-family: monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    background: var(--control-bg, #2a2a2a);
+    color: var(--control-label-color, #888);
+    border: 1px solid var(--control-border, #444);
+    border-radius: 2px;
+    padding: 3px 8px;
+    cursor: pointer;
+  }
+
+  .footer-btn:hover:not(:disabled) {
+    color: var(--accent-color, #c87941);
+    border-color: var(--accent-color, #c87941);
+  }
+
+  .footer-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .file-input {
+    display: none;
+  }
+
   .error {
     font-family: monospace;
     font-size: 10px;
     color: var(--danger-color, #c8413a);
+    margin: 0;
+  }
+
+  .status {
+    font-family: monospace;
+    font-size: 10px;
+    color: var(--accent-color, #c87941);
     margin: 0;
   }
 </style>

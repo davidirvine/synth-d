@@ -243,3 +243,52 @@ export function powerOffValue(p) {
 export const PARAM_RENAMES = Object.freeze({
   reverbMix: 'reverbSend',
 })
+
+/**
+ * Valid integer domains for the discrete (switch) parameters that carry no
+ * `min`/`max` in `PARAM_SCHEMA`. Used by the patch-import coercion layer
+ * (`patches/file.js`) to keep out-of-range switch indices in bounds.
+ *
+ * This lives here, as a sibling export to `PARAM_RENAMES`, for the same reason
+ * that rename table does: it is instrument-specific data (it names this
+ * instrument's switch params), and the chassis-purity contract (chassis
+ * design.md D4, enforced by `chassis-purity.test.js`) forbids instrument
+ * param-name literals in generic chassis modules. The import pipeline in
+ * `file.js` is generic chassis code, so the table is injected from this
+ * instrument-owned module rather than colocated there.
+ *
+ * It is intentionally NOT folded into the frozen `PARAM_SCHEMA` object: switch
+ * domains are coercion metadata, not part of the descriptor contract the store
+ * and chassis consume. The values are not invented — they mirror the synth's
+ * authoritative `nentry(name, init, min, max, step)` definitions in
+ * `faust/synth.dsp` (echoed by the panel controls). A drift test
+ * (`patches/file.coerce.test.js`) parses those DSP definitions and asserts this
+ * table matches, so a waveform/range count change in the DSP that is not
+ * reflected here fails a test.
+ *
+ * `keyTrack` is intentionally absent: it carries `min`/`max` in `PARAM_SCHEMA`
+ * (it is `ccScalable`) and coercion reads its bounds from there, so duplicating
+ * them here would create a second source that can drift.
+ * @type {Record<string, { min: number, max: number }>}
+ */
+export const DISCRETE_DOMAINS = Object.freeze({
+  // Oscillator waveform selections — index into the 6-entry waveform list.
+  osc1Wave: { min: 0, max: 5 },
+  osc2Wave: { min: 0, max: 5 },
+  osc3Wave: { min: 0, max: 5 },
+  // Oscillator octave ranges (-2..+2).
+  osc1Range: { min: -2, max: 2 },
+  osc2Range: { min: -2, max: 2 },
+  osc3Range: { min: -2, max: 2 },
+  // Single-bit toggles (0/1).
+  osc3LfoMode: { min: 0, max: 1 },
+  noiseType: { min: 0, max: 1 },
+  drLock: { min: 0, max: 1 },
+  modToOsc1: { min: 0, max: 1 },
+  modToOsc2: { min: 0, max: 1 },
+  modToFilter: { min: 0, max: 1 },
+  glideOn: { min: 0, max: 1 },
+  delayOn: { min: 0, max: 1 },
+  delayModOn: { min: 0, max: 1 },
+  reverbOn: { min: 0, max: 1 },
+})

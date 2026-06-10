@@ -16,6 +16,9 @@
 // (`patch-file.schema.json`) documents the same contract for humans and external
 // tooling, kept honest by a drift test.
 
+import { PARAM_SCHEMA, PARAM_NAMES, DISCRETE_DOMAINS } from '../param-schema.js'
+import { validateName, MAX_NAME_LENGTH, listPatches, savePatch } from './storage.js'
+
 /**
  * The file-format contract version. Independent of the patch envelope's own
  * `version`: the on-disk layout and the patch data shape evolve for different
@@ -144,4 +147,116 @@ export function validatePatchFile(value) {
       value
     ),
   }
+}
+
+/**
+ * Coerce an already-structurally-valid `params` map so the resulting patch is
+ * always in range. Iterates `PARAM_NAMES` (which excludes the `modWheel`
+ * controller, so a `kind: 'controller'` param is never iterated and is dropped
+ * as out-of-scope), and branches on the `PARAM_SCHEMA` `kind`:
+ *
+ * - `knob`: clamp the value to `[min, max]`.
+ * - `switch`: take the domain from `PARAM_SCHEMA` `min`/`max` when present (only
+ *   `keyTrack`), else from {@link DISCRETE_DOMAINS}; keep the value only if it is
+ *   an integer within that domain, else fall back to the parameter's `default`
+ *   — always a safe, valid value, so a stale domain table fails closed.
+ *
+ * Non-finite values and parameter names outside `PARAM_NAMES` are dropped,
+ * mirroring the existing `savePatch`/`loadPatch` filtering. Structure is already
+ * trusted here; this layer only normalizes magnitude.
+ * @param {Record<string, unknown>} params
+ * @returns {Record<string, number>}
+ */
+export function coerceParams(params) {
+  /** @type {Record<string, number>} */
+  const out = {}
+  for (const name of PARAM_NAMES) {
+    if (!(name in params)) continue
+    const value = params[name]
+    // Drop non-numbers and non-finite values (NaN/±Infinity) — never coerced.
+    if (typeof value !== 'number' || !Number.isFinite(value)) continue
+
+    const descriptor = PARAM_SCHEMA[name]
+    if (descriptor.kind === 'knob') {
+      out[name] = Math.min(descriptor.max, Math.max(descriptor.min, value))
+      continue
+    }
+    // Switch: domain from the schema's own bounds (keyTrack) or the import table.
+    const domain =
+      typeof descriptor.min === 'number' && typeof descriptor.max === 'number'
+        ? { min: descriptor.min, max: descriptor.max }
+        : DISCRETE_DOMAINS[name]
+    const inDomain =
+      domain !== undefined && Number.isInteger(value) && value >= domain.min && value <= domain.max
+    out[name] = inDomain ? value : descriptor.default
+  }
+  return out
+}
+
+/**
+ * Normalize an imported patch name through the same `validateName` gate as save
+ * (trim → upper-case → cap at `MAX_NAME_LENGTH`), then make it unique against the
+ * existing patch names by auto-suffixing — import is non-destructive, so a
+ * colliding name is never overwritten. On collision `" N"` is appended starting
+ * at 2 and incremented until free. If `base + " N"` would exceed
+ * `MAX_NAME_LENGTH`, the *base* is truncated (never the suffix) so the unique
+ * suffix always survives and the result fits the cap.
+ * @param {unknown} name the raw imported name
+ * @param {string[]} existingNames current patch names (already canonical/upper)
+ * @returns {string | null} a unique valid name, or null if the name is invalid
+ *   (empty/whitespace-only) — the caller surfaces that as a rejection reason
+ */
+export function uniquePatchName(name, existingNames) {
+  const base = validateName(name)
+  if (base === null) return null
+
+  const taken = new Set(existingNames.map((n) => n.toUpperCase()))
+  if (!taken.has(base)) return base
+
+  for (let n = 2; ; n++) {
+    const suffix = ` ${n}`
+    // Truncate the base (not the suffix) when the suffixed name overflows the cap.
+    const room = MAX_NAME_LENGTH - suffix.length
+    const candidate = (base.length > room ? base.slice(0, room) : base) + suffix
+    if (!taken.has(candidate)) return candidate
+  }
+}
+
+/**
+ * Import a single patch from untrusted file text through an atomic
+ * validate-then-commit pipeline. The file is parsed, structurally validated,
+ * value-coerced, and name-resolved entirely in memory; only then does exactly
+ * one `savePatch()` write commit it. Nothing touches `localStorage` until the
+ * file is proven good, so a rejected import is inherently a no-op — no rollback
+ * machinery is needed because no partial state is ever produced. This function
+ * owns the terminal write; the Svelte handler only invokes it and surfaces the
+ * result.
+ * @param {unknown} text the raw file contents
+ * @returns {{ ok: true, name: string, params: Record<string, number> } | { ok: false, error: string }}
+ */
+export function importPatch(text) {
+  const parsed = parsePatchFile(text)
+  if (!parsed.ok) return { ok: false, error: parsed.error }
+
+  const validated = validatePatchFile(parsed.value)
+  if (!validated.ok) return { ok: false, error: validated.error }
+
+  const params = coerceParams(validated.file.params)
+
+  // Resolve the name against the current index only now that the file is proven
+  // good — non-destructive auto-suffix on collision.
+  const name = uniquePatchName(validated.file.name, listPatches())
+  if (name === null) return { ok: false, error: 'patch name is empty' }
+
+  // The single terminal write. savePatch re-validates the name and re-filters
+  // params (a no-op here, since coercion already produced in-scope finite values)
+  // and inherits the existing single-save cross-tab behaviour.
+  const res = savePatch(name, params)
+  if (!res.ok) {
+    return {
+      ok: false,
+      error: res.error === 'invalid-name' ? 'patch name is empty' : 'storage unavailable',
+    }
+  }
+  return { ok: true, name: res.name, params }
 }
