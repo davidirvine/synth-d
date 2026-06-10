@@ -25,7 +25,7 @@
 - [x] 5.1 Add an `onwheel` handler to `Knob.svelte`: `preventDefault()`, step in the direction of `Math.sign(deltaY)` by one `step` (or `fineStep` when Shift is held; `0.01` of normalized travel when no `step`), clamp to `[min, max]`, fire `onchange`; ignore wheel events while a drag is active and when `disabled` is `true`
 - [x] 5.2 Add `role="slider"` with `aria-valuemin`/`aria-valuemax`/`aria-valuenow`, `aria-valuetext` (formatted label), `aria-label={label}` (accessible name), and `tabindex="0"` to `Knob.svelte`
 - [x] 5.3 Add an `onkeydown` handler to `Knob.svelte` for slider keyboard operability: `ArrowUp`/`ArrowRight` increment and `ArrowDown`/`ArrowLeft` decrement by the same step/fineStep/`0.01`-default rule, `Home`→`min`, `End`→`max`; clamp, fire `onchange`, `preventDefault()` on handled keys; ignore all keys when `disabled` is `true`
-- [ ] 5.4 Extend `Knob.test.js`: scroll up/down by step, Shift→fineStep, step-less `0.01` default, magnitude-independence, clamping at limits, `preventDefault` called, scroll ignored when disabled; arrow/Home/End keyboard operation and ignored when disabled; ARIA slider attributes reflect value, `aria-label` equals `label`, and `tabindex="0"`
+- [x] 5.4 Extend `Knob.test.js`: scroll up/down by step, Shift→fineStep, step-less `0.01` default, magnitude-independence, clamping at limits, `preventDefault` called, scroll ignored when disabled; arrow/Home/End keyboard operation and ignored when disabled; ARIA slider attributes reflect value, `aria-label` equals `label`, and `tabindex="0"`
 
 ## 6. Wheel scroll-wheel input (PITCH bend + MOD hold)
 
