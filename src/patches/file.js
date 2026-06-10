@@ -35,3 +35,28 @@ export const FILE_FORMAT_VERSION = 1
 export function serializePatch({ name, version, params }) {
   return { fileFormat: FILE_FORMAT_VERSION, name, version, params }
 }
+
+// Characters reserved on common filesystems (Windows is the strictest):
+// < > : " / \ | ? *. A character is unsafe in a download filename if it is one
+// of these, ASCII whitespace, or an ASCII control character (code point < 0x20).
+const RESERVED_FILENAME_CHARS = new Set(['<', '>', ':', '"', '/', '\\', '|', '?', '*'])
+
+/**
+ * Derive a filesystem-safe `.json` download filename from a patch name. The
+ * in-file `name` is untouched — this only sanitizes the *download* filename, so
+ * a patch named with characters illegal on common filesystems still downloads
+ * cleanly. Unsafe characters (reserved, whitespace, control) become `_`, runs
+ * collapse, surrounding `_` is trimmed, and an empty result falls back to
+ * `patch` so the name is never bare `.json`.
+ * @param {string} name
+ * @returns {string}
+ */
+export function patchFilename(name) {
+  let out = ''
+  for (const ch of String(name)) {
+    const code = ch.codePointAt(0) ?? 0
+    out += code < 0x20 || /\s/.test(ch) || RESERVED_FILENAME_CHARS.has(ch) ? '_' : ch
+  }
+  const safe = out.replace(/_+/g, '_').replace(/^_+|_+$/g, '')
+  return `${safe || 'patch'}.json`
+}

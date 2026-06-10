@@ -1,7 +1,7 @@
 ## 1. File format module — export & serialization
 
 - [x] 1.1 Create `src/patches/file.js` with a `FILE_FORMAT_VERSION` constant set to `1` and a `serializePatch({ name, version, params })` function that returns the versioned file object `{ fileFormat, name, version, params }`.
-- [ ] 1.2 Add a `patchFilename(name)` helper that derives a filesystem-safe `.json` download filename from a patch name (replace/strip unsafe characters).
+- [x] 1.2 Add a `patchFilename(name)` helper that derives a filesystem-safe `.json` download filename from a patch name (replace/strip unsafe characters).
 - [ ] 1.3 Add unit tests in `src/patches/file.test.js` for `serializePatch` (shape, `fileFormat` present and distinct from patch `version`, no performance/controller fields) and `patchFilename` (unsafe-character sanitization, `.json` suffix).
 
 ## 2. Import — structural validation
