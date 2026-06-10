@@ -245,9 +245,15 @@
 
 <div class="knob-wrap" class:disabled>
   <span class="knob-label" class:invisible={!showLabel}>{label}</span>
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="knob-hit"
+    role="slider"
+    tabindex="0"
+    aria-label={label}
+    aria-valuemin={min}
+    aria-valuemax={max}
+    aria-valuenow={value}
+    aria-valuetext={formatValue(value, unit)}
     onpointerdown={onPointerDown}
     onpointermove={onPointerMove}
     onpointerup={onPointerUp}
