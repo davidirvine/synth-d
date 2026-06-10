@@ -39,9 +39,12 @@ therefore making import safe, not serializing export.
 - **Bundle / multi-patch files.** Each file holds exactly one patch. (Considered
   and deferred; see Decisions.)
 - **A runtime schema validator** (`ajv`/`zod`). Validation stays hand-rolled.
-- **Modifying `PARAM_SCHEMA`.** It stays frozen and untouched. (Switch domains
-  needed for coercion live in a small table inside the import module, derived
-  from the existing DSP/UI sources — not added to `PARAM_SCHEMA`.)
+- **Modifying `PARAM_SCHEMA`.** The frozen `PARAM_SCHEMA` object stays untouched.
+  (Switch domains needed for coercion live in a small `DISCRETE_DOMAINS` table
+  derived from the existing DSP/UI sources — added as a **sibling export in the
+  instrument-owned `param-schema.js` module**, alongside `PARAM_RENAMES`, **not**
+  folded into the `PARAM_SCHEMA` object itself. See the coercion decision for why
+  it lives there rather than in the import module.)
 - **File-format migration logic.** Only the current `fileFormat` version is
   accepted; older/newer versions are rejected with a reason. The version field
   exists so migration *can* be added later, not so it works now.
@@ -87,7 +90,7 @@ Stating the split explicitly resolves the apparent tension between "validate
 against a schema" (strict) and "clamp values" (lenient): they operate at
 different layers — shape vs. magnitude — and never fight.
 
-### Switch coercion: import-local discrete-domain table → default fallback
+### Switch coercion: a discrete-domain table → default fallback
 
 Coercion branches on `PARAM_SCHEMA`'s existing `kind` discriminator
 (`'knob'` vs `'switch'`) — the authoritative classification, not a reinvented
@@ -98,11 +101,24 @@ valid domain comes from, in order of precedence:
    `keyTrack`, which is `ccScalable` and so already has `min: 0, max: 1`
    (`param-schema.js:140`). These bounds are used directly; they are **not**
    duplicated into the import table, avoiding two sources that can drift.
-2. Otherwise, a small **discrete-domain table in the import module** (not in
-   `PARAM_SCHEMA`), for the switches that carry only a `default`.
+2. Otherwise, a small **`DISCRETE_DOMAINS` table**, for the switches that carry
+   only a `default`.
 
-This honors the "don't touch `PARAM_SCHEMA`" constraint while making "out of
-domain" concrete and testable. The table's domains are not invented; they mirror
+**Where the table lives — chassis purity.** The table names instrument-specific
+switch params (`osc1Wave`, `noiseType`, …) as literals. The
+`chassis-architecture` contract (its design.md D4, enforced by
+`chassis-purity.test.js`) forbids instrument param-name literals in generic
+chassis modules, and the import pipeline (`patches/file.js`) is generic chassis
+code. So the table is **not** colocated there; it is a sibling export in the
+instrument-owned `param-schema.js` module and is imported by the pipeline. This
+follows the existing precedent set when `PARAM_RENAMES` was moved out of the
+generic `MidiCcMap` into `param-schema.js` for the same reason (refactor #89). It
+is still kept **out** of the frozen `PARAM_SCHEMA` object — switch domains are
+coercion metadata, not part of the descriptor contract.
+
+This honors the "don't touch the `PARAM_SCHEMA` object" constraint while making
+"out of domain" concrete and testable. The table's domains are not invented; they
+mirror
 the authoritative values the synth already enforces (the FAUST
 `nentry(min, max, step)` definitions in `faust/synth.dsp`, echoed by the UI
 controls):
@@ -124,7 +140,8 @@ untrusted-input boundary where an out-of-range switch index (e.g. `osc1Wave:
 47`) could drive an invalid UI/DSP state, which is exactly what coercion should
 prevent. *Alternative — enrich `PARAM_SCHEMA` with domains:* cleaner long-term
 but a cross-cutting change to a frozen, widely-consumed table; deferred. The
-import-local table is the minimal change that makes the contract real.
+separate `DISCRETE_DOMAINS` table is the minimal change that makes the contract
+real.
 
 ### `name` is type-checked in the structural gate; empty `params` is valid
 
@@ -221,9 +238,10 @@ New parse/validate/serialize/coerce logic lives in a small module under
 `src/patches/` mirroring `storage.js` (e.g. `src/patches/file.js`), keeping the
 file contract beside the storage contract and the UI thin. It reuses
 `validateName`, `MAX_NAME_LENGTH`, `savePatch`, and the patch index from
-`storage.js`, and reads `PARAM_SCHEMA`/`PARAM_NAMES` from `param-schema.js`. The
-module is pure/testable; the Svelte component only wires Blob download and the
-hidden `<input type=file>` to it.
+`storage.js`, and reads `PARAM_SCHEMA`/`PARAM_NAMES`/`DISCRETE_DOMAINS` from
+`param-schema.js` (the latter keeping the module free of instrument param-name
+literals — see the coercion decision). The module is pure/testable; the Svelte
+component only wires Blob download and the hidden `<input type=file>` to it.
 
 ### UI: footer action bar
 
@@ -246,12 +264,13 @@ the structural gate validates by content, so a valid `.json` served as
 
 ## Risks / Trade-offs
 
-- **Import-local switch-domain table can drift from the DSP/UI** (e.g. a 7th
-  waveform is added but the import table still says `0..5`) → Mitigation: derive
-  the domains from the same authoritative values the synth enforces and cover
-  each switch's bounds in unit tests; the table is small and colocated with the
-  coercion code. Out-of-domain values fall back to a safe `default`, so a stale
-  table fails closed, never to an invalid state.
+- **Switch-domain table can drift from the DSP/UI** (e.g. a 7th waveform is added
+  but `DISCRETE_DOMAINS` still says `0..5`) → Mitigation: derive the domains from
+  the same authoritative values the synth enforces and cover each switch's bounds
+  in unit tests; the table is small and sits beside `PARAM_SCHEMA` in the
+  instrument-owned schema module, and a drift test parses `faust/synth.dsp` to
+  fail on divergence. Out-of-domain values fall back to a safe `default`, so a
+  stale table fails closed, never to an invalid state.
 - **Hand-rolled validator drifts from the JSON Schema doc** → Mitigation: a test
   validates shared fixtures against both, failing if they disagree.
 - **Auto-suffix in a near-full library** (e.g. base collides and many suffixes
