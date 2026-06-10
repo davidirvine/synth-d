@@ -24,6 +24,15 @@ const fixtures = [
     file: { ...validFile(), params: { cutoff: 2000, osc1Wave: 3 } },
     valid: true,
   },
+  {
+    // version is tolerated regardless of type — import ignores it and stamps
+    // PATCH_VERSION. Both gates must accept a non-numeric version (guards the
+    // schema against re-introducing a `type: number` constraint the validator
+    // does not enforce).
+    label: 'a non-numeric version (tolerated)',
+    file: { ...validFile(), version: 'foo' },
+    valid: true,
+  },
   { label: 'missing fileFormat', file: { name: 'X', version: 1, params: {} }, valid: false },
   {
     label: 'unrecognized (higher) fileFormat',

@@ -539,6 +539,31 @@ describe('PatchControl — export/import footer', () => {
     expect(listPatches()).toEqual([])
   })
 
+  it('rejects an oversized file without reading it', async () => {
+    const { MAX_IMPORT_BYTES } = await import('../patches/file.js')
+    // A FileReader that fails the test if it is ever asked to read.
+    const readSpy = vi.fn()
+    class GuardFileReader {
+      readAsText() {
+        readSpy()
+      }
+    }
+    vi.stubGlobal('FileReader', GuardFileReader)
+
+    const { container } = render(PatchControl)
+    await openPopover(container)
+    const input = /** @type {HTMLInputElement} */ (container.querySelector('.file-input'))
+    const file = new File(['{}'], 'big.json', { type: 'application/json' })
+    // Override the reported size so no multi-megabyte buffer is allocated.
+    Object.defineProperty(file, 'size', { value: MAX_IMPORT_BYTES + 1, configurable: true })
+    Object.defineProperty(input, 'files', { value: [file], configurable: true })
+    await fireEvent.change(input)
+
+    expect(readSpy).not.toHaveBeenCalled()
+    expect(/** @type {Element} */ (container.querySelector('.error')).textContent).toMatch(/large/i)
+    expect(listPatches()).toEqual([])
+  })
+
   it('surfaces a reason when reading the file fails', async () => {
     // A FileReader stub that errors instead of loading.
     class ErroringFileReader {

@@ -15,8 +15,7 @@
       "type": "string"
     },
     "version": {
-      "description": "The patch envelope's schema version (constant, not a per-save counter). Optional in the file; a missing or non-numeric value is replaced with the current patch version on import.",
-      "type": "number"
+      "description": "The patch envelope's schema version (constant, not a per-save counter). Optional and intentionally NOT type-constrained here: import ignores the file's version entirely and the single savePatch() write stamps the current PATCH_VERSION. Left unconstrained so this schema agrees with the lenient hand-rolled validator, which does not check version."
     },
     "params": {
       "description": "Map of parameter name to value. Every value must be a number. An empty object is valid and yields a factory-defaults patch. Unknown and out-of-range values are dropped or coerced after this structural check, not rejected here.",

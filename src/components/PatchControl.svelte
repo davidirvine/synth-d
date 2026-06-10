@@ -18,7 +18,7 @@
     MAX_NAME_LENGTH,
     PATCH_VERSION,
   } from '../patches/storage.js'
-  import { serializePatch, patchFilename, importPatch } from '../patches/file.js'
+  import { serializePatch, patchFilename, importPatch, MAX_IMPORT_BYTES } from '../patches/file.js'
 
   /** @type {{ powered?: boolean }} */
   let { powered = false } = $props()
@@ -272,6 +272,16 @@
     const file = input.files?.[0]
     // Cancelling the picker fires no change event; an empty selection is a no-op.
     if (!file) return
+
+    // Short-circuit on size before reading: `file.size` is known immediately, so
+    // an oversized file is rejected without buffering it into memory. importPatch
+    // re-checks the byte ceiling on the text as the authoritative gate.
+    if (file.size > MAX_IMPORT_BYTES) {
+      importStatus = ''
+      error = 'file is too large to import'
+      input.value = ''
+      return
+    }
 
     const reader = new FileReader()
     reader.onload = () => {
