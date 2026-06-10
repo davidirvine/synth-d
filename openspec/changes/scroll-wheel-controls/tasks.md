@@ -17,8 +17,8 @@
 
 ## 4. Physics settings popup becomes PITCH-only
 
-- [ ] 4.1 In `WheelsPanel.svelte`, remove the MOD wheel's mass/spring/damping knobs from the settings popup, leaving the three PITCH knobs and the reset-to-defaults action
-- [ ] 4.2 Update `WheelsPanel.test.js` to assert the popup renders exactly three physics knobs and no MOD physics knobs; reset restores the three PITCH defaults
+- [x] 4.1 In `WheelsPanel.svelte`, remove the MOD wheel's mass/spring/damping knobs from the settings popup, leaving the three PITCH knobs and the reset-to-defaults action
+- [x] 4.2 Update `WheelsPanel.test.js` to assert the popup renders exactly three physics knobs and no MOD physics knobs; reset restores the three PITCH defaults
 
 ## 5. Knob scroll-wheel input and ARIA
 
