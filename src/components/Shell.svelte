@@ -52,9 +52,11 @@
   const versionLabel = branch === 'main' ? `v${__APP_VERSION__}` : `v${__APP_VERSION__} (${branch})`
 
   // The mod/pitch wheels are controller state, not part of the synth store/patch.
-  // Both are spring-loaded and rest at 0.5 (center), so power-on and power-off
-  // alike snap their cursors to this rest position.
+  // The PITCH wheel is spring-loaded and rests at 0.5 (center). The MOD wheel is
+  // a non-spring control that rests at 0 (bottom, zero modulation), so power-on
+  // and power-off snap each cursor to its own rest position.
   const WHEEL_REST = 0.5
+  const MOD_REST = 0
 
   // Seed the store to factory defaults for this Shell instance. On page load this
   // shows factory defaults (knobs sit at their power-off rest positions until
@@ -88,7 +90,7 @@
   // wheel re-snaps and cancels its spring even when the new value equals the
   // previous one (Svelte dedupes same-value assignments, which would otherwise
   // let a repeated CC/pitch-bend value silently fail to cancel an in-flight spring).
-  let modWheelExternal = $state(WHEEL_REST)
+  let modWheelExternal = $state(MOD_REST)
   let modWheelNonce = $state(0)
   let pitchWheelExternal = $state(WHEEL_REST)
   let pitchWheelNonce = $state(0)
@@ -181,7 +183,7 @@
       keyboardReleaseAll?.()
       await powerOff()
       powered = false
-      setModWheelExternal(WHEEL_REST)
+      setModWheelExternal(MOD_REST)
       setPitchWheelExternal(WHEEL_REST)
       currentNoteFreq = null
     } else {
@@ -196,11 +198,12 @@
         // the freshly created worklet node so the DSP and UI agree from the
         // first sample.
         applyParams(activePatch.params, true)
-        setModWheelExternal(WHEEL_REST)
+        setModWheelExternal(MOD_REST)
         setPitchWheelExternal(WHEEL_REST)
         // modWheel is controller state (not in synthParams), so applyParams does
-        // not re-send it — set the DSP to the 0.5 rest explicitly on power-on.
-        setParam('modWheel', WHEEL_REST)
+        // not re-send it — set the DSP to the 0 rest (zero modulation) explicitly
+        // on power-on so the DSP and the resting MOD cursor agree.
+        setParam('modWheel', MOD_REST)
       } catch (err) {
         console.error('Power on failed:', err)
       } finally {

@@ -109,9 +109,8 @@
       label="MOD"
       externalValue={modExternalValue}
       externalNonce={modExternalNonce}
-      mass={physics.mod.mass}
-      spring={physics.mod.spring}
-      damping={physics.mod.damping}
+      springBack={false}
+      rest={0}
       formatValueText={modValueText}
       onchange={(e) => onModChange?.({ param: 'modWheel', value: e.value })}
     />

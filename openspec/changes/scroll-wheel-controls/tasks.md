@@ -6,7 +6,7 @@
 
 ## 2. MOD wheel becomes a real (non-spring) wheel
 
-- [ ] 2.1 In `WheelsPanel.svelte`, wire the MOD `Wheel` with `springBack={false}` and `rest={0}`; keep PITCH on the spring defaults
+- [x] 2.1 In `WheelsPanel.svelte`, wire the MOD `Wheel` with `springBack={false}` and `rest={0}`; keep PITCH on the spring defaults. **Also** in `Shell.svelte`, give the MOD wheel its own rest of `0` (a `MOD_REST = 0` constant): initialise `modWheelExternal` to `0` and snap the MOD cursor + DSP `modWheel` to `0` (not the `WHEEL_REST` 0.5) on power-on/off, so the `modulation` spec's "MOD rests at 0 at power-on" scenario holds in the running app (the `WheelsPanel`/`Wheel` `rest={0}` is overridden by the external value Shell pushes otherwise). PITCH keeps `WHEEL_REST` (0.5)
 - [ ] 2.2 Change the FAUST `modWheel` hslider default from `0.5` to `0` in `faust/synth.dsp`, rebuild via `npm run faust:build`, and stage **all** files the build modifies under `public/` (including but not limited to `public/synth.wasm`, `public/dsp-module.wasm`, plus any JS loader/metadata it emits) so the loader and WASM never go out of sync
 - [ ] 2.3 Update `WheelsPanel.test.js` / `Modulation.test.js` expectations so MOD rests at 0 and holds (no spring-back); update any pitch-bend/mod E2E that assumed mod rests at 0.5 or springs back
 

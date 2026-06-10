@@ -26,7 +26,7 @@ _None — this change modifies existing capabilities only._
 
 ## Impact
 
-- **Components:** `src/components/Knob.svelte` (scroll handler, ARIA), `src/components/Wheel.svelte` (spring-disable + rest-position seam, scroll handler), `src/components/WheelsPanel.svelte` (MOD non-spring wiring, PITCH-only physics popup, mod rest `0`).
+- **Components:** `src/components/Knob.svelte` (scroll handler, ARIA), `src/components/Wheel.svelte` (spring-disable + rest-position seam, scroll handler), `src/components/WheelsPanel.svelte` (MOD non-spring wiring, PITCH-only physics popup, mod rest `0`), `src/components/Shell.svelte` (MOD wheel rests at `0`: a `MOD_REST = 0` seeds `modWheelExternal` and the power-on/off cursor + DSP `modWheel` writes, while PITCH keeps `WHEEL_REST` 0.5 — otherwise the external value Shell pushes would override the `Wheel`'s `rest={0}`).
 - **Audio/DSP:** `faust/synth.dsp` `modWheel` hslider default `0.5` → `0`. Rebuilt FAUST WASM artifact.
 - **Persistence:** `src/audio/wheelPhysicsStore.js` (drop `mod` from save/load/validate; tolerate legacy `mod` field).
 - **Physics:** `src/audio/wheelPhysics.js` — `REST`/defaults remain for PITCH; no longer applied to MOD.

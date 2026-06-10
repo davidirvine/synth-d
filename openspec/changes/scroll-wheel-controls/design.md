@@ -60,6 +60,8 @@ _Alternative considered:_ a separate `ModWheel` component. Rejected — duplicat
 
 A real mod wheel's zero-modulation point is the bottom of travel, and it stays where it is left. Today the MOD wheel rests at `0.5` (50% modulation at rest — a latent bug masked by spring-back). Moving the rest to `0` makes power-on state silent until the user raises it. To keep the Svelte state and DSP agreeing at power-on without user interaction, `faust/synth.dsp` `modWheel` default changes `0.5 → 0` and the FAUST WASM artifact is rebuilt. The `modulation` spec's "rests at 0.5 / DSP default 0.5" requirement is updated accordingly.
 
+The `rest={0}` seam on `Wheel` is necessary but not sufficient: `Shell.svelte` owns the MOD wheel's `externalValue` and (today) seeds it to `WHEEL_REST` (0.5) at init and snaps it to `WHEEL_REST` on every power transition, which would override the wheel's own `rest`. So `Shell.svelte` gains a `MOD_REST = 0` constant used to seed `modWheelExternal` and to drive the power-on/off MOD cursor and the explicit `setParam('modWheel', …)` write; `WHEEL_REST` (0.5) continues to govern the PITCH wheel. This is what actually makes the "MOD rests at 0 at power-on" scenario true in the running app, not just in the isolated `Wheel` component.
+
 ### D5 — Persistence drops `mod`; legacy blobs load without error
 
 `wheelPhysicsStore.js` save/load/validate moves from `{ mod, pitch }` to `{ pitch }`. The load path validates the `pitch` branch as today and **ignores** any `mod` field present in older stored blobs (it is neither read nor re-saved), so a user upgrading does not error and is silently migrated to the new shape on the next save. The settings popup renders the three PITCH knobs only.
