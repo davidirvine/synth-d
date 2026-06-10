@@ -1,21 +1,23 @@
-// Persistence for the per-wheel spring physics. A single localStorage key holds
-// both wheels' { mass, spring, damping }. On load every field is validated as a
-// finite number within its range and falls back to its own default, so a
-// partial or corrupt entry never breaks the wheels (the validate-and-default
-// resilience pattern from midiCcMap, in the `synth-d:` namespace from storage.js).
+// Persistence for the PITCH wheel's spring physics. A single localStorage key
+// holds the PITCH wheel's { mass, spring, damping }. On load every field is
+// validated as a finite number within its range and falls back to its own
+// default, so a partial or corrupt entry never breaks the wheels (the
+// validate-and-default resilience pattern from midiCcMap, in the `synth-d:`
+// namespace from storage.js).
+//
+// The MOD wheel is a non-spring control with no tunable physics, so it is not
+// persisted. A legacy blob from before that change may still carry a `mod`
+// object alongside `pitch`; the load path ignores it (it is neither read nor
+// re-saved), migrating the stored shape to `{ pitch }` on the next save.
 
 import { PHYSICS_RANGES, DEFAULT_PHYSICS } from './wheelPhysics.js'
 
 /** localStorage key (in the established `synth-d:` namespace). */
 export const STORAGE_KEY = 'synth-d:wheel-physics'
 
-/** The wheels persisted under this key. */
-const WHEELS = /** @type {const} */ (['mod', 'pitch'])
-
-/** Default physics for both wheels (a fresh object per call — never shared). */
+/** Default PITCH physics (a fresh object per call — never shared). */
 export function defaultWheelPhysics() {
   return {
-    mod: { ...DEFAULT_PHYSICS },
     pitch: { ...DEFAULT_PHYSICS },
   }
 }
@@ -68,9 +70,10 @@ function validateWheel(raw) {
 }
 
 /**
- * Load both wheels' physics. Absent, partial, or corrupt data resolves to
- * per-field defaults so the wheels always function.
- * @returns {{ mod: { mass: number, spring: number, damping: number }, pitch: { mass: number, spring: number, damping: number } }}
+ * Load the PITCH wheel's physics. Absent, partial, or corrupt data resolves to
+ * per-field defaults so the wheels always function. A legacy `mod` field is
+ * ignored (not read, not re-saved).
+ * @returns {{ pitch: { mass: number, spring: number, damping: number } }}
  */
 export function loadWheelPhysics() {
   const raw = safeGet(STORAGE_KEY)
@@ -85,30 +88,25 @@ export function loadWheelPhysics() {
     }
   }
   return {
-    mod: validateWheel(parsed.mod),
     pitch: validateWheel(parsed.pitch),
   }
 }
 
 /**
- * Persist both wheels' physics. Each field is validated/clamped through the
- * same path as load, so only in-range numbers are written. Storage failure is
- * non-fatal.
- * @param {{ mod?: unknown, pitch?: unknown }} [physics]
+ * Persist the PITCH wheel's physics. Each field is validated/clamped through
+ * the same path as load, so only in-range numbers are written; any `mod` field
+ * on the input is dropped. Storage failure is non-fatal.
+ * @param {{ pitch?: unknown }} [physics]
  * @returns {boolean} success
  */
 export function saveWheelPhysics(physics = {}) {
-  /** @type {Record<string, { mass: number, spring: number, damping: number }>} */
-  const clean = {}
-  for (const wheel of WHEELS) {
-    clean[wheel] = validateWheel(physics?.[wheel])
-  }
+  const clean = { pitch: validateWheel(physics?.pitch) }
   return safeSet(STORAGE_KEY, JSON.stringify(clean))
 }
 
 /**
- * Reset both wheels to default physics and persist them.
- * @returns {{ mod: { mass: number, spring: number, damping: number }, pitch: { mass: number, spring: number, damping: number } }}
+ * Reset the PITCH wheel to default physics and persist it.
+ * @returns {{ pitch: { mass: number, spring: number, damping: number } }}
  */
 export function resetWheelPhysics() {
   const defaults = defaultWheelPhysics()

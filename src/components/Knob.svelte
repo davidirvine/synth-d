@@ -193,6 +193,88 @@
     onchange?.({ value: defaultValue })
   }
 
+  /**
+   * Nudge the value by one increment in `direction` (+1 up / −1 down), shared by
+   * scroll and keyboard. The increment is one `step` (or one `fineStep` while
+   * Shift is held, when both are set); with no `step` it moves the normalized
+   * position by 0.01 (1% of travel) and converts back through the knob's scale,
+   * so a nonlinear scale keeps a uniform perceptual step (intended). Clamps to
+   * [min, max] and fires onchange.
+   * @param {1 | -1} direction
+   * @param {boolean} shift
+   */
+  function nudge(direction, shift) {
+    const activeStep = shift && fineStep !== null ? fineStep : step
+    let newValue
+    if (activeStep !== null && activeStep > 0) {
+      newValue = value + direction * activeStep
+    } else {
+      const newPos = Math.max(
+        0,
+        Math.min(1, valueToNormalized(value, min, max, scale) + direction * 0.01)
+      )
+      newValue = normalizedToValue(newPos, min, max, scale)
+    }
+    newValue = Math.max(min, Math.min(max, newValue))
+    value = newValue
+    animPos.set(valueToNormalized(newValue, min, max, scale), { duration: 0 })
+    onchange?.({ value: newValue })
+  }
+
+  /** @param {WheelEvent} e */
+  function onWheel(e) {
+    // A disabled knob ignores scroll entirely (matching how it ignores drag).
+    if (disabled) return
+    // Consume the gesture so the page never scrolls (no host region scrolls).
+    e.preventDefault()
+    // While a drag is in progress the drag owns the cursor — ignore wheel input.
+    if (dragging) return
+    // Scroll up (deltaY < 0) increases; scroll down decreases. One notch = one
+    // step regardless of deltaY magnitude (device-independent).
+    const direction = /** @type {1 | -1} */ (-Math.sign(e.deltaY))
+    if (direction === 0) return
+    nudge(direction, e.shiftKey)
+  }
+
+  /** Jump straight to a value (Home/End), clamping and firing onchange. @param {number} v */
+  function jumpTo(v) {
+    const clamped = Math.max(min, Math.min(max, v))
+    value = clamped
+    animPos.set(valueToNormalized(clamped, min, max, scale), { duration: 0 })
+    onchange?.({ value: clamped })
+  }
+
+  /**
+   * Keyboard operability for the slider role (WAI-ARIA): arrows step by one
+   * increment (same rule as scroll), Home/End jump to min/max. Handled keys are
+   * consumed so the page does not scroll; a disabled knob ignores all keys.
+   * @param {KeyboardEvent} e
+   */
+  function onKeyDown(e) {
+    if (disabled) return
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'ArrowRight':
+        e.preventDefault()
+        nudge(1, e.shiftKey)
+        break
+      case 'ArrowDown':
+      case 'ArrowLeft':
+        e.preventDefault()
+        nudge(-1, e.shiftKey)
+        break
+      case 'Home':
+        e.preventDefault()
+        jumpTo(min)
+        break
+      case 'End':
+        e.preventDefault()
+        jumpTo(max)
+        break
+      // Other keys are left to the browser.
+    }
+  }
+
   /** @param {MouseEvent} e */
   function handleContextMenu(e) {
     e.preventDefault()
@@ -202,12 +284,20 @@
 
 <div class="knob-wrap" class:disabled>
   <span class="knob-label" class:invisible={!showLabel}>{label}</span>
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="knob-hit"
+    role="slider"
+    tabindex="0"
+    aria-label={label}
+    aria-valuemin={min}
+    aria-valuemax={max}
+    aria-valuenow={value}
+    aria-valuetext={formatValue(value, unit)}
     onpointerdown={onPointerDown}
     onpointermove={onPointerMove}
     onpointerup={onPointerUp}
+    onwheel={onWheel}
+    onkeydown={onKeyDown}
     ondblclick={onDblClick}
     oncontextmenu={handleContextMenu}
   >

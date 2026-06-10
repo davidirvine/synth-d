@@ -4,6 +4,7 @@
   // via the shared damped-harmonic-oscillator integrator. The component is
   // display-agnostic — it emits `onchange({ value })` (matching Knob) and leaves
   // the synth-param mapping and aria value-text formatting to its parent.
+  import { untrack } from 'svelte'
   import { SvelteSet } from 'svelte/reactivity'
   import { REST, stepSpring, isAtRest, DEFAULT_PHYSICS } from '../audio/wheelPhysics.js'
 
@@ -11,9 +12,11 @@
     label?: string,
     externalValue?: number,
     externalNonce?: number,
+    springBack?: boolean,
     mass?: number,
     spring?: number,
     damping?: number,
+    rest?: number,
     formatValueText?: (value: number) => string,
     onchange?: (e: { value: number }) => void,
   }} */
@@ -21,6 +24,8 @@
     label = '',
     externalValue = undefined,
     externalNonce = 0,
+    springBack = true,
+    rest = REST,
     mass = DEFAULT_PHYSICS.mass,
     spring = DEFAULT_PHYSICS.spring,
     damping = DEFAULT_PHYSICS.damping,
@@ -34,7 +39,10 @@
   const CURSOR_THICKNESS = 4
   const KEY_STEP = 0.05
 
-  let value = $state(REST)
+  // Initialise the cursor at this wheel's `rest` (PITCH 0.5, MOD 0). Read once
+  // via untrack so the initializer doesn't subscribe to the prop — `rest` is
+  // fixed per instance and external/drag updates own `value` thereafter.
+  let value = $state(untrack(() => rest))
   let cursorTop = $derived((1 - value) * (TRACK_HEIGHT - CURSOR_THICKNESS))
 
   // Plain (untracked) interaction state. `dragging` is deliberately NOT $state:
@@ -46,7 +54,7 @@
   // instead of re-snapping to a stale external value.
   let dragging = false
   let startY = 0
-  let startVal = REST
+  let startVal = untrack(() => rest)
 
   // RAF spring-back loop state.
   let rafId = /** @type {number | null} */ (null)
@@ -64,11 +72,11 @@
   function tick(now) {
     const dt = (now - lastTime) / 1000
     lastTime = now
-    const next = stepSpring({ value, velocity, mass, spring, dampingRatio: damping, dt })
+    const next = stepSpring({ value, velocity, mass, spring, dampingRatio: damping, dt, rest })
     value = next.value
     velocity = next.velocity
-    if (isAtRest(value, velocity)) {
-      value = REST
+    if (isAtRest(value, velocity, rest)) {
+      value = rest
       velocity = 0
       rafId = null
       onchange?.({ value })
@@ -79,6 +87,9 @@
   }
 
   function startSpring() {
+    // A non-spring wheel (springBack=false) holds wherever it was left: no RAF
+    // loop is started, so the cursor stays put instead of returning to rest.
+    if (!springBack) return
     cancelSpring()
     // The spring starts from rest at the released position (no carried-over drag
     // velocity), matching the design's integrator model. A "flick" feel that
@@ -161,6 +172,28 @@
       if (heldArrows.size === 0) startSpring()
     }
   }
+
+  /** @param {WheelEvent} e */
+  function onWheel(e) {
+    // Consume the gesture so the page never scrolls.
+    e.preventDefault()
+    // A pointer drag owns the cursor — ignore wheel input while dragging.
+    if (dragging) return
+    // Scroll up (deltaY < 0) moves the cursor up; one notch = one KEY_STEP
+    // regardless of deltaY magnitude (device-independent), matching the arrows.
+    const direction = -Math.sign(e.deltaY)
+    if (direction === 0) return
+    // `value` is updated each RAF frame by tick(), so it already holds the live
+    // in-flight cursor position — reading it here picks up a spring-back already
+    // in progress rather than a stale pre-spring target. Stop that loop, apply
+    // the increment from the live position, and restart from there.
+    cancelSpring()
+    value = Math.max(0, Math.min(1, value + direction * KEY_STEP))
+    onchange?.({ value })
+    // PITCH (springBack=true) springs back from the adjusted position; MOD
+    // (springBack=false) no-ops, so the scrolled value holds.
+    startSpring()
+  }
 </script>
 
 <div class="wheel">
@@ -178,6 +211,7 @@
     onpointermove={onPointerMove}
     onpointerup={onPointerUp}
     onpointercancel={onPointerUp}
+    onwheel={onWheel}
     onkeydown={onKeyDown}
     onkeyup={onKeyUp}
   >

@@ -1,10 +1,4 @@
-# Wheel Physics
-
-## Purpose
-
-Defines the spring-back physics for the PITCH wheel: a mass-bearing damped harmonic oscillator that returns the cursor to its 0.5 rest position on release. The MOD wheel is a non-spring control that holds its position and is excluded from this model. The PITCH wheel's physics parameters (mass, spring strength, damping) are editable via knobs in a popup and persist in local storage.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Spring-back physics model with mass
 

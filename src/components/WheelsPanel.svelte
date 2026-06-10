@@ -64,13 +64,13 @@
   }
 
   /**
-   * Update one physics field and persist. Bound to each knob's onchange.
-   * @param {'mod' | 'pitch'} wheel
+   * Update one PITCH physics field and persist. Bound to each knob's onchange.
+   * The MOD wheel has no spring physics, so only PITCH is tunable.
    * @param {'mass' | 'spring' | 'damping'} field
    * @param {number} value
    */
-  function updatePhysics(wheel, field, value) {
-    physics = { ...physics, [wheel]: { ...physics[wheel], [field]: value } }
+  function updatePhysics(field, value) {
+    physics = { ...physics, pitch: { ...physics.pitch, [field]: value } }
     saveWheelPhysics(physics)
   }
 
@@ -109,9 +109,8 @@
       label="MOD"
       externalValue={modExternalValue}
       externalNonce={modExternalNonce}
-      mass={physics.mod.mass}
-      spring={physics.mod.spring}
-      damping={physics.mod.damping}
+      springBack={false}
+      rest={0}
       formatValueText={modValueText}
       onchange={(e) => onModChange?.({ param: 'modWheel', value: e.value })}
     />
@@ -148,43 +147,40 @@
 
   {#if open}
     <div class="popup" bind:this={popupEl} role="dialog" aria-label="wheel physics" tabindex="-1">
-      {#each ['mod', 'pitch'] as wheel, i (wheel)}
-        {#if i > 0}
-          <div class="section-divider"></div>
-        {/if}
-        <div class="physics-group">
-          <span class="group-label">{wheel === 'mod' ? 'MOD PHYSICS' : 'PITCH PHYSICS'}</span>
-          <div class="knobs">
-            <Knob
-              label="MASS"
-              min={PHYSICS_RANGES.mass.min}
-              max={PHYSICS_RANGES.mass.max}
-              default={PHYSICS_RANGES.mass.default}
-              externalValue={physics[wheel].mass}
-              showArc={false}
-              onchange={(e) => updatePhysics(wheel, 'mass', e.value)}
-            />
-            <Knob
-              label="SPRING"
-              min={PHYSICS_RANGES.spring.min}
-              max={PHYSICS_RANGES.spring.max}
-              default={PHYSICS_RANGES.spring.default}
-              externalValue={physics[wheel].spring}
-              showArc={false}
-              onchange={(e) => updatePhysics(wheel, 'spring', e.value)}
-            />
-            <Knob
-              label="DAMP"
-              min={PHYSICS_RANGES.damping.min}
-              max={PHYSICS_RANGES.damping.max}
-              default={PHYSICS_RANGES.damping.default}
-              externalValue={physics[wheel].damping}
-              showArc={false}
-              onchange={(e) => updatePhysics(wheel, 'damping', e.value)}
-            />
-          </div>
+      <!-- PITCH-only: the MOD wheel is a non-spring control with no physics to
+           tune, so the popup exposes the three PITCH spring knobs alone. -->
+      <div class="physics-group">
+        <span class="group-label">PITCH PHYSICS</span>
+        <div class="knobs">
+          <Knob
+            label="MASS"
+            min={PHYSICS_RANGES.mass.min}
+            max={PHYSICS_RANGES.mass.max}
+            default={PHYSICS_RANGES.mass.default}
+            externalValue={physics.pitch.mass}
+            showArc={false}
+            onchange={(e) => updatePhysics('mass', e.value)}
+          />
+          <Knob
+            label="SPRING"
+            min={PHYSICS_RANGES.spring.min}
+            max={PHYSICS_RANGES.spring.max}
+            default={PHYSICS_RANGES.spring.default}
+            externalValue={physics.pitch.spring}
+            showArc={false}
+            onchange={(e) => updatePhysics('spring', e.value)}
+          />
+          <Knob
+            label="DAMP"
+            min={PHYSICS_RANGES.damping.min}
+            max={PHYSICS_RANGES.damping.max}
+            default={PHYSICS_RANGES.damping.default}
+            externalValue={physics.pitch.damping}
+            showArc={false}
+            onchange={(e) => updatePhysics('damping', e.value)}
+          />
         </div>
-      {/each}
+      </div>
       <button class="reset" onclick={resetPhysics}>reset</button>
     </div>
   {/if}
@@ -250,11 +246,6 @@
   .popup:focus-visible {
     outline: 2px solid var(--accent-color, #c87941);
     outline-offset: 2px;
-  }
-
-  .section-divider {
-    height: 1px;
-    background: var(--control-bg, #2a2a2a);
   }
 
   .physics-group {

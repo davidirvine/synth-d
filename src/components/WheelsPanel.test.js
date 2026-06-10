@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, fireEvent } from '@testing-library/svelte'
 import WheelsPanel from './WheelsPanel.svelte'
 import { STORAGE_KEY, defaultWheelPhysics } from '../audio/wheelPhysicsStore.js'
@@ -37,11 +37,17 @@ describe('WheelsPanel — layout', () => {
 })
 
 describe('WheelsPanel — physics popup', () => {
-  it('the gear opens a popup with six knobs (mass/spring/damping × MOD/PITCH)', async () => {
+  it('the gear opens a popup with exactly three PITCH physics knobs (no MOD knobs)', async () => {
     const { container } = render(WheelsPanel)
     const popup = await openPopup(container)
     expect(popup).not.toBeNull()
-    expect(popup.querySelectorAll('.knob-hit')).toHaveLength(6)
+    // PITCH-only: mass/spring/damping for the PITCH wheel; the MOD wheel is a
+    // non-spring control with no physics to tune.
+    expect(popup.querySelectorAll('.knob-hit')).toHaveLength(3)
+    const labels = [...popup.querySelectorAll('.knob-label')].map((el) => el.textContent)
+    expect(labels).toEqual(['MASS', 'SPRING', 'DAMP'])
+    expect(popup.textContent).not.toContain('MOD PHYSICS')
+    expect(popup.textContent).toContain('PITCH PHYSICS')
   })
 
   it('dismisses on Escape', async () => {
@@ -60,17 +66,17 @@ describe('WheelsPanel — physics popup', () => {
 })
 
 describe('WheelsPanel — physics persistence', () => {
-  it('persists an edited physics knob to localStorage', async () => {
+  it('persists an edited PITCH physics knob to localStorage', async () => {
     const { container } = render(WheelsPanel)
     const popup = await openPopup(container)
-    // First knob is MOD MASS; dragging up raises it above its default of 1.
+    // First (and only first) knob is PITCH MASS; dragging up raises it above its default.
     const massKnob = /** @type {Element} */ (popup.querySelector('.knob-hit'))
     await fireEvent.pointerDown(massKnob, { clientY: 100 })
     await fireEvent.pointerMove(massKnob, { clientY: 50 })
     await fireEvent.pointerUp(massKnob)
 
     const stored = JSON.parse(/** @type {string} */ (localStorage.getItem(STORAGE_KEY)))
-    expect(stored.mod.mass).toBeGreaterThan(DEFAULT_PHYSICS.mass)
+    expect(stored.pitch.mass).toBeGreaterThan(DEFAULT_PHYSICS.mass)
   })
 
   it('reset restores defaults and saves them', async () => {
@@ -87,19 +93,87 @@ describe('WheelsPanel — physics persistence', () => {
     expect(stored).toEqual(defaultWheelPhysics())
   })
 
-  it('loads previously saved physics on mount', async () => {
+  it('loads previously saved PITCH physics on mount', async () => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        mod: { mass: 4, spring: 40, damping: 0.9 },
         pitch: { mass: 0.5, spring: 5, damping: 0.1 },
       })
     )
     const { container } = render(WheelsPanel)
     const popup = await openPopup(container)
-    // MOD MASS knob shows the loaded 4 (formatted to 2 dp).
+    // The first (PITCH MASS) knob shows the loaded 0.5 (formatted to 2 dp).
     const firstValue = popup.querySelector('.knob-value')
-    expect(firstValue?.textContent).toBe('4.00')
+    expect(firstValue?.textContent).toBe('0.50')
+  })
+
+  it('reset restores the three PITCH physics defaults', async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ pitch: { mass: 0.5, spring: 5, damping: 0.1 } })
+    )
+    const { container, getByText } = render(WheelsPanel)
+    const popup = await openPopup(container)
+    await fireEvent.click(getByText('reset'))
+    const values = [...popup.querySelectorAll('.knob-value')].map((el) => el.textContent)
+    expect(values).toEqual([
+      DEFAULT_PHYSICS.mass.toFixed(2),
+      DEFAULT_PHYSICS.spring.toFixed(2),
+      DEFAULT_PHYSICS.damping.toFixed(2),
+    ])
+  })
+})
+
+describe('WheelsPanel — MOD wheel is non-spring, rests at 0', () => {
+  /** @type {Map<number, FrameRequestCallback>} */
+  let rafMap
+  let nextRafId
+
+  beforeEach(() => {
+    rafMap = new Map()
+    nextRafId = 1
+    vi.stubGlobal('requestAnimationFrame', (/** @type {FrameRequestCallback} */ cb) => {
+      const id = nextRafId++
+      rafMap.set(id, cb)
+      return id
+    })
+    vi.stubGlobal('cancelAnimationFrame', (/** @type {number} */ id) => {
+      rafMap.delete(id)
+    })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('the MOD cursor rests at 0 (bottom of the track) on mount', () => {
+    const { container } = render(WheelsPanel)
+    const modCursor = /** @type {HTMLElement} */ (container.querySelector('.wheel-cursor'))
+    // top = (1 − value) × (trackHeight − thickness) = 1 × 56 = 56
+    expect(modCursor.style.top).toBe('56px')
+  })
+
+  it('the MOD wheel holds its position on release without scheduling a spring', async () => {
+    const { container } = render(WheelsPanel)
+    const modTrack = /** @type {Element} */ (container.querySelectorAll('.wheel-track')[0])
+    await fireEvent.pointerDown(modTrack, { clientY: 100, pointerId: 1 })
+    await fireEvent.pointerMove(modTrack, { clientY: 84, pointerId: 1 }) // 0 + 16/80 = 0.2
+    await fireEvent.pointerUp(modTrack, { pointerId: 1 })
+
+    // Non-spring: no animation frame is queued and the cursor holds at 0.2.
+    expect(rafMap.size).toBe(0)
+    const modCursor = /** @type {HTMLElement} */ (container.querySelector('.wheel-cursor'))
+    expect(modCursor.style.top).toBe(`${(1 - 0.2) * 56}px`)
+  })
+
+  it('the PITCH wheel still springs back on release', async () => {
+    const { container } = render(WheelsPanel)
+    const pitchTrack = /** @type {Element} */ (container.querySelectorAll('.wheel-track')[1])
+    await fireEvent.pointerDown(pitchTrack, { clientY: 100, pointerId: 2 })
+    await fireEvent.pointerMove(pitchTrack, { clientY: 84, pointerId: 2 })
+    await fireEvent.pointerUp(pitchTrack, { pointerId: 2 })
+    // Spring wheel: a frame is queued to animate the cursor back toward 0.5.
+    expect(rafMap.size).toBe(1)
   })
 })
 

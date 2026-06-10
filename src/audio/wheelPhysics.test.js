@@ -211,6 +211,61 @@ describe('wheelPhysics — settling behaviour', () => {
   })
 })
 
+describe('wheelPhysics — parameterized rest target', () => {
+  it('stepSpring pulls toward a custom rest, not the module REST', () => {
+    // Cursor at 0.5 with rest=0: displacement is positive, so the restoring
+    // force is negative — it accelerates down toward 0 rather than holding at
+    // the module REST (0.5).
+    const next = stepSpring({
+      value: 0.5,
+      velocity: 0,
+      mass: 1,
+      spring: 20,
+      dampingRatio: 0.3,
+      dt: 1 / 60,
+      rest: 0,
+    })
+    expect(next.velocity).toBeLessThan(0)
+    expect(next.value).toBeLessThan(0.5)
+  })
+
+  it('stepSpring applies no force exactly at a custom rest with zero velocity', () => {
+    const next = stepSpring({
+      value: 0,
+      velocity: 0,
+      mass: 1,
+      spring: 20,
+      dampingRatio: 0.3,
+      dt: 1 / 60,
+      rest: 0,
+    })
+    expect(next.value).toBe(0)
+    expect(next.velocity).toBe(0)
+  })
+
+  it('settles to a custom rest of 0 from above', () => {
+    let state = { value: 0.4, velocity: 0 }
+    for (let i = 0; i < 6000; i++) {
+      state = stepSpring({
+        ...state,
+        mass: 0.1,
+        spring: 50,
+        dampingRatio: 0.3,
+        dt: 1 / 60,
+        rest: 0,
+      })
+      if (isAtRest(state.value, state.velocity, 0)) break
+    }
+    expect(state.value).toBeCloseTo(0, 2)
+  })
+
+  it('isAtRest measures against the supplied rest', () => {
+    // At value 0 the cursor is at rest only when rest is 0, not the default 0.5.
+    expect(isAtRest(0, 0, 0)).toBe(true)
+    expect(isAtRest(0, 0)).toBe(false)
+  })
+})
+
 describe('wheelPhysics — isAtRest', () => {
   it('is true at REST with zero velocity', () => {
     expect(isAtRest(REST, 0)).toBe(true)

@@ -593,3 +593,195 @@ describe('Knob — bipolar prop', () => {
     expect(d).toMatch(/^M 11\.2\d+ 36\.7\d+/)
   })
 })
+
+describe('Knob — scroll wheel', () => {
+  it('scroll up increases the value by one step', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 50, step: 5, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.wheel(hit, { deltaY: -100 })
+    expect(onchange).toHaveBeenLastCalledWith({ value: 55 })
+  })
+
+  it('scroll down decreases the value by one step', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 50, step: 5, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.wheel(hit, { deltaY: 100 })
+    expect(onchange).toHaveBeenLastCalledWith({ value: 45 })
+  })
+
+  it('Shift+scroll uses the fine step', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 50, step: 5, fineStep: 1, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.wheel(hit, { deltaY: -100, shiftKey: true })
+    expect(onchange).toHaveBeenLastCalledWith({ value: 51 })
+  })
+
+  it('a step-less knob moves the normalized position by 0.01 per notch', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 1, default: 0.5, scale: 'linear', onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.wheel(hit, { deltaY: -100 })
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBeCloseTo(0.51, 5)
+  })
+
+  it('increment is independent of deltaY magnitude (one step per event)', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 50, step: 5, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.wheel(hit, { deltaY: -3 }) // small notch
+    await fireEvent.wheel(hit, { deltaY: -300 }) // large notch
+    expect(onchange.mock.calls.map((c) => c[0].value)).toEqual([55, 60])
+  })
+
+  it('clamps at the maximum and does not exceed it', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 90, step: 30, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.wheel(hit, { deltaY: -100 }) // 90 + 30 = 120 → clamp 100
+    await fireEvent.wheel(hit, { deltaY: -100 }) // stays 100
+    expect(onchange.mock.calls.map((c) => c[0].value)).toEqual([100, 100])
+  })
+
+  it('calls preventDefault so the page does not scroll', () => {
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 1, default: 0.5 },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    const ev = new WheelEvent('wheel', { deltaY: -100, cancelable: true, bubbles: true })
+    hit.dispatchEvent(ev)
+    expect(ev.defaultPrevented).toBe(true)
+  })
+
+  it('ignores scroll while a pointer drag is in progress', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 50, step: 5, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.pointerDown(hit, { clientY: 100 })
+    onchange.mockClear()
+    await fireEvent.wheel(hit, { deltaY: -100 })
+    expect(onchange).not.toHaveBeenCalled()
+  })
+
+  it('ignores scroll when disabled (no change, no onchange)', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 50, step: 5, disabled: true, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.wheel(hit, { deltaY: -100 })
+    expect(onchange).not.toHaveBeenCalled()
+  })
+})
+
+describe('Knob — keyboard', () => {
+  it('ArrowUp/ArrowRight increase and ArrowDown/ArrowLeft decrease by one step', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 50, step: 5, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.keyDown(hit, { key: 'ArrowUp' })
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBe(55)
+    await fireEvent.keyDown(hit, { key: 'ArrowRight' })
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBe(60)
+    await fireEvent.keyDown(hit, { key: 'ArrowDown' })
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBe(55)
+    await fireEvent.keyDown(hit, { key: 'ArrowLeft' })
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBe(50)
+  })
+
+  it('Shift+arrow uses the fine step', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 50, step: 5, fineStep: 1, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.keyDown(hit, { key: 'ArrowUp', shiftKey: true })
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBe(51)
+  })
+
+  it('Home jumps to min and End jumps to max', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 10, max: 90, default: 50, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.keyDown(hit, { key: 'Home' })
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBe(10)
+    await fireEvent.keyDown(hit, { key: 'End' })
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBe(90)
+  })
+
+  it('calls preventDefault on a handled key', () => {
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 1, default: 0.5 },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    const ev = new KeyboardEvent('keydown', { key: 'ArrowUp', cancelable: true, bubbles: true })
+    hit.dispatchEvent(ev)
+    expect(ev.defaultPrevented).toBe(true)
+  })
+
+  it('ignores all keys when disabled', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'v', min: 0, max: 100, default: 50, step: 5, disabled: true, onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    await fireEvent.keyDown(hit, { key: 'ArrowUp' })
+    await fireEvent.keyDown(hit, { key: 'Home' })
+    expect(onchange).not.toHaveBeenCalled()
+  })
+})
+
+describe('Knob — ARIA slider semantics', () => {
+  it('exposes role=slider with min/max/now and a tabindex of 0', () => {
+    const { container } = render(Knob, {
+      props: { label: 'cutoff', min: 20, max: 20000, default: 2000 },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    expect(hit.getAttribute('role')).toBe('slider')
+    expect(hit.getAttribute('aria-valuemin')).toBe('20')
+    expect(hit.getAttribute('aria-valuemax')).toBe('20000')
+    expect(hit.getAttribute('aria-valuenow')).toBe('2000')
+    expect(hit.getAttribute('tabindex')).toBe('0')
+  })
+
+  it('exposes aria-label equal to the knob label', () => {
+    const { container } = render(Knob, {
+      props: { label: 'resonance', min: 0, max: 1, default: 0.5 },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    expect(hit.getAttribute('aria-label')).toBe('resonance')
+  })
+
+  it('aria-valuetext reflects the formatted value label', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Knob, {
+      props: { label: 'freq', min: 0, max: 100, default: 50, step: 5, unit: '', onchange },
+    })
+    const hit = /** @type {Element} */ (container.querySelector('.knob-hit'))
+    expect(hit.getAttribute('aria-valuetext')).toBe('50.00')
+    await fireEvent.wheel(hit, { deltaY: -100 })
+    // valuenow and valuetext both track the new value.
+    expect(hit.getAttribute('aria-valuenow')).toBe('55')
+    expect(hit.getAttribute('aria-valuetext')).toBe('55.00')
+  })
+})
