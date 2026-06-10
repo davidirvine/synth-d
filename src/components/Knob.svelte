@@ -236,6 +236,45 @@
     nudge(direction, e.shiftKey)
   }
 
+  /** Jump straight to a value (Home/End), clamping and firing onchange. @param {number} v */
+  function jumpTo(v) {
+    const clamped = Math.max(min, Math.min(max, v))
+    value = clamped
+    animPos.set(valueToNormalized(clamped, min, max, scale), { duration: 0 })
+    onchange?.({ value: clamped })
+  }
+
+  /**
+   * Keyboard operability for the slider role (WAI-ARIA): arrows step by one
+   * increment (same rule as scroll), Home/End jump to min/max. Handled keys are
+   * consumed so the page does not scroll; a disabled knob ignores all keys.
+   * @param {KeyboardEvent} e
+   */
+  function onKeyDown(e) {
+    if (disabled) return
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'ArrowRight':
+        e.preventDefault()
+        nudge(1, e.shiftKey)
+        break
+      case 'ArrowDown':
+      case 'ArrowLeft':
+        e.preventDefault()
+        nudge(-1, e.shiftKey)
+        break
+      case 'Home':
+        e.preventDefault()
+        jumpTo(min)
+        break
+      case 'End':
+        e.preventDefault()
+        jumpTo(max)
+        break
+      // Other keys are left to the browser.
+    }
+  }
+
   /** @param {MouseEvent} e */
   function handleContextMenu(e) {
     e.preventDefault()
@@ -258,6 +297,7 @@
     onpointermove={onPointerMove}
     onpointerup={onPointerUp}
     onwheel={onWheel}
+    onkeydown={onKeyDown}
     ondblclick={onDblClick}
     oncontextmenu={handleContextMenu}
   >
