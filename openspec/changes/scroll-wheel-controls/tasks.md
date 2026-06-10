@@ -36,8 +36,8 @@
 
 > Ordering note: `/opsx:verify` (task 8.1) validates the implementation against this change's **delta** artifacts (the `specs/` in this change, which already encode rest-at-0 / PITCH-only physics / knob scroll), not against the main `openspec/specs/`. So verify does not depend on this sync and will not see the stale "rests at 0.5" main-spec text. The main-spec sync below runs before/at archive; it is sequenced ahead of the gate purely so 7.2 can confirm nothing was dropped while the change is still fresh.
 
-- [ ] 7.1 Sync the `modulation`, `wheel-physics`, and `knob` delta specs to their main `openspec/specs/<capability>/spec.md` counterparts (via `/opsx:sync` or at archive time) so the main specs reflect non-spring MOD, PITCH-only physics, and knob scroll/keyboard/ARIA. The sync SHALL replace only the changed requirements — unchanged requirements in each main spec (e.g. the modulation routing/mix/LFO requirements) MUST be preserved, not dropped
-- [ ] 7.2 Verify the sync dropped nothing: `git diff` each main spec before/after and confirm only the intended requirement sections changed and no unrelated requirement was removed (cross-check the modulation spec still carries its routing/mix/LFO-mode requirements)
+- [x] 7.1 Sync the `modulation`, `wheel-physics`, and `knob` delta specs to their main `openspec/specs/<capability>/spec.md` counterparts (via `/opsx:sync` or at archive time) so the main specs reflect non-spring MOD, PITCH-only physics, and knob scroll/keyboard/ARIA. The sync SHALL replace only the changed requirements — unchanged requirements in each main spec (e.g. the modulation routing/mix/LFO requirements) MUST be preserved, not dropped
+- [x] 7.2 Verify the sync dropped nothing: `git diff` each main spec before/after and confirm only the intended requirement sections changed and no unrelated requirement was removed (cross-check the modulation spec still carries its routing/mix/LFO-mode requirements)
 
 ## 8. Verification and completion gate
 
