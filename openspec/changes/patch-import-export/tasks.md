@@ -8,7 +8,7 @@
 
 - [x] 2.1 Add `parsePatchFile(text)` to `src/patches/file.js` that rejects input above a fixed byte ceiling (~1 MB) before parsing, then parses JSON and rejects unparseable input with a human-readable reason (result object, not a throw — match the `{ ok, error }` house style in `storage.js`).
 - [x] 2.2 Add hand-rolled structural validation: top-level is an object, `fileFormat` is present and equals a recognized version (currently only `1`), `name` is a string, `params` is an object, parameter values are numbers — rejecting with a human-readable reason on any failure. An empty `params` object is accepted.
-- [ ] 2.3 Add unit tests covering oversized input, unparseable JSON, non-object top level, missing/unrecognized `fileFormat` (including a higher-than-current version), non-string `name`, non-object `params`, and non-number param values — each asserting rejection with a reason; plus an empty-`params` file asserting acceptance.
+- [x] 2.3 Add unit tests covering oversized input, unparseable JSON, non-object top level, missing/unrecognized `fileFormat` (including a higher-than-current version), non-string `name`, non-object `params`, and non-number param values — each asserting rejection with a reason; plus an empty-`params` file asserting acceptance.
 
 ## 3. Import — value coercion
 

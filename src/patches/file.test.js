@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { FILE_FORMAT_VERSION, serializePatch, patchFilename } from './file.js'
+import {
+  FILE_FORMAT_VERSION,
+  MAX_IMPORT_BYTES,
+  serializePatch,
+  patchFilename,
+  parsePatchFile,
+  validatePatchFile,
+} from './file.js'
+
+/** A minimal structurally-valid parsed file, spread-and-override in tests. */
+const validFile = () => ({ fileFormat: FILE_FORMAT_VERSION, name: 'LEAD', version: 1, params: {} })
 
 describe('serializePatch', () => {
   it('wraps the envelope in the versioned file object', () => {
@@ -61,5 +71,86 @@ describe('patchFilename', () => {
     expect(patchFilename('////')).toBe('patch.json')
     expect(patchFilename('   ')).toBe('patch.json')
     expect(patchFilename('')).toBe('patch.json')
+  })
+})
+
+describe('parsePatchFile', () => {
+  it('parses a valid JSON file', () => {
+    const res = parsePatchFile(JSON.stringify(validFile()))
+    expect(res).toEqual({ ok: true, value: validFile() })
+  })
+
+  it('rejects oversized input before parsing', () => {
+    // One byte over the ceiling. Reason mentions size; no parse is attempted.
+    const huge = 'a'.repeat(MAX_IMPORT_BYTES + 1)
+    const res = parsePatchFile(huge)
+    expect(res.ok).toBe(false)
+    expect(res.ok === false && res.error).toMatch(/large/i)
+  })
+
+  it('rejects unparseable JSON with a reason', () => {
+    const res = parsePatchFile('{ not valid json')
+    expect(res.ok).toBe(false)
+    expect(res.ok === false && res.error).toMatch(/json/i)
+  })
+
+  it('rejects non-string input', () => {
+    // @ts-expect-error exercising the non-string guard
+    const res = parsePatchFile(42)
+    expect(res.ok).toBe(false)
+  })
+})
+
+describe('validatePatchFile — structural gate', () => {
+  it('accepts a structurally valid file', () => {
+    const res = validatePatchFile({ ...validFile(), params: { cutoff: 2000 } })
+    expect(res.ok).toBe(true)
+  })
+
+  it('accepts an empty params object', () => {
+    const res = validatePatchFile({ ...validFile(), params: {} })
+    expect(res.ok).toBe(true)
+  })
+
+  it('rejects a non-object top level', () => {
+    for (const bad of [null, 42, 'str', [1, 2]]) {
+      const res = validatePatchFile(bad)
+      expect(res.ok).toBe(false)
+      expect(res.ok === false && res.error).toMatch(/object/i)
+    }
+  })
+
+  it('rejects a missing fileFormat', () => {
+    const { fileFormat, ...withoutFormat } = validFile()
+    void fileFormat
+    const res = validatePatchFile(withoutFormat)
+    expect(res.ok).toBe(false)
+    expect(res.ok === false && res.error).toMatch(/file-format/i)
+  })
+
+  it('rejects an unrecognized (higher) fileFormat version', () => {
+    const res = validatePatchFile({ ...validFile(), fileFormat: FILE_FORMAT_VERSION + 1 })
+    expect(res.ok).toBe(false)
+    expect(res.ok === false && res.error).toMatch(/file-format/i)
+  })
+
+  it('rejects a non-string name', () => {
+    const res = validatePatchFile({ ...validFile(), name: 42 })
+    expect(res.ok).toBe(false)
+    expect(res.ok === false && res.error).toMatch(/name/i)
+  })
+
+  it('rejects a non-object params', () => {
+    for (const bad of [null, 5, 'x', [1]]) {
+      const res = validatePatchFile({ ...validFile(), params: bad })
+      expect(res.ok).toBe(false)
+      expect(res.ok === false && res.error).toMatch(/params/i)
+    }
+  })
+
+  it('rejects a non-number parameter value', () => {
+    const res = validatePatchFile({ ...validFile(), params: { cutoff: 'loud' } })
+    expect(res.ok).toBe(false)
+    expect(res.ok === false && res.error).toMatch(/cutoff/i)
   })
 })
