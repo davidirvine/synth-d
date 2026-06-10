@@ -73,6 +73,13 @@ describe('coerceParams — dropping', () => {
     expect(coerceParams({ modWheel: 0.5 })).not.toHaveProperty('modWheel')
   })
 
+  it('drops a non-number value defensively', () => {
+    // coerceParams runs after the structural gate (which guarantees numbers), but
+    // it independently guards typeof so it is safe to call on raw input too.
+    // @ts-expect-error exercising the defensive non-number guard
+    expect(coerceParams({ cutoff: 'loud', osc1Wave: '3' })).toEqual({})
+  })
+
   it('drops non-finite numeric values', () => {
     expect(coerceParams({ cutoff: Infinity })).not.toHaveProperty('cutoff')
     expect(coerceParams({ cutoff: -Infinity })).not.toHaveProperty('cutoff')

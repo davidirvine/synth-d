@@ -10,6 +10,7 @@ export default {
     'src/audio/wheelPhysics.js',
     'src/audio/wheelPhysicsStore.js',
     'src/patches/storage.js',
+    'src/patches/file.js',
     'src/state/synth.svelte.js',
   ],
   vitest: {

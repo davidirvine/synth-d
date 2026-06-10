@@ -88,6 +88,17 @@ describe('parsePatchFile', () => {
     expect(res.ok === false && res.error).toMatch(/large/i)
   })
 
+  it('rejects input over the byte ceiling even when char length fits', () => {
+    // Multibyte chars (€ is 3 UTF-8 bytes): the character count stays under the
+    // ceiling while the byte length exceeds it, exercising the byte-length gate
+    // distinctly from the cheap char-length pre-check.
+    const multibyte = '€'.repeat(Math.ceil(MAX_IMPORT_BYTES / 2))
+    expect(multibyte.length).toBeLessThanOrEqual(MAX_IMPORT_BYTES)
+    const res = parsePatchFile(multibyte)
+    expect(res.ok).toBe(false)
+    expect(res.ok === false && res.error).toMatch(/large/i)
+  })
+
   it('rejects unparseable JSON with a reason', () => {
     const res = parsePatchFile('{ not valid json')
     expect(res.ok).toBe(false)
