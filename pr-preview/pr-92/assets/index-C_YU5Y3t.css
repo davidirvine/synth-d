@@ -407,11 +407,6 @@ body {
     outline-offset: 2px;
   }
 
-  .section-divider.svelte-1u30a8q {
-    height: 1px;
-    background: var(--control-bg, #2a2a2a);
-  }
-
   .physics-group.svelte-1u30a8q {
     display: flex;
     flex-direction: column;

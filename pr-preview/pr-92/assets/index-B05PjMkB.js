@@ -10983,8 +10983,8 @@ var SvelteSet = class SvelteSet extends Set {
 //#endregion
 //#region src/components/Keyboard.svelte
 var root_1$5 = /* @__PURE__ */ from_svg(`<rect></rect>`);
-var root_2$5 = /* @__PURE__ */ from_svg(`<rect></rect>`);
-var root_3$4 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label svelte-1dlz8xf"> </text>`);
+var root_2$4 = /* @__PURE__ */ from_svg(`<rect></rect>`);
+var root_3$3 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label svelte-1dlz8xf"> </text>`);
 var root_4$2 = /* @__PURE__ */ from_svg(`<text text-anchor="middle" class="key-label-black svelte-1dlz8xf"> </text>`);
 var root$18 = /* @__PURE__ */ from_html(`<div class="keyboard-wrap svelte-1dlz8xf"><svg><rect fill="var(--panel-border, #333)"></rect><!><!><!><!></svg></div>`);
 function Keyboard($$anchor, $$props) {
@@ -11127,7 +11127,7 @@ function Keyboard($$anchor, $$props) {
 	});
 	var node_1 = sibling(node);
 	each(node_1, 17, () => get(keys).filter((k) => k.black), (key) => key.midi, ($$anchor, key) => {
-		var rect_2 = root_2$5();
+		var rect_2 = root_2$4();
 		set_attribute(rect_2, "y", RAIL_H);
 		set_attribute(rect_2, "width", BLACK_W);
 		set_attribute(rect_2, "height", BLACK_H);
@@ -11144,7 +11144,7 @@ function Keyboard($$anchor, $$props) {
 	});
 	var node_2 = sibling(node_1);
 	each(node_2, 17, () => get(whiteKeys), (key) => key.midi, ($$anchor, key) => {
-		var text = root_3$4();
+		var text = root_3$3();
 		set_attribute(text, "y", RAIL_H + WHITE_H - 5);
 		var text_1 = child(text, true);
 		reset(text);
@@ -11253,15 +11253,20 @@ function clamp(v, min, max) {
 /**
 * Advance the damped oscillator one step.
 *
-* @param {{ value: number, velocity: number, mass: number, spring: number, dampingRatio: number, dt: number }} state
+* `rest` is the spring target (the position the cursor is pulled toward);
+* displacement is measured from it. It defaults to {@link REST} (0.5) so callers
+* that omit it keep the original centre-resting behaviour, and a spring wheel
+* with a different rest returns to its own rest rather than the module constant.
+*
+* @param {{ value: number, velocity: number, mass: number, spring: number, dampingRatio: number, dt: number, rest?: number }} state
 * @returns {{ value: number, velocity: number }} the next value/velocity
 */
-function stepSpring({ value, velocity, mass, spring, dampingRatio, dt }) {
+function stepSpring({ value, velocity, mass, spring, dampingRatio, dt, rest = REST }) {
 	const step = clamp(dt, 0, MAX_DT);
 	const c = dampingRatio * 2 * Math.sqrt(spring * mass);
-	const x = value - REST;
+	const x = value - rest;
 	const nextVelocity = velocity + (-spring * x - c * velocity) / mass * step;
-	const rawValue = REST + (x + nextVelocity * step);
+	const rawValue = rest + (x + nextVelocity * step);
 	const nextValue = clamp(rawValue, 0, 1);
 	return {
 		value: nextValue,
@@ -11269,15 +11274,17 @@ function stepSpring({ value, velocity, mass, spring, dampingRatio, dt }) {
 	};
 }
 /**
-* True once the cursor is within a small threshold of REST with negligible
-* velocity — the loop stops here so a settled wheel emits no further frames.
+* True once the cursor is within a small threshold of its `rest` target with
+* negligible velocity — the loop stops here so a settled wheel emits no further
+* frames. `rest` defaults to {@link REST} (0.5) to match the spring target.
 *
 * @param {number} value
 * @param {number} velocity
+* @param {number} [rest]
 * @returns {boolean}
 */
-function isAtRest(value, velocity) {
-	return Math.abs(value - .5) < .001 && Math.abs(velocity) < .001;
+function isAtRest(value, velocity, rest = REST) {
+	return Math.abs(value - rest) < .001 && Math.abs(velocity) < .001;
 }
 //#endregion
 //#region src/components/Wheel.svelte
@@ -11288,21 +11295,23 @@ function Wheel($$anchor, $$props) {
 	label?: string,
 	externalValue?: number,
 	externalNonce?: number,
+	springBack?: boolean,
 	mass?: number,
 	spring?: number,
 	damping?: number,
+	rest?: number,
 	formatValueText?: (value: number) => string,
 	onchange?: (e: { value: number }) => void,
 	}} */
-	let label = prop($$props, "label", 3, ""), externalValue = prop($$props, "externalValue", 3, void 0), externalNonce = prop($$props, "externalNonce", 3, 0), mass = prop($$props, "mass", 19, () => DEFAULT_PHYSICS.mass), spring = prop($$props, "spring", 19, () => DEFAULT_PHYSICS.spring), damping = prop($$props, "damping", 19, () => DEFAULT_PHYSICS.damping), formatValueText = prop($$props, "formatValueText", 3, void 0);
+	let label = prop($$props, "label", 3, ""), externalValue = prop($$props, "externalValue", 3, void 0), externalNonce = prop($$props, "externalNonce", 3, 0), springBack = prop($$props, "springBack", 3, true), rest = prop($$props, "rest", 3, REST), mass = prop($$props, "mass", 19, () => DEFAULT_PHYSICS.mass), spring = prop($$props, "spring", 19, () => DEFAULT_PHYSICS.spring), damping = prop($$props, "damping", 19, () => DEFAULT_PHYSICS.damping), formatValueText = prop($$props, "formatValueText", 3, void 0);
 	const TRACK_HEIGHT = 60;
 	const CURSOR_THICKNESS = 4;
 	const KEY_STEP = .05;
-	let value = /* @__PURE__ */ state(proxy(REST));
+	let value = /* @__PURE__ */ state(proxy(untrack(() => rest())));
 	let cursorTop = /* @__PURE__ */ user_derived(() => (1 - get(value)) * (TRACK_HEIGHT - CURSOR_THICKNESS));
 	let dragging = false;
 	let startY = 0;
-	let startVal = REST;
+	let startVal = untrack(() => rest());
 	let rafId = null;
 	let velocity = 0;
 	let lastTime = 0;
@@ -11322,12 +11331,13 @@ function Wheel($$anchor, $$props) {
 			mass: mass(),
 			spring: spring(),
 			dampingRatio: damping(),
-			dt
+			dt,
+			rest: rest()
 		});
 		set(value, next.value, true);
 		velocity = next.velocity;
-		if (isAtRest(get(value), velocity)) {
-			set(value, REST, true);
+		if (isAtRest(get(value), velocity, rest())) {
+			set(value, rest(), true);
 			velocity = 0;
 			rafId = null;
 			$$props.onchange?.({ value: get(value) });
@@ -11337,6 +11347,7 @@ function Wheel($$anchor, $$props) {
 		rafId = requestAnimationFrame(tick);
 	}
 	function startSpring() {
+		if (!springBack()) return;
 		cancelSpring();
 		velocity = 0;
 		lastTime = performance.now();
@@ -11394,6 +11405,17 @@ function Wheel($$anchor, $$props) {
 			if (heldArrows.size === 0) startSpring();
 		}
 	}
+	/** @param {WheelEvent} e */
+	function onWheel(e) {
+		e.preventDefault();
+		if (dragging) return;
+		const direction = -Math.sign(e.deltaY);
+		if (direction === 0) return;
+		cancelSpring();
+		set(value, Math.max(0, Math.min(1, get(value) + direction * KEY_STEP)), true);
+		$$props.onchange?.({ value: get(value) });
+		startSpring();
+	}
 	var div = root$16();
 	var span = child(div);
 	var text = child(span, true);
@@ -11416,6 +11438,7 @@ function Wheel($$anchor, $$props) {
 	delegated("pointermove", div_1, onPointerMove);
 	delegated("pointerup", div_1, onPointerUp);
 	event("pointercancel", div_1, onPointerUp);
+	event("wheel", div_1, onWheel);
 	delegated("keydown", div_1, onKeyDown);
 	delegated("keyup", div_1, onKeyUp);
 	append($$anchor, div);
@@ -11578,11 +11601,11 @@ function tweened(value, defaults = {}) {
 //#endregion
 //#region src/components/Knob.svelte
 var root_1$4 = /* @__PURE__ */ from_svg(`<circle class="learn-ring svelte-1wmwmfc" fill="none" stroke-width="2"></circle>`);
-var root_2$4 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
-var root_3$3 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
+var root_2$3 = /* @__PURE__ */ from_svg(`<path class="arc svelte-1wmwmfc" fill="none" stroke-width="3"></path>`);
+var root_3$2 = /* @__PURE__ */ from_svg(`<text class="tick-label svelte-1wmwmfc" text-anchor="middle" dominant-baseline="middle"> </text>`);
 var root_4$1 = /* @__PURE__ */ from_html(`<span class="interval-indicator svelte-1wmwmfc"> </span>`);
 var root_5$1 = /* @__PURE__ */ from_html(`<span class="cc-label svelte-1wmwmfc"> </span>`);
-var root$15 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <!> <span> </span> <!></div>`);
+var root$15 = /* @__PURE__ */ from_html(`<div><span> </span> <div class="knob-hit svelte-1wmwmfc" role="slider" tabindex="0"><svg viewBox="0 0 48 48" style="overflow: visible; width: var(--knob-body-size, 48px); height: var(--knob-body-size, 48px);"><!><path class="track svelte-1wmwmfc" fill="none" stroke-width="3"></path><!><circle r="13" class="body svelte-1wmwmfc"></circle><line class="indicator svelte-1wmwmfc" stroke-width="2" stroke-linecap="round"></line><!></svg></div> <!> <span> </span> <!></div>`);
 function Knob($$anchor, $$props) {
 	push($$props, true);
 	const $animPos = () => store_get(animPos, "$animPos", $$stores);
@@ -11715,6 +11738,71 @@ function Knob($$anchor, $$props) {
 		animPos.set(valueToNormalized(defaultValue(), min(), max(), scale()), { duration: 0 });
 		$$props.onchange?.({ value: defaultValue() });
 	}
+	/**
+	* Nudge the value by one increment in `direction` (+1 up / −1 down), shared by
+	* scroll and keyboard. The increment is one `step` (or one `fineStep` while
+	* Shift is held, when both are set); with no `step` it moves the normalized
+	* position by 0.01 (1% of travel) and converts back through the knob's scale,
+	* so a nonlinear scale keeps a uniform perceptual step (intended). Clamps to
+	* [min, max] and fires onchange.
+	* @param {1 | -1} direction
+	* @param {boolean} shift
+	*/
+	function nudge(direction, shift) {
+		const activeStep = shift && fineStep() !== null ? fineStep() : step();
+		let newValue;
+		if (activeStep !== null && activeStep > 0) newValue = get(value) + direction * activeStep;
+		else newValue = normalizedToValue(Math.max(0, Math.min(1, valueToNormalized(get(value), min(), max(), scale()) + direction * .01)), min(), max(), scale());
+		newValue = Math.max(min(), Math.min(max(), newValue));
+		set(value, newValue, true);
+		animPos.set(valueToNormalized(newValue, min(), max(), scale()), { duration: 0 });
+		$$props.onchange?.({ value: newValue });
+	}
+	/** @param {WheelEvent} e */
+	function onWheel(e) {
+		if (disabled()) return;
+		e.preventDefault();
+		if (dragging) return;
+		const direction = -Math.sign(e.deltaY);
+		if (direction === 0) return;
+		nudge(direction, e.shiftKey);
+	}
+	/** Jump straight to a value (Home/End), clamping and firing onchange. @param {number} v */
+	function jumpTo(v) {
+		const clamped = Math.max(min(), Math.min(max(), v));
+		set(value, clamped, true);
+		animPos.set(valueToNormalized(clamped, min(), max(), scale()), { duration: 0 });
+		$$props.onchange?.({ value: clamped });
+	}
+	/**
+	* Keyboard operability for the slider role (WAI-ARIA): arrows step by one
+	* increment (same rule as scroll), Home/End jump to min/max. Handled keys are
+	* consumed so the page does not scroll; a disabled knob ignores all keys.
+	* @param {KeyboardEvent} e
+	*/
+	function onKeyDown(e) {
+		if (disabled()) return;
+		switch (e.key) {
+			case "ArrowUp":
+			case "ArrowRight":
+				e.preventDefault();
+				nudge(1, e.shiftKey);
+				break;
+			case "ArrowDown":
+			case "ArrowLeft":
+				e.preventDefault();
+				nudge(-1, e.shiftKey);
+				break;
+			case "Home":
+				e.preventDefault();
+				jumpTo(min());
+				break;
+			case "End":
+				e.preventDefault();
+				jumpTo(max());
+				break;
+		}
+	}
 	/** @param {MouseEvent} e */
 	function handleContextMenu(e) {
 		e.preventDefault();
@@ -11742,7 +11830,7 @@ function Knob($$anchor, $$props) {
 	var path = sibling(node);
 	var node_1 = sibling(path);
 	var consequent_1 = ($$anchor) => {
-		var path_1 = root_2$4();
+		var path_1 = root_2$3();
 		template_effect(() => set_attribute(path_1, "d", get(activePath)));
 		append($$anchor, path_1);
 	};
@@ -11757,7 +11845,7 @@ function Knob($$anchor, $$props) {
 	set_attribute(line, "y1", CY);
 	each(sibling(line), 17, ticks, (tick) => tick.label, ($$anchor, tick) => {
 		const xy = /* @__PURE__ */ user_derived(() => tickXY(get(tick)));
-		var text_1 = root_3$3();
+		var text_1 = root_3$2();
 		var text_2 = child(text_1, true);
 		reset(text_1);
 		template_effect(() => {
@@ -11797,19 +11885,30 @@ function Knob($$anchor, $$props) {
 		if (assignedCc() !== null) $$render(consequent_3);
 	});
 	reset(div);
-	template_effect(($0, $1) => {
+	template_effect(($0, $1, $2) => {
 		classes = set_class(div, 1, "knob-wrap svelte-1wmwmfc", null, classes, { disabled: disabled() });
 		classes_1 = set_class(span, 1, "knob-label svelte-1wmwmfc", null, classes_1, { invisible: !showLabel() });
 		set_text(text, label());
-		set_attribute(path, "d", $0);
+		set_attribute(div_1, "aria-label", label());
+		set_attribute(div_1, "aria-valuemin", min());
+		set_attribute(div_1, "aria-valuemax", max());
+		set_attribute(div_1, "aria-valuenow", get(value));
+		set_attribute(div_1, "aria-valuetext", $0);
+		set_attribute(path, "d", $1);
 		set_attribute(line, "x2", get(indicatorEnd).x);
 		set_attribute(line, "y2", get(indicatorEnd).y);
 		classes_2 = set_class(span_2, 1, "knob-value svelte-1wmwmfc", null, classes_2, { invisible: !showValue() });
-		set_text(text_4, $1);
-	}, [() => arcPath(1), () => formatValue(get(value), unit())]);
+		set_text(text_4, $2);
+	}, [
+		() => formatValue(get(value), unit()),
+		() => arcPath(1),
+		() => formatValue(get(value), unit())
+	]);
 	delegated("pointerdown", div_1, onPointerDown);
 	delegated("pointermove", div_1, onPointerMove);
 	delegated("pointerup", div_1, onPointerUp);
+	event("wheel", div_1, onWheel);
+	delegated("keydown", div_1, onKeyDown);
 	delegated("dblclick", div_1, onDblClick);
 	delegated("contextmenu", div_1, handleContextMenu);
 	append($$anchor, div);
@@ -11820,6 +11919,7 @@ delegate([
 	"pointerdown",
 	"pointermove",
 	"pointerup",
+	"keydown",
 	"dblclick",
 	"contextmenu"
 ]);
@@ -11827,14 +11927,9 @@ delegate([
 //#region src/audio/wheelPhysicsStore.js
 /** localStorage key (in the established `synth-d:` namespace). */
 var STORAGE_KEY = "synth-d:wheel-physics";
-/** The wheels persisted under this key. */
-var WHEELS = ["mod", "pitch"];
-/** Default physics for both wheels (a fresh object per call — never shared). */
+/** Default PITCH physics (a fresh object per call — never shared). */
 function defaultWheelPhysics() {
-	return {
-		mod: { ...DEFAULT_PHYSICS },
-		pitch: { ...DEFAULT_PHYSICS }
-	};
+	return { pitch: { ...DEFAULT_PHYSICS } };
 }
 /** @param {string} key @returns {string | null} */
 function safeGet$1(key) {
@@ -11878,9 +11973,10 @@ function validateWheel(raw) {
 	};
 }
 /**
-* Load both wheels' physics. Absent, partial, or corrupt data resolves to
-* per-field defaults so the wheels always function.
-* @returns {{ mod: { mass: number, spring: number, damping: number }, pitch: { mass: number, spring: number, damping: number } }}
+* Load the PITCH wheel's physics. Absent, partial, or corrupt data resolves to
+* per-field defaults so the wheels always function. A legacy `mod` field is
+* ignored (not read, not re-saved).
+* @returns {{ pitch: { mass: number, spring: number, damping: number } }}
 */
 function loadWheelPhysics() {
 	const raw = safeGet$1(STORAGE_KEY);
@@ -11890,27 +11986,22 @@ function loadWheelPhysics() {
 		const obj = JSON.parse(raw);
 		if (obj && typeof obj === "object") parsed = obj;
 	} catch {}
-	return {
-		mod: validateWheel(parsed.mod),
-		pitch: validateWheel(parsed.pitch)
-	};
+	return { pitch: validateWheel(parsed.pitch) };
 }
 /**
-* Persist both wheels' physics. Each field is validated/clamped through the
-* same path as load, so only in-range numbers are written. Storage failure is
-* non-fatal.
-* @param {{ mod?: unknown, pitch?: unknown }} [physics]
+* Persist the PITCH wheel's physics. Each field is validated/clamped through
+* the same path as load, so only in-range numbers are written; any `mod` field
+* on the input is dropped. Storage failure is non-fatal.
+* @param {{ pitch?: unknown }} [physics]
 * @returns {boolean} success
 */
 function saveWheelPhysics(physics = {}) {
-	/** @type {Record<string, { mass: number, spring: number, damping: number }>} */
-	const clean = {};
-	for (const wheel of WHEELS) clean[wheel] = validateWheel(physics?.[wheel]);
+	const clean = { pitch: validateWheel(physics?.pitch) };
 	return safeSet$1(STORAGE_KEY, JSON.stringify(clean));
 }
 /**
-* Reset both wheels to default physics and persist them.
-* @returns {{ mod: { mass: number, spring: number, damping: number }, pitch: { mass: number, spring: number, damping: number } }}
+* Reset the PITCH wheel to default physics and persist it.
+* @returns {{ pitch: { mass: number, spring: number, damping: number } }}
 */
 function resetWheelPhysics() {
 	const defaults = defaultWheelPhysics();
@@ -11919,9 +12010,7 @@ function resetWheelPhysics() {
 }
 //#endregion
 //#region src/components/WheelsPanel.svelte
-var root_3$2 = /* @__PURE__ */ from_html(`<div class="section-divider svelte-1u30a8q"></div>`);
-var root_2$3 = /* @__PURE__ */ from_html(`<!> <div class="physics-group svelte-1u30a8q"><span class="group-label svelte-1u30a8q"> </span> <div class="knobs svelte-1u30a8q"><!> <!> <!></div></div>`, 1);
-var root_1$3 = /* @__PURE__ */ from_html(`<div class="popup svelte-1u30a8q" role="dialog" aria-label="wheel physics" tabindex="-1"><!> <button class="reset svelte-1u30a8q">reset</button></div>`);
+var root_1$3 = /* @__PURE__ */ from_html(`<div class="popup svelte-1u30a8q" role="dialog" aria-label="wheel physics" tabindex="-1"><div class="physics-group svelte-1u30a8q"><span class="group-label svelte-1u30a8q">PITCH PHYSICS</span> <div class="knobs svelte-1u30a8q"><!> <!> <!></div></div> <button class="reset svelte-1u30a8q">reset</button></div>`);
 var root$14 = /* @__PURE__ */ from_html(`<div class="wheels-panel svelte-1u30a8q"><div class="wheels svelte-1u30a8q"><!> <!></div> <button class="gear svelte-1u30a8q" aria-haspopup="dialog" aria-label="wheel physics settings" title="Wheel physics"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"></path></svg></button> <!></div>`);
 function WheelsPanel($$anchor, $$props) {
 	push($$props, true);
@@ -11965,16 +12054,16 @@ function WheelsPanel($$anchor, $$props) {
 		}
 	}
 	/**
-	* Update one physics field and persist. Bound to each knob's onchange.
-	* @param {'mod' | 'pitch'} wheel
+	* Update one PITCH physics field and persist. Bound to each knob's onchange.
+	* The MOD wheel has no spring physics, so only PITCH is tunable.
 	* @param {'mass' | 'spring' | 'damping'} field
 	* @param {number} value
 	*/
-	function updatePhysics(wheel, field, value) {
+	function updatePhysics(field, value) {
 		set(physics, {
 			...get(physics),
-			[wheel]: {
-				...get(physics)[wheel],
+			pitch: {
+				...get(physics).pitch,
 				[field]: value
 			}
 		}, true);
@@ -12008,15 +12097,8 @@ function WheelsPanel($$anchor, $$props) {
 		get externalNonce() {
 			return $$props.modExternalNonce;
 		},
-		get mass() {
-			return get(physics).mod.mass;
-		},
-		get spring() {
-			return get(physics).mod.spring;
-		},
-		get damping() {
-			return get(physics).mod.damping;
-		},
+		springBack: false,
+		rest: 0,
 		formatValueText: modValueText,
 		onchange: (e) => $$props.onModChange?.({
 			param: "modWheel",
@@ -12047,89 +12129,73 @@ function WheelsPanel($$anchor, $$props) {
 	var button = sibling(div_1, 2);
 	bind_this(button, ($$value) => set(gearEl, $$value), () => get(gearEl));
 	var node_2 = sibling(button, 2);
-	var consequent_1 = ($$anchor) => {
+	var consequent = ($$anchor) => {
 		var div_2 = root_1$3();
-		var node_3 = child(div_2);
-		each(node_3, 18, () => ["mod", "pitch"], (wheel) => wheel, ($$anchor, wheel, i) => {
-			var fragment = root_2$3();
-			var node_4 = first_child(fragment);
-			var consequent = ($$anchor) => {
-				append($$anchor, root_3$2());
-			};
-			if_block(node_4, ($$render) => {
-				if (get(i) > 0) $$render(consequent);
-			});
-			var div_4 = sibling(node_4, 2);
-			var span = child(div_4);
-			var text = child(span, true);
-			reset(span);
-			var div_5 = sibling(span, 2);
-			var node_5 = child(div_5);
-			Knob(node_5, {
-				label: "MASS",
-				get min() {
-					return PHYSICS_RANGES.mass.min;
-				},
-				get max() {
-					return PHYSICS_RANGES.mass.max;
-				},
-				get default() {
-					return PHYSICS_RANGES.mass.default;
-				},
-				get externalValue() {
-					return get(physics)[wheel].mass;
-				},
-				showArc: false,
-				onchange: (e) => updatePhysics(wheel, "mass", e.value)
-			});
-			var node_6 = sibling(node_5, 2);
-			Knob(node_6, {
-				label: "SPRING",
-				get min() {
-					return PHYSICS_RANGES.spring.min;
-				},
-				get max() {
-					return PHYSICS_RANGES.spring.max;
-				},
-				get default() {
-					return PHYSICS_RANGES.spring.default;
-				},
-				get externalValue() {
-					return get(physics)[wheel].spring;
-				},
-				showArc: false,
-				onchange: (e) => updatePhysics(wheel, "spring", e.value)
-			});
-			Knob(sibling(node_6, 2), {
-				label: "DAMP",
-				get min() {
-					return PHYSICS_RANGES.damping.min;
-				},
-				get max() {
-					return PHYSICS_RANGES.damping.max;
-				},
-				get default() {
-					return PHYSICS_RANGES.damping.default;
-				},
-				get externalValue() {
-					return get(physics)[wheel].damping;
-				},
-				showArc: false,
-				onchange: (e) => updatePhysics(wheel, "damping", e.value)
-			});
-			reset(div_5);
-			reset(div_4);
-			template_effect(() => set_text(text, wheel === "mod" ? "MOD PHYSICS" : "PITCH PHYSICS"));
-			append($$anchor, fragment);
+		var div_3 = child(div_2);
+		var div_4 = sibling(child(div_3), 2);
+		var node_3 = child(div_4);
+		Knob(node_3, {
+			label: "MASS",
+			get min() {
+				return PHYSICS_RANGES.mass.min;
+			},
+			get max() {
+				return PHYSICS_RANGES.mass.max;
+			},
+			get default() {
+				return PHYSICS_RANGES.mass.default;
+			},
+			get externalValue() {
+				return get(physics).pitch.mass;
+			},
+			showArc: false,
+			onchange: (e) => updatePhysics("mass", e.value)
 		});
-		var button_1 = sibling(node_3, 2);
+		var node_4 = sibling(node_3, 2);
+		Knob(node_4, {
+			label: "SPRING",
+			get min() {
+				return PHYSICS_RANGES.spring.min;
+			},
+			get max() {
+				return PHYSICS_RANGES.spring.max;
+			},
+			get default() {
+				return PHYSICS_RANGES.spring.default;
+			},
+			get externalValue() {
+				return get(physics).pitch.spring;
+			},
+			showArc: false,
+			onchange: (e) => updatePhysics("spring", e.value)
+		});
+		Knob(sibling(node_4, 2), {
+			label: "DAMP",
+			get min() {
+				return PHYSICS_RANGES.damping.min;
+			},
+			get max() {
+				return PHYSICS_RANGES.damping.max;
+			},
+			get default() {
+				return PHYSICS_RANGES.damping.default;
+			},
+			get externalValue() {
+				return get(physics).pitch.damping;
+			},
+			showArc: false,
+			onchange: (e) => updatePhysics("damping", e.value)
+		});
+		reset(div_4);
+		reset(div_3);
+		var button_1 = sibling(div_3, 2);
 		reset(div_2);
 		bind_this(div_2, ($$value) => set(popupEl, $$value), () => get(popupEl));
 		delegated("click", button_1, resetPhysics);
 		append($$anchor, div_2);
 	};
 	if_block(node_2, ($$render) => {
-		if (get(open)) $$render(consequent_1);
+		if (get(open)) $$render(consequent);
 	});
 	reset(div);
 	bind_this(div, ($$value) => set(rootEl, $$value), () => get(rootEl));
@@ -13871,6 +13937,7 @@ function Shell($$anchor, $$props) {
 	const branch = "92/merge";
 	const versionLabel = branch === "main" ? `v1.8.0` : `v1.8.0 (${branch})`;
 	const WHEEL_REST = .5;
+	const MOD_REST = 0;
 	resetParams();
 	setActivePatch(null, PARAM_DEFAULTS);
 	let keyboardBase = /* @__PURE__ */ state(36);
@@ -13883,7 +13950,7 @@ function Shell($$anchor, $$props) {
 	let selectedDeviceId = /* @__PURE__ */ state(null);
 	let learningParam = /* @__PURE__ */ state(null);
 	let midiActiveNotes = /* @__PURE__ */ state(0);
-	let modWheelExternal = /* @__PURE__ */ state(WHEEL_REST);
+	let modWheelExternal = /* @__PURE__ */ state(MOD_REST);
 	let modWheelNonce = /* @__PURE__ */ state(0);
 	let pitchWheelExternal = /* @__PURE__ */ state(WHEEL_REST);
 	let pitchWheelNonce = /* @__PURE__ */ state(0);
@@ -13964,7 +14031,7 @@ function Shell($$anchor, $$props) {
 			get(keyboardReleaseAll)?.();
 			await powerOff();
 			set(powered, false);
-			setModWheelExternal(WHEEL_REST);
+			setModWheelExternal(MOD_REST);
 			setPitchWheelExternal(WHEEL_REST);
 			set(currentNoteFreq, null);
 		} else {
@@ -13974,9 +14041,9 @@ function Shell($$anchor, $$props) {
 				set(analyser, getAnalyser(), true);
 				set(powered, true);
 				applyParams(activePatch.params, true);
-				setModWheelExternal(WHEEL_REST);
+				setModWheelExternal(MOD_REST);
 				setPitchWheelExternal(WHEEL_REST);
-				setParam("modWheel", WHEEL_REST);
+				setParam("modWheel", MOD_REST);
 			} catch (err) {
 				console.error("Power on failed:", err);
 			} finally {
