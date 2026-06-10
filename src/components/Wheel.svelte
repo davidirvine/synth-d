@@ -172,6 +172,28 @@
       if (heldArrows.size === 0) startSpring()
     }
   }
+
+  /** @param {WheelEvent} e */
+  function onWheel(e) {
+    // Consume the gesture so the page never scrolls.
+    e.preventDefault()
+    // A pointer drag owns the cursor — ignore wheel input while dragging.
+    if (dragging) return
+    // Scroll up (deltaY < 0) moves the cursor up; one notch = one KEY_STEP
+    // regardless of deltaY magnitude (device-independent), matching the arrows.
+    const direction = -Math.sign(e.deltaY)
+    if (direction === 0) return
+    // `value` is updated each RAF frame by tick(), so it already holds the live
+    // in-flight cursor position — reading it here picks up a spring-back already
+    // in progress rather than a stale pre-spring target. Stop that loop, apply
+    // the increment from the live position, and restart from there.
+    cancelSpring()
+    value = Math.max(0, Math.min(1, value + direction * KEY_STEP))
+    onchange?.({ value })
+    // PITCH (springBack=true) springs back from the adjusted position; MOD
+    // (springBack=false) no-ops, so the scrolled value holds.
+    startSpring()
+  }
 </script>
 
 <div class="wheel">
@@ -189,6 +211,7 @@
     onpointermove={onPointerMove}
     onpointerup={onPointerUp}
     onpointercancel={onPointerUp}
+    onwheel={onWheel}
     onkeydown={onKeyDown}
     onkeyup={onKeyUp}
   >
