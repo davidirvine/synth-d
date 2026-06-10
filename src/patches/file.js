@@ -60,3 +60,41 @@ export function patchFilename(name) {
   const safe = out.replace(/_+/g, '_').replace(/^_+|_+$/g, '')
   return `${safe || 'patch'}.json`
 }
+
+/**
+ * Upper bound on the size of an importable file, in bytes. A real single-patch
+ * file is well under a kilobyte; this ceiling (1 MiB) is far above any genuine
+ * patch and exists only to cap the cost of `JSON.parse` and the coercion loop on
+ * a crafted or accidental large input.
+ */
+export const MAX_IMPORT_BYTES = 1024 * 1024
+
+const textEncoder = new TextEncoder()
+
+/**
+ * Parse untrusted import text into a JSON value, bounding cost first. Rejects
+ * input above {@link MAX_IMPORT_BYTES} before parsing, then rejects anything that
+ * is not valid JSON. Returns the parsed value on success; never throws — failures
+ * come back as `{ ok: false, error }` in the `storage.js` house style.
+ * @param {unknown} text
+ * @returns {{ ok: true, value: unknown } | { ok: false, error: string }}
+ */
+export function parsePatchFile(text) {
+  if (typeof text !== 'string') {
+    return { ok: false, error: 'file contents are not text' }
+  }
+  // A UTF-8 string's byte length is always ≥ its character count, so a string
+  // already longer than the ceiling in characters is certainly over it in bytes
+  // — reject it without measuring. Past this gate the input is ≤ ceiling chars,
+  // so the exact byte measurement below is cheap.
+  if (text.length > MAX_IMPORT_BYTES || textEncoder.encode(text).length > MAX_IMPORT_BYTES) {
+    return { ok: false, error: 'file is too large to import' }
+  }
+  let value
+  try {
+    value = JSON.parse(text)
+  } catch {
+    return { ok: false, error: 'file is not valid JSON' }
+  }
+  return { ok: true, value }
+}
