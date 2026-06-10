@@ -12,8 +12,8 @@
 
 ## 3. Physics persistence drops the MOD branch
 
-- [ ] 3.1 In `wheelPhysicsStore.js`, move the save/load/validate shape from `{ mod, pitch }` to `{ pitch }`; ignore (do not read or re-save) a legacy `mod` field on load
-- [ ] 3.2 Update `wheelPhysicsStore.test.js`: pitch-only save/load round-trip, per-field fallback, and a legacy `{ mod, pitch }` blob that loads without error and is migrated on next save
+- [x] 3.1 In `wheelPhysicsStore.js`, move the save/load/validate shape from `{ mod, pitch }` to `{ pitch }`; ignore (do not read or re-save) a legacy `mod` field on load
+- [x] 3.2 Update `wheelPhysicsStore.test.js`: pitch-only save/load round-trip, per-field fallback, and a legacy `{ mod, pitch }` blob that loads without error and is migrated on next save
 
 ## 4. Physics settings popup becomes PITCH-only
 

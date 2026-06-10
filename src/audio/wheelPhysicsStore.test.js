@@ -13,27 +13,27 @@ beforeEach(() => {
 })
 
 describe('wheelPhysicsStore — defaults', () => {
-  it('defaultWheelPhysics returns both wheels at the documented defaults', () => {
+  it('defaultWheelPhysics returns the PITCH wheel at the documented defaults', () => {
     expect(defaultWheelPhysics()).toEqual({
-      mod: { ...DEFAULT_PHYSICS },
       pitch: { ...DEFAULT_PHYSICS },
     })
+  })
+
+  it('does not include a mod branch (the MOD wheel has no persisted physics)', () => {
+    expect(defaultWheelPhysics()).not.toHaveProperty('mod')
   })
 
   it('returns a fresh object each call (no shared mutable state)', () => {
     const a = defaultWheelPhysics()
     const b = defaultWheelPhysics()
     expect(a).not.toBe(b)
-    expect(a.mod).not.toBe(b.mod)
+    expect(a.pitch).not.toBe(b.pitch)
   })
 })
 
 describe('wheelPhysicsStore — round trip', () => {
-  it('saves and loads custom physics for both wheels', () => {
-    const physics = {
-      mod: { mass: 2, spring: 30, damping: 0.5 },
-      pitch: { mass: 0.5, spring: 10, damping: 0.8 },
-    }
+  it('saves and loads custom PITCH physics', () => {
+    const physics = { pitch: { mass: 0.5, spring: 10, damping: 0.8 } }
     expect(saveWheelPhysics(physics)).toBe(true)
     expect(loadWheelPhysics()).toEqual(physics)
   })
@@ -41,6 +41,44 @@ describe('wheelPhysicsStore — round trip', () => {
   it('persists under the synth-d:wheel-physics key', () => {
     saveWheelPhysics(defaultWheelPhysics())
     expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull()
+  })
+
+  it('never writes a mod field, even if one is passed in', () => {
+    // @ts-expect-error deliberately passing a legacy-shaped object
+    saveWheelPhysics({ mod: { mass: 2, spring: 30, damping: 0.5 }, pitch: { ...DEFAULT_PHYSICS } })
+    const stored = JSON.parse(/** @type {string} */ (localStorage.getItem(STORAGE_KEY)))
+    expect(stored).not.toHaveProperty('mod')
+    expect(stored).toEqual({ pitch: { ...DEFAULT_PHYSICS } })
+  })
+})
+
+describe('wheelPhysicsStore — legacy mod field tolerance', () => {
+  it('loads a legacy { mod, pitch } blob without error, ignoring mod', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        mod: { mass: 4, spring: 40, damping: 0.9 },
+        pitch: { mass: 0.5, spring: 10, damping: 0.8 },
+      })
+    )
+    const loaded = loadWheelPhysics()
+    expect(loaded).toEqual({ pitch: { mass: 0.5, spring: 10, damping: 0.8 } })
+    expect(loaded).not.toHaveProperty('mod')
+  })
+
+  it('migrates the stored shape to { pitch } on the next save', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        mod: { mass: 4, spring: 40, damping: 0.9 },
+        pitch: { mass: 0.5, spring: 10, damping: 0.8 },
+      })
+    )
+    // A round trip (load → save) drops the stale mod field.
+    saveWheelPhysics(loadWheelPhysics())
+    const stored = JSON.parse(/** @type {string} */ (localStorage.getItem(STORAGE_KEY)))
+    expect(stored).not.toHaveProperty('mod')
+    expect(stored).toEqual({ pitch: { mass: 0.5, spring: 10, damping: 0.8 } })
   })
 })
 
@@ -50,28 +88,27 @@ describe('wheelPhysicsStore — fallback on missing/partial/corrupt data', () =>
   })
 
   it('fills in per-field defaults when a field is missing', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ mod: { mass: 3 } }))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ pitch: { mass: 3 } }))
     const loaded = loadWheelPhysics()
-    expect(loaded.mod.mass).toBe(3)
-    expect(loaded.mod.spring).toBe(DEFAULT_PHYSICS.spring)
-    expect(loaded.mod.damping).toBe(DEFAULT_PHYSICS.damping)
-    expect(loaded.pitch).toEqual(DEFAULT_PHYSICS)
+    expect(loaded.pitch.mass).toBe(3)
+    expect(loaded.pitch.spring).toBe(DEFAULT_PHYSICS.spring)
+    expect(loaded.pitch.damping).toBe(DEFAULT_PHYSICS.damping)
   })
 
   it('falls back when a field is out of range', () => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ mod: { mass: 999, spring: 0, damping: 5 }, pitch: {} })
+      JSON.stringify({ pitch: { mass: 999, spring: 0, damping: 5 } })
     )
     const loaded = loadWheelPhysics()
-    expect(loaded.mod.mass).toBe(DEFAULT_PHYSICS.mass)
-    expect(loaded.mod.spring).toBe(DEFAULT_PHYSICS.spring)
-    expect(loaded.mod.damping).toBe(DEFAULT_PHYSICS.damping)
+    expect(loaded.pitch.mass).toBe(DEFAULT_PHYSICS.mass)
+    expect(loaded.pitch.spring).toBe(DEFAULT_PHYSICS.spring)
+    expect(loaded.pitch.damping).toBe(DEFAULT_PHYSICS.damping)
   })
 
   it('falls back when a field is non-finite (NaN serializes to null)', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ mod: { mass: null } }))
-    expect(loadWheelPhysics().mod.mass).toBe(DEFAULT_PHYSICS.mass)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ pitch: { mass: null } }))
+    expect(loadWheelPhysics().pitch.mass).toBe(DEFAULT_PHYSICS.mass)
   })
 
   it('does not throw on corrupt JSON, returning defaults', () => {
@@ -81,13 +118,10 @@ describe('wheelPhysicsStore — fallback on missing/partial/corrupt data', () =>
   })
 
   it('accepts boundary values exactly at min and max', () => {
-    saveWheelPhysics({
-      mod: { mass: 0.05, spring: 1, damping: 0.05 },
-      pitch: { mass: 5, spring: 70, damping: 1 },
-    })
-    const loaded = loadWheelPhysics()
-    expect(loaded.mod).toEqual({ mass: 0.05, spring: 1, damping: 0.05 })
-    expect(loaded.pitch).toEqual({ mass: 5, spring: 70, damping: 1 })
+    saveWheelPhysics({ pitch: { mass: 5, spring: 70, damping: 1 } })
+    expect(loadWheelPhysics().pitch).toEqual({ mass: 5, spring: 70, damping: 1 })
+    saveWheelPhysics({ pitch: { mass: 0.05, spring: 1, damping: 0.05 } })
+    expect(loadWheelPhysics().pitch).toEqual({ mass: 0.05, spring: 1, damping: 0.05 })
   })
 })
 
@@ -96,44 +130,34 @@ describe('wheelPhysicsStore — save return value', () => {
     expect(saveWheelPhysics(defaultWheelPhysics())).toBe(true)
   })
 
-  it('only writes in-range values (a non-object wheel becomes all defaults)', () => {
+  it('only writes in-range values (a non-object pitch becomes all defaults)', () => {
     // @ts-expect-error deliberately malformed input
-    saveWheelPhysics({ mod: 42, pitch: null })
-    const loaded = loadWheelPhysics()
-    expect(loaded.mod).toEqual(DEFAULT_PHYSICS)
-    expect(loaded.pitch).toEqual(DEFAULT_PHYSICS)
+    saveWheelPhysics({ pitch: 42 })
+    expect(loadWheelPhysics().pitch).toEqual(DEFAULT_PHYSICS)
   })
 
   it('clamps out-of-range numbers to defaults before writing, incl. non-finite', () => {
-    saveWheelPhysics({
-      mod: { mass: Infinity, spring: 0.5, damping: 0.3 },
-      pitch: { mass: 1, spring: 20, damping: 2 },
-    })
-    const loaded = loadWheelPhysics()
+    saveWheelPhysics({ pitch: { mass: Infinity, spring: 0.5, damping: 0.3 } })
     // mass Infinity → default; spring 0.5 (< min 1) → default; damping 0.3 ok.
-    expect(loaded.mod).toEqual({
+    expect(loadWheelPhysics().pitch).toEqual({
       mass: DEFAULT_PHYSICS.mass,
       spring: DEFAULT_PHYSICS.spring,
       damping: 0.3,
     })
-    // pitch damping 2 (> max 1) → default; rest ok.
-    expect(loaded.pitch).toEqual({ mass: 1, spring: 20, damping: DEFAULT_PHYSICS.damping })
   })
 })
 
 describe('wheelPhysicsStore — per-field range boundaries', () => {
   it('rejects a value just below min and just above max for each field', () => {
-    saveWheelPhysics({
-      mod: { mass: 0.05 - 0.0001, spring: 1 - 0.0001, damping: 0.05 - 0.0001 },
-      pitch: { mass: 5 + 0.0001, spring: 70 + 0.0001, damping: 1 + 0.0001 },
-    })
-    expect(loadWheelPhysics().mod).toEqual(DEFAULT_PHYSICS)
+    saveWheelPhysics({ pitch: { mass: 5 + 0.0001, spring: 70 + 0.0001, damping: 1 + 0.0001 } })
+    expect(loadWheelPhysics().pitch).toEqual(DEFAULT_PHYSICS)
+    saveWheelPhysics({ pitch: { mass: 0.05 - 0.0001, spring: 1 - 0.0001, damping: 0.05 - 0.0001 } })
     expect(loadWheelPhysics().pitch).toEqual(DEFAULT_PHYSICS)
   })
 
   it('rejects a non-number field (string) in favour of the default', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ mod: { mass: '3' } }))
-    expect(loadWheelPhysics().mod.mass).toBe(DEFAULT_PHYSICS.mass)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ pitch: { mass: '3' } }))
+    expect(loadWheelPhysics().pitch.mass).toBe(DEFAULT_PHYSICS.mass)
   })
 
   it('treats a non-object top-level payload as absent', () => {
@@ -143,7 +167,7 @@ describe('wheelPhysicsStore — per-field range boundaries', () => {
 
   it('treats a stored JSON null as absent without throwing', () => {
     // `typeof null === 'object'` but null is falsy — the guard must reject it
-    // rather than dereference `null.mod`.
+    // rather than dereference `null.pitch`.
     localStorage.setItem(STORAGE_KEY, 'null')
     expect(() => loadWheelPhysics()).not.toThrow()
     expect(loadWheelPhysics()).toEqual(defaultWheelPhysics())
@@ -189,10 +213,7 @@ describe('wheelPhysicsStore — localStorage unavailable', () => {
 
 describe('wheelPhysicsStore — reset', () => {
   it('overwrites stored physics with defaults and returns them', () => {
-    saveWheelPhysics({
-      mod: { mass: 2, spring: 30, damping: 0.5 },
-      pitch: { mass: 2, spring: 30, damping: 0.5 },
-    })
+    saveWheelPhysics({ pitch: { mass: 2, spring: 30, damping: 0.5 } })
     const result = resetWheelPhysics()
     expect(result).toEqual(defaultWheelPhysics())
     expect(loadWheelPhysics()).toEqual(defaultWheelPhysics())
