@@ -85,7 +85,8 @@
   let midiActiveNotes = $state(0)
 
   // Wheel external (programmatic) values: drive each cursor on power transitions
-  // and incoming MIDI (CC 1 → MOD, pitch-bend → PITCH). Both rest at center.
+  // and incoming MIDI (CC 1 → MOD, pitch-bend → PITCH). PITCH rests at center
+  // (WHEEL_REST 0.5); MOD rests at the bottom (MOD_REST 0, zero modulation).
   // Each is paired with a nonce that is bumped on every external write so the
   // wheel re-snaps and cancels its spring even when the new value equals the
   // previous one (Svelte dedupes same-value assignments, which would otherwise
