@@ -4,6 +4,7 @@
   // via the shared damped-harmonic-oscillator integrator. The component is
   // display-agnostic — it emits `onchange({ value })` (matching Knob) and leaves
   // the synth-param mapping and aria value-text formatting to its parent.
+  import { untrack } from 'svelte'
   import { SvelteSet } from 'svelte/reactivity'
   import { REST, stepSpring, isAtRest, DEFAULT_PHYSICS } from '../audio/wheelPhysics.js'
 
@@ -15,6 +16,7 @@
     mass?: number,
     spring?: number,
     damping?: number,
+    rest?: number,
     formatValueText?: (value: number) => string,
     onchange?: (e: { value: number }) => void,
   }} */
@@ -23,6 +25,7 @@
     externalValue = undefined,
     externalNonce = 0,
     springBack = true,
+    rest = REST,
     mass = DEFAULT_PHYSICS.mass,
     spring = DEFAULT_PHYSICS.spring,
     damping = DEFAULT_PHYSICS.damping,
@@ -36,7 +39,10 @@
   const CURSOR_THICKNESS = 4
   const KEY_STEP = 0.05
 
-  let value = $state(REST)
+  // Initialise the cursor at this wheel's `rest` (PITCH 0.5, MOD 0). Read once
+  // via untrack so the initializer doesn't subscribe to the prop — `rest` is
+  // fixed per instance and external/drag updates own `value` thereafter.
+  let value = $state(untrack(() => rest))
   let cursorTop = $derived((1 - value) * (TRACK_HEIGHT - CURSOR_THICKNESS))
 
   // Plain (untracked) interaction state. `dragging` is deliberately NOT $state:
@@ -48,7 +54,7 @@
   // instead of re-snapping to a stale external value.
   let dragging = false
   let startY = 0
-  let startVal = REST
+  let startVal = untrack(() => rest)
 
   // RAF spring-back loop state.
   let rafId = /** @type {number | null} */ (null)
@@ -66,11 +72,11 @@
   function tick(now) {
     const dt = (now - lastTime) / 1000
     lastTime = now
-    const next = stepSpring({ value, velocity, mass, spring, dampingRatio: damping, dt })
+    const next = stepSpring({ value, velocity, mass, spring, dampingRatio: damping, dt, rest })
     value = next.value
     velocity = next.velocity
-    if (isAtRest(value, velocity)) {
-      value = REST
+    if (isAtRest(value, velocity, rest)) {
+      value = rest
       velocity = 0
       rafId = null
       onchange?.({ value })

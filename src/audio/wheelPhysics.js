@@ -55,17 +55,22 @@ function clamp(v, min, max) {
 /**
  * Advance the damped oscillator one step.
  *
- * @param {{ value: number, velocity: number, mass: number, spring: number, dampingRatio: number, dt: number }} state
+ * `rest` is the spring target (the position the cursor is pulled toward);
+ * displacement is measured from it. It defaults to {@link REST} (0.5) so callers
+ * that omit it keep the original centre-resting behaviour, and a spring wheel
+ * with a different rest returns to its own rest rather than the module constant.
+ *
+ * @param {{ value: number, velocity: number, mass: number, spring: number, dampingRatio: number, dt: number, rest?: number }} state
  * @returns {{ value: number, velocity: number }} the next value/velocity
  */
-export function stepSpring({ value, velocity, mass, spring, dampingRatio, dt }) {
+export function stepSpring({ value, velocity, mass, spring, dampingRatio, dt, rest = REST }) {
   const step = clamp(dt, 0, MAX_DT)
   // c = ζ · 2·√(k·m): critical damping at ζ=1.
   const c = dampingRatio * 2 * Math.sqrt(spring * mass)
-  const x = value - REST
+  const x = value - rest
   const a = (-spring * x - c * velocity) / mass
   const nextVelocity = velocity + a * step
-  const rawValue = REST + (x + nextVelocity * step)
+  const rawValue = rest + (x + nextVelocity * step)
   const nextValue = clamp(rawValue, 0, 1)
   // If the cursor hit an edge, stop it there (inelastic) rather than letting
   // velocity keep accumulating past the clamp — otherwise an extreme underdamped
@@ -76,13 +81,15 @@ export function stepSpring({ value, velocity, mass, spring, dampingRatio, dt }) 
 }
 
 /**
- * True once the cursor is within a small threshold of REST with negligible
- * velocity — the loop stops here so a settled wheel emits no further frames.
+ * True once the cursor is within a small threshold of its `rest` target with
+ * negligible velocity — the loop stops here so a settled wheel emits no further
+ * frames. `rest` defaults to {@link REST} (0.5) to match the spring target.
  *
  * @param {number} value
  * @param {number} velocity
+ * @param {number} [rest]
  * @returns {boolean}
  */
-export function isAtRest(value, velocity) {
-  return Math.abs(value - REST) < REST_VALUE_EPSILON && Math.abs(velocity) < REST_VELOCITY_EPSILON
+export function isAtRest(value, velocity, rest = REST) {
+  return Math.abs(value - rest) < REST_VALUE_EPSILON && Math.abs(velocity) < REST_VELOCITY_EPSILON
 }
