@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.7.0...subtractive-synth-v1.8.0) (2026-06-10)
+
+
+### Features
+
+* patch import/export ([#91](https://github.com/davidirvine/synth-d/issues/91)) ([0601c31](https://github.com/davidirvine/synth-d/commit/0601c31031efcd9ab770a80c51dc794e8f26c590))
+* scroll-wheel input for knobs and wheels; MOD wheel becomes a non-spring control resting at 0 ([#93](https://github.com/davidirvine/synth-d/issues/93)) ([62ea2ca](https://github.com/davidirvine/synth-d/commit/62ea2ca04fe7d9766cc8ccbc7496e0b434f1eb17))
+
 ## [1.7.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.6.0...subtractive-synth-v1.7.0) (2026-05-23)
 
 
