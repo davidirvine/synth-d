@@ -169,6 +169,65 @@ describe('Wheel — keyboard', () => {
   })
 })
 
+describe('Wheel — springBack=false (non-spring MOD wheel)', () => {
+  it('does not start a spring loop on release — the cursor holds', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { springBack: false, rest: 0, onchange } })
+    const el = track(container)
+    await fireEvent.pointerDown(el, { clientY: 100, pointerId: 1 })
+    await fireEvent.pointerMove(el, { clientY: 84, pointerId: 1 }) // value 0.2 above rest 0
+    await fireEvent.pointerUp(el, { pointerId: 1 })
+
+    // No RAF frame is scheduled, and the cursor stays where it was released.
+    expect(rafMap.size).toBe(0)
+    flushFrames(1000)
+    const final = onchange.mock.calls.at(-1)?.[0].value
+    expect(final).toBeCloseTo(0.2, 5)
+  })
+
+  it('holds after an arrow-key adjustment instead of springing back', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, {
+      props: { springBack: false, rest: 0, externalValue: 0.3, onchange },
+    })
+    const el = track(container)
+    await fireEvent.keyDown(el, { key: 'ArrowUp' }) // 0.35
+    await fireEvent.keyUp(el, { key: 'ArrowUp' })
+    expect(rafMap.size).toBe(0)
+    flushFrames(1000)
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBeCloseTo(0.35, 5)
+  })
+})
+
+describe('Wheel — rest prop', () => {
+  it('initialises the cursor at rest=0 (bottom of the track)', () => {
+    const { container } = render(Wheel, { props: { springBack: false, rest: 0 } })
+    const cursor = /** @type {HTMLElement} */ (container.querySelector('.wheel-cursor'))
+    // top = (1 − value) × (trackHeight − thickness) = 1 × 56 = 56
+    expect(cursor.style.top).toBe('56px')
+    expect(track(container).getAttribute('aria-valuenow')).toBe('0')
+  })
+
+  it('defaults rest to 0.5 (centre) when the prop is omitted', () => {
+    const { container } = render(Wheel, { props: { label: 'PITCH' } })
+    const cursor = /** @type {HTMLElement} */ (container.querySelector('.wheel-cursor'))
+    // top = 0.5 × 56 = 28
+    expect(cursor.style.top).toBe('28px')
+    expect(track(container).getAttribute('aria-valuenow')).toBe('0.5')
+  })
+
+  it('a default-spring wheel still springs back toward 0.5 (regression)', async () => {
+    const onchange = vi.fn()
+    const { container } = render(Wheel, { props: { onchange } })
+    const el = track(container)
+    await fireEvent.pointerDown(el, { clientY: 100, pointerId: 1 })
+    await fireEvent.pointerMove(el, { clientY: 84, pointerId: 1 })
+    await fireEvent.pointerUp(el, { pointerId: 1 })
+    flushFrames(1000)
+    expect(onchange.mock.calls.at(-1)?.[0].value).toBeCloseTo(0.5, 2)
+  })
+})
+
 describe('Wheel — external value cancels spring-back (MIDI vs on-screen)', () => {
   it('an arriving external value cancels the spring and snaps the cursor', async () => {
     const onchange = vi.fn()

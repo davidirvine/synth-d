@@ -2,7 +2,7 @@
 
 - [x] 1.1 Add a `springBack` boolean prop (default `true`) to `Wheel.svelte`: when `false`, release does not start the RAF spring loop and the cursor holds its position
 - [x] 1.2 Add a `rest` numeric prop (default `0.5`) to `Wheel.svelte`: `rest` replaces the hard-coded `REST` as both the spring target and the default initial cursor position when no external value overrides it. The physics integration uses `displacement = position - REST`, so the spring target must be parameterized too — pass `rest` (not the module `REST` constant) as the target into the physics step so a spring wheel returns to its own `rest`. For MOD this is moot because `springBack={false}` means the spring loop never runs (task 1.1), but the parameterization keeps the two consistent. Preserve PITCH's existing value-binding/external-value behaviour and keep all value updates clamped to `[0, 1]`
-- [ ] 1.3 Add/extend `Wheel.test.js` covering `springBack={false}` (no spring-back on release) and `rest={0}` (initialises at 0), keeping the default-spring PITCH behaviour green
+- [x] 1.3 Add/extend `Wheel.test.js` covering `springBack={false}` (no spring-back on release) and `rest={0}` (initialises at 0), keeping the default-spring PITCH behaviour green
 
 ## 2. MOD wheel becomes a real (non-spring) wheel
 
