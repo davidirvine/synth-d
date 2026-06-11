@@ -14,5 +14,5 @@
 
 - [x] 3.1 Run `/opsx:verify uncap-filter-resonance` and resolve any artifact/implementation mismatch before proceeding (hard gate)
 - [x] 3.2 Run the completion-gate test suite: `npx vitest run`, `npx stryker run` (mutation ≥ 85%), `npx playwright test`
-- [ ] 3.3 Audio-verification gate (human): with the app running, confirm fat Moog squelch is reachable at high resonance, set the final resonance-ceiling value (≈0.92–0.97) and drive multiplier (≈1.5) by ear, and confirm low-resonance tones stay usable; if either constant changes, update [faust/synth.dsp](../../../faust/synth.dsp) and commit the tuned values (`fix(filter): tune resonance ceiling and drive to audio-gate values`)
+- [x] 3.3 Audio-verification gate (human): with the app running, confirm fat Moog squelch is reachable at high resonance, set the final resonance-ceiling value (≈0.92–0.97) and drive multiplier (≈1.5) by ear, and confirm low-resonance tones stay usable; if either constant changes, update [faust/synth.dsp](../../../faust/synth.dsp) and commit the tuned values (`fix(filter): tune resonance ceiling and drive to audio-gate values`)
 - [ ] 3.4 Run `roborev status`, then `roborev refine --max-iterations 3`; present results and await human approval before opening the PR
