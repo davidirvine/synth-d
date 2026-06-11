@@ -13935,7 +13935,7 @@ function Shell($$anchor, $$props) {
 		});
 	};
 	const branch = "main";
-	const versionLabel = branch === "main" ? `v1.8.0` : `v1.8.0 (${branch})`;
+	const versionLabel = branch === "main" ? `v1.9.0` : `v1.9.0 (${branch})`;
 	const WHEEL_REST = .5;
 	const MOD_REST = 0;
 	resetParams();
