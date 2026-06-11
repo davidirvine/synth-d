@@ -157,7 +157,11 @@ cutoffMod   = max(20, min(18000,
 // near-self-oscillation squelch zone is reachable without risking runaway resonance.
 // Listening-tuned (≈0.92–0.97): final value set by ear at the audio-verification gate.
 resonanceSafe = min(0.97, resonance);
-filteredSig = attach(mixerOut, mixerPeak) : ma.tanh : ve.moog_vcf_2bn(resonanceSafe, cutoffMod) : ma.tanh; // tanh: soft-clip transient overload; also adds mild saturation at high levels (intentional, not redundant with the pre-filter tanh)
+// DRIVE: fixed gain (> 1, ≤ 3) pushing more level into the pre-filter tanh so the
+// high-resonance ladder peak overdrives and fattens into the rubbery squelch. Audio-gate-
+// tuned (start ≈1.5); above ≈3 the input hard-clips through the tanh before the filter.
+DRIVE = 1.5;
+filteredSig = attach(mixerOut, mixerPeak) : _ * DRIVE : ma.tanh : ve.moog_vcf_2bn(resonanceSafe, cutoffMod) : ma.tanh; // DRIVE sits after attach so mixerPeak still reports the undriven mixer level; tanh: soft-clip transient overload, also adds mild saturation at high levels (intentional, not redundant with the pre-filter tanh)
 
 // ─── Tape Delay ───────────────────────────────────────────────────────────────
 

@@ -6,9 +6,9 @@
 
 ## 2. Add fixed input drive
 
-- [ ] 2.1 In [faust/synth.dsp](../../../faust/synth.dsp), **replace the single `filteredSig` line (line 156)** so the chain becomes `filteredSig = attach(mixerOut, mixerPeak) : _ * DRIVE : ma.tanh : ve.moog_vcf_2bn(resonanceSafe, cutoffMod) : ma.tanh;` — inserting a fixed gain `DRIVE` (`> 1` and `≤ 3`, start ≈1.5) **after** the `attach(mixerOut, mixerPeak)` expression and before the existing pre-filter `ma.tanh`. This modifies the existing binding (do not add a second `filteredSig =`); the drive sits after the `attach` so the `mixerPeak` meter still reports the undriven mixer level. Define `DRIVE` as a named constant with a comment noting it is audio-gate-tuned
-- [ ] 2.2 Validate the DSP compiles: `faust faust/synth.dsp -o /dev/null`
-- [ ] 2.3 Commit (`feat(filter): drive mixer signal into the ladder for saturated squelch`)
+- [x] 2.1 In [faust/synth.dsp](../../../faust/synth.dsp), **replace the single `filteredSig` line (line 156)** so the chain becomes `filteredSig = attach(mixerOut, mixerPeak) : _ * DRIVE : ma.tanh : ve.moog_vcf_2bn(resonanceSafe, cutoffMod) : ma.tanh;` — inserting a fixed gain `DRIVE` (`> 1` and `≤ 3`, start ≈1.5) **after** the `attach(mixerOut, mixerPeak)` expression and before the existing pre-filter `ma.tanh`. This modifies the existing binding (do not add a second `filteredSig =`); the drive sits after the `attach` so the `mixerPeak` meter still reports the undriven mixer level. Define `DRIVE` as a named constant with a comment noting it is audio-gate-tuned
+- [x] 2.2 Validate the DSP compiles: `faust faust/synth.dsp -o /dev/null`
+- [x] 2.3 Commit (`feat(filter): drive mixer signal into the ladder for saturated squelch`)
 
 ## 3. Verification
 
