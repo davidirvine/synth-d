@@ -1,8 +1,8 @@
 ## 1. Raise the resonance ceiling
 
-- [ ] 1.1 In [faust/synth.dsp](../../../faust/synth.dsp), change `resonanceSafe = min(0.7, resonance)` (line 155) to cap at the documented stability ceiling (≈0.97) instead of 0.7, so the resonance knob reaches the near-self-oscillation squelch zone
-- [ ] 1.2 Validate the DSP compiles: `faust faust/synth.dsp -o /dev/null`
-- [ ] 1.3 Commit (`fix(filter): raise resonance ceiling to stability limit so squelch zone is reachable`)
+- [x] 1.1 In [faust/synth.dsp](../../../faust/synth.dsp), change `resonanceSafe = min(0.7, resonance)` (line 155) to cap at the documented stability ceiling (≈0.97) instead of 0.7, so the resonance knob reaches the near-self-oscillation squelch zone
+- [x] 1.2 Validate the DSP compiles: `faust faust/synth.dsp -o /dev/null`
+- [x] 1.3 Commit (`fix(filter): raise resonance ceiling to stability limit so squelch zone is reachable`)
 
 ## 2. Add fixed input drive
 

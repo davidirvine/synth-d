@@ -152,7 +152,11 @@ cutoffMod   = max(20, min(18000,
               // smooth the fully-summed, clamped value — one slew-rate limit covers all modulation sources simultaneously
               : si.smooth(ba.tau2pole(0.002));
 
-resonanceSafe = min(0.7, resonance);
+// 0.97: documented ve.moog_vcf_2bn stability ceiling at SR = 48 kHz (matches the
+// 18 kHz cutoff clamp above). Caps at the stability limit rather than 1.0 so the
+// near-self-oscillation squelch zone is reachable without risking runaway resonance.
+// Listening-tuned (≈0.92–0.97): final value set by ear at the audio-verification gate.
+resonanceSafe = min(0.97, resonance);
 filteredSig = attach(mixerOut, mixerPeak) : ma.tanh : ve.moog_vcf_2bn(resonanceSafe, cutoffMod) : ma.tanh; // tanh: soft-clip transient overload; also adds mild saturation at high levels (intentional, not redundant with the pre-filter tanh)
 
 // ─── Tape Delay ───────────────────────────────────────────────────────────────
