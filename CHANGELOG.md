@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.8.0...subtractive-synth-v1.9.0) (2026-06-11)
+
+
+### Features
+
+* **filter:** uncap resonance to stability ceiling and drive the ladder for squelch ([#94](https://github.com/davidirvine/synth-d/issues/94)) ([cde375c](https://github.com/davidirvine/synth-d/commit/cde375c5659b2acacdf644458767a4b1ada613be))
+
 ## [1.8.0](https://github.com/davidirvine/synth-d/compare/subtractive-synth-v1.7.0...subtractive-synth-v1.8.0) (2026-06-10)
 
 
