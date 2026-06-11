@@ -30,8 +30,9 @@ describe.skipIf(!wasmAvailable)('filter stability — offline WASM integration',
     const dsp = new FaustMonoWebAudioDsp(instance, sampleRate, sampleSize, bufferSize, {})
     const processor = new FaustMonoOfflineProcessor(dsp, bufferSize)
 
-    // Set extreme parameters: cutoff at the 18 kHz ceiling, resonance at 0.97 (clamped to 0.7 by
-    // resonanceSafe in the DSP). These were the values that caused NaN with ve.moog_vcf.
+    // Set extreme parameters: cutoff at the 18 kHz ceiling, resonance at 0.97 (the resonanceSafe
+    // stability ceiling — reached in full, not clamped down). These were the values that caused NaN
+    // with ve.moog_vcf; this exercises the spec's "filter stays stable at the resonance ceiling" case.
     dsp.setParamValue('/synth/cutoff', 18000)
     dsp.setParamValue('/synth/resonance', 0.97)
     dsp.setParamValue('/synth/gate', 1)
